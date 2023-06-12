@@ -231,7 +231,9 @@ class CompanyStore(HeadStore):
         )
         self.msci_information = row_data.to_dict()
         self.type = "company"
-        self.information["IVA_COMPANY_RATING"] = self.msci_information["IVA_COMPANY_RATING"]
+        self.information["IVA_COMPANY_RATING"] = self.msci_information[
+            "IVA_COMPANY_RATING"
+        ]
 
     def update_sovereign_score(self):
         """
@@ -752,7 +754,7 @@ class CompanyStore(HeadStore):
                         self.information["Sub-Industry"].transition["Acronym"]
                     )
         return
-    
+
     def calculate_corporate_score(self):
         """
         Calculate corporate score for a company based on other scores.
@@ -760,9 +762,15 @@ class CompanyStore(HeadStore):
 
             (Governance Score + ESRM Score + Transition Score) / 3
         """
-        self.scores["Corporate_Score"] = np.mean([self.scores["ESRM_Score"], self.scores["Governance_Score"], self.scores["Transition_Score"]])
+        self.scores["Corporate_Score"] = np.mean(
+            [
+                self.scores["ESRM_Score"],
+                self.scores["Governance_Score"],
+                self.scores["Transition_Score"],
+            ]
+        )
         return
-    
+
     def calculate_risk_overall_score(self):
         """
         Calculate risk overall score on security level:
@@ -963,7 +971,7 @@ class MuniStore(HeadStore):
         """
         score = self.scores["Muni_Score"]
         for s in self.securities:
-            if score in [1,2]:
+            if score in [1, 2]:
                 self.securities[s].scores["Risk_Score_Overall"] = "Leading ESG Score"
             elif score in [3, 4]:
                 self.securities[s].scores["Risk_Score_Overall"] = "Average ESG Score"
@@ -1108,7 +1116,7 @@ class SecuritizedStore(HeadStore):
                 continue
 
         return
-    
+
     def calculate_risk_overall_score(self):
         """
         Calculate risk overall score on security level:
@@ -1119,7 +1127,7 @@ class SecuritizedStore(HeadStore):
         """
         for s in self.securities:
             score = self.securities[s].scores["Securitized_Score"]
-            if score in [1,2]:
+            if score in [1, 2]:
                 self.securities[s].scores["Risk_Score_Overall"] = "Leading ESG Score"
             elif score in [3, 4]:
                 self.securities[s].scores["Risk_Score_Overall"] = "Average ESG Score"
@@ -1297,7 +1305,7 @@ class SovereignStore(HeadStore):
         )
         self.information["GICS_SUB_IND"] = gics_d[gics_sub]
         return
-    
+
     def calculate_risk_overall_score(self):
         """
         Calculate risk overall score on security level:
@@ -1308,7 +1316,7 @@ class SovereignStore(HeadStore):
         """
         score = self.scores["Sovereign_Score"]
         for s in self.securities:
-            if score in [1,2]:
+            if score in [1, 2]:
                 self.securities[s].scores["Risk_Score_Overall"] = "Leading ESG Score"
             elif score in [3, 4]:
                 self.securities[s].scores["Risk_Score_Overall"] = "Average ESG Score"

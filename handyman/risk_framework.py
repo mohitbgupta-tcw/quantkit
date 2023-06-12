@@ -47,34 +47,45 @@ def risk_framework():
                 portfolio_isin in r.params["A8Funds"]
                 and "Article 8" in comp_store.information["Exclusion"]
                 and not (
-                    sec_store.information["Labeled_ESG_Type"] in ['Labeled Green', 'Labeled Social', 'Labeled Sustainable', 'Labeled Sustainable Linked']
+                    sec_store.information["Labeled_ESG_Type"]
+                    in [
+                        "Labeled Green",
+                        "Labeled Social",
+                        "Labeled Sustainable",
+                        "Labeled Sustainable Linked",
+                    ]
                     and bclass in r.params["carve_out_sectors"]
                 )
             ):
-                level_1 = 'Excluded'
-                level_2 = 'Exclusion'
-                level_3 = 'Exclusion'
-                level_4 = 'Excluded Sector'
-                level_4p = 'Excluded Sector'
+                level_1 = "Excluded"
+                level_2 = "Exclusion"
+                level_3 = "Exclusion"
+                level_4 = "Excluded Sector"
+                level_4p = "Excluded Sector"
             elif (
                 portfolio_isin in r.params["A9Funds"]
                 and "Article 9" in comp_store.information["Exclusion"]
                 and not (
-                    sec_store.information["Labeled_ESG_Type"] in ['Labeled Green', 'Labeled Social', 'Labeled Sustainable', 'Labeled Sustainable Linked']
+                    sec_store.information["Labeled_ESG_Type"]
+                    in [
+                        "Labeled Green",
+                        "Labeled Social",
+                        "Labeled Sustainable",
+                        "Labeled Sustainable Linked",
+                    ]
                     and bclass in r.params["carve_out_sectors"]
                 )
             ):
-                level_1 = 'Excluded'
-                level_2 = 'Exclusion'
-                level_3 = 'Exclusion'
-                level_4 = 'Excluded Sector'
-                level_4p = 'Excluded Sector'
-
+                level_1 = "Excluded"
+                level_2 = "Exclusion"
+                level_3 = "Exclusion"
+                level_4 = "Excluded Sector"
+                level_4p = "Excluded Sector"
 
             holding_measures = r.portfolios[p].holdings[s]["holding_measures"]
             for h in holding_measures:
                 portfolio_weight = h["Portfolio_Weight"]
-                oas = h['OAS']
+                oas = h["OAS"]
                 data.append(
                     (
                         portfolio_isin,

@@ -811,7 +811,7 @@ class Runner(object):
         for c in self.companies:
             self.companies[c].calculate_transition_score()
         return
-    
+
     def calculate_corporate_score(self):
         """
         Calculate corporate score for a company based on other scores.
@@ -822,7 +822,7 @@ class Runner(object):
         for c in self.companies:
             self.companies[c].calculate_corporate_score()
         return
-    
+
     def calculate_risk_overall_score(self):
         """
         Calculate risk overall score on security level:
@@ -872,6 +872,6 @@ class Runner(object):
         self.calculate_securitized_score()
         self.analyst_adjustment()
         self.calculate_corporate_score()
-        self. calculate_risk_overall_score()
+        self.calculate_risk_overall_score()
         self.update_sclass()
         return
