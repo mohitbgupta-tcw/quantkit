@@ -132,7 +132,7 @@ def risk_framework():
         "Securitized Score",
         "Sovereign Score",
         "ESRM Score",
-        "Gocernance Score",
+        "Governance Score",
         "Risk_Score_Overall",
         "Transition Score",
         "SCLASS_Level1",

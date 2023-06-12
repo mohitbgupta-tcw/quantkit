@@ -879,7 +879,7 @@ class CompanyStore(HeadStore):
                 self.securities[s].information["SClass_Level1"] = "Preferred"
 
             elif sustainability_tag in ["Y", "Y*"]:
-                self.securities[s].information["SClass_Level2"] = "Sustainable Theme'"
+                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
                 if len(sustainability_category) == 1:
                     theme = themes[0]
