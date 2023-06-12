@@ -949,7 +949,11 @@ class Theme(object):
         -------
         bool
             rule is fulfilled
+
         """
+        if not iss_key:
+            iss_rev = 0
+
         if (
             self.exclude_rule(industry, self.params["ALL_exclusions"])
             and self.exclusion_key_rule(
@@ -995,6 +999,9 @@ class Theme(object):
         bool
             rule is fulfilled
         """
+        if not iss_key:
+            iss_rev = 0
+
         if self.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.MSCI_ISS_inclusion_key_capex_rule(
@@ -1123,6 +1130,9 @@ class Theme(object):
         bool
             rule is fulfilled
         """
+        if not iss_key:
+            iss_rev = 0
+
         if self.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.MSCI_ISS_inclusion_key_rule(
