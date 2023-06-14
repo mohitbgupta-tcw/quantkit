@@ -64,3 +64,4 @@ class Snowflake(object):
         session = Session.builder.configs(self.connection_parameters).create()
         df_table = session.table(self.table_name)
         self.df = pd.DataFrame(df_table.collect())
+        return
