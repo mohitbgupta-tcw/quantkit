@@ -38,8 +38,16 @@ class CategoryDataSource(ds.DataSources):
     """
 
     def __init__(self, params: dict):
-        logging.log("Loading Category Data")
         super().__init__(params)
+
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        logging.log("Loading Category Data")
+        self.datasource.load()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """

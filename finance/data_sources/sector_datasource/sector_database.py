@@ -22,8 +22,16 @@ class SectorDataSource(ds.DataSources):
     """
 
     def __init__(self, params: dict):
-        logging.log("Loading Sector Data")
         super().__init__(params)
+
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        logging.log("Loading Sector Data")
+        self.datasource.load()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """
@@ -71,6 +79,14 @@ class BClassDataSource(ds.DataSources):
 
     def __init__(self, params: dict):
         super().__init__(params)
+
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        self.datasource.load()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """
@@ -120,6 +136,14 @@ class GICSDataSource(ds.DataSources):
 
     def __init__(self, params: dict):
         super().__init__(params)
+
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        self.datasource.load()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """

@@ -13,7 +13,6 @@ class Microsoft(object):
 
     def __init__(self, file: str):
         self.file = file
-        self.load()
 
     def load(self):
         """
@@ -82,6 +81,7 @@ class Excel(Microsoft):
             "nan",
             "-nan",
             "",
+            "None",
         ]
         self.df = pd.read_excel(
             self.file,

@@ -9,21 +9,21 @@ class SecurityStore(object):
         - parent (as store)
         - portfolios the security is held in (as store)
         - ESG factors
+        - security information
 
     Parameters
     ----------
     isin: str
         Security's isin
-    parent_store: companies.CompanyStore | companies.MuniStore | companies.SecuritizedStore | companies.SovereignStore
-        parent the security belongs to
+    information: dict
+        dictionary of security specific information
 
     """
 
-    def __init__(self, isin: str, parent_store, **kwargs):
+    def __init__(self, isin: str, information: dict, **kwargs):
         self.isin = isin
-        self.parent_store = parent_store
+        self.information = information
         self.portfolio_store = dict()
-        self.information = dict()
         self.scores = dict()
 
         self.information["ESG_Collateral_Type"] = dict()
@@ -49,18 +49,19 @@ class EquityStore(SecurityStore):
         - parent (as store)
         - portfolios the security is held in (as store)
         - ESG factors
+        - security information
 
     Parameters
     ----------
     isin: str
         Equity's isin
-    parent_store: companies.CompanyStore | companies.MuniStore | companies.SecuritizedStore | companies.SovereignStore
-        parent the security belongs to
+    information: dict
+        dictionary of security specific information
 
     """
 
-    def __init__(self, isin: str, parent_store, **kwargs):
-        super().__init__(isin, parent_store)
+    def __init__(self, isin: str, information: dict, **kwargs):
+        super().__init__(isin, information)
 
 
 class FixedIncomeStore(SecurityStore):
@@ -71,15 +72,16 @@ class FixedIncomeStore(SecurityStore):
         - parent (as store)
         - portfolios the security is held in (as store)
         - ESG factors
+        - security information
 
     Parameters
     ----------
     isin: str
         Fixed Income's isin
-    parent_store: companies.CompanyStore | companies.MuniStore | companies.SecuritizedStore | companies.SovereignStore
-        parent the security belongs to
+    information: dict
+        dictionary of security specific information
 
     """
 
-    def __init__(self, isin: str, parent_store, **kwargs):
-        super().__init__(isin, parent_store)
+    def __init__(self, isin: str, information: dict, **kwargs):
+        super().__init__(isin, information)

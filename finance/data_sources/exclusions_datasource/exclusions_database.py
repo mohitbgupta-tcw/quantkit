@@ -36,12 +36,21 @@ class ExclusionsDataSource(object):
     """
 
     def __init__(self, params: dict):
-        logging.log("Loading Exclusions Data")
         self.params = params
         self.article8 = ExclusionData(params["Article8"])
         self.article9 = ExclusionData(params["Article9"])
 
-        self.df_ = self.transform_df()
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        logging.log("Loading Exclusions Data")
+        self.article8.datasource.load()
+        self.article8.transform_df()
+        self.article9.datasource.load()
+        self.article9.transform_df()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """
@@ -54,7 +63,8 @@ class ExclusionsDataSource(object):
             [self.article8.datasource.df, self.article9.datasource.df],
             ignore_index=True,
         )
-        return df_
+        self.df_ = df_
+        return
 
     @property
     def df(self):

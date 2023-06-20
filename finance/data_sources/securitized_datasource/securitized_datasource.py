@@ -31,8 +31,16 @@ class SecuritizedDataSource(ds.DataSources):
     """
 
     def __init__(self, params: dict):
-        logging.log("Loading Securitized Mapping")
         super().__init__(params)
+
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        logging.log("Loading Securitized Mapping")
+        self.datasource.load()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """

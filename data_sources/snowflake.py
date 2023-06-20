@@ -55,7 +55,6 @@ class Snowflake(object):
             "schema": self.schema,
         }
         self.table_name = table_name
-        self.load()
 
     def load(self):
         """

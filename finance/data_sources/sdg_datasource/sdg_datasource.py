@@ -23,11 +23,20 @@ class SDGDataSource(object):
     """
 
     def __init__(self, params: dict):
-        logging.log("Loading SDG Data")
         self.sdg = SDGData(params["sdg"])
         self.sdga = SDGData(params["sdga"])
 
-        self.df_ = self.transform_df()
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        logging.log("Loading SDG Data")
+        self.sdg.datasource.load()
+        self.sdg.transform_df()
+        self.sdga.datasource.load()
+        self.sdga.transform_df()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """
@@ -42,7 +51,8 @@ class SDGDataSource(object):
         df_["SDGSolClimatePercentCombCont"] = df_[
             "SDGSolClimatePercentCombCont"
         ].astype(float)
-        return df_
+        self.df_ = df_
+        return
 
     @property
     def df(self):
