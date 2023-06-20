@@ -1,10 +1,11 @@
 import quantkit.finance.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
+import pandas as pd
 
 
-class ThemeDataSource(ds.DataSources):
+class MSCIDataSource(ds.DataSources):
     """
-    Provide information for each theme
+    Provide information on company level from MSCI
 
     Parameters
     ----------
@@ -14,22 +15,6 @@ class ThemeDataSource(ds.DataSources):
     Returns
     -------
     DataFrame
-        Pillar: str
-            general pillar (People or Planet)
-        Acronym: str
-            theme id
-        Theme: str
-            theme description
-        ISS 1: str
-            column names from SDG datasource relevant for theme
-        ISS 2: str
-            column names from SDG datasource relevant for theme
-        MSCI Summary Category: str
-            Summary category for subcategory column
-        MSCI Subcategories: str
-            column names from MSCI datasource relevant for theme
-        ProductKeyAdd: str
-            words linked with theme
     """
 
     def __init__(self, params: dict):
@@ -39,15 +24,25 @@ class ThemeDataSource(ds.DataSources):
         """
         load data and transform dataframe
         """
-        logging.log("Loading Thematic Mapping Data")
+        logging.log("Loading MSCI Data")
         self.datasource.load()
         self.transform_df()
         return
 
     def transform_df(self):
         """
-        None
+        - fill GICS na's with 'Unassigned GICS'
+        - change values for columns in params["transformation"]
+        - add row for NoISIN
         """
+        # fill GICS industry NA's with 'Unassigned GICS'
+        self.datasource.df["GICS_SUB_IND"] = self.datasource.df["GICS_SUB_IND"].fillna(
+            "Unassigned GICS"
+        )
+
+        # replace values in each column from params transformation file
+        self.datasource.df = self.datasource.df.replace(self.params["transformation"])
+
         return
 
     @property

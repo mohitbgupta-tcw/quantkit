@@ -203,8 +203,8 @@ class CompanyStore(HeadStore):
     ----------
     isin: str
         company's isin. NoISIN if no isin is available
-    row_data: pd.Series
-        company information derived from SSI and MSCI
+    row_data: dict
+        company information derived from MSCI
     regions_datasource: regions_datasource.RegionsDataSource, optional
         regions datasource
     adjustment_datasource: adjustment_database.AdjustmentDataSource, optional
@@ -229,7 +229,7 @@ class CompanyStore(HeadStore):
             exclusion_datasource=exclusion_datasource,
             **kwargs
         )
-        self.msci_information = row_data.to_dict()
+        self.msci_information = row_data
         self.type = "company"
         self.information["IVA_COMPANY_RATING"] = self.msci_information[
             "IVA_COMPANY_RATING"
@@ -384,6 +384,11 @@ class CompanyStore(HeadStore):
         Calculation:
             CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT
 
+        Returns
+        -------
+        bool
+            True: carbon intensity couldn't be calculated and company has to be reitered
+
         """
         reiter = False
         if (
@@ -470,7 +475,9 @@ class CompanyStore(HeadStore):
                 palm_tie=self.msci_information["PALM_TIE"],
                 orphan_drug_rev=self.msci_information["SI_ORPHAN_DRUGS_REV"],
                 acc_to_health=self.msci_information["ACCESS_TO_HLTHCRE_SCORE"],
-                trailing_rd_sales=self.msci_information["TRAILING_12M_RD_SALES"],
+                trailing_rd_sales=self.bloomberg_information[
+                    "TRAILING_12M_R&D_%_SALES"
+                ],
                 social_fin=self.msci_information["SI_SOCIAL_FIN__MAX_REV"],
                 social_connect=self.msci_information["SI_CONNECTIVITY_MAX_REV"],
                 social_inclusion=self.msci_information["SI_BASIC_N_TOTAL_MAX_REV"],
@@ -602,11 +609,11 @@ class CompanyStore(HeadStore):
             return True
         elif self.information["BCLASS_Level4"].class_name == "Treasury":
             return True
-        elif self.msci_information["ISIN"] == "NoISIN":
+        elif self.msci_information["ISSUER_ISIN"] == "NoISIN":
             return True
-        elif "TCW" in self.msci_information["IssuerName"]:
+        elif "TCW" in self.msci_information["ISSUER_NAME"]:
             return True
-        elif " ETF " in self.msci_information["IssuerName"]:
+        elif " ETF " in self.msci_information["ISSUER_NAME"]:
             return True
         return False
 
@@ -730,7 +737,7 @@ class CompanyStore(HeadStore):
                     biofuel_rev=self.msci_information["CT_ALT_ENERGY_BIOFUEL_MAX_REV"],
                     alt_energy_rev=self.msci_information["CT_ALT_ENERGY_MAX_REV"],
                     thermal_coal_rev=self.msci_information["THERMAL_COAL_MAX_REV_PCT"],
-                    company_name=self.msci_information["IssuerName"],
+                    company_name=self.msci_information["ISSUER_NAME"],
                 )
                 # transition requirements fulfilled
                 if transition_:
@@ -1108,7 +1115,7 @@ class SecuritizedStore(HeadStore):
             elif "TBA " in sec_store.information["Issuer_Name"]:
                 sec_store.scores["Securitized_Score"] = 3
             elif (
-                pd.isna(sec_store.information["Labeled_ESG_Type"])
+                (pd.isna(sec_store.information["Labeled_ESG_Type"]))
                 and pd.isna(sec_store.information["TCW_ESG"])
                 and not "TBA " in sec_store.information["Issuer_Name"]
             ):

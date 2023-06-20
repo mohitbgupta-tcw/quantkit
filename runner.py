@@ -5,6 +5,8 @@ import quantkit.utils.configs as configs
 import quantkit.finance.data_sources.regions_datasource.regions_datasource as rd
 import quantkit.finance.data_sources.category_datasource.category_database as cd
 import quantkit.finance.data_sources.security_datasource.security_datasource as sd
+import quantkit.finance.data_sources.msci_datasource.msci_datasource as mscids
+import quantkit.finance.data_sources.bloomberg_datasource.bloomberg_datasource as blds
 import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as pod
 import quantkit.finance.data_sources.sdg_datasource.sdg_datasource as sdgp
 import quantkit.finance.data_sources.sector_datasource.sector_database as secdb
@@ -35,23 +37,23 @@ class Runner(object):
         # read params file
         self.params = configs.read_configs()
 
-        # load regions data
+        # connect regions datasource
         self.region_datasource = rd.RegionsDataSource(self.params["regions_datasource"])
         self.regions = dict()
 
-        # load portfolio data
+        # connect portfolio datasource
         self.portfolio_datasource = pod.PortfolioDataSource(
             self.params["portfolio_datasource"]
         )
         self.portfolios = dict()
 
-        # load category data
+        # connect category datasource
         self.category_datasource = cd.CategoryDataSource(
             self.params["category_datasource"]
         )
         self.categories = dict()
 
-        # load security data
+        # connecy security datasource
         self.security_datasource = sd.SecurityDataSource(
             self.params["security_datasource"]
         )
@@ -65,49 +67,57 @@ class Runner(object):
         self.securitized = dict()
         self.reiter = list()
 
-        # load SDG data
+        # connect SDG datasource
         self.sdg_datasource = sdgp.SDGDataSource(self.params["sdg_datasource"])
 
-        # load sector data
+        # connect sector datasource
         self.sector_datasource = secdb.SectorDataSource(
             self.params["sector_datasource"]
         )
         self.sectors = dict()
 
-        # load BCLASS data
+        # connect BCLASS datasource
         self.bclass_datasource = secdb.BClassDataSource(
             self.params["bclass_datasource"]
         )
         self.bclass = dict()
 
-        # load GICS data
+        # connect GICS datasource
         self.gics_datasource = secdb.GICSDataSource(self.params["gics_datasource"])
         self.gics = dict()
 
         self.industries = dict()
 
-        # load securitized mapping
+        # connect securitized mapping datasource
         self.securitized_datasource = securidb.SecuritizedDataSource(
             self.params["securitized_datasource"]
         )
         self.securitized_mapping = dict()
 
-        # load transition data
+        # connect transition datasource
         self.transition_datasource = trd.TransitionDataSource(
             self.params["transition_datasource"]
         )
 
-        # load exclusion data
+        # connect exclusion datasource
         self.exclusion_datasource = exd.ExclusionsDataSource(
             self.params["exclusion_datasource"]
         )
 
-        # load analyst adjustment data
+        # connect analyst adjustment datasource
         self.adjustment_datasource = ads.AdjustmentDataSource(
             self.params["adjustment_datasource"]
         )
 
-        # load themes data
+        # connect msci datasource
+        self.msci_datasource = mscids.MSCIDataSource(self.params["msci_datasource"])
+
+        # connect bloomberg datasource
+        self.bloomberg_datasource = blds.BloombergDataSource(
+            self.params["bloomberg_datasource"]
+        )
+
+        # connect themes datasource
         self.theme_datasource = thd.ThemeDataSource(self.params["theme_datasource"])
         self.themes = dict()
 
@@ -138,6 +148,9 @@ class Runner(object):
         - save object for each theme in self.themes
         - key is Acronym
         """
+        # load theme data
+        self.theme_datasource.load()
+
         df_ = self.theme_datasource.datasource.df
         df_unique = df_.drop_duplicates(subset=["Acronym"])
         for index, row in df_unique.iterrows():
@@ -158,6 +171,9 @@ class Runner(object):
         - save object for each region in self.regions
         - key is ISO2
         """
+        # load region data
+        self.region_datasource.load()
+
         for index, row in self.region_datasource.df.iterrows():
             r = row["ISO2"]
             self.regions[r] = regions.Region(r, row)
@@ -169,12 +185,15 @@ class Runner(object):
         - create BClass4 objects and attached Industry object
         - map transition targets to sub sectors
         """
+        self.sector_datasource.load()
+
         # create Sector objects for GICS and BCLASS
         df_ = self.sector_datasource.df
         for s in list(df_["Sector_Code"].unique()):
             self.sectors[s] = sectors.Sector(s)
 
         # create Sub-Sector objects for GICS and BCLASS
+        self.bclass_datasource.load()
         self.iter_subsector(
             datasource=self.bclass_datasource,
             col="BCLASS_Level4",
@@ -183,6 +202,7 @@ class Runner(object):
             sector="BCLASS",
         )
 
+        self.gics_datasource.load()
         self.iter_subsector(
             datasource=self.gics_datasource,
             col="GICS_SUB_IND",
@@ -270,6 +290,9 @@ class Runner(object):
         Target_N	Non-Ambitious Target
         Target_NRev	Non-Ambitious Target AND >0% Climate Revenue
         """
+        # load transition data
+        self.transition_datasource.load()
+
         for index, row in self.transition_datasource.df.iterrows():
             gics_sub = row["GICS_SUB_IND"]
             bclass4 = row["BCLASS_LEVEL4"]
@@ -287,6 +310,9 @@ class Runner(object):
         - key is portfolio id
         - attach Sector to Portfolio object
         """
+        # load portfolio data
+        self.portfolio_datasource.load()
+
         # iterate over portfolios
         df_ = self.portfolio_datasource.df
         for index, row in (
@@ -300,7 +326,7 @@ class Runner(object):
             pf_store.add_holdings(holdings_df)
             self.portfolios[pf] = pf_store
 
-        # save all companies that occur in portfolios to filter down security database later on
+        # save all securities that occur in portfolios to filter down security database later on
         self.all_holdings = list(df_["ISIN"].unique())
 
         # attach sector to portfolio
@@ -319,53 +345,94 @@ class Runner(object):
         - create Security object with key Security ISIN
         - attach analyst adjustment based on sec isin
         """
+        # load security data
+        self.security_datasource.load()
+
         df_ = self.security_datasource.df
+        df_ = df_[df_["Security ISIN"].isin(self.all_holdings)]
         df_portfolio = self.portfolio_datasource.df
+
+        # load MSCI data
+        issuer_ids = list(df_["ISSUERID"].unique())
+        issuer_ids.remove("NoISSUERID")
+        self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
+        self.msci_datasource.load()
+        msci_df = self.msci_datasource.df
+
+        # load adjustment data
+        self.adjustment_datasource.load()
+
+        # load exclusion data
+        self.exclusion_datasource.load()
+
         # only iterate over securities the portfolios actually hold so save time
-        for index, row in df_[df_["Security ISIN"].isin(self.all_holdings)].iterrows():
-            sec_isin = row["Security ISIN"]
-            issuer = row.ISIN
+        logging.log("Iterate Securities")
+        for sec in self.all_holdings:
+            security_row = df_[df_["Security ISIN"] == sec]
+            # we have information for security in our database
+            if not security_row.empty:
+                sec_info = security_row.squeeze().to_dict()
+                if pd.isna(sec_info["ISIN"]):
+                    sec_info["ISIN"] = sec
 
-            # security does not have a company ISIN:
-            # take security isin as company isin and name from portfolio datasource
-            if pd.isna(issuer):
-                issuer = row["Security ISIN"]
-                row["ISIN"] = row["Security ISIN"]
-                row["IssuerName"] = df_portfolio[df_portfolio["ISIN"] == sec_isin][
-                    "ISSUER_NAME"
-                ].values[0]
-                row["Ticker"] = df_portfolio[df_portfolio["ISIN"] == sec_isin][
-                    "Ticker Cd"
-                ].values[0]
+            # no information about security in database --> get information from portfoliot tab
+            else:
+                # print(sec)
+                portfolio_row = df_portfolio[df_portfolio["ISIN"] == sec]
+                sec_info = security_row.reindex(list(range(1))).squeeze().to_dict()
+                sec_info["Security ISIN"] = sec
+                sec_info["ISIN"] = sec
+                sec_info["ISSUERID"] = "NoISSUERID"
+                sec_info["IssuerName"] = portfolio_row["ISSUER_NAME"].values[0]
+                sec_info["Ticker"] = portfolio_row["Ticker Cd"].values[0]
 
+            # get MSCI information of parent issuer
+            issuer_id = sec_info["ISSUERID"]
+            msci_row = msci_df[msci_df["CLIENT_IDENTIFIER"] == issuer_id]
+            # issuer has msci information --> overwrite security information
+            if not msci_row.empty:
+                issuer_isin = msci_row["ISSUER_ISIN"].values[0]
+                if not pd.isna(issuer_isin):
+                    sec_info["ISIN"] = issuer_isin
+                    sec_info["IssuerName"] = msci_row["ISSUER_NAME"].values[0]
+                    sec_info["Ticker"] = msci_row["ISSUER_TICKER"].values[0]
+                msci_information = msci_row.squeeze().to_dict()
+            else:
+                msci_information = msci_row.reindex(list(range(1))).squeeze().to_dict()
+                msci_information["ISSUER_NAME"] = sec_info["IssuerName"]
+                msci_information["ISSUER_ISIN"] = sec_info["ISIN"]
+                msci_information["ISSUER_TICKER"] = sec_info["Ticker"]
+
+            # create security store --> seperate Fixed Income and Equity stores based on Security Type
+            # if Security Type is NA, just create Security object
+            sec_type = sec_info["Security Type"]
+            class_ = mapping_configs.security_store_mapping[sec_type]
+            type_mapping = mapping_configs.security_mapping[sec_type]
+            security_store = class_(isin=sec, information=sec_info)
+            self.securities[sec] = security_store
+            getattr(self, type_mapping)[sec] = self.securities[sec]
+
+            # create company object
             # company object could already be there if company has more than 1 security --> get
-            # information for each row is the same, so no need to update
+            issuer = sec_info["ISIN"]
             self.companies[issuer] = self.companies.get(
                 issuer,
                 comp.CompanyStore(
                     isin=issuer,
-                    row_data=row,
+                    row_data=msci_information,
                     regions_datasource=self.region_datasource,
                     adjustment_datasource=self.adjustment_datasource,
                     exclusion_datasource=self.exclusion_datasource,
                 ),
             )
 
-            # create security store --> seperate Fixed Income and Equity stores based on Security Type
-            # if Security Type is NA, just create Security object
-            sec_type = row["Security Type"]
-            class_ = mapping_configs.security_store_mapping[sec_type]
-            type_mapping = mapping_configs.security_mapping[sec_type]
-            security_store = class_(isin=sec_isin, parent_store=self.companies[issuer])
-            self.securities[sec_isin] = security_store
-            getattr(self, type_mapping)[sec_isin] = self.securities[sec_isin]
-
-            # attach security to company
-            self.companies[issuer].add_security(sec_isin, self.securities[sec_isin])
+            # attach security to company and vice versa
+            self.companies[issuer].add_security(sec, self.securities[sec])
+            self.securities[sec].parent_store = self.companies[issuer]
 
             # attach adjustment
             adj_df = self.adjustment_datasource.df[
-                self.adjustment_datasource.df["ISIN"] == sec_isin
+                self.adjustment_datasource.df["ISIN"] == sec
             ]
             if not adj_df.empty:
                 self.companies[issuer].Adjustment = pd.concat(
@@ -379,6 +446,8 @@ class Runner(object):
         """
         Iterate over the securitized mapping
         """
+        self.securitized_datasource.load()
+
         df_ = self.securitized_datasource.df
         for index, row in df_.iterrows():
             collat_type = row["ESG Collat Type"]
@@ -395,12 +464,13 @@ class Runner(object):
         - attach MSCI rating to company
         - attach holdings, OAS to self.holdings with security object
         """
+        logging.log("Iterate Holdings")
         df_ = self.portfolio_datasource.df
         for index, row in df_.iterrows():
             pf = row.Portfolio  # portfolio id
             isin = row.ISIN  # security isin
             # no ISIN for security (cash, swaps, etc.)
-            # --> create object with name as identifier
+            # --> create company object with name as identifier
             if isin == "NoISIN":
                 if pd.isna(row.ISSUER_NAME):
                     isin = "Cash"
@@ -410,17 +480,30 @@ class Runner(object):
                     isin,
                     comp.CompanyStore(
                         isin,
-                        pd.Series(self.companies["NoISIN"].msci_information),
+                        self.companies["NoISIN"].msci_information,
                         regions_datasource=self.region_datasource,
                         adjustment_datasource=self.adjustment_datasource,
                         exclusion_datasource=self.exclusion_datasource,
                     ),
                 )
-                self.companies[isin].msci_information["IssuerName"] = isin
-                self.companies[isin].msci_information["Ticker"] = row["Ticker Cd"]
+                self.companies[isin].msci_information["ISSUER_NAME"] = isin
+                self.companies[isin].msci_information["ISSUER_TICKER"] = row[
+                    "Ticker Cd"
+                ]
                 self.securities[isin] = self.securities.get(
-                    isin, secs.SecurityStore(isin, self.companies[isin])
+                    isin,
+                    secs.SecurityStore(
+                        isin,
+                        {
+                            "ISSUERID": "NoISSUERID",
+                            "Security ISIN": isin,
+                            "ISIN": isin,
+                            "IssuerName": isin,
+                        },
+                    ),
                 )
+                self.securities[isin].parent_store = self.companies[isin]
+                self.companies[isin].add_security(isin, self.securities[isin])
 
             security_store = self.securities[isin]
             parent_store = security_store.parent_store
@@ -553,6 +636,9 @@ class Runner(object):
         pandas.core.indexes.base.Index
             columns of SDG DataFrame
         """
+        # load SDG data
+        self.sdg_datasource.load()
+
         df_ = self.sdg_datasource.df
         # only iterate over companies we hold in the portfolios
         for index, row in df_[df_["ISIN"].isin(self.companies.keys())].iterrows():
@@ -570,18 +656,23 @@ class Runner(object):
         - calculate sovereign score
         - attach analyst adjustment
         - attach GICS information
+        - attach exclusions
         """
+        logging.log("Iterate Sovereigns")
         for s in self.sovereigns:
             self.sovereigns[s].attach_region(self.regions)
             self.sovereigns[s].update_sovereign_score()
             self.sovereigns[s].attach_analyst_adjustment()
             self.sovereigns[s].attach_gics(self.gics)
             self.sovereigns[s].exclusion()
+        return
 
     def iter_companies(self):
         """
         Iterate over all companies
         - attach sdg information
+        - attach bloomberg information
+        - attach exclusions
         - attach region information
         - attach GICS information
         - attach Industry and Sub-Industry information
@@ -589,10 +680,16 @@ class Runner(object):
         - run company specific calculations
         """
 
+        logging.log("Iterate Companies")
         # attach sdg information
         # --> not every company has these information, so create empty df with NA's for those
         cols = self.iter_sdg()
         empty_sdg = pd.Series(np.nan, index=cols).to_dict()
+
+        # load bloomberg data
+        self.bloomberg_datasource.load()
+        bloomberg_df = self.bloomberg_datasource.df
+        empty_bloomberg = pd.Series(np.nan, index=bloomberg_df.columns).to_dict()
 
         for c in self.companies:
             self.companies[c].attach_region(self.regions)
@@ -602,6 +699,14 @@ class Runner(object):
             if not hasattr(self.companies[c], "sdg_information"):
                 self.companies[c].sdg_information = empty_sdg
 
+            # attach bloomberg information
+            bloomberg_information = bloomberg_df[bloomberg_df["Client_ID"] == c]
+            if not bloomberg_information.empty:
+                self.companies[
+                    c
+                ].bloomberg_information = bloomberg_information.squeeze().to_dict()
+            else:
+                self.companies[c].bloomberg_information = empty_bloomberg
             # attach exclusion df
             self.companies[c].attach_exclusion()
 
@@ -639,7 +744,9 @@ class Runner(object):
         """
         Iterate over all Securitized
         - attach GICS information
+        - attach exclusions
         """
+        logging.log("Iterate Securitized")
         for sec in self.securitized:
             self.securitized[sec].attach_gics(self.gics)
             self.securitized[sec].exclusion()
@@ -648,7 +755,9 @@ class Runner(object):
         """
         Iterate over all Munis
         - attach GICS information
+        - attach exclusions
         """
+        logging.log("Iterate Munis")
         for m in self.munis:
             self.munis[m].attach_gics(self.gics)
             self.munis[m].exclusion()
@@ -759,6 +868,8 @@ class Runner(object):
         scoring_d = dict()
         operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
 
+        # load category data
+        self.category_datasource.load()
         d_ = self.category_datasource.df
         for cat in d_["Sub-Sector"].unique():
             # save indicator fields, operator, thresholds

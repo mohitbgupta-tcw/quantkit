@@ -1,7 +1,10 @@
 import requests
 from base64 import b64encode
 import json
+from copy import deepcopy
 import pandas as pd
+import quantkit.utils.util_functions as util_functions
+import quantkit.utils.logging as logging
 
 
 class MSCI(object):
@@ -26,7 +29,6 @@ class MSCI(object):
         self.secret = secret
         self.url = url
         self.filters = filters
-        self.load()
 
     def load(self):
         """
@@ -43,18 +45,30 @@ class MSCI(object):
             )
         ).decode("utf-8")
 
-        inp = json.dumps(self.filters)
-
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
             "Authorization": "Basic %s" % b64login,
         }
 
-        response = requests.request(
-            "POST", self.url, headers=headers, data=inp, verify="certs.crt"
+        # MSCI API can only handle 1000 issuers at once
+        batches = list(
+            util_functions.divide_chunks(self.filters["issuer_identifier_list"], 1000)
         )
-        self.df = pd.DataFrame(response.json()["result"]["issuers"])
+        self.df = pd.DataFrame()
+        for batch in batches:
+            filters = deepcopy(self.filters)
+            filters["issuer_identifier_list"] = batch
+            inp = json.dumps(filters)
+
+            response = requests.request(
+                "POST", self.url, headers=headers, data=inp, verify="certs.crt"
+            )
+            message = response.json()["messages"]
+            if message:
+                logging.log(message)
+            df = pd.DataFrame(response.json()["result"]["issuers"])
+            self.df = pd.concat([self.df, df], ignore_index=True)
         return
 
 
@@ -63,17 +77,8 @@ if __name__ == "__main__":
     api_secret = "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
 
     filters = {
-        "issuer_identifier_list": [
-            "IID000000002157615",
-            "IID000000002143620",
-            "IID000000002594878",
-            "IID000000002745031",
-            "IID000000002123703",
-            "IID000000002123904",
-            "IID000000002124168",
-            "IID000000002124726",
-            "IID000000002126219",
-        ],
+        "issuer_identifier_type": "ISIN",
+        "issuer_identifier_list": ["US037833EJ59"],
         "factor_name_list": [
             "ISSUER_NAME",
             "ISSUER_TICKER",
@@ -190,6 +195,8 @@ if __name__ == "__main__":
     # url = "https://api.msci.com/esg/data/v1.0/funds?format=json"
     # url = "https://api2.msci.com/esg/data/v1.0/parameterValues/countries"
     url = "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
+    # url = "https://api.msci.com/esg/data/v1.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
 
     msci = MSCI(api_key, api_secret, url, filters)
+    msci.load()
     print(msci.df)

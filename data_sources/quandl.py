@@ -19,7 +19,6 @@ class Quandl(object):
         self.key = key
         self.table = table
         self.filters = filters
-        self.load()
 
     def load(self):
         """

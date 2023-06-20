@@ -51,8 +51,16 @@ class PortfolioDataSource(ds.DataSources):
     """
 
     def __init__(self, params: dict):
-        logging.log("Loading Portfolio Data")
         super().__init__(params)
+
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        logging.log("Loading Portfolio Data")
+        self.datasource.load()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """

@@ -23,7 +23,7 @@ def risk_framework():
         for s in r.portfolios[p].holdings:
             sec_store = r.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
-            issuer_name = sec_store.information["Issuer_Name"]
+            issuer_name = sec_store.information["IssuerName"]
             iva_rating = comp_store.information["IVA_COMPANY_RATING"]
             r_flag = comp_store.scores["Review_Flag"]
             r_comments = comp_store.scores["Review_Comments"]

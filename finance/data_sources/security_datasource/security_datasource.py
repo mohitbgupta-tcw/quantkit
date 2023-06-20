@@ -2,11 +2,12 @@ import quantkit.finance.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import pandas as pd
 import numpy as np
+import quantkit.utils.dataframe_utils as dataframe_utils
 
 
 class SecurityDataSource(object):
     """
-    Provide information on security level from SSI and MSCI
+    Provide mapping on security level from SSI and MSCI
 
     Parameters
     ----------
@@ -18,8 +19,10 @@ class SecurityDataSource(object):
     DataFrame
         IssuerName: str
             name of issuer
-        issuerID: int
-            ID of issuer
+        ISSUERID: str
+            MSCI ID of issuer
+        issID: int
+            ISS ID of issuer
         Security ISIN: str
             isin of security
         Ticker: str
@@ -28,44 +31,73 @@ class SecurityDataSource(object):
             cusip of issuer
         ISIN: str
             isin of issuer
-        ISSUER_CNTRY_DOMICILE: str
+        SECURITY_COUNTRY: str
             country of domicile of issuer (ISO2)
         Security Type: str
             security type (Equity or Fixed Income)
-        MSCI ESG measures: str | float
-            ESG related measures
+        CUSIP: str
+            security cusip
+        SEDOL: str
+            security sedol
+        CINS: str
+            security cins
+        ASSET_TYPE: str
+            asset_type
+        MARKET_STATUS: str
+            market status
+        EXCHANGE: str
+            exchange
+
     """
 
     def __init__(self, params: dict):
-        logging.log("Loading Security Data")
         self.params = params
-        self.ssi = SecurityData(params["ssi"])
+        self.iss = SecurityData(params["iss"])
         self.msci = SecurityData(params["msci"])
-        self.df_ = self.transform_df()
+
+    def load(self):
+        """
+        load data and transform dataframe
+        """
+        logging.log("Loading Security Data")
+        self.msci.datasource.load()
+        self.msci.transform_df()
+        self.iss.datasource.load()
+        self.iss.transform_df()
+        self.transform_df()
+        return
 
     def transform_df(self):
         """
         Several transformations
         """
 
-        # Translate SSI Country into country name
-        self.ssi.datasource.df["CountryOfIncorporation"] = self.ssi.datasource.df[
+        # Translate ISS Country into country name
+        self.iss.datasource.df["CountryOfIncorporation"] = self.iss.datasource.df[
             "CountryOfIncorporation"
         ].replace("USA", "United States")
 
-        # merge SSI and MSCI data on security level
+        # rename columns before merging
+        self.iss.datasource.df = self.iss.datasource.df.rename(
+            columns={"issuerID": "issID"}
+        )
+
+        # # delete duplicated rows and take mode for ticker
+        # self.msci.datasource.df =  dataframe_utils.group_mode(self.msci.datasource.df, "Client_ID", "ISSUER_TICKER")
+
+        # merge ISS and MSCI data on security level
         df_ = self.msci.datasource.df.merge(
-            self.ssi.datasource.df,
+            self.iss.datasource.df,
             how="outer",
             left_on="Client_ID",
             right_on="Security ISIN",
         )
 
-        # take SSI information, fill NA's with MSCI information
-        df_["IssuerName"] = df_["IssuerName"].fillna(df_["ISSUER_NAME"])
-        df_["Security ISIN"] = df_["Security ISIN"].fillna(df_["Client_ID"])
-        df_["Ticker"] = df_["Ticker"].fillna(df_["ISSUER_TICKER"])
-        df_["ISIN"] = df_["ISIN"].fillna(df_["ISSUER_ISIN"])
+        # take MSCI information, fill NA's with ISS information
+        df_["IssuerName"] = df_["ISSUER_NAME"].fillna(df_["IssuerName"])
+        df_["Security ISIN"] = df_["Client_ID"].fillna(df_["Security ISIN"])
+        df_["Ticker"] = df_["ISSUER_TICKER"].fillna(df_["Ticker"])
+        df_["ISSUERID"] = df_["ISSUERID"].fillna("NoISSUERID")
         df_["ISSUER_CNTRY_DOMICILE"] = df_["ISSUER_CNTRY_DOMICILE"].fillna(
             df_["CountryOfIncorporation"]
         )
@@ -76,31 +108,25 @@ class SecurityDataSource(object):
                 "ISSUER_NAME",
                 "Client_ID",
                 "ISSUER_TICKER",
-                "ISSUER_ISIN",
                 "CountryOfIncorporation",
             ],
             axis=1,
         )
 
-        # fill GICS industry NA's with 'Unassigned GICS'
-        df_["GICS_SUB_IND"] = df_["GICS_SUB_IND"].fillna("Unassigned GICS")
-
-        # replace values in each column from params transformation file
-        df_ = df_.replace(self.params["transformation"])
-
         # add NoISIN row to df
         df_NoISIN = pd.DataFrame(
             {
-                "Security ISIN": ["NoISIN"],
                 "ISIN": ["NoISIN"],
+                "Security ISIN": ["NoISIN"],
                 "IssuerName": ["NoISIN"],
-                "GICS_SUB_IND": ["Unassigned GICS"],
+                "ISSUERID": ["NoISSUERID"],
             }
         )
         df_ = pd.concat([df_, df_NoISIN], ignore_index=True)
         df_.reset_index()
 
-        return df_
+        self.df_ = df_
+        return
 
     @property
     def df(self):

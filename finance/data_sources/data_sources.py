@@ -1,5 +1,6 @@
 import quantkit.data_sources.excel as ds_excel
 import quantkit.data_sources.snowflake as snowflake
+import quantkit.data_sources.msci as msci
 import quantkit.utils.configs as configs
 
 
@@ -36,7 +37,12 @@ class DataSources(object):
                 table_name=params["table_name"], **snowflake_params
             )
 
-        self.transform_df()
+        # MSCI API
+        elif params["source"] == 4:
+            msci_params = self.all_params["msci_parameters"]
+            self.datasource = msci.MSCI(
+                url=params["url"], filters=params["filters"], **msci_params
+            )
 
     def transform_df(self):
         """
