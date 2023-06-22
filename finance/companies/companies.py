@@ -921,8 +921,6 @@ class CompanyStore(HeadStore):
                         "If sustainability tag is 'Y', theme should be assigned."
                     )
 
-                pass
-
             elif transition_tag in ["Y", "Y*"]:
                 self.securities[s].information["SClass_Level3"] = "Transition"
                 self.securities[s].information["SClass_Level2"] = "Transition"
@@ -992,6 +990,11 @@ class MuniStore(HeadStore):
         and SClass_Level5 for each security rule based
         """
         score = self.scores["Muni_Score"]
+        transition_category = self.scores["Transition_Category"]
+        transition_tag = self.scores["Transition_Tag"]
+        sustainability_category = self.scores["Themes"]
+        themes = list(sustainability_category.keys())
+        sustainability_tag = self.scores["Sustainability_Tag"]
         for s in self.securities:
             self.securities[s].information["SClass_Level5"] = self.securities[
                 s
@@ -1038,6 +1041,61 @@ class MuniStore(HeadStore):
                 self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
+
+            elif sustainability_tag in ["Y", "Y*"]:
+                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+                if len(sustainability_category) == 1:
+                    theme = themes[0]
+                    self.securities[s].information["SClass_Level4"] = theme
+                    self.securities[s].information["SClass_Level4-P"] = theme
+                    self.securities[s].information[
+                        "SClass_Level3"
+                    ] = sustainability_category[theme].pillar
+                elif len(sustainability_category) >= 2:
+                    self.securities[s].information["SClass_Level3"] = "Multi-Thematic"
+                    self.securities[s].information[
+                        "SClass_Level4-P"
+                    ] = self.information["Primary_Rev_Sustainable"].acronym
+                    people_count = 0
+                    planet_count = 0
+                    for t in sustainability_category:
+                        if sustainability_category[t].pillar == "People":
+                            people_count += 1
+                        elif sustainability_category[t].pillar == "Planet":
+                            planet_count += 1
+
+                        if planet_count >= 1 and people_count >= 1:
+                            self.securities[s].information[
+                                "SClass_Level4"
+                            ] = "Planet & People"
+                        elif planet_count >= 2:
+                            self.securities[s].information["SClass_Level4"] = "Planet"
+                        elif people_count >= 2:
+                            self.securities[s].information["SClass_Level4"] = "People"
+                else:
+                    raise ValueError(
+                        "If sustainability tag is 'Y', theme should be assigned."
+                    )
+
+            elif transition_tag in ["Y", "Y*"]:
+                self.securities[s].information["SClass_Level3"] = "Transition"
+                self.securities[s].information["SClass_Level2"] = "Transition"
+                self.securities[s].information["SClass_Level1"] = "Eligible"
+                if len(transition_category) > 1:
+                    self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
+                    self.securities[s].information["SClass_Level4-P"] = "Multi-Thematic"
+                elif len(transition_category) == 1:
+                    self.securities[s].information[
+                        "SClass_Level4"
+                    ] = transition_category[0]
+                    self.securities[s].information[
+                        "SClass_Level4-P"
+                    ] = transition_category[0]
+                else:
+                    raise ValueError(
+                        "If transition tag is 'Y', category should be assigned."
+                    )
 
             elif score <= 2 and score > 0:
                 self.securities[s].information["SClass_Level4"] = "Leading ESG Score"
