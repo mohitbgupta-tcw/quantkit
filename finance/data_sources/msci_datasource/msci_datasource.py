@@ -33,7 +33,6 @@ class MSCIDataSource(ds.DataSources):
         """
         - fill GICS na's with 'Unassigned GICS'
         - change values for columns in params["transformation"]
-        - add row for NoISIN
         """
         # fill GICS industry NA's with 'Unassigned GICS'
         self.datasource.df["GICS_SUB_IND"] = self.datasource.df["GICS_SUB_IND"].fillna(

@@ -8,6 +8,7 @@ import quantkit.finance.data_sources.category_datasource.category_database as cd
 import quantkit.finance.data_sources.security_datasource.security_datasource as sd
 import quantkit.finance.data_sources.msci_datasource.msci_datasource as mscids
 import quantkit.finance.data_sources.bloomberg_datasource.bloomberg_datasource as blds
+import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
 import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as pod
 import quantkit.finance.data_sources.sdg_datasource.sdg_datasource as sdgp
 import quantkit.finance.data_sources.sector_datasource.sector_database as secdb
@@ -121,6 +122,10 @@ class Runner(object):
         # connect themes datasource
         self.theme_datasource = thd.ThemeDataSource(self.params["theme_datasource"])
         self.themes = dict()
+
+        # connect quandl datasource
+        self.quandl_datasource = quds.QuandlDataSource(self.params["quandl_datasource"])
+        self.all_tickers = []
 
         # iterate over dataframes and create objects
         logging.log("Start Iterating")
@@ -403,6 +408,9 @@ class Runner(object):
                 msci_information["ISSUER_ISIN"] = sec_info["ISIN"]
                 msci_information["ISSUER_TICKER"] = sec_info["Ticker"]
 
+            # append to all ticker list
+            self.all_tickers.append(sec_info["Ticker"])
+
             # create security store --> seperate Fixed Income and Equity stores based on Security Type
             # if Security Type is NA, just create Security object
             sec_type = sec_info["Security Type"]
@@ -675,6 +683,32 @@ class Runner(object):
                 self.companies[c].bloomberg_information = deepcopy(empty_bloomberg)
         return
 
+    def iter_quandl(self):
+        """
+        iterate over quandl data
+        - attach quandl information to company in self.quandl_information
+        - if company doesn't have data, attach all nan's
+        """
+        # load quandl data
+        self.params["quandl_datasource"]["filters"]["ticker"] = list(
+            set(self.all_tickers)
+        )
+        self.quandl_datasource.load()
+        quandl_df = self.quandl_datasource.df
+        empty_quandl = pd.Series(np.nan, index=quandl_df.columns).to_dict()
+
+        for c in self.companies:
+            # attach bloomberg information
+            t = self.companies[c].msci_information["ISSUER_TICKER"]
+            quandl_information = quandl_df[quandl_df["ticker"] == t]
+            if not quandl_information.empty:
+                self.companies[
+                    c
+                ].quandl_information = quandl_information.squeeze().to_dict()
+            else:
+                self.companies[c].quandl_information = deepcopy(empty_quandl)
+        return
+
     def iter_sovereigns(self):
         """
         Iterate over all sovereigns
@@ -711,6 +745,9 @@ class Runner(object):
         self.iter_sdg()
         # attach bloomberg information
         self.iter_bloomberg()
+
+        # attach quandl information
+        self.iter_quandl()
 
         for c in self.companies:
             self.companies[c].attach_region(self.regions)
