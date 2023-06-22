@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.utils.configs as configs
 import quantkit.finance.data_sources.regions_datasource.regions_datasource as rd
@@ -630,11 +631,7 @@ class Runner(object):
         """
         iterate over SDG data
         - attach sdg information to company in self.sdg_information
-
-        Returns
-        -------
-        pandas.core.indexes.base.Index
-            columns of SDG DataFrame
+        - if company doesn't have data, attach all nan's
         """
         # load SDG data
         self.sdg_datasource.load()
@@ -647,7 +644,37 @@ class Runner(object):
             sdg_information = row.to_dict()
             self.companies[isin].sdg_information = sdg_information
 
-        return df_.columns
+        # --> not every company has these information, so create empty df with NA's for those
+        empty_sdg = pd.Series(np.nan, index=df_.columns).to_dict()
+
+        for c in self.companies:
+            # assign empty sdg information to companies that dont have these information
+            if not hasattr(self.companies[c], "sdg_information"):
+                self.companies[c].sdg_information = empty_sdg
+
+        return
+
+    def iter_bloomberg(self):
+        """
+        iterate over bloomberg data
+        - attach bloomberg information to company in self.bloomberg_information
+        - if company doesn't have data, attach all nan's
+        """
+        # load bloomberg data
+        self.bloomberg_datasource.load()
+        bloomberg_df = self.bloomberg_datasource.df
+        empty_bloomberg = pd.Series(np.nan, index=bloomberg_df.columns).to_dict()
+
+        for c in self.companies:
+            # attach bloomberg information
+            bloomberg_information = bloomberg_df[bloomberg_df["Client_ID"] == c]
+            if not bloomberg_information.empty:
+                self.companies[
+                    c
+                ].bloomberg_information = bloomberg_information.squeeze().to_dict()
+            else:
+                self.companies[c].bloomberg_information = empty_bloomberg
+        return
 
     def iter_sovereigns(self):
         """
@@ -682,31 +709,20 @@ class Runner(object):
 
         logging.log("Iterate Companies")
         # attach sdg information
-        # --> not every company has these information, so create empty df with NA's for those
-        cols = self.iter_sdg()
-        empty_sdg = pd.Series(np.nan, index=cols).to_dict()
-
-        # load bloomberg data
-        self.bloomberg_datasource.load()
-        bloomberg_df = self.bloomberg_datasource.df
-        empty_bloomberg = pd.Series(np.nan, index=bloomberg_df.columns).to_dict()
+        self.iter_sdg()
+        # attach bloomberg information
+        self.iter_bloomberg()
 
         for c in self.companies:
             self.companies[c].attach_region(self.regions)
             self.companies[c].update_sovereign_score()
 
-            # assign empty sdg information to companies that dont have these information
-            if not hasattr(self.companies[c], "sdg_information"):
-                self.companies[c].sdg_information = empty_sdg
+            # company has parent --> take data from that parent
+            if not pd.isna(
+                self.companies[c].msci_information["PARENT_ULTIMATE_ISSUERID"]
+            ):
+                self.parent_issuer(c)
 
-            # attach bloomberg information
-            bloomberg_information = bloomberg_df[bloomberg_df["Client_ID"] == c]
-            if not bloomberg_information.empty:
-                self.companies[
-                    c
-                ].bloomberg_information = bloomberg_information.squeeze().to_dict()
-            else:
-                self.companies[c].bloomberg_information = empty_bloomberg
             # attach exclusion df
             self.companies[c].attach_exclusion()
 
@@ -738,6 +754,66 @@ class Runner(object):
 
         self.replace_carbon_median()
         self.replace_transition_risk()
+        return
+
+    def parent_issuer(self, isin):
+        """
+        Assign data from parent to sub-company.
+        Dara includes:
+            - MSCI
+            - SDG
+            - Bloomberg
+
+        Parameters
+        ----------
+        isin: str
+            isin of sub-company
+        """
+        # get parent id from msci
+        parent_id = self.companies[isin].msci_information["PARENT_ULTIMATE_ISSUERID"]
+
+        # find parent store
+        parent = "NoISIN"
+        for c in self.companies:
+            if self.companies[c].msci_information["ISSUERID"] == parent_id:
+                parent = c
+                break
+
+        # assign sdg data if all values are nan
+        if all(
+            pd.isna(value) for value in self.companies[isin].sdg_information.values()
+        ):
+            self.companies[isin].sdg_information = self.companies[
+                parent
+            ].sdg_information
+
+        # assign sdg data for missing values
+        else:
+            for val in self.companies[isin].sdg_information:
+                if pd.isna(self.companies[isin].sdg_information[val]):
+                    new_val = self.companies[parent].sdg_information[val]
+                    self.companies[isin].sdg_information[val] = new_val
+
+        # assign msci data for missing values
+        for val in self.companies[isin].msci_information:
+            if pd.isna(self.companies[isin].msci_information[val]):
+                new_val = self.companies[parent].msci_information[val]
+                self.companies[isin].msci_information[val] = new_val
+
+        # assign bloomberg data if all values are nan
+        if all(
+            pd.isna(value)
+            for value in self.companies[isin].bloomberg_information.values()
+        ):
+            self.companies[isin].bloomberg_information = self.companies[
+                parent
+            ].bloomberg_information
+
+        # assign bloomberg data for missing values
+        for val in self.companies[isin].bloomberg_information:
+            if pd.isna(self.companies[isin].bloomberg_information[val]):
+                new_val = self.companies[parent].bloomberg_information[val]
+                self.companies[isin].bloomberg_information[val] = new_val
         return
 
     def iter_securitized(self):
