@@ -71,4 +71,3 @@ class Snowflake(object):
         df_table = session.sql(query)
         self.df = pd.DataFrame(df_table.collect())
         return
-

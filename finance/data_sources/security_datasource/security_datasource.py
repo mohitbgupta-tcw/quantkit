@@ -82,9 +82,6 @@ class SecurityDataSource(object):
             columns={"issuerID": "issID"}
         )
 
-        # # delete duplicated rows and take mode for ticker
-        # self.msci.datasource.df =  dataframe_utils.group_mode(self.msci.datasource.df, "Client_ID", "ISSUER_TICKER")
-
         # merge ISS and MSCI data on security level
         df_ = self.msci.datasource.df.merge(
             self.iss.datasource.df,

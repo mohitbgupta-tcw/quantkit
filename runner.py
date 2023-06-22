@@ -378,7 +378,6 @@ class Runner(object):
 
             # no information about security in database --> get information from portfoliot tab
             else:
-                # print(sec)
                 portfolio_row = df_portfolio[df_portfolio["ISIN"] == sec]
                 sec_info = security_row.reindex(list(range(1))).squeeze().to_dict()
                 sec_info["Security ISIN"] = sec
@@ -481,7 +480,7 @@ class Runner(object):
                     isin,
                     comp.CompanyStore(
                         isin,
-                        self.companies["NoISIN"].msci_information,
+                        deepcopy(self.companies["NoISIN"].msci_information),
                         regions_datasource=self.region_datasource,
                         adjustment_datasource=self.adjustment_datasource,
                         exclusion_datasource=self.exclusion_datasource,
@@ -650,7 +649,7 @@ class Runner(object):
         for c in self.companies:
             # assign empty sdg information to companies that dont have these information
             if not hasattr(self.companies[c], "sdg_information"):
-                self.companies[c].sdg_information = empty_sdg
+                self.companies[c].sdg_information = deepcopy(empty_sdg)
 
         return
 
@@ -673,7 +672,7 @@ class Runner(object):
                     c
                 ].bloomberg_information = bloomberg_information.squeeze().to_dict()
             else:
-                self.companies[c].bloomberg_information = empty_bloomberg
+                self.companies[c].bloomberg_information = deepcopy(empty_bloomberg)
         return
 
     def iter_sovereigns(self):
@@ -787,27 +786,11 @@ class Runner(object):
                 parent
             ].sdg_information
 
-        # assign sdg data for missing values
-        else:
-            for val in self.companies[isin].sdg_information:
-                if pd.isna(self.companies[isin].sdg_information[val]):
-                    new_val = self.companies[parent].sdg_information[val]
-                    self.companies[isin].sdg_information[val] = new_val
-
         # assign msci data for missing values
         for val in self.companies[isin].msci_information:
             if pd.isna(self.companies[isin].msci_information[val]):
                 new_val = self.companies[parent].msci_information[val]
                 self.companies[isin].msci_information[val] = new_val
-
-        # assign bloomberg data if all values are nan
-        if all(
-            pd.isna(value)
-            for value in self.companies[isin].bloomberg_information.values()
-        ):
-            self.companies[isin].bloomberg_information = self.companies[
-                parent
-            ].bloomberg_information
 
         # assign bloomberg data for missing values
         for val in self.companies[isin].bloomberg_information:
