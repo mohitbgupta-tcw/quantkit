@@ -61,6 +61,14 @@ class Snowflake(object):
         Load data from snowflake and save as pd.DataFrame in self.df
         """
         session = Session.builder.configs(self.connection_parameters).create()
-        df_table = session.table(self.table_name)
+
+        from_table = f"{self.database}.{self.schema}.{self.table_name}"
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+
+        df_table = session.sql(query)
         self.df = pd.DataFrame(df_table.collect())
         return
+
