@@ -70,6 +70,7 @@
         "filters": {
             "issuer_identifier_type": "ISSUER_ID",
             "issuer_identifier_list": [],
+            "parent_child": "inherit_missing_values",
             "factor_name_list": [
                 "ISSUER_NAME",
                 "ISSUER_TICKER",

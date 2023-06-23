@@ -78,7 +78,8 @@ if __name__ == "__main__":
 
     filters = {
         "issuer_identifier_type": "ISIN",
-        "issuer_identifier_list": ["US037833EJ59"],
+        "issuer_identifier_list": ["US89686QAA40"],
+        "parent_child": "inherit_missing_values",
         "factor_name_list": [
             "ISSUER_NAME",
             "ISSUER_TICKER",
