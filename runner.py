@@ -367,7 +367,7 @@ class Runner(object):
         # load parent issuer data
         self.parent_issuer_datasource.load()
         parent_ids = list(
-            self.parent_issuer_datasource.df["PARENT_ULTIMATE_ISSUERID"].unique()
+            self.parent_issuer_datasource.df["PARENT_ULTIMATE_ISSUERID"].dropna().unique()
         )
 
         # load MSCI data
@@ -824,6 +824,8 @@ class Runner(object):
                         isin=sec, store=self.securities[sec]
                     )
                     self.securities[sec].parent_store = self.companies[parent]
+                if sec in self.companies:
+                    del self.companies[sec]
         return
 
     def parent_issuer(self, isin):
