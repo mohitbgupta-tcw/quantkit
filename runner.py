@@ -17,6 +17,7 @@ import quantkit.finance.data_sources.themes_datasource.themes_datasource as thd
 import quantkit.finance.data_sources.transition_datasource.transition_datasource as trd
 import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as ads
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
+import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
 import quantkit.finance.portfolios.portfolios as portfolios
 import quantkit.finance.companies.companies as comp
 import quantkit.finance.sectors.sectors as sectors
@@ -68,6 +69,11 @@ class Runner(object):
         self.sovereigns = dict()
         self.securitized = dict()
         self.reiter = list()
+
+        # connect parent issuer datasource
+        self.parent_issuer_datasource = pis.ParentIssuerSource(
+            self.params["parent_issuer_datasource"]
+        )
 
         # connect SDG datasource
         self.sdg_datasource = sdgp.SDGDataSource(self.params["sdg_datasource"])
@@ -358,9 +364,17 @@ class Runner(object):
         df_ = df_[df_["Security ISIN"].isin(self.all_holdings)]
         df_portfolio = self.portfolio_datasource.df
 
+        # load parent issuer data
+        self.parent_issuer_datasource.load()
+        parent_ids = list(
+            self.parent_issuer_datasource.df["PARENT_ULTIMATE_ISSUERID"].unique()
+        )
+
         # load MSCI data
         issuer_ids = list(df_["ISSUERID"].unique())
         issuer_ids.remove("NoISSUERID")
+        issuer_ids += parent_ids
+        issuer_ids = list(set(issuer_ids))
         self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
         self.msci_datasource.load()
         msci_df = self.msci_datasource.df
@@ -749,6 +763,9 @@ class Runner(object):
         # attach quandl information
         self.iter_quandl()
 
+        # attach parent issuer id
+        self.attach_parent_issuer()
+
         for c in self.companies:
             self.companies[c].attach_region(self.regions)
             self.companies[c].update_sovereign_score()
@@ -790,6 +807,23 @@ class Runner(object):
 
         self.replace_carbon_median()
         self.replace_transition_risk()
+        return
+
+    def attach_parent_issuer(self):
+        """
+        Manually add parent issuer for selected securities
+        """
+        df_ = self.parent_issuer_datasource.df
+
+        for index, row in df_.iterrows():
+            parent = row["ISIN"]
+            sec = row["SECURITY_ISIN"]
+            if parent in self.companies:
+                if sec in self.securities:
+                    self.companies[parent].add_security(
+                        isin=sec, store=self.securities[sec]
+                    )
+                    self.securities[sec].parent_store = self.companies[parent]
         return
 
     def parent_issuer(self, isin):

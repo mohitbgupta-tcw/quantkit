@@ -255,6 +255,11 @@
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
         "sheet_name": "SecuritizedMapping"
     },
+    "parent_issuer_datasource": {
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
+        "sheet_name": "ApplyParentIssuer"
+    },
     "theme_calculation": {
         "ALL_exclusions" : ["Casinos & Gaming", "Distillers & Vintners", "Brewers", "Tobacco", "Gaming"],
         "RENEWENERGY": {
