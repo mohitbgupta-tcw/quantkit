@@ -433,6 +433,7 @@ class CompanyStore(HeadStore):
         """
 
         current_max = 0
+        current_sec = 0
         for theme in themes:
             msci_sum = 0
             iss_max = 0
@@ -455,14 +456,6 @@ class CompanyStore(HeadStore):
             # multiply with 100 to make comparable to MSCI
             iss_max *= 100
             self.information[theme + "_ISS"] = iss_max
-
-            # calculate primary sustainable revenue source
-            if msci_sum > current_max:
-                self.information["Primary_Rev_Sustainable"] = themes[theme]
-                current_max = msci_sum
-            if iss_max > current_max:
-                self.information["Primary_Rev_Sustainable"] = themes[theme]
-                current_max = iss_max
 
             # check if company fulfills theme specific requirements
             func_ = getattr(themes[theme], theme)
@@ -488,6 +481,24 @@ class CompanyStore(HeadStore):
                 themes[theme].companies[self.isin] = self
                 self.scores["Themes"][theme] = themes[theme]
                 self.scores["Sustainability_Tag"] = "Y"
+
+                # calculate primary sustainable revenue source
+                if msci_sum > current_max:
+                    self.information["Primary_Rev_Sustainable"] = themes[theme]
+                    current_max = msci_sum
+                    current_sec = iss_max
+                elif msci_sum == current_max and iss_max > current_sec:
+                    self.information["Primary_Rev_Sustainable"] = themes[theme]
+                    current_max = msci_sum
+                    current_sec = iss_max
+                if iss_max > current_max:
+                    self.information["Primary_Rev_Sustainable"] = themes[theme]
+                    current_max = iss_max
+                    current_sec = msci_sum
+                elif iss_max == current_max and msci_sum > current_sec:
+                    self.information["Primary_Rev_Sustainable"] = themes[theme]
+                    current_max = iss_max
+                    current_sec = msci_sum
         return
 
     def calculate_esrm_score(self, esrm_d, scoring_d, operators):
