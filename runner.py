@@ -367,7 +367,9 @@ class Runner(object):
         # load parent issuer data
         self.parent_issuer_datasource.load()
         parent_ids = list(
-            self.parent_issuer_datasource.df["PARENT_ULTIMATE_ISSUERID"].dropna().unique()
+            self.parent_issuer_datasource.df["PARENT_ULTIMATE_ISSUERID"]
+            .dropna()
+            .unique()
         )
 
         # load MSCI data
