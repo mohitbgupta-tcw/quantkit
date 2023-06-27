@@ -52,7 +52,7 @@ class HeadStore(object):
         self.scores["Transition_Category"] = list()
         self.scores["Sustainability_Tag"] = "N"
         self.scores["Transition_Tag"] = "N"
-        self.scores["Sector_Level_2"] = "No Sector"
+        # self.scores["Sector_Level_2"] = "No Sector"
         self.scores["Muni_Score"] = 0
         self.scores["Sovereign_Score"] = 0
         self.scores["ESRM_Score"] = 0
