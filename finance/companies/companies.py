@@ -826,7 +826,42 @@ class CompanyStore(HeadStore):
                 s
             ].information["ESG_Collateral_Type"]["ESG Collat Type"]
 
-            if sustainability_tag == "Y*":
+            if self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
+                self.securities[s].information["SClass_Level4-P"] = "Green"
+                self.securities[s].information["SClass_Level4"] = "Green"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
+                self.securities[s].information["SClass_Level4-P"] = "Social"
+                self.securities[s].information["SClass_Level4"] = "Social"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+            elif (
+                self.securities[s].information["Labeled_ESG_Type"]
+                == "Labeled Sustainable"
+            ):
+                self.securities[s].information["SClass_Level4-P"] = "Sustainable"
+                self.securities[s].information["SClass_Level4"] = "Sustainable"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+            elif (
+                self.securities[s].information["Labeled_ESG_Type"]
+                == "Labeled Sustainable Linked"
+            ):
+                self.securities[s].information[
+                    "SClass_Level4-P"
+                ] = "Sustainability-Linked Bonds"
+                self.securities[s].information[
+                    "SClass_Level4"
+                ] = "Sustainability-Linked Bonds"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+
+            elif sustainability_tag == "Y*":
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
                 if len(sustainability_category) == 1:
@@ -915,41 +950,6 @@ class CompanyStore(HeadStore):
                 self.securities[s].information["SClass_Level3"] = "Exclusion"
                 self.securities[s].information["SClass_Level2"] = "Exclusion"
                 self.securities[s].information["SClass_Level1"] = "Excluded"
-
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].information["SClass_Level4-P"] = "Green"
-                self.securities[s].information["SClass_Level4"] = "Green"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].information["SClass_Level4-P"] = "Social"
-                self.securities[s].information["SClass_Level4"] = "Social"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable"
-            ):
-                self.securities[s].information["SClass_Level4-P"] = "Sustainable"
-                self.securities[s].information["SClass_Level4"] = "Sustainable"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable Linked"
-            ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
 
             elif sustainability_tag == "Y":
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
@@ -1066,7 +1066,42 @@ class MuniStore(HeadStore):
                 s
             ].information["ESG_Collateral_Type"]["ESG Collat Type"]
 
-            if sustainability_tag == "Y*":
+            if self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
+                self.securities[s].information["SClass_Level4-P"] = "Green"
+                self.securities[s].information["SClass_Level4"] = "Green"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
+                self.securities[s].information["SClass_Level4-P"] = "Social"
+                self.securities[s].information["SClass_Level4"] = "Social"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+            elif (
+                self.securities[s].information["Labeled_ESG_Type"]
+                == "Labeled Sustainable"
+            ):
+                self.securities[s].information["SClass_Level4-P"] = "Sustainable"
+                self.securities[s].information["SClass_Level4"] = "Sustainable"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+            elif (
+                self.securities[s].information["Labeled_ESG_Type"]
+                == "Labeled Sustainable Linked"
+            ):
+                self.securities[s].information[
+                    "SClass_Level4-P"
+                ] = "Sustainability-Linked Bonds"
+                self.securities[s].information[
+                    "SClass_Level4"
+                ] = "Sustainability-Linked Bonds"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+
+            elif sustainability_tag == "Y*":
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
                 if len(sustainability_category) == 1:
@@ -1127,41 +1162,6 @@ class MuniStore(HeadStore):
                 self.securities[s].information["SClass_Level3"] = "Exclusion"
                 self.securities[s].information["SClass_Level2"] = "Exclusion"
                 self.securities[s].information["SClass_Level1"] = "Excluded"
-
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].information["SClass_Level4-P"] = "Green"
-                self.securities[s].information["SClass_Level4"] = "Green"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].information["SClass_Level4-P"] = "Social"
-                self.securities[s].information["SClass_Level4"] = "Social"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable"
-            ):
-                self.securities[s].information["SClass_Level4-P"] = "Sustainable"
-                self.securities[s].information["SClass_Level4"] = "Sustainable"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable Linked"
-            ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
 
             elif sustainability_tag == "Y":
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
@@ -1332,18 +1332,7 @@ class SecuritizedStore(HeadStore):
                 s
             ].information["ESG_Collateral_Type"]["ESG Collat Type"]
 
-            if score == 5:
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Poor Securitized Score"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Poor Securitized Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
-
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
+            if self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
                 self.securities[s].information["SClass_Level4-P"] = "Green"
                 self.securities[s].information["SClass_Level4"] = "Green"
                 self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
@@ -1377,6 +1366,17 @@ class SecuritizedStore(HeadStore):
                 self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
+
+            elif score == 5:
+                self.securities[s].information[
+                    "SClass_Level4-P"
+                ] = "Poor Securitized Score"
+                self.securities[s].information[
+                    "SClass_Level4"
+                ] = "Poor Securitized Score"
+                self.securities[s].information["SClass_Level3"] = "Exclusion"
+                self.securities[s].information["SClass_Level2"] = "Exclusion"
+                self.securities[s].information["SClass_Level1"] = "Excluded"
 
             elif (
                 not self.securities[s].information["ESG_Collateral_Type"][
