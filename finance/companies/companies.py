@@ -826,7 +826,42 @@ class CompanyStore(HeadStore):
                 s
             ].information["ESG_Collateral_Type"]["ESG Collat Type"]
 
-            if self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
+            if governance_score == 5:
+                self.securities[s].information[
+                    "SClass_Level4-P"
+                ] = "Poor Governance Score"
+                self.securities[s].information[
+                    "SClass_Level4"
+                ] = "Poor Governance Score"
+                self.securities[s].information["SClass_Level3"] = "Exclusion"
+                self.securities[s].information["SClass_Level2"] = "Exclusion"
+                self.securities[s].information["SClass_Level1"] = "Excluded"
+
+            elif (
+                esrm_score == 5
+                or self.msci_information["UNGC_COMPLIANCE"] == "Fail"
+                or self.msci_information["OVERALL_FLAG"] == "Red"
+                or self.msci_information["IVA_COMPANY_RATING"] == "CCC"
+            ):
+                self.securities[s].information["SClass_Level4-P"] = "Poor ESRM Score"
+                self.securities[s].information["SClass_Level4"] = "Poor ESRM Score"
+                self.securities[s].information["SClass_Level3"] = "Exclusion"
+                self.securities[s].information["SClass_Level2"] = "Exclusion"
+                self.securities[s].information["SClass_Level1"] = "Excluded"
+                self.scores["ESRM_Score"] = 5
+
+            elif transition_score == 5:
+                self.securities[s].information[
+                    "SClass_Level4-P"
+                ] = "Poor Transition Score"
+                self.securities[s].information[
+                    "SClass_Level4"
+                ] = "Poor Transition Score"
+                self.securities[s].information["SClass_Level3"] = "Exclusion"
+                self.securities[s].information["SClass_Level2"] = "Exclusion"
+                self.securities[s].information["SClass_Level1"] = "Excluded"
+
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
                 self.securities[s].information["SClass_Level4-P"] = "Green"
                 self.securities[s].information["SClass_Level4"] = "Green"
                 self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
@@ -915,41 +950,6 @@ class CompanyStore(HeadStore):
                     raise ValueError(
                         "If transition tag is 'Y*', category should be assigned."
                     )
-
-            elif governance_score == 5:
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Poor Governance Score"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Poor Governance Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
-
-            elif (
-                esrm_score == 5
-                or self.msci_information["UNGC_COMPLIANCE"] == "Fail"
-                or self.msci_information["OVERALL_FLAG"] == "Red"
-                or self.msci_information["IVA_COMPANY_RATING"] == "CCC"
-            ):
-                self.securities[s].information["SClass_Level4-P"] = "Poor ESRM Score"
-                self.securities[s].information["SClass_Level4"] = "Poor ESRM Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
-                self.scores["ESRM_Score"] = 5
-
-            elif transition_score == 5:
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Poor Transition Score"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Poor Transition Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
 
             elif sustainability_tag == "Y":
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
@@ -1066,7 +1066,13 @@ class MuniStore(HeadStore):
                 s
             ].information["ESG_Collateral_Type"]["ESG Collat Type"]
 
-            if self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
+            if score == 5:
+                self.securities[s].information["SClass_Level4-P"] = "Poor Muni Score"
+                self.securities[s].information["SClass_Level4"] = "Poor Muni Score"
+                self.securities[s].information["SClass_Level3"] = "Exclusion"
+                self.securities[s].information["SClass_Level2"] = "Exclusion"
+                self.securities[s].information["SClass_Level1"] = "Excluded"
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
                 self.securities[s].information["SClass_Level4-P"] = "Green"
                 self.securities[s].information["SClass_Level4"] = "Green"
                 self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
@@ -1155,13 +1161,6 @@ class MuniStore(HeadStore):
                     raise ValueError(
                         "If transition tag is 'Y', category should be assigned."
                     )
-
-            elif score == 5:
-                self.securities[s].information["SClass_Level4-P"] = "Poor Muni Score"
-                self.securities[s].information["SClass_Level4"] = "Poor Muni Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
 
             elif sustainability_tag == "Y":
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
@@ -1332,7 +1331,18 @@ class SecuritizedStore(HeadStore):
                 s
             ].information["ESG_Collateral_Type"]["ESG Collat Type"]
 
-            if self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
+            if score == 5:
+                self.securities[s].information[
+                    "SClass_Level4-P"
+                ] = "Poor Securitized Score"
+                self.securities[s].information[
+                    "SClass_Level4"
+                ] = "Poor Securitized Score"
+                self.securities[s].information["SClass_Level3"] = "Exclusion"
+                self.securities[s].information["SClass_Level2"] = "Exclusion"
+                self.securities[s].information["SClass_Level1"] = "Excluded"
+
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
                 self.securities[s].information["SClass_Level4-P"] = "Green"
                 self.securities[s].information["SClass_Level4"] = "Green"
                 self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
@@ -1366,17 +1376,6 @@ class SecuritizedStore(HeadStore):
                 self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
-
-            elif score == 5:
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Poor Securitized Score"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Poor Securitized Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
 
             elif (
                 not self.securities[s].information["ESG_Collateral_Type"][
