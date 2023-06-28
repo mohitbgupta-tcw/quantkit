@@ -826,7 +826,62 @@ class CompanyStore(HeadStore):
                 s
             ].information["ESG_Collateral_Type"]["ESG Collat Type"]
 
-            if governance_score == 5:
+            if sustainability_tag == "Y*":
+                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+                if len(sustainability_category) == 1:
+                    theme = themes[0]
+                    self.securities[s].information["SClass_Level4"] = theme
+                    self.securities[s].information["SClass_Level4-P"] = theme
+                    self.securities[s].information[
+                        "SClass_Level3"
+                    ] = sustainability_category[theme].pillar
+                elif len(sustainability_category) >= 2:
+                    self.securities[s].information["SClass_Level3"] = "Multi-Thematic"
+                    self.securities[s].information[
+                        "SClass_Level4-P"
+                    ] = self.information["Primary_Rev_Sustainable"].acronym
+                    people_count = 0
+                    planet_count = 0
+                    for t in sustainability_category:
+                        if sustainability_category[t].pillar == "People":
+                            people_count += 1
+                        elif sustainability_category[t].pillar == "Planet":
+                            planet_count += 1
+
+                        if planet_count >= 1 and people_count >= 1:
+                            self.securities[s].information[
+                                "SClass_Level4"
+                            ] = "Planet & People"
+                        elif planet_count >= 2:
+                            self.securities[s].information["SClass_Level4"] = "Planet"
+                        elif people_count >= 2:
+                            self.securities[s].information["SClass_Level4"] = "People"
+                else:
+                    raise ValueError(
+                        "If sustainability tag is 'Y*', theme should be assigned."
+                    )
+
+            elif transition_tag == "Y*":
+                self.securities[s].information["SClass_Level3"] = "Transition"
+                self.securities[s].information["SClass_Level2"] = "Transition"
+                self.securities[s].information["SClass_Level1"] = "Eligible"
+                if len(transition_category) > 1:
+                    self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
+                    self.securities[s].information["SClass_Level4-P"] = "Multi-Thematic"
+                elif len(transition_category) == 1:
+                    self.securities[s].information[
+                        "SClass_Level4"
+                    ] = transition_category[0]
+                    self.securities[s].information[
+                        "SClass_Level4-P"
+                    ] = transition_category[0]
+                else:
+                    raise ValueError(
+                        "If transition tag is 'Y*', category should be assigned."
+                    )
+
+            elif governance_score == 5:
                 self.securities[s].information[
                     "SClass_Level4-P"
                 ] = "Poor Governance Score"
@@ -896,7 +951,7 @@ class CompanyStore(HeadStore):
                 self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
 
-            elif sustainability_tag in ["Y", "Y*"]:
+            elif sustainability_tag == "Y":
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
                 if len(sustainability_category) == 1:
@@ -932,7 +987,7 @@ class CompanyStore(HeadStore):
                         "If sustainability tag is 'Y', theme should be assigned."
                     )
 
-            elif transition_tag in ["Y", "Y*"]:
+            elif transition_tag == "Y":
                 self.securities[s].information["SClass_Level3"] = "Transition"
                 self.securities[s].information["SClass_Level2"] = "Transition"
                 self.securities[s].information["SClass_Level1"] = "Eligible"
@@ -1011,7 +1066,62 @@ class MuniStore(HeadStore):
                 s
             ].information["ESG_Collateral_Type"]["ESG Collat Type"]
 
-            if score == 5:
+            if sustainability_tag == "Y*":
+                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+                if len(sustainability_category) == 1:
+                    theme = themes[0]
+                    self.securities[s].information["SClass_Level4"] = theme
+                    self.securities[s].information["SClass_Level4-P"] = theme
+                    self.securities[s].information[
+                        "SClass_Level3"
+                    ] = sustainability_category[theme].pillar
+                elif len(sustainability_category) >= 2:
+                    self.securities[s].information["SClass_Level3"] = "Multi-Thematic"
+                    self.securities[s].information[
+                        "SClass_Level4-P"
+                    ] = self.information["Primary_Rev_Sustainable"].acronym
+                    people_count = 0
+                    planet_count = 0
+                    for t in sustainability_category:
+                        if sustainability_category[t].pillar == "People":
+                            people_count += 1
+                        elif sustainability_category[t].pillar == "Planet":
+                            planet_count += 1
+
+                        if planet_count >= 1 and people_count >= 1:
+                            self.securities[s].information[
+                                "SClass_Level4"
+                            ] = "Planet & People"
+                        elif planet_count >= 2:
+                            self.securities[s].information["SClass_Level4"] = "Planet"
+                        elif people_count >= 2:
+                            self.securities[s].information["SClass_Level4"] = "People"
+                else:
+                    raise ValueError(
+                        "If sustainability tag is 'Y', theme should be assigned."
+                    )
+
+            elif transition_tag == "Y*":
+                self.securities[s].information["SClass_Level3"] = "Transition"
+                self.securities[s].information["SClass_Level2"] = "Transition"
+                self.securities[s].information["SClass_Level1"] = "Eligible"
+                if len(transition_category) > 1:
+                    self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
+                    self.securities[s].information["SClass_Level4-P"] = "Multi-Thematic"
+                elif len(transition_category) == 1:
+                    self.securities[s].information[
+                        "SClass_Level4"
+                    ] = transition_category[0]
+                    self.securities[s].information[
+                        "SClass_Level4-P"
+                    ] = transition_category[0]
+                else:
+                    raise ValueError(
+                        "If transition tag is 'Y', category should be assigned."
+                    )
+
+            elif score == 5:
                 self.securities[s].information["SClass_Level4-P"] = "Poor Muni Score"
                 self.securities[s].information["SClass_Level4"] = "Poor Muni Score"
                 self.securities[s].information["SClass_Level3"] = "Exclusion"
@@ -1053,7 +1163,7 @@ class MuniStore(HeadStore):
                 self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
 
-            elif sustainability_tag in ["Y", "Y*"]:
+            elif sustainability_tag == "Y":
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
                 if len(sustainability_category) == 1:
@@ -1089,7 +1199,7 @@ class MuniStore(HeadStore):
                         "If sustainability tag is 'Y', theme should be assigned."
                     )
 
-            elif transition_tag in ["Y", "Y*"]:
+            elif transition_tag == "Y":
                 self.securities[s].information["SClass_Level3"] = "Transition"
                 self.securities[s].information["SClass_Level2"] = "Transition"
                 self.securities[s].information["SClass_Level1"] = "Eligible"

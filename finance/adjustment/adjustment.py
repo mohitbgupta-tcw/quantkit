@@ -23,6 +23,7 @@ def planet_people(store, adjustment: str, themes: dict, theme: str):
     elif adjustment == "Addition":
         store.scores["Sustainability_Tag"] = "Y*"
         store.scores["Themes"][theme] = themes[theme]
+        store.information["Primary_Rev_Sustainable"] = themes[theme]
     else:
         raise ValueError("Adjustment value should either be 'Addition' or 'Deletion'")
     return
