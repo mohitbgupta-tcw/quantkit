@@ -1,7 +1,7 @@
 {   
     "A9Funds": [6781, 16705, 3738, 3750, 16719, 16706, "BB HIGH YIELD 2% CAP", "MSCI WORLD", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "BB INTERMEDIATE CORP", "JPM CEMBI BROAD DIVERSE"],
     "A8Funds":  [13727, 3735, 3775, 13751, "BLOOMBERG AGGREGATE INDEX"],
-    "carve_out_sectors": ["Electric Utilities", "Gas Utilities","Multi-Utilities","Other Utility","Water Utilities","Independent Power Producers & Energy Traders","Integrated Oil & Gas","Oil & Gas Drilling","Oil & Gas Equipment & Services","Oil & Gas Exploration & Production","Oil & Gas Refining & Marketing","Oil & Gas Storage & Transportation","Oil Field Services"],
+    "carve_out_sectors": ["Electric Utilities", "Electric", "Gas Utilities","Multi-Utilities","Other Utility","Water Utilities","Independent Power Producers & Energy Traders","Integrated Oil & Gas","Oil & Gas Drilling","Oil & Gas Equipment & Services","Oil & Gas Exploration & Production","Oil & Gas Refining & Marketing","Oil & Gas Storage & Transportation","Oil Field Services", "Government Owned, No Guarantee"],
 
     "transition_parameters": {
         "Q_Low" : 0.10,

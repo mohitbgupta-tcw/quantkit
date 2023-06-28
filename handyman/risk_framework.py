@@ -82,6 +82,15 @@ def risk_framework():
                 level_4 = "Excluded Sector"
                 level_4p = "Excluded Sector"
 
+            if "INTELSAT" in issuer_name:
+                level_1 = "Preferred"
+                level_2 = "Sustainable Theme"
+                level_3 = "People"
+                level_4 = "INCLUSION"
+                level_4p = "INCLUSION"
+                gov_score = 4
+                esrm_score = 1
+
             holding_measures = r.portfolios[p].holdings[s]["holding_measures"]
             for h in holding_measures:
                 portfolio_weight = h["Portfolio_Weight"]
