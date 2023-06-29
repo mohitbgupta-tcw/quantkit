@@ -19,11 +19,10 @@ import quantkit.finance.data_sources.adjustment_datasource.adjustment_database a
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
 import quantkit.finance.companies.companies as comp
-import quantkit.finance.sectors.sectors as sectors
 import quantkit.finance.securities.securities as secs
 import quantkit.finance.themes.themes as themes
 import quantkit.utils.logging as logging
-from typing import Union
+import quantkit.finance.sectors.sectors as sectors
 import operator
 
 
@@ -51,6 +50,21 @@ class Runner(object):
             self.params["category_datasource"]
         )
 
+        # connect sector datasource
+        self.sector_datasource = secdb.SectorDataSource(
+            self.params["sector_datasource"]
+        )
+
+        # connect BCLASS datasource
+        self.bclass_datasource = secdb.BClassDataSource(
+            self.params["bclass_datasource"], self.params["transition_parameters"]
+        )
+
+        # connect GICS datasource
+        self.gics_datasource = secdb.GICSDataSource(
+            self.params["gics_datasource"], self.params["transition_parameters"]
+        )
+
         # connecy security datasource
         self.security_datasource = sd.SecurityDataSource(
             self.params["security_datasource"]
@@ -72,24 +86,6 @@ class Runner(object):
 
         # connect SDG datasource
         self.sdg_datasource = sdgp.SDGDataSource(self.params["sdg_datasource"])
-
-        # connect sector datasource
-        self.sector_datasource = secdb.SectorDataSource(
-            self.params["sector_datasource"]
-        )
-        self.sectors = dict()
-
-        # connect BCLASS datasource
-        self.bclass_datasource = secdb.BClassDataSource(
-            self.params["bclass_datasource"]
-        )
-        self.bclass = dict()
-
-        # connect GICS datasource
-        self.gics_datasource = secdb.GICSDataSource(self.params["gics_datasource"])
-        self.gics = dict()
-
-        self.industries = dict()
 
         # connect securitized mapping datasource
         self.securitized_datasource = securidb.SecuritizedDataSource(
@@ -188,88 +184,35 @@ class Runner(object):
         - map transition targets to sub sectors
         """
         self.sector_datasource.load()
-
-        # create Sector objects for GICS and BCLASS
-        df_ = self.sector_datasource.df
-        for s in list(df_["Sector_Code"].unique()):
-            self.sectors[s] = sectors.Sector(s)
+        self.sector_datasource.iter_sectors()
 
         # create Sub-Sector objects for GICS and BCLASS
         self.bclass_datasource.load()
-        self.iter_subsector(
-            datasource=self.bclass_datasource,
-            col="BCLASS_Level4",
-            dic=self.bclass,
-            class_=sectors.BClass,
-            sector="BCLASS",
-        )
+        self.bclass_datasource.iter_bclass()
+
+        # assign Sub Sector object to Sector and vice verse
+        for bc in self.bclass_datasource.bclass:
+            self.sector_datasource.sectors["BCLASS"].add_sub_sector(
+                self.bclass_datasource.bclass[bc]
+            )
+            self.bclass_datasource.bclass[bc].add_sector(
+                self.sector_datasource.sectors["BCLASS"]
+            )
 
         self.gics_datasource.load()
-        self.iter_subsector(
-            datasource=self.gics_datasource,
-            col="GICS_SUB_IND",
-            dic=self.gics,
-            class_=sectors.GICS,
-            sector="GICS",
-        )
+        self.gics_datasource.iter_gics()
+
+        # assign Sub Sector object to Sector and vice verse
+        for g in self.gics_datasource.gics:
+            self.sector_datasource.sectors["GICS"].add_sub_sector(
+                self.gics_datasource.gics[g]
+            )
+            self.gics_datasource.gics[g].add_sector(
+                self.sector_datasource.sectors["GICS"]
+            )
 
         # map transition target and transition revenue to each sub-sector
         self.iter_transitions()
-        return
-
-    def iter_subsector(
-        self,
-        datasource: Union[secdb.BClassDataSource, secdb.GICSDataSource],
-        col: str,
-        dic: dict,
-        class_: Union[sectors.BClass, sectors.GICS],
-        sector: str,
-    ):
-        """
-        Create Sub Sector and Industry objects for specific sector
-        Save objects in sub-sector and industry attributes.
-
-        Parameters
-        ----------
-        datasource: secdb.BClassDataSource | secdb.GICSDataSource
-            sector specific datasource with DataFrame
-        col: str
-            name of column of Sub-Sector in Sub-Sector database
-        dic: dict
-            Sub-Sector specific dictionary to save object in
-        class_: sectors.BClass | sectors.GICS
-            Sub-Sector class name
-        sector: str
-            Sector name
-        """
-        # create Sub-Sector and Industry objects
-        df_ = datasource.df
-        for index, row in df_.iterrows():
-            # create Sub Sector object
-            sub_sector = row[col]
-            dic[sub_sector] = class_(class_name=sub_sector, row_information=row)
-            ss_object = dic[sub_sector]
-
-            # assign Sub Sector object to Sector and vice verse
-            self.sectors[sector].sub_sectors[sub_sector] = ss_object
-            ss_object.sector = self.sectors[sector]
-
-            # create Industry object if not already available
-            industry = row["Industry"]
-            self.industries[industry] = self.industries.get(
-                industry,
-                sectors.Industry(
-                    industry,
-                    transition_risk=row["Transition Risk Module"],
-                    Q_Low=self.params["transition_parameters"]["Q_Low"],
-                    Q_High=self.params["transition_parameters"]["Q_High"],
-                ),
-            )
-
-            # assign Sub Sector object to Industry and vice verse
-            self.industries[industry].sub_sectors[sub_sector] = ss_object
-            ss_object.industry = self.industries[industry]
-
         return
 
     def iter_transitions(self):
@@ -300,9 +243,9 @@ class Runner(object):
             bclass4 = row["BCLASS_LEVEL4"]
 
             if not pd.isna(gics_sub):
-                self.gics[gics_sub].transition = row.to_dict()
+                self.gics_datasource.gics[gics_sub].transition = row.to_dict()
             if not pd.isna(bclass4):
-                self.bclass[bclass4].transition = row.to_dict()
+                self.bclass_datasource.bclass[bclass4].transition = row.to_dict()
         return
 
     def iter_portfolios(self):
@@ -318,15 +261,7 @@ class Runner(object):
         self.all_holdings = list(self.portfolio_datasource.df["ISIN"].unique())
 
         # attach sector to portfolio
-        df_ = self.sector_datasource.df
-        for index, row in df_[
-            df_["Portfolio"].isin(list(self.portfolio_datasource.portfolios.keys()))
-        ].iterrows():
-            pf = row["Portfolio"]
-            self.portfolio_datasource.portfolios[pf].Sector = self.sectors[
-                row["Sector_Code"]
-            ]
-
+        self.sector_datasource.iter_portfolios(self.portfolio_datasource.portfolios)
         return
 
     def iter_securities(self):
@@ -578,13 +513,16 @@ class Runner(object):
             # attach BCLASS object
             # if BCLASS is not in BCLASS store (covered industries), attach 'Unassigned BCLASS'
             bclass4 = row["BCLASS_Level4"]
-            self.bclass[bclass4] = self.bclass.get(
+            self.bclass_datasource.bclass[bclass4] = self.bclass_datasource.bclass.get(
                 bclass4,
                 sectors.BClass(
-                    bclass4, pd.Series(self.bclass["Unassigned BCLASS"].information)
+                    bclass4,
+                    pd.Series(
+                        self.bclass_datasource.bclass["Unassigned BCLASS"].information
+                    ),
                 ),
             )
-            bclass_object = self.bclass[bclass4]
+            bclass_object = self.bclass_datasource.bclass[bclass4]
 
             # for first initialization of BCLASS
             parent_store.information["BCLASS_Level4"] = parent_store.information.get(
@@ -627,9 +565,9 @@ class Runner(object):
                 pf
             ]
 
-        self.companies["NoISIN"].information["BCLASS_Level4"] = self.bclass[
-            "Unassigned BCLASS"
-        ]
+        self.companies["NoISIN"].information[
+            "BCLASS_Level4"
+        ] = self.bclass_datasource.bclass["Unassigned BCLASS"]
         return
 
     def iter_sdg(self):
@@ -721,7 +659,7 @@ class Runner(object):
             self.sovereigns[s].attach_region()
             self.sovereigns[s].update_sovereign_score()
             self.sovereigns[s].attach_analyst_adjustment()
-            self.sovereigns[s].attach_gics(self.gics)
+            self.sovereigns[s].attach_gics(self.gics_datasource.gics)
             self.sovereigns[s].exclusion()
         return
 
@@ -771,10 +709,12 @@ class Runner(object):
             self.companies[c].exclusion()
 
             # attach GICS Sub industry
-            self.companies[c].attach_gics(self.gics)
+            self.companies[c].attach_gics(self.gics_datasource.gics)
 
             # attach industry and sub industry
-            self.companies[c].attach_industry(self.gics, self.bclass)
+            self.companies[c].attach_industry(
+                self.gics_datasource.gics, self.bclass_datasource.bclass
+            )
 
             # attach category
             self.companies[c].attach_category(self.category_datasource.categories)
@@ -871,7 +811,7 @@ class Runner(object):
         """
         logging.log("Iterate Securitized")
         for sec in self.securitized:
-            self.securitized[sec].attach_gics(self.gics)
+            self.securitized[sec].attach_gics(self.gics_datasource.gics)
             self.securitized[sec].exclusion()
 
     def iter_muni(self):
@@ -882,7 +822,7 @@ class Runner(object):
         """
         logging.log("Iterate Munis")
         for m in self.munis:
-            self.munis[m].attach_gics(self.gics)
+            self.munis[m].attach_gics(self.gics_datasource.gics)
             self.munis[m].exclusion()
 
     def replace_carbon_median(self):
@@ -904,40 +844,32 @@ class Runner(object):
         --> check if carbon intensity is bigger or smaller than predefined threshold
         """
         # create new Industry objects for Unassigned High and Low
-        self.industries["Unassigned BCLASS High"] = sectors.Industry(
-            "Unassigned BCLASS High",
-            transition_risk="High",
-            Q_Low=self.params["transition_parameters"]["Q_Low"],
-            Q_High=self.params["transition_parameters"]["Q_High"],
-        )
-        self.industries["Unassigned BCLASS Low"] = sectors.Industry(
-            "Unassigned BCLASS Low",
-            transition_risk="Low",
-            Q_Low=self.params["transition_parameters"]["Q_Low"],
-            Q_High=self.params["transition_parameters"]["Q_High"],
-        )
 
-        for c in self.industries["Unassigned BCLASS"].companies:
+        for c in self.bclass_datasource.industries["Unassigned BCLASS"].companies:
             company_store = self.companies[c]
             carb_int = company_store.information["Carbon Intensity (Scope 123)"]
             # carbon intensity greater than threshold --> high risk
             if carb_int > self.params["transition_parameters"]["High_Threshold"]:
                 company_store.information["Transition_Risk_Module"] = "High"
-                self.industries["Unassigned BCLASS High"].companies[c] = company_store
-                company_store.information["Industry"] = self.industries[
-                    "Unassigned BCLASS High"
-                ]
-                self.industries["Unassigned BCLASS High"].update(
+                self.bclass_datasource.industries["Unassigned BCLASS High"].companies[
+                    c
+                ] = company_store
+                company_store.information[
+                    "Industry"
+                ] = self.bclass_datasource.industries["Unassigned BCLASS High"]
+                self.bclass_datasource.industries["Unassigned BCLASS High"].update(
                     company_store.information["Carbon Intensity (Scope 123)"]
                 )
             # carbon intensity smaller than threshold --> low risk
             else:
                 company_store.information["Transition_Risk_Module"] = "Low"
-                self.industries["Unassigned BCLASS Low"].companies[c] = company_store
-                company_store.information["Industry"] = self.industries[
-                    "Unassigned BCLASS Low"
-                ]
-                self.industries["Unassigned BCLASS Low"].update(
+                self.bclass_datasource.industries["Unassigned BCLASS Low"].companies[
+                    c
+                ] = company_store
+                company_store.information[
+                    "Industry"
+                ] = self.bclass_datasource.industries["Unassigned BCLASS Low"]
+                self.bclass_datasource.industries["Unassigned BCLASS Low"].update(
                     company_store.information["Carbon Intensity (Scope 123)"]
                 )
 

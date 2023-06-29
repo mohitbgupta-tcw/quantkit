@@ -1,5 +1,6 @@
 import quantkit.mathstats.median.median as median
 import pandas as pd
+from typing import Union
 
 
 class Industry(object):
@@ -26,7 +27,9 @@ class Industry(object):
         Highest Quantile (used for transition score). Companies with carbon intensity over this value will be marked as bad
     """
 
-    def __init__(self, name: str, transition_risk: str, Q_Low: float, Q_High: float):
+    def __init__(
+        self, name: str, transition_risk: str, Q_Low: float, Q_High: float, **kwargs
+    ):
         self.name = name
         self.transition_risk = transition_risk
         self.sub_sectors = dict()
@@ -97,6 +100,10 @@ class Sector(object):
         self.name = name
         self.sub_sectors = dict()
 
+    def add_sub_sector(self, sub_sector):
+        self.sub_sectors[sub_sector.class_name] = sub_sector
+        return
+
 
 class BClass(object):
     """
@@ -121,6 +128,10 @@ class BClass(object):
         self.class_name = class_name
         self.information = row_information.to_dict()
 
+    def add_sector(self, sector):
+        self.sector = sector
+        return
+
 
 class GICS(object):
     """
@@ -144,3 +155,7 @@ class GICS(object):
     def __init__(self, class_name: str, row_information: pd.Series):
         self.class_name = class_name
         self.information = row_information.to_dict()
+
+    def add_sector(self, sector):
+        self.sector = sector
+        return
