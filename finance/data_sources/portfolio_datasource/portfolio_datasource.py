@@ -1,5 +1,6 @@
 import quantkit.finance.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
+import quantkit.finance.portfolios.portfolios as portfolios
 
 
 class PortfolioDataSource(ds.DataSources):
@@ -52,6 +53,7 @@ class PortfolioDataSource(ds.DataSources):
 
     def __init__(self, params: dict):
         super().__init__(params)
+        self.portfolios = dict()
 
     def load(self):
         """
@@ -82,6 +84,25 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["BCLASS_Level4"].replace(
             "Unassigned Bclass", "Unassigned BCLASS", inplace=True
         )
+        return
+
+    def iter_portfolios(self):
+        """
+        iterate over portfolios and:
+        - Create Portfolio Objects
+        - Save in self.portfolios
+        - key is portfolio id
+        """
+        for index, row in (
+            self.df[["Portfolio", "Portfolio Name"]].drop_duplicates().iterrows()
+        ):
+            pf = row["Portfolio"]
+            pf_store = portfolios.PortfolioStore(pf=pf, name=row["Portfolio Name"])
+            holdings_df = self.df[self.df["Portfolio"] == pf][
+                ["As Of Date", "ISIN", "Portfolio_Weight", "Base Mkt Val", "OAS"]
+            ]
+            pf_store.add_holdings(holdings_df)
+            self.portfolios[pf] = pf_store
         return
 
     @property

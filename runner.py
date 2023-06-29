@@ -18,7 +18,6 @@ import quantkit.finance.data_sources.transition_datasource.transition_datasource
 import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as ads
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
-import quantkit.finance.portfolios.portfolios as portfolios
 import quantkit.finance.companies.companies as comp
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.finance.securities.securities as secs
@@ -46,7 +45,6 @@ class Runner(object):
         self.portfolio_datasource = pod.PortfolioDataSource(
             self.params["portfolio_datasource"]
         )
-        self.portfolios = dict()
 
         # connect category datasource
         self.category_datasource = cd.CategoryDataSource(
@@ -310,37 +308,23 @@ class Runner(object):
 
     def iter_portfolios(self):
         """
-        - Create Portfolio Objects
-        - Save in self.portfolios
-        - key is portfolio id
+        - load portfolio data
+        - create portfolio objects
         - attach Sector to Portfolio object
         """
-        # load portfolio data
         self.portfolio_datasource.load()
-
-        # iterate over portfolios
-        df_ = self.portfolio_datasource.df
-        for index, row in (
-            df_[["Portfolio", "Portfolio Name"]].drop_duplicates().iterrows()
-        ):
-            pf = row["Portfolio"]
-            pf_store = portfolios.PortfolioStore(pf=pf, name=row["Portfolio Name"])
-            holdings_df = df_[df_["Portfolio"] == pf][
-                ["As Of Date", "ISIN", "Portfolio_Weight", "Base Mkt Val", "OAS"]
-            ]
-            pf_store.add_holdings(holdings_df)
-            self.portfolios[pf] = pf_store
+        self.portfolio_datasource.iter_portfolios()
 
         # save all securities that occur in portfolios to filter down security database later on
-        self.all_holdings = list(df_["ISIN"].unique())
+        self.all_holdings = list(self.portfolio_datasource.df["ISIN"].unique())
 
         # attach sector to portfolio
         df_ = self.sector_datasource.df
         for index, row in df_[
-            df_["Portfolio"].isin(list(self.portfolios.keys()))
+            df_["Portfolio"].isin(list(self.portfolio_datasource.portfolios.keys()))
         ].iterrows():
             pf = row["Portfolio"]
-            self.portfolios[pf].Sector = self.sectors[row["Sector_Code"]]
+            self.portfolio_datasource.portfolios[pf].Sector = self.sectors[row["Sector_Code"]]
 
         return
 
@@ -624,19 +608,19 @@ class Runner(object):
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
             ].to_dict()
-            self.portfolios[pf].holdings[isin] = self.portfolios[pf].holdings.get(
+            self.portfolio_datasource.portfolios[pf].holdings[isin] = self.portfolio_datasource.portfolios[pf].holdings.get(
                 isin,
                 {
                     "object": security_store,
                     "holding_measures": [],
                 },
             )
-            self.portfolios[pf].holdings[isin]["holding_measures"].append(
+            self.portfolio_datasource.portfolios[pf].holdings[isin]["holding_measures"].append(
                 holding_measures
             )
 
             # attach portfolio to security
-            security_store.portfolio_store[pf] = self.portfolios[pf]
+            security_store.portfolio_store[pf] = self.portfolio_datasource.portfolios[pf]
 
         self.companies["NoISIN"].information["BCLASS_Level4"] = self.bclass[
             "Unassigned BCLASS"
