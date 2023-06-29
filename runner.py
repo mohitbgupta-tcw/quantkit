@@ -20,7 +20,6 @@ import quantkit.finance.data_sources.securitized_datasource.securitized_datasour
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
 import quantkit.finance.companies.companies as comp
 import quantkit.finance.securities.securities as secs
-import quantkit.finance.themes.themes as themes
 import quantkit.utils.logging as logging
 import quantkit.finance.sectors.sectors as sectors
 import operator
@@ -36,6 +35,11 @@ class Runner(object):
 
         # read params file
         self.params = configs.read_configs()
+
+        # connect themes datasource
+        self.theme_datasource = thd.ThemeDataSource(
+            self.params["theme_datasource"], self.params["theme_calculation"]
+        )
 
         # connect regions datasource
         self.region_datasource = rd.RegionsDataSource(self.params["regions_datasource"])
@@ -116,10 +120,6 @@ class Runner(object):
             self.params["bloomberg_datasource"]
         )
 
-        # connect themes datasource
-        self.theme_datasource = thd.ThemeDataSource(self.params["theme_datasource"])
-        self.themes = dict()
-
         # connect quandl datasource
         self.quandl_datasource = quds.QuandlDataSource(self.params["quandl_datasource"])
         self.all_tickers = []
@@ -147,25 +147,11 @@ class Runner(object):
 
     def iter_themes(self):
         """
+        - load theme data
         - create Theme objects for each theme
-        - save object for each theme in self.themes
-        - key is Acronym
         """
-        # load theme data
         self.theme_datasource.load()
-
-        df_ = self.theme_datasource.datasource.df
-        df_unique = df_.drop_duplicates(subset=["Acronym"])
-        for index, row in df_unique.iterrows():
-            theme = row["Acronym"]
-            df_information = df_[df_["Acronym"] == theme]
-            self.themes[theme] = themes.Theme(
-                acronym=theme,
-                name=row["Theme"],
-                pillar=row["Pillar"],
-                information_df=df_information,
-                params=self.params["theme_calculation"],
-            )
+        self.theme_datasource.iter_themes()
         return
 
     def iter_regions(self):
@@ -734,7 +720,7 @@ class Runner(object):
                 self.reiter.append(c)
 
             # assign theme and Sustainability_Tag
-            self.companies[c].check_theme_requirements(self.themes)
+            self.companies[c].check_theme_requirements(self.theme_datasource.themes)
 
         self.replace_carbon_median()
         self.replace_transition_risk()
@@ -894,16 +880,16 @@ class Runner(object):
         See quantkit.finance.adjustments for more information
         """
         for c in self.companies:
-            self.companies[c].analyst_adjustment(self.themes)
+            self.companies[c].analyst_adjustment(self.theme_datasource.themes)
 
         for sov in self.sovereigns:
-            self.sovereigns[sov].analyst_adjustment(self.themes)
+            self.sovereigns[sov].analyst_adjustment(self.theme_datasource.themes)
 
         for muni in self.munis:
-            self.munis[muni].analyst_adjustment(self.themes)
+            self.munis[muni].analyst_adjustment(self.theme_datasource.themes)
 
         for sec in self.securitized:
-            self.securitized[sec].analyst_adjustment(self.themes)
+            self.securitized[sec].analyst_adjustment(self.theme_datasource.themes)
         return
 
     def calculate_esrm_score(self):
