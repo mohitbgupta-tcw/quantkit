@@ -69,6 +69,11 @@ class Runner(object):
             self.params["gics_datasource"], self.params["transition_parameters"]
         )
 
+        # connect transition datasource
+        self.transition_datasource = trd.TransitionDataSource(
+            self.params["transition_datasource"]
+        )
+
         # connecy security datasource
         self.security_datasource = sd.SecurityDataSource(
             self.params["security_datasource"]
@@ -94,12 +99,6 @@ class Runner(object):
         # connect securitized mapping datasource
         self.securitized_datasource = securidb.SecuritizedDataSource(
             self.params["securitized_datasource"]
-        )
-        self.securitized_mapping = dict()
-
-        # connect transition datasource
-        self.transition_datasource = trd.TransitionDataSource(
-            self.params["transition_datasource"]
         )
 
         # connect exclusion datasource
@@ -203,35 +202,12 @@ class Runner(object):
 
     def iter_transitions(self):
         """
-        For each Sub-Sector, assign transition targets and transition revenue
-
-        Revenue_10	>10% Climate Revenue
-        Revenue_20	>20% Climate Revenue
-        Revenue_30	>30% Climate Revenue
-        Revenue_40	>40% Climate Revenue
-        Revenue_50	>50% Climate Revenue
-        Revenue_60	>60% Climate Revenue
-        Target_A	Approved SBTi
-        Target_AA	Approved SBTi or Ambitious Target
-        Target_AAC	Approved/Committed SBTi or Ambitious Target
-        Target_AACN	Approved/Committed SBTi or Ambitious Target or Non-Ambitious Target
-        Target_AC	Approved/Committed SBTi
-        Target_CA	Committed SBTi or Ambitious Target
-        Target_CN	Committed SBTi or Non-Ambitious Target
-        Target_N	Non-Ambitious Target
-        Target_NRev	Non-Ambitious Target AND >0% Climate Revenue
+        - load transition data
         """
-        # load transition data
         self.transition_datasource.load()
-
-        for index, row in self.transition_datasource.df.iterrows():
-            gics_sub = row["GICS_SUB_IND"]
-            bclass4 = row["BCLASS_LEVEL4"]
-
-            if not pd.isna(gics_sub):
-                self.gics_datasource.gics[gics_sub].transition = row.to_dict()
-            if not pd.isna(bclass4):
-                self.bclass_datasource.bclass[bclass4].transition = row.to_dict()
+        self.transition_datasource.iter_transition(
+            self.gics_datasource.gics, self.bclass_datasource.bclass
+        )
         return
 
     def iter_portfolios(self):
@@ -370,11 +346,7 @@ class Runner(object):
         Iterate over the securitized mapping
         """
         self.securitized_datasource.load()
-
-        df_ = self.securitized_datasource.df
-        for index, row in df_.iterrows():
-            collat_type = row["ESG Collat Type"]
-            self.securitized_mapping[collat_type] = row.to_dict()
+        self.securitized_datasource.iter()
         return
 
     def iter_holdings(self):
@@ -434,7 +406,9 @@ class Runner(object):
             # attach information to security
             security_store.information[
                 "ESG_Collateral_Type"
-            ] = self.securitized_mapping[row["ESG Collateral Type"]]
+            ] = self.securitized_datasource.securitized_mapping[
+                row["ESG Collateral Type"]
+            ]
             security_store.information["Labeled_ESG_Type"] = row["Labeled ESG Type"]
             security_store.information["TCW_ESG"] = row["TCW ESG"]
             security_store.information["Issuer_ESG"] = row["Issuer ESG"]
