@@ -53,7 +53,7 @@ class RegionsDataSource(ds.DataSources):
         self.df["ISO2"] = self.df["ISO2"].fillna("NA")
         self.df.loc[-1] = [np.nan, np.nan, np.nan, "DM", "DM", "DM", 0]
         return
-    
+
     def iter_regions(self):
         """
         - create Region objects for each region

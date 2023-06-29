@@ -50,7 +50,6 @@ class Runner(object):
         self.category_datasource = cd.CategoryDataSource(
             self.params["category_datasource"]
         )
-        self.categories = dict()
 
         # connecy security datasource
         self.security_datasource = sd.SecurityDataSource(
@@ -175,7 +174,7 @@ class Runner(object):
 
     def iter_regions(self):
         """
-        - load region data 
+        - load region data
         - create region objects and save in dict
         """
         self.region_datasource.load()
@@ -324,7 +323,9 @@ class Runner(object):
             df_["Portfolio"].isin(list(self.portfolio_datasource.portfolios.keys()))
         ].iterrows():
             pf = row["Portfolio"]
-            self.portfolio_datasource.portfolios[pf].Sector = self.sectors[row["Sector_Code"]]
+            self.portfolio_datasource.portfolios[pf].Sector = self.sectors[
+                row["Sector_Code"]
+            ]
 
         return
 
@@ -608,19 +609,23 @@ class Runner(object):
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
             ].to_dict()
-            self.portfolio_datasource.portfolios[pf].holdings[isin] = self.portfolio_datasource.portfolios[pf].holdings.get(
+            self.portfolio_datasource.portfolios[pf].holdings[
+                isin
+            ] = self.portfolio_datasource.portfolios[pf].holdings.get(
                 isin,
                 {
                     "object": security_store,
                     "holding_measures": [],
                 },
             )
-            self.portfolio_datasource.portfolios[pf].holdings[isin]["holding_measures"].append(
-                holding_measures
-            )
+            self.portfolio_datasource.portfolios[pf].holdings[isin][
+                "holding_measures"
+            ].append(holding_measures)
 
             # attach portfolio to security
-            security_store.portfolio_store[pf] = self.portfolio_datasource.portfolios[pf]
+            security_store.portfolio_store[pf] = self.portfolio_datasource.portfolios[
+                pf
+            ]
 
         self.companies["NoISIN"].information["BCLASS_Level4"] = self.bclass[
             "Unassigned BCLASS"
@@ -745,6 +750,10 @@ class Runner(object):
         # attach parent issuer id
         self.attach_parent_issuer()
 
+        # load category data
+        self.category_datasource.load()
+        self.category_datasource.iter_categories()
+
         for c in self.companies:
             self.companies[c].attach_region()
             self.companies[c].update_sovereign_score()
@@ -766,6 +775,9 @@ class Runner(object):
 
             # attach industry and sub industry
             self.companies[c].attach_industry(self.gics, self.bclass)
+
+            # attach category
+            self.companies[c].attach_category(self.category_datasource.categories)
 
             # attach analyst adjustment
             self.companies[c].attach_analyst_adjustment()
@@ -975,46 +987,10 @@ class Runner(object):
             2.3) Create Governance_Score based on Region_Theme
             2.4) Save flags in company_information
         """
-        esrm_d = dict()
-        scoring_d = dict()
         operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
 
-        # load category data
-        self.category_datasource.load()
-        d_ = self.category_datasource.df
-        for cat in d_["Sub-Sector"].unique():
-            # save indicator fields, operator, thresholds
-            d_ss = d_[d_["Sub-Sector"] == cat]
-            esrm_d[cat] = d_ss
-
-            # save flag scorings for EM and DM
-            df_ = d_ss.drop_duplicates(subset="Sub-Sector")
-            dm = list(
-                df_[
-                    [
-                        "Well-Performing",
-                        "Above Average",
-                        "Average",
-                        "Below Average",
-                        "Concerning",
-                    ]
-                ].values.flatten()
-            )
-            em = list(
-                df_[
-                    [
-                        "Well-Performing-EM",
-                        "Above Average-EM",
-                        "Average-EM",
-                        "Below Average-EM",
-                        "Concerning-EM",
-                    ]
-                ].values.flatten()
-            )
-            scoring_d[cat] = [dm, em]
-
         for c in self.companies:
-            self.companies[c].calculate_esrm_score(esrm_d, scoring_d, operators)
+            self.companies[c].calculate_esrm_score(operators)
         return
 
     def calculate_transition_score(self):

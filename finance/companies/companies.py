@@ -297,6 +297,25 @@ class CompanyStore(HeadStore):
             bclass_object.industry.companies[self.isin] = self
         return
 
+    def attach_category(self, category_d):
+        """
+        Attach ESRM category based on ESRM module of sub industry
+        Attach Region Theme based on Region
+
+        Parameters
+        ----------
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        """
+
+        esrm_module = self.information["Sub-Industry"].information["ESRM Module"]
+        self.information["ESRM Module"] = category_d[esrm_module]
+
+        # get region theme (DM, JP, EM, EUCohort)
+        region_theme = self.information["Issuer_Country"].information["Region"]
+        self.information["region_theme"] = category_d[region_theme]
+        return
+
     def attach_analyst_adjustment(self):
         """
         Attach analyst adjustment to company object
@@ -498,7 +517,7 @@ class CompanyStore(HeadStore):
                     current_sec = msci_sum
         return
 
-    def calculate_esrm_score(self, esrm_d, scoring_d, operators):
+    def calculate_esrm_score(self, operators):
         """
         Calculuate esrm score for each company:
         1) For each category save indicator fields and EM and DM flag scorings
@@ -513,10 +532,6 @@ class CompanyStore(HeadStore):
 
         Parameters
         ----------
-        esrm_d: dict
-            dictionary with esrm Sub-Sector as key, df filter for that subsector as value
-        scoring_d: dict
-            dictionary with esrm Sub-Sector as key, scoring metrics for EM and DM as value
         operators: dict
             dictionary of operators translating string to operator object
         """
@@ -534,9 +549,7 @@ class CompanyStore(HeadStore):
             return
 
         # get ESRM Module
-        sub_industry = self.information["Sub-Industry"]
-        esrm = sub_industry.information["ESRM Module"]
-        df_ = esrm_d[esrm]
+        df_ = self.information["ESRM Module"].esrm_df
         # count flags
         for index, row in df_.iterrows():
             i = row["Indicator Field Name"]
@@ -557,9 +570,9 @@ class CompanyStore(HeadStore):
         region = self.information["Issuer_Country"].information["Region_EM"]
         # --> regions have different scoring thresholds
         if region == "DM":
-            l = scoring_d[esrm][0]
+            l = self.information["ESRM Module"].DM_flags
         else:
-            l = scoring_d[esrm][1]
+            l = self.information["ESRM Module"].EM_flags
 
         # create esrm score based on flag scoring
         for i in range(len(l) - 1, -1, -1):
@@ -570,10 +583,8 @@ class CompanyStore(HeadStore):
                     self.scores["Review_Flag"] == "Needs Review"
                 break
 
-        # get region theme (DM, JP, EM, EUCohort)
-        region_theme = self.information["Issuer_Country"].information["Region"]
         # calculate governance score
-        df_ = esrm_d[region_theme]
+        df_ = self.information["region_theme"].esrm_df
         for index, row in df_.iterrows():
             i = row["Indicator Field Name"]
             v = self.msci_information[i]
@@ -589,8 +600,9 @@ class CompanyStore(HeadStore):
             else:
                 gov_d[i + "_Flag"] = 0
 
-        for i in range(len(scoring_d[region_theme][0]) - 1, -1, -1):
-            if counter_gov >= (scoring_d[region_theme][0][i]):
+        scoring_d = self.information["region_theme"].EM_flags
+        for i in range(len(scoring_d) - 1, -1, -1):
+            if counter_gov >= (scoring_d[i]):
                 self.scores["Governance_Score"] = i + 1
 
                 if i + 1 == 5:
