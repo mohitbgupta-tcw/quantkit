@@ -105,21 +105,18 @@ class HeadStore(object):
         self.securities.pop(isin, None)
         return
 
-    def attach_region(self, regions: dict):
+    def attach_region(self):
         """
         Attach region information (including ISO2, name, sovereign score) to parent object
         Save region object in self.information["Issuer_Country"]
-
-        Parameters
-        ----------
-        regions: dict
-            dictionary of regions with ISO2 as key and corresponding region object as value
         """
         # dict to map name to ISO2
         temp_regions = pd.Series(
             self.regions_datasource.df.ISO2.values,
             index=self.regions_datasource.df.Country,
         ).to_dict()
+
+        regions = self.regions_datasource.regions
 
         # if issuer country is country name, map to ISO2
         # attach region object to company

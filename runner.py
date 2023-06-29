@@ -22,7 +22,6 @@ import quantkit.finance.portfolios.portfolios as portfolios
 import quantkit.finance.companies.companies as comp
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.finance.securities.securities as secs
-import quantkit.finance.regions.regions as regions
 import quantkit.finance.themes.themes as themes
 import quantkit.utils.logging as logging
 from typing import Union
@@ -42,7 +41,6 @@ class Runner(object):
 
         # connect regions datasource
         self.region_datasource = rd.RegionsDataSource(self.params["regions_datasource"])
-        self.regions = dict()
 
         # connect portfolio datasource
         self.portfolio_datasource = pod.PortfolioDataSource(
@@ -179,16 +177,11 @@ class Runner(object):
 
     def iter_regions(self):
         """
-        - create Region objects for each region
-        - save object for each region in self.regions
-        - key is ISO2
+        - load region data 
+        - create region objects and save in dict
         """
-        # load region data
         self.region_datasource.load()
-
-        for index, row in self.region_datasource.df.iterrows():
-            r = row["ISO2"]
-            self.regions[r] = regions.Region(r, row)
+        self.region_datasource.iter_regions()
         return
 
     def iter_sectors(self):
@@ -736,7 +729,7 @@ class Runner(object):
         """
         logging.log("Iterate Sovereigns")
         for s in self.sovereigns:
-            self.sovereigns[s].attach_region(self.regions)
+            self.sovereigns[s].attach_region()
             self.sovereigns[s].update_sovereign_score()
             self.sovereigns[s].attach_analyst_adjustment()
             self.sovereigns[s].attach_gics(self.gics)
@@ -769,7 +762,7 @@ class Runner(object):
         self.attach_parent_issuer()
 
         for c in self.companies:
-            self.companies[c].attach_region(self.regions)
+            self.companies[c].attach_region()
             self.companies[c].update_sovereign_score()
 
             # company has parent --> take data from that parent
