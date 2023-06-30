@@ -1,5 +1,6 @@
 import importlib
 import numpy as np
+import quantkit.finance.companies.companies as comp
 
 security_store_mapping = {
     "Equity": getattr(
@@ -26,11 +27,9 @@ security_mapping = {
     np.nan: "other_securities",
 }
 
-# data_sources = {
-#     1: getattr(
-#         importlib.import_module("quantkit.datasources.excel"), "Excel"
-#     ),
-#     2: getattr(
-#         importlib.import_module("quantkit.datasources.excel"), "CSV"
-#     ),
-# }
+
+security_type_mapping = {
+    "Securitized": comp.SecuritizedStore,
+    "Muni": comp.MuniStore,
+    "Sovereign": comp.SovereignStore,
+}
