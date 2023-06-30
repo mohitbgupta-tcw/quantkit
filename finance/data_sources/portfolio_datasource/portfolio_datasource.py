@@ -194,22 +194,27 @@ class PortfolioDataSource(ds.DataSources):
 
             # attach information to security's company
             # create new objects for Muni, Sovereign and Securitized
-            self.create_store(
-                security_store=security_store,
-                check_type="Muni",
-                all_parents=munis,
-                companies=companies,
-                sector_level_2=row["Sector Level 2"],
-                sector_list=["Muni / Local Authority"],
-            )
-            self.create_store(
-                security_store=security_store,
-                check_type="Muni",
-                all_parents=munis,
-                companies=companies,
-                sector_level_2=row["Sector Level 2"],
-                sector_list=["Muni / Local Authority"],
-            )
+            if row["Sector Level 2"] in ["Muni / Local Authority"]:
+                self.create_store(
+                    security_store=security_store,
+                    check_type="Muni",
+                    all_parents=munis,
+                    companies=companies,
+                )
+            elif row["Sector Level 2"] in ["Residential MBS", "CMBS", "ABS"]:
+                self.create_store(
+                    security_store=security_store,
+                    check_type="Securitized",
+                    all_parents=securitized,
+                    companies=companies,
+                )
+            elif row["Sector Level 2"] in ["Sovereign"]:
+                self.create_store(
+                    security_store=security_store,
+                    check_type="Sovereign",
+                    all_parents=sovereigns,
+                    companies=companies,
+                )
 
             parent_store.information["Sector_Level_1"] = row["Sector Level 1"]
             parent_store.information["Sector_Level_2"] = row["Sector Level 2"]
