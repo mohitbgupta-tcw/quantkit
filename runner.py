@@ -523,6 +523,42 @@ class Runner(object):
         ] = self.bclass_datasource.bclass["Unassigned BCLASS"]
         return
 
+    def create_store(
+        self,
+        security_store: secs.SecurityStore,
+        check_type: str,
+        all_parents: dict,
+        companies: dict,
+    ):
+        """
+        create new objects for Muni, Sovereign and Securitized if applicable
+
+        Parameters
+        ----------
+        security_store: secs.SecurityStore
+            security store
+        check_type: str
+            check if security is of this type, either Muni, Securitized or Sovereign
+        all_parents: dict
+            dictionary of current parent object of this type
+        companies: dict
+            dictionary of all company objects
+        """
+        parent_store = security_store.parent_store
+        security_isin = security_store.information["Security ISIN"]
+        issuer_isin = parent_store.isin
+        class_ = mapping_configs.security_store_mapping[check_type]
+        all_parents[issuer_isin] = all_parents.get(issuer_isin, class_(issuer_isin))
+        parent_store.remove_security(security_isin)
+        adj_df = parent_store.Adjustment
+        if (not parent_store.securities) and parent_store.type == "company":
+            companies.pop(issuer_isin, None)
+        parent_store = all_parents[issuer_isin]
+        parent_store.add_security(issuer_isin, security_store)
+        parent_store.Adjustment = adj_df
+        security_store.add_parent(parent_store)
+        return
+
     def iter_sdg(self):
         """
         iterate over SDG data
