@@ -4,8 +4,6 @@ import quantkit.finance.securities.securities as securities
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.finance.adjustment.adjustment as adjustment
 import quantkit.finance.transition.transition as transition
-import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as adb
-import quantkit.finance.data_sources.regions_datasource.regions_datasource as rdb
 import quantkit.finance.data_sources.exclusions_datasource.exclusions_database as edb
 from typing import Union
 
@@ -23,29 +21,13 @@ class HeadStore(object):
     ----------
     isin: str
         company's isin. NoISIN if no isin is available
-    regions_datasource: regions_datasource.RegionsDataSource, optional
-        regions datasource
-    adjustment_datasource: adjustment_database.AdjustmentDataSource, optional
-        adjustment datasource
-    exclusion_datasource: exclusion_database.ExclusionDataBase, optional
-        exclusion datasource
     """
 
-    def __init__(
-        self,
-        isin: str,
-        regions_datasource: rdb.RegionsDataSource = None,
-        adjustment_datasource: adb.AdjustmentDataSource = None,
-        exclusion_datasource: edb.ExclusionsDataSource = None,
-        **kwargs
-    ):
+    def __init__(self, isin: str, **kwargs):
         self.isin = isin
         self.securities = dict()
         self.scores = dict()
         self.information = dict()
-        self.regions_datasource = regions_datasource
-        self.adjustment_datasource = adjustment_datasource
-        self.exclusion_datasource = exclusion_datasource
 
         # assign some default values for measures
         self.scores["Themes"] = dict()
@@ -105,25 +87,51 @@ class HeadStore(object):
         self.securities.pop(isin, None)
         return
 
-    def attach_region(self):
+    def attach_region(self, regions_df: pd.DataFrame, regions: dict):
         """
         Attach region information (including ISO2, name, sovereign score) to parent object
         Save region object in self.information["Issuer_Country"]
+
+        Parameters
+        ----------
+        regions_df: pd.DataFrame
+            DataFrame of regions information
+        regions: dict
+            dictionary of all region objects
         """
         # dict to map name to ISO2
         temp_regions = pd.Series(
-            self.regions_datasource.df.ISO2.values,
-            index=self.regions_datasource.df.Country,
+            regions_df["ISO2"].values,
+            index=regions_df["Country"],
         ).to_dict()
-
-        regions = self.regions_datasource.regions
 
         # if issuer country is country name, map to ISO2
         # attach region object to company
         country = self.msci_information["ISSUER_CNTRY_DOMICILE"]
         country = temp_regions.get(country, country)
         self.information["Issuer_Country"] = regions[country]
-        regions[country].companies[self.isin] = self
+        regions[country].add_company(self.isin, self)
+        return
+
+    def attach_analyst_adjustment(self, adjustment_df: pd.DataFrame):
+        """
+        Attach analyst adjustment to company object
+        Link to adjustment datasource by MSCI issuer id
+
+        Parameters
+        ----------
+        adjustment_df: pd.Dataframe
+            DataFrame of Analyst Adjustments
+        """
+        # attach analyst adjustment
+        msci_issuerid = self.msci_information["ISSUERID"]
+        adj_df = adjustment_df[adjustment_df["ISIN"] == msci_issuerid]
+        if not adj_df.empty:
+            self.Adjustment = pd.concat(
+                [self.Adjustment, adj_df],
+                ignore_index=True,
+                sort=False,
+            )
         return
 
     def analyst_adjustment(self, themes: dict):
@@ -202,30 +210,10 @@ class CompanyStore(HeadStore):
         company's isin. NoISIN if no isin is available
     row_data: dict
         company information derived from MSCI
-    regions_datasource: regions_datasource.RegionsDataSource, optional
-        regions datasource
-    adjustment_datasource: adjustment_database.AdjustmentDataSource, optional
-        adjustment datasource
-    exclusion_datasource: exclusion_database.ExclusionDataBase, optional
-        exclusion datasource
     """
 
-    def __init__(
-        self,
-        isin: str,
-        row_data: pd.Series,
-        regions_datasource: rdb.RegionsDataSource,
-        adjustment_datasource: adb.AdjustmentDataSource,
-        exclusion_datasource: edb.ExclusionsDataSource,
-        **kwargs
-    ):
-        super().__init__(
-            isin,
-            regions_datasource=regions_datasource,
-            adjustment_datasource=adjustment_datasource,
-            exclusion_datasource=exclusion_datasource,
-            **kwargs
-        )
+    def __init__(self, isin: str, row_data: pd.Series, **kwargs):
+        super().__init__(isin, **kwargs)
         self.msci_information = row_data
         self.type = "company"
         self.information["IVA_COMPANY_RATING"] = self.msci_information[
@@ -316,34 +304,19 @@ class CompanyStore(HeadStore):
         self.information["region_theme"] = category_d[region_theme]
         return
 
-    def attach_analyst_adjustment(self):
-        """
-        Attach analyst adjustment to company object
-        Link to adjustment datasource by MSCI issuer id
-        """
-        # attach analyst adjustment
-        msci_issuerid = self.msci_information["ISSUERID"]
-        adj_df = self.adjustment_datasource.df[
-            self.adjustment_datasource.df["ISIN"] == msci_issuerid
-        ]
-        if not adj_df.empty:
-            self.Adjustment = pd.concat(
-                [self.Adjustment, adj_df],
-                ignore_index=True,
-                sort=False,
-            )
-        return
-
-    def attach_exclusion(self):
+    def attach_exclusion(self, exclusion_df: pd.DataFrame):
         """
         Attach exclusions from MSCI to company object
         Link to exclusion datasource by MSCI issuer id
+
+        Parameters
+        ----------
+        exclusion_df: pd.DataFrame
+            DataFrame of exclusions based on articles 8 and 9
         """
         # map exclusion based on Article 8 and 9
         msci_issuerid = self.msci_information["ISSUERID"]
-        excl_df = self.exclusion_datasource.df[
-            self.exclusion_datasource.df["MSCI Issuer ID"] == msci_issuerid
-        ]
+        excl_df = exclusion_df[exclusion_df["MSCI Issuer ID"] == msci_issuerid]
         if not excl_df.empty:
             self.Exclusion = pd.concat(
                 [self.Exclusion, excl_df],
@@ -1432,25 +1405,10 @@ class SovereignStore(HeadStore):
         company's isin. NoISIN if no isin is available
     row_data: pd.Series
         company information derived from SSI and MSCI
-    regions_datasource: regions_datasource.RegionsDataSource, optional
-        regions datasource
-    adjustment_datasource: adjustment_database.AdjustmentDataSource, optional
-        adjustment datasource
     """
 
-    def __init__(
-        self,
-        isin: str,
-        regions_datasource: rdb.RegionsDataSource,
-        adjustment_datasource: adb.AdjustmentDataSource,
-        **kwargs
-    ):
-        super().__init__(
-            isin,
-            regions_datasource=regions_datasource,
-            adjustment_datasource=adjustment_datasource,
-            **kwargs
-        )
+    def __init__(self, isin: str, **kwargs):
+        super().__init__(isin, **kwargs)
         self.msci_information = {}
         self.type = "sovereign"
 
@@ -1461,24 +1419,6 @@ class SovereignStore(HeadStore):
         self.scores["Sovereign_Score"] = self.information["Issuer_Country"].information[
             "Sovereign_Score"
         ]
-        return
-
-    def attach_analyst_adjustment(self):
-        """
-        Attach analyst adjustment to sovereign object
-        Link to adjustment datasource by MSCI issuer id
-        """
-        # attach analyst adjustment
-        msci_issuerid = self.msci_information["ISSUERID"]
-        adj_df = self.adjustment_datasource.df[
-            self.adjustment_datasource.df["ISIN"] == msci_issuerid
-        ]
-        if not adj_df.empty:
-            self.Adjustment = pd.concat(
-                [self.Adjustment, adj_df],
-                ignore_index=True,
-                sort=False,
-            )
         return
 
     def attach_gics(self, gics_d: dict):
