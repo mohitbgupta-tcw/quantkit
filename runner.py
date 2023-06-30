@@ -150,7 +150,7 @@ class Runner(object):
         - create Theme objects for each theme
         """
         self.theme_datasource.load()
-        self.theme_datasource.iter_themes()
+        self.theme_datasource.iter()
         return
 
     def iter_regions(self):
@@ -159,7 +159,7 @@ class Runner(object):
         - create region objects and save in dict
         """
         self.region_datasource.load()
-        self.region_datasource.iter_regions()
+        self.region_datasource.iter()
         return
 
     def iter_sectors(self):
@@ -169,11 +169,11 @@ class Runner(object):
         - map transition targets to sub sectors
         """
         self.sector_datasource.load()
-        self.sector_datasource.iter_sectors()
+        self.sector_datasource.iter()
 
-        # create Sub-Sector objects for GICS and BCLASS
+        # create Sub-Sector objects for BCLASS
         self.bclass_datasource.load()
-        self.bclass_datasource.iter_bclass()
+        self.bclass_datasource.iter()
 
         # assign Sub Sector object to Sector and vice verse
         for bc in self.bclass_datasource.bclass:
@@ -184,8 +184,9 @@ class Runner(object):
                 self.sector_datasource.sectors["BCLASS"]
             )
 
+        # create Sub-Sector objects for GICS
         self.gics_datasource.load()
-        self.gics_datasource.iter_gics()
+        self.gics_datasource.iter()
 
         # assign Sub Sector object to Sector and vice verse
         for g in self.gics_datasource.gics:
@@ -205,7 +206,7 @@ class Runner(object):
         - load transition data
         """
         self.transition_datasource.load()
-        self.transition_datasource.iter_transition(
+        self.transition_datasource.iter(
             self.gics_datasource.gics, self.bclass_datasource.bclass
         )
         return
@@ -217,7 +218,7 @@ class Runner(object):
         - attach Sector to Portfolio object
         """
         self.portfolio_datasource.load()
-        self.portfolio_datasource.iter_portfolios()
+        self.portfolio_datasource.iter()
 
         # save all securities that occur in portfolios to filter down security database later on
         self.all_holdings = list(self.portfolio_datasource.df["ISIN"].unique())
@@ -538,23 +539,15 @@ class Runner(object):
         """
         # load SDG data
         self.sdg_datasource.load()
-
-        df_ = self.sdg_datasource.df
-        # only iterate over companies we hold in the portfolios
-        for index, row in df_[df_["ISIN"].isin(self.companies.keys())].iterrows():
-            isin = row["ISIN"]
-
-            sdg_information = row.to_dict()
-            self.companies[isin].sdg_information = sdg_information
+        self.sdg_datasource.iter(self.companies)
 
         # --> not every company has these information, so create empty df with NA's for those
-        empty_sdg = pd.Series(np.nan, index=df_.columns).to_dict()
+        empty_sdg = pd.Series(np.nan, index=self.sdg_datasource.df.columns).to_dict()
 
         for c in self.companies:
             # assign empty sdg information to companies that dont have these information
             if not hasattr(self.companies[c], "sdg_information"):
                 self.companies[c].sdg_information = deepcopy(empty_sdg)
-
         return
 
     def iter_bloomberg(self):
@@ -650,7 +643,7 @@ class Runner(object):
 
         # load category data
         self.category_datasource.load()
-        self.category_datasource.iter_categories()
+        self.category_datasource.iter()
 
         for c in self.companies:
             self.companies[c].attach_region()

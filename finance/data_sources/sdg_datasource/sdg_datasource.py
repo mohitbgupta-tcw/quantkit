@@ -54,6 +54,23 @@ class SDGDataSource(object):
         self.df_ = df_
         return
 
+    def iter(self, companies: dict):
+        """
+        Attach SDG information to company objects
+
+        Parameters
+        ----------
+        companies: dict
+            dictionary of all company objects
+        """
+        # only iterate over companies we hold in the portfolios
+        for index, row in self.df[self.df["ISIN"].isin(companies.keys())].iterrows():
+            isin = row["ISIN"]
+
+            sdg_information = row.to_dict()
+            companies[isin].sdg_information = sdg_information
+        return
+
     @property
     def df(self):
         """

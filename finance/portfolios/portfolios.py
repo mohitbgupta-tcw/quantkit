@@ -1,4 +1,5 @@
 import pandas as pd
+import quantkit.finance.sectors.sectors as sectors
 
 
 class PortfolioStore(object):
@@ -33,4 +34,15 @@ class PortfolioStore(object):
 
         """
         self.holdings_df = holdings_df
+        return
+
+    def add_sector(self, sector: sectors.Sector):
+        """
+        Attach Sector to portfolio
+
+        Parameters
+        ----------
+        sector: sectors.Sector
+        """
+        self.Sector = sector
         return

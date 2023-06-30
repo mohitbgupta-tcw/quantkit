@@ -81,27 +81,16 @@ class Industry(object):
         self.quantiles = self.calculate_quantiles()
         self.Q_Low_score, self.Q_High_score = self.quantiles[0], self.quantiles[1]
 
-
-class Sector(object):
-    """
-    Sector object.
-    Sectors in our sense are GICS (for Equity) and BCLASS (for Fixed Income).
-    Stores information such as:
-        - name
-        - sub sectors (as store, either BClass or GICS object)
-
-    Parameters
-    ----------
-    name: str
-        Sector name (either GICS or BCLASS)
-    """
-
-    def __init__(self, name: str):
-        self.name = name
-        self.sub_sectors = dict()
-
     def add_sub_sector(self, sub_sector):
-        self.sub_sectors[sub_sector.class_name] = sub_sector
+        """
+        Add sub sector object
+
+        Parameters
+        ----------
+        sub_sector: BClass | GICS
+        """
+        ss_name = sub_sector.class_name
+        self.sub_sectors[ss_name] = sub_sector
         return
 
 
@@ -129,7 +118,39 @@ class BClass(object):
         self.information = row_information.to_dict()
 
     def add_sector(self, sector):
+        """
+        Add main sector object (GICS or BClass)
+
+        Parameters
+        ----------
+        sector: Sector
+            main sector
+        """
         self.sector = sector
+        return
+
+    def add_industry(self, industry: Industry):
+        """
+        Add main Industry object
+
+        Parameters
+        ----------
+        industry: Industry
+            industry object
+        """
+        self.industry = industry
+        return
+
+    def add_transition(self, transition: dict):
+        """
+        Add transition targets
+
+        Parameters
+        ----------
+        transition: dict
+            transition target
+        """
+        self.transition = transition
         return
 
 
@@ -157,5 +178,68 @@ class GICS(object):
         self.information = row_information.to_dict()
 
     def add_sector(self, sector):
+        """
+        Add main sector object (GICS or BClass)
+
+        Parameters
+        ----------
+        sector: Sector
+            main sector
+        """
         self.sector = sector
+        return
+
+    def add_industry(self, industry: Industry):
+        """
+        Add main Industry object
+
+        Parameters
+        ----------
+        industry: Industry
+            industry object
+        """
+        self.industry = industry
+        return
+
+    def add_transition(self, transition: dict):
+        """
+        Add transition targets
+
+        Parameters
+        ----------
+        transition: dict
+            transition target
+        """
+        self.transition = transition
+        return
+
+
+class Sector(object):
+    """
+    Sector object.
+    Sectors in our sense are GICS (for Equity) and BCLASS (for Fixed Income).
+    Stores information such as:
+        - name
+        - sub sectors (as store, either BClass or GICS object)
+
+    Parameters
+    ----------
+    name: str
+        Sector name (either GICS or BCLASS)
+    """
+
+    def __init__(self, name: str):
+        self.name = name
+        self.sub_sectors = dict()
+
+    def add_sub_sector(self, sub_sector: Union[BClass, GICS]):
+        """
+        Add sub sector object to sector
+
+        Parameters
+        ----------
+        sub_sector: BClass | GICS
+            BClass or GICS sub sector object
+        """
+        self.sub_sectors[sub_sector.class_name] = sub_sector
         return

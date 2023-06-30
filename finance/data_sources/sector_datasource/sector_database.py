@@ -35,7 +35,7 @@ class SectorDataSource(ds.DataSources):
         self.transform_df()
         return
 
-    def iter_sectors(self):
+    def iter(self):
         """
         create Sector objects for GICS and BCLASS
         """
@@ -44,12 +44,20 @@ class SectorDataSource(ds.DataSources):
         return
 
     def iter_portfolios(self, portfolios: dict):
+        """
+        Attach sector to each portfolio
+
+        Parameters
+        ----------
+        portfolios: dict
+            dictionary of all portfolios
+        """
         df_ = self.df
         for index, row in df_[
             df_["Portfolio"].isin(list(portfolios.keys()))
         ].iterrows():
             pf = row["Portfolio"]
-            portfolios[pf].Sector = self.sectors[row["Sector_Code"]]
+            portfolios[pf].add_sector(self.sectors[row["Sector_Code"]])
 
     def transform_df(self):
         """
@@ -77,6 +85,8 @@ class BClassDataSource(ds.DataSources):
     ---------
     params: dict
         datasource specific parameters including source
+    transition_params: dict
+        transition paramaters
 
     Returns
     -------
@@ -122,7 +132,7 @@ class BClassDataSource(ds.DataSources):
         """
         return
 
-    def iter_bclass(self):
+    def iter(self):
         """
         Create Sub Sector and Industry objects for specific sector
         Save objects in sub-sector and industry attributes.
@@ -148,8 +158,8 @@ class BClassDataSource(ds.DataSources):
             )
 
             # assign Sub Sector object to Industry and vice verse
-            self.industries[industry].sub_sectors[sub_sector] = ss_object
-            ss_object.industry = self.industries[industry]
+            self.industries[industry].add_sub_sector(ss_object)
+            ss_object.add_industry(self.industries[industry])
         return
 
     @property
@@ -172,6 +182,8 @@ class GICSDataSource(ds.DataSources):
     ---------
     params: dict
         datasource specific parameters including source
+    transition_params: dict
+        transition paramaters
 
     Returns
     -------
@@ -212,7 +224,7 @@ class GICSDataSource(ds.DataSources):
         """
         return
 
-    def iter_gics(self):
+    def iter(self):
         """
         Create Sub Sector and Industry objects for specific sector
         Save objects in sub-sector and industry attributes.
@@ -238,8 +250,8 @@ class GICSDataSource(ds.DataSources):
             )
 
             # assign Sub Sector object to Industry and vice verse
-            self.industries[industry].sub_sectors[sub_sector] = ss_object
-            ss_object.industry = self.industries[industry]
+            self.industries[industry].add_sub_sector(ss_object)
+            ss_object.add_industry(self.industries[industry])
         return
 
     @property

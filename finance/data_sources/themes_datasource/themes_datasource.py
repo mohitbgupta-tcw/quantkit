@@ -11,6 +11,8 @@ class ThemeDataSource(ds.DataSources):
     ----------
     params: dict
         datasource specific parameters including source
+    theme_calculations: dict
+        theme calculation parameters
 
     Returns
     -------
@@ -53,7 +55,7 @@ class ThemeDataSource(ds.DataSources):
         """
         return
 
-    def iter_themes(self):
+    def iter(self):
         """
         - create Theme objects for each theme
         - save object for each theme in self.themes

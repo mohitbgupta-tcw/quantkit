@@ -54,7 +54,7 @@ class RegionsDataSource(ds.DataSources):
         self.df.loc[-1] = [np.nan, np.nan, np.nan, "DM", "DM", "DM", 0]
         return
 
-    def iter_regions(self):
+    def iter(self):
         """
         - create Region objects for each region
         - save object for each region in self.regions

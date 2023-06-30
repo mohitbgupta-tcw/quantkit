@@ -61,7 +61,7 @@ class CategoryDataSource(ds.DataSources):
         self.datasource.df.columns = new_header
         return
 
-    def iter_categories(self):
+    def iter(self):
         """
         For each category save indicator fields and EM and DM flag scorings in category object
         """
@@ -71,7 +71,7 @@ class CategoryDataSource(ds.DataSources):
 
             # save indicator fields, operator, thresholds
             df_ss = self.df[self.df["Sub-Sector"] == cat]
-            cat_store.esrm_df = df_ss
+            cat_store.add_esrm_df(df_ss)
 
             # save flag scorings for EM and DM
             df_ = df_ss.drop_duplicates(subset="Sub-Sector")
@@ -97,8 +97,8 @@ class CategoryDataSource(ds.DataSources):
                     ]
                 ].values.flatten()
             )
-            cat_store.DM_flags = dm
-            cat_store.EM_flags = em
+            cat_store.add_DM_flags(dm)
+            cat_store.add_EM_flags(em)
 
             self.categories[cat] = cat_store
         return

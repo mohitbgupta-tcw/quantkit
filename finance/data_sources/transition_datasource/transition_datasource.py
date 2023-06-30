@@ -52,7 +52,7 @@ class TransitionDataSource(ds.DataSources):
         ].str.title()
         return
 
-    def iter_transition(self, gics: dict, bclass: dict):
+    def iter(self, gics: dict, bclass: dict):
         """
         For each Sub-Sector, assign transition targets and transition revenue
 
@@ -71,15 +71,22 @@ class TransitionDataSource(ds.DataSources):
         Target_CN	Committed SBTi or Non-Ambitious Target
         Target_N	Non-Ambitious Target
         Target_NRev	Non-Ambitious Target AND >0% Climate Revenue
+
+        Parameters
+        ----------
+        gics: dict
+            dictionary of all gics sub industries
+        bclass: dict
+            dictionary of all bclass sub industries
         """
         for index, row in self.df.iterrows():
             gics_sub = row["GICS_SUB_IND"]
             bclass4 = row["BCLASS_LEVEL4"]
 
             if not pd.isna(gics_sub):
-                gics[gics_sub].transition = row.to_dict()
+                gics[gics_sub].add_transition(row.to_dict())
             if not pd.isna(bclass4):
-                bclass[bclass4].transition = row.to_dict()
+                bclass[bclass4].add_transition(row.to_dict())
 
     @property
     def df(self):

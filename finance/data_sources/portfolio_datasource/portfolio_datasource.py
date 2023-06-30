@@ -86,7 +86,7 @@ class PortfolioDataSource(ds.DataSources):
         )
         return
 
-    def iter_portfolios(self):
+    def iter(self):
         """
         iterate over portfolios and:
         - Create Portfolio Objects
