@@ -340,6 +340,9 @@ class Runner(object):
 
         # save all securities that occur in portfolios to filter down security database later on
         self.all_holdings = list(df_["ISIN"].unique())
+        self.all_holdings.append(
+            "NoISIN"
+        ) if "NoISIN" not in self.all_holdings else self.all_holdings
 
         # attach sector to portfolio
         df_ = self.sector_datasource.df

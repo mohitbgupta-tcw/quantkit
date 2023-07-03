@@ -1,6 +1,7 @@
 import quantkit.finance.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import pandas as pd
+import numpy as np
 
 
 class MSCIDataSource(ds.DataSources):
@@ -38,6 +39,9 @@ class MSCIDataSource(ds.DataSources):
         self.datasource.df["GICS_SUB_IND"] = self.datasource.df["GICS_SUB_IND"].fillna(
             "Unassigned GICS"
         )
+
+        # replace None by nan
+        self.datasource.df = self.datasource.df.fillna(value=np.nan)
 
         # replace values in each column from params transformation file
         self.datasource.df = self.datasource.df.replace(self.params["transformation"])
