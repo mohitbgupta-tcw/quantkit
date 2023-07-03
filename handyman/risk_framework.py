@@ -1,5 +1,9 @@
 import quantkit.runner as runner
+import quantkit.utils.configs as configs
+import quantkit.utils.util_functions as util_functions
 import pandas as pd
+import numpy as np
+import json
 
 
 def risk_framework():
@@ -239,4 +243,63 @@ def sector_subset(gics_list, bclass_list):
     ]
     df = pd.DataFrame(data)
     df.columns = columns
+    return df
+
+
+def isin_lookup(isin_list: list):
+    """
+    For a list of ISINs, run the riskframework
+
+    Parameters
+    ----------
+    isin_list: list
+        list of isins
+
+    Returns
+    -------
+    pd.DataFrame
+    """
+
+    params = configs.read_configs()
+
+    # create portfolio sheet
+    portfolio_df = pd.DataFrame()
+    portfolio_df["ISIN"] = isin_list
+    portfolio_df["As Of Date"] = pd.to_datetime("today").normalize()
+    portfolio_df["Portfolio"] = "Test_Portfolio"
+    portfolio_df["Portfolio Name"] = "Test_Portfolio"
+    portfolio_df["ESG Collateral Type"] = "Unknown"
+    portfolio_df["Issuer ESG"] = "No"
+    portfolio_df["Labeled ESG Type"] = "None"
+    portfolio_df["ISSUER_NAME"] = isin_list
+    portfolio_df["TCW ESG"] = "None"
+    portfolio_df["Ticker Cd"] = np.nan
+    portfolio_df["Sector Level 1"] = "Corporate"
+    portfolio_df["Sector Level 2"] = "Industrial"
+    portfolio_df["BCLASS_Level4"] = np.nan
+    portfolio_df["Portfolio_Weight"] = 1 / len(isin_list)
+    portfolio_df["Base Mkt Val"] = 1
+    portfolio_df["Rating Raw MSCI"] = np.nan
+    portfolio_df["OAS"] = np.nan
+    portfolio_df = portfolio_df.to_json(orient="index")
+
+    # create msci mapping file
+    msci_df = util_functions.create_msci_mapping(isin_list=isin_list, params=params)
+    msci_df = msci_df.to_json(orient="index")
+
+    configs_overwrite = {
+        "portfolio_datasource": {"source": 6, "json_str": portfolio_df},
+        "security_datasource": {
+            "iss": {
+                "source": 2,
+                "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230503.csv",
+            },
+            "msci": {"source": 6, "json_str": msci_df},
+        },
+    }
+    with open(params["configs_path"], "w") as f:
+        json.dump(configs_overwrite, f)
+
+    # run framework
+    df = risk_framework()
     return df
