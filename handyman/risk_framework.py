@@ -302,4 +302,7 @@ def isin_lookup(isin_list: list):
 
     # run framework
     df = risk_framework()
+
+    with open(params["configs_path"], "w") as f:
+        json.dump({}, f)
     return df
