@@ -798,8 +798,13 @@ class CompanyStore(HeadStore):
             - if corporate score 0: not scored
         """
         score = self.scores["Corporate_Score"]
+        esrm_score = self.scores["ESRM_Score"]
+        gov_score = self.scores["Governance_Score"]
+        trans_score = self.scores["Transition_Score"]
         for s in self.securities:
-            if score >= 1 and score <= 2:
+            if esrm_score == 5 or gov_score == 5 or trans_score == 5:
+                self.securities[s].scores["Risk_Score_Overall"] = "Poor Risk Score"
+            elif score >= 1 and score <= 2:
                 self.securities[s].scores["Risk_Score_Overall"] = "Leading ESG Score"
             elif score > 2 and score <= 4:
                 self.securities[s].scores["Risk_Score_Overall"] = "Average ESG Score"
