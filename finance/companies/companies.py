@@ -1285,7 +1285,7 @@ class SecuritizedStore(HeadStore):
                 in collat_type_2
                 and sec_store.information["Labeled_ESG_Type"] != "Labeled Social"
                 and sec_store.information["TCW_ESG"] == "TCW Social"
-                and not "TBA " in sec_store.information["Issuer_Name"]
+                and not "TBA " in sec_store.information["IssuerName"]
             ):
                 sec_store.scores["Securitized_Score"] = 2
                 continue
@@ -1295,12 +1295,12 @@ class SecuritizedStore(HeadStore):
             ):
                 sec_store.scores["Securitized_Score"] = 2
                 continue
-            elif "TBA " in sec_store.information["Issuer_Name"]:
+            elif "TBA " in sec_store.information["IssuerName"]:
                 sec_store.scores["Securitized_Score"] = 3
             elif (
                 (pd.isna(sec_store.information["Labeled_ESG_Type"]))
                 and pd.isna(sec_store.information["TCW_ESG"])
-                and not "TBA " in sec_store.information["Issuer_Name"]
+                and not "TBA " in sec_store.information["IssuerName"]
             ):
                 sec_store.scores["Securitized_Score"] = 4
                 continue
@@ -1400,7 +1400,7 @@ class SecuritizedStore(HeadStore):
                 self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
 
-            elif " TBA " in self.securities[s].information["Issuer_Name"]:
+            elif " TBA " in self.securities[s].information["Security_Name"]:
                 self.securities[s].information["SClass_Level4-P"] = "AFFORDABLE"
                 self.securities[s].information["SClass_Level4"] = "AFFORDABLE"
                 self.securities[s].information["SClass_Level3"] = "People"

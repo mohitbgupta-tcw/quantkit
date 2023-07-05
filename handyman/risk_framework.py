@@ -86,7 +86,7 @@ def risk_framework():
                 level_4 = "Excluded Sector"
                 level_4p = "Excluded Sector"
 
-            if "INTELSAT" in issuer_name:
+            if "INTELSAT" in sec_store.information["Security_Name"]:
                 level_1 = "Preferred"
                 level_2 = "Sustainable Theme"
                 level_3 = "People"

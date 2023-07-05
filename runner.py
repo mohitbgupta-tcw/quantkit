@@ -526,6 +526,7 @@ class Runner(object):
                             "Security ISIN": isin,
                             "ISIN": isin,
                             "IssuerName": isin,
+                            "Security_Name": isin,
                         },
                     ),
                 )
@@ -542,7 +543,8 @@ class Runner(object):
             security_store.information["Labeled_ESG_Type"] = row["Labeled ESG Type"]
             security_store.information["TCW_ESG"] = row["TCW ESG"]
             security_store.information["Issuer_ESG"] = row["Issuer ESG"]
-            security_store.information["IssuerName"] = row["ISSUER_NAME"]
+            if not pd.isna(row["ISSUER_NAME"]):
+                security_store.information["Security_Name"] = row["ISSUER_NAME"]
 
             # attach information to security's company
             # create new objects for Muni, Sovereign and Securitized
