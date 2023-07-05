@@ -30,7 +30,7 @@ class SecurityStore(object):
         self.information["Labeled_ESG_Type"] = np.nan
         self.information["TCW_ESG"] = np.nan
         self.information["Issuer_ESG"] = "No"
-        self.information["Issuer_Name"] = ""
+        self.information["Security_Name"] = ""
         self.scores["Securitized_Score"] = 0
         self.scores["Risk_Score_Overall"] = "Poor Risk Score"
         self.information["SClass_Level1"] = "Eligible"
