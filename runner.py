@@ -220,9 +220,6 @@ class Runner(object):
         self.portfolio_datasource.load()
         self.portfolio_datasource.iter()
 
-        # save all securities that occur in portfolios to filter down security database later on
-        self.all_holdings = list(self.portfolio_datasource.df["ISIN"].unique())
-
         # attach sector to portfolio
         self.sector_datasource.iter_portfolios(self.portfolio_datasource.portfolios)
         return
@@ -237,7 +234,7 @@ class Runner(object):
         self.security_datasource.load()
 
         df_ = self.security_datasource.df
-        df_ = df_[df_["Security ISIN"].isin(self.all_holdings)]
+        df_ = df_[df_["Security ISIN"].isin(self.portfolio_datasource.all_holdings)]
         df_portfolio = self.portfolio_datasource.df
 
         # load parent issuer data
@@ -265,7 +262,7 @@ class Runner(object):
 
         # only iterate over securities the portfolios actually hold so save time
         logging.log("Iterate Securities")
-        for sec in self.all_holdings:
+        for sec in self.portfolio_datasource.all_holdings:
             security_row = df_[df_["Security ISIN"] == sec]
             # we have information for security in our database
             if not security_row.empty:
@@ -320,7 +317,6 @@ class Runner(object):
                 comp.CompanyStore(
                     isin=issuer,
                     row_data=msci_information,
-                    exclusion_datasource=self.exclusion_datasource,
                 ),
             )
 
@@ -375,7 +371,6 @@ class Runner(object):
                     comp.CompanyStore(
                         isin,
                         deepcopy(self.companies["NoISIN"].msci_information),
-                        exclusion_datasource=self.exclusion_datasource,
                     ),
                 )
                 self.companies[isin].msci_information["ISSUER_NAME"] = isin
@@ -409,7 +404,7 @@ class Runner(object):
             security_store.information["Labeled_ESG_Type"] = row["Labeled ESG Type"]
             security_store.information["TCW_ESG"] = row["TCW ESG"]
             security_store.information["Issuer_ESG"] = row["Issuer ESG"]
-            security_store.information["Issuer_Name"] = row["ISSUER_NAME"]
+            security_store.information["IssuerName"] = row["ISSUER_NAME"]
 
             # attach information to security's company
             # create new objects for Muni, Sovereign and Securitized
@@ -418,48 +413,13 @@ class Runner(object):
             sector_level2_muni = ["Muni / Local Authority"]
             issuer_isin = parent_store.isin
             if row["Sector Level 2"] in sector_level2_securitized:
-                issuer_isin = parent_store.isin
-                self.securitized[issuer_isin] = self.securitized.get(
-                    issuer_isin, comp.SecuritizedStore(issuer_isin)
-                )
-                parent_store.remove_security(isin)
-                adj_df = parent_store.Adjustment
-                if (not parent_store.securities) and parent_store.type == "company":
-                    self.companies.pop(issuer_isin, None)
-                parent_store = self.securitized[issuer_isin]
-                parent_store.add_security(isin, security_store)
-                parent_store.Adjustment = adj_df
-                security_store.parent_store = parent_store
+                self.create_store(security_store, "Securitized", self.securitized, self.companies)
             elif row["Sector Level 2"] in sector_level2_muni:
-                issuer_isin = parent_store.isin
-                self.munis[issuer_isin] = self.munis.get(
-                    issuer_isin, comp.MuniStore(issuer_isin)
-                )
-                parent_store.remove_security(isin)
-                adj_df = parent_store.Adjustment
-                if (not parent_store.securities) and parent_store.type == "company":
-                    self.companies.pop(issuer_isin, None)
-                parent_store = self.munis[issuer_isin]
-                parent_store.add_security(isin, security_store)
-                parent_store.Adjustment = adj_df
-                security_store.parent_store = parent_store
+                self.create_store(security_store, "Muni", self.munis, self.companies)
             elif row["Sector Level 2"] in sector_level2_sovereign:
-                issuer_isin = parent_store.isin
-                self.sovereigns[issuer_isin] = self.sovereigns.get(
-                    issuer_isin,
-                    comp.SovereignStore(issuer_isin),
-                )
-                parent_store.remove_security(isin)
-                adj_df = parent_store.Adjustment
-                msci_info = parent_store.msci_information
-                if (not parent_store.securities) and parent_store.type == "company":
-                    self.companies.pop(issuer_isin, None)
-                parent_store = self.sovereigns[issuer_isin]
-                parent_store.msci_information = msci_info
-                parent_store.Adjustment = adj_df
-                parent_store.add_security(isin, security_store)
-                security_store.parent_store = parent_store
+                self.create_store(security_store, "Sovereign", self.sovereigns, self.companies)
 
+            parent_store = security_store.parent_store
             parent_store.information["Sector_Level_1"] = row["Sector Level 1"]
             parent_store.information["Sector_Level_2"] = row["Sector Level 2"]
 
@@ -547,13 +507,15 @@ class Runner(object):
         parent_store = security_store.parent_store
         security_isin = security_store.information["Security ISIN"]
         issuer_isin = parent_store.isin
-        class_ = mapping_configs.security_store_mapping[check_type]
+        class_ = mapping_configs.security_type_mapping[check_type]
         all_parents[issuer_isin] = all_parents.get(issuer_isin, class_(issuer_isin))
         parent_store.remove_security(security_isin)
         adj_df = parent_store.Adjustment
+        msci_info = parent_store.msci_information
         if (not parent_store.securities) and parent_store.type == "company":
             companies.pop(issuer_isin, None)
         parent_store = all_parents[issuer_isin]
+        parent_store.msci_information = msci_info
         parent_store.add_security(issuer_isin, security_store)
         parent_store.Adjustment = adj_df
         security_store.add_parent(parent_store)
