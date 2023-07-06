@@ -121,7 +121,6 @@ class Runner(object):
 
         # connect quandl datasource
         self.quandl_datasource = quds.QuandlDataSource(self.params["quandl_datasource"])
-        self.all_tickers = []
 
         # iterate over dataframes and create objects
         logging.log("Start Iterating")
@@ -298,7 +297,7 @@ class Runner(object):
                 msci_information["ISSUER_TICKER"] = sec_info["Ticker"]
 
             # append to all ticker list
-            self.all_tickers.append(sec_info["Ticker"])
+            self.quandl_datasource.all_tickers.append(sec_info["Ticker"])
 
             # create security store --> seperate Fixed Income and Equity stores based on Security Type
             # if Security Type is NA, just create Security object
@@ -415,11 +414,15 @@ class Runner(object):
             sector_level2_muni = ["Muni / Local Authority"]
             issuer_isin = parent_store.isin
             if row["Sector Level 2"] in sector_level2_securitized:
-                self.create_store(security_store, "Securitized", self.securitized, self.companies)
+                self.create_store(
+                    security_store, "Securitized", self.securitized, self.companies
+                )
             elif row["Sector Level 2"] in sector_level2_muni:
                 self.create_store(security_store, "Muni", self.munis, self.companies)
             elif row["Sector Level 2"] in sector_level2_sovereign:
-                self.create_store(security_store, "Sovereign", self.sovereigns, self.companies)
+                self.create_store(
+                    security_store, "Sovereign", self.sovereigns, self.companies
+                )
 
             parent_store = security_store.parent_store
             parent_store.information["Sector_Level_1"] = row["Sector Level 1"]
@@ -518,7 +521,7 @@ class Runner(object):
             companies.pop(issuer_isin, None)
         parent_store = all_parents[issuer_isin]
         parent_store.msci_information = msci_info
-        parent_store.add_security(issuer_isin, security_store)
+        parent_store.add_security(security_isin, security_store)
         parent_store.Adjustment = adj_df
         security_store.add_parent(parent_store)
         return
@@ -532,14 +535,6 @@ class Runner(object):
         # load SDG data
         self.sdg_datasource.load()
         self.sdg_datasource.iter(self.companies)
-
-        # --> not every company has these information, so create empty df with NA's for those
-        empty_sdg = pd.Series(np.nan, index=self.sdg_datasource.df.columns).to_dict()
-
-        for c in self.companies:
-            # assign empty sdg information to companies that dont have these information
-            if not hasattr(self.companies[c], "sdg_information"):
-                self.companies[c].sdg_information = deepcopy(empty_sdg)
         return
 
     def iter_bloomberg(self):
@@ -550,18 +545,7 @@ class Runner(object):
         """
         # load bloomberg data
         self.bloomberg_datasource.load()
-        bloomberg_df = self.bloomberg_datasource.df
-        empty_bloomberg = pd.Series(np.nan, index=bloomberg_df.columns).to_dict()
-
-        for c in self.companies:
-            # attach bloomberg information
-            bloomberg_information = bloomberg_df[bloomberg_df["Client_ID"] == c]
-            if not bloomberg_information.empty:
-                self.companies[
-                    c
-                ].bloomberg_information = bloomberg_information.squeeze().to_dict()
-            else:
-                self.companies[c].bloomberg_information = deepcopy(empty_bloomberg)
+        self.bloomberg_datasource.iter(self.companies)
         return
 
     def iter_quandl(self):
@@ -571,23 +555,8 @@ class Runner(object):
         - if company doesn't have data, attach all nan's
         """
         # load quandl data
-        self.params["quandl_datasource"]["filters"]["ticker"] = list(
-            set(self.all_tickers)
-        )
         self.quandl_datasource.load()
-        quandl_df = self.quandl_datasource.df
-        empty_quandl = pd.Series(np.nan, index=quandl_df.columns).to_dict()
-
-        for c in self.companies:
-            # attach bloomberg information
-            t = self.companies[c].msci_information["ISSUER_TICKER"]
-            quandl_information = quandl_df[quandl_df["ticker"] == t]
-            if not quandl_information.empty:
-                self.companies[
-                    c
-                ].quandl_information = quandl_information.squeeze().to_dict()
-            else:
-                self.companies[c].quandl_information = deepcopy(empty_quandl)
+        self.quandl_datasource.iter(self.companies)
         return
 
     def iter_sovereigns(self):

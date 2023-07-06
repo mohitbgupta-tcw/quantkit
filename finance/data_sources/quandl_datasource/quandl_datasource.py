@@ -1,6 +1,8 @@
 import quantkit.finance.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import pandas as pd
+import numpy as np
+from copy import deepcopy
 
 
 class QuandlDataSource(ds.DataSources):
@@ -19,12 +21,16 @@ class QuandlDataSource(ds.DataSources):
 
     def __init__(self, params: dict):
         super().__init__(params)
+        self.all_tickers = []
 
     def load(self):
         """
         load data and transform dataframe
         """
         logging.log("Loading Quandl Data")
+
+        self.params["filters"]["ticker"] = list(set(self.all_tickers))
+
         self.datasource.load()
         self.transform_df()
         return
@@ -33,7 +39,28 @@ class QuandlDataSource(ds.DataSources):
         """
         None
         """
+        return
 
+    def iter(self, companies: dict):
+        """
+        Attach quandl information to company objects
+
+        Parameters
+        ----------
+        companies: dict
+            dictionary of all company objects
+        """
+
+        # --> not every company has these information, so create empty df with NA's for those
+        empty_quandl = pd.Series(np.nan, index=self.df.columns).to_dict()
+
+        for c in companies:
+            t = companies[c].msci_information["ISSUER_TICKER"]
+            quandl_information = self.df[self.df["ticker"] == t]
+            if not quandl_information.empty:
+                companies[c].quandl_information = quandl_information.squeeze().to_dict()
+            else:
+                companies[c].quandl_information = deepcopy(empty_quandl)
         return
 
     @property

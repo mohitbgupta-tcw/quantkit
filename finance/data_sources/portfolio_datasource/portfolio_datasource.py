@@ -113,16 +113,13 @@ class PortfolioDataSource(ds.DataSources):
             ]
             pf_store.add_holdings(holdings_df)
             self.portfolios[pf] = pf_store
-        
+
         # save all securities that occur in portfolios to filter down security database later on
         self.all_holdings = list(self.df["ISIN"].unique())
         return
 
     def iter_holdings(
-        self,
-        securities: dict,
-        securitized_mapping: dict,
-        bclass_dict: dict
+        self, securities: dict, securitized_mapping: dict, bclass_dict: dict
     ):
         """
         Iterate over portfolio holdings
@@ -160,7 +157,9 @@ class PortfolioDataSource(ds.DataSources):
                     ),
                 )
                 self.companies[isin].msci_information["ISSUER_NAME"] = isin
-                self.companies[isin].msci_information["ISSUER_TICKER"] = row["Ticker Cd"]
+                self.companies[isin].msci_information["ISSUER_TICKER"] = row[
+                    "Ticker Cd"
+                ]
                 # create security object if not there yet
                 securities[isin] = securities.get(
                     isin,
@@ -171,6 +170,7 @@ class PortfolioDataSource(ds.DataSources):
                             "Security ISIN": isin,
                             "ISIN": isin,
                             "IssuerName": isin,
+                            "Security_Name": isin,
                         },
                     ),
                 )
@@ -188,7 +188,8 @@ class PortfolioDataSource(ds.DataSources):
             security_store.information["Labeled_ESG_Type"] = row["Labeled ESG Type"]
             security_store.information["TCW_ESG"] = row["TCW ESG"]
             security_store.information["Issuer_ESG"] = row["Issuer ESG"]
-            security_store.information["Issuer_Name"] = row["ISSUER_NAME"]
+            if not pd.isna(row["ISSUER_NAME"]):
+                security_store.information["Security_Name"] = row["ISSUER_NAME"]
 
             # attach information to security's company
             # create new objects for Muni, Sovereign and Securitized
@@ -228,27 +229,25 @@ class PortfolioDataSource(ds.DataSources):
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
             ].to_dict()
-            self.portfolios[pf].holdings[
-                isin
-            ] = self.portfolios[pf].holdings.get(
+            self.portfolios[pf].holdings[isin] = self.portfolios[pf].holdings.get(
                 isin,
                 {
                     "object": security_store,
                     "holding_measures": [],
                 },
             )
-            self.portfolios[pf].holdings[isin][
-                "holding_measures"
-            ].append(holding_measures)
+            self.portfolios[pf].holdings[isin]["holding_measures"].append(
+                holding_measures
+            )
 
             # attach portfolio to security
             security_store.portfolio_store[pf] = self.portfolio_datasource.portfolios[
                 pf
             ]
 
-        self.companies["NoISIN"].information[
-            "BCLASS_Level4"
-        ] = bclass_dict["Unassigned BCLASS"]
+        self.companies["NoISIN"].information["BCLASS_Level4"] = bclass_dict[
+            "Unassigned BCLASS"
+        ]
         return
 
     def create_store(
@@ -282,11 +281,11 @@ class PortfolioDataSource(ds.DataSources):
         if (not parent_store.securities) and parent_store.type == "company":
             companies.pop(issuer_isin, None)
         parent_store = all_parents[issuer_isin]
-        parent_store.add_security(issuer_isin, security_store)
+        parent_store.add_security(security_isin, security_store)
         parent_store.Adjustment = adj_df
         security_store.add_parent(parent_store)
         return
-    
+
     def attach_bclass(self, parent_store, bclass4: str, bclass_dict: dict):
         """
         Attach BCLASS object to security parent
@@ -294,7 +293,7 @@ class PortfolioDataSource(ds.DataSources):
         Parameters
         ----------
         parent_store: CompanyStore | MuniStore | SovereignStore | SecuritizedStore
-            store object of parent 
+            store object of parent
         bclass4: str
             BCLASS Level 4
         bclass_dict: dict
@@ -306,9 +305,7 @@ class PortfolioDataSource(ds.DataSources):
             bclass4,
             sectors.BClass(
                 bclass4,
-                pd.Series(
-                    bclass_dict["Unassigned BCLASS"].information
-                ),
+                pd.Series(bclass_dict["Unassigned BCLASS"].information),
             ),
         )
         bclass_object = bclass_dict[bclass4]
@@ -322,7 +319,7 @@ class PortfolioDataSource(ds.DataSources):
         if not (bclass_object.class_name == "Unassigned BCLASS"):
             parent_store.information["BCLASS_Level4"] = bclass_object
         return
-    
+
     def attach_msci_rating(self, parent_store, msci_rating):
         """
         Attach MSCI Rating to security parent
@@ -330,7 +327,7 @@ class PortfolioDataSource(ds.DataSources):
         Parameters
         ----------
         parent_store: CompanyStore | MuniStore | SovereignStore | SecuritizedStore
-            store object of parent 
+            store object of parent
         """
         # for first initialization of MSCI Rating
         parent_store.information["Rating_Raw_MSCI"] = parent_store.information.get(
