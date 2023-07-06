@@ -943,7 +943,9 @@ class CompanyStore(HeadStore):
                 self.securities[s].information["SClass_Level1"] = "Eligible"
                 if len(transition_category) > 1:
                     self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
-                    self.securities[s].information["SClass_Level4-P"] = "Multi-Thematic"
+                    self.securities[s].information[
+                        "SClass_Level4-P"
+                    ] = transition_category[-1]
                 elif len(transition_category) == 1:
                     self.securities[s].information[
                         "SClass_Level4"
@@ -1154,7 +1156,9 @@ class MuniStore(HeadStore):
                 self.securities[s].information["SClass_Level1"] = "Eligible"
                 if len(transition_category) > 1:
                     self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
-                    self.securities[s].information["SClass_Level4-P"] = "Multi-Thematic"
+                    self.securities[s].information[
+                        "SClass_Level4-P"
+                    ] = transition_category[-1]
                 elif len(transition_category) == 1:
                     self.securities[s].information[
                         "SClass_Level4"
