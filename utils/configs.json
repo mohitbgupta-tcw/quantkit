@@ -31,29 +31,34 @@
     "portfolio_datasource": {
         "source": 1,
         "file": "C:\\Users\\bastit\\Documents\\Risk_Score\\Input\\Portfolio_Data.xlsx",
-        "sheet_name": "Portfolio"
+        "sheet_name": "Portfolio",
+        "load": true
     },
 
     "category_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
-        "sheet_name": "Materiality Map_v2"  
+        "sheet_name": "Materiality Map_v2",
+        "load": true
     },
 
     "security_datasource": {
         "iss": {        
             "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230503.csv"
+            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230503.csv",
+            "load": true
         },
         "msci": {
             "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/msci_security_mapping.csv"
+            "file": "C:/Users/bastit/Documents/Risk_Score/Input/msci_security_mapping.csv",
+            "load": true
         }
     },
     "bloomberg_datasource": {
         "source": 1,
         "file": "C:\\Users\\bastit\\Documents\\Risk_Score\\Input\\Portfolio_Data.xlsx",
-        "sheet_name": "Bloomberg"
+        "sheet_name": "Bloomberg",
+        "load": true
     },
     "quandl_datasource": {
         "source": 5,
@@ -63,7 +68,8 @@
             "dimension": "MRT",
             "calendardate": {"gte": "2023-01-01"},
             "paginate": true
-        }
+        },
+        "load": false
     },
     "msci_datasource": {
         "source": 4,
@@ -186,80 +192,94 @@
         },
         "transformation": {
             "CARBON_EMISSIONS_CDP_DISCLOSURE": {"Yes": 1, "No": 0}
-        }
+        },
+        "load": true
     },
 
     "sdg_datasource": {
         "sdg": {        
             "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDG_Impact_Rating_Issuers_20230510.csv"
+            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDG_Impact_Rating_Issuers_20230510.csv",
+            "load": true
         },
         "sdga": {
             "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDGA_Issuers_20230510.csv"
+            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDGA_Issuers_20230510.csv",
+            "load": true
         }
     },
     "sector_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Portfolio_Data.xlsx",
-        "sheet_name": "Sector_Code"
+        "sheet_name": "Sector_Code",
+        "load": true
     },
     "bclass_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
-        "sheet_name": "BCLASS"
+        "sheet_name": "BCLASS",
+        "load": true
     },
     "gics_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
-        "sheet_name": "GICS"
+        "sheet_name": "GICS",
+        "load": true
     },
 
     "exclusion_datasource": {
         "Article8": {
             "source": 1,
             "file": "C:/Users/bastit/Documents/Risk_Score/Input/Exclusions.xlsx",
-            "sheet_name": "Article8"
+            "sheet_name": "Article8",
+            "load": true
         },
         "Article9": {
             "source": 1,
             "file": "C:/Users/bastit/Documents/Risk_Score/Input/Exclusions.xlsx",
-            "sheet_name": "Article9"
+            "sheet_name": "Article9",
+            "load": true
         }
     },
 
     "regions_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
-        "sheet_name": "Regions"
+        "sheet_name": "Regions",
+        "load": true
     },
 
     "theme_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "Thematic Mapping"
+        "sheet_name": "Thematic Mapping",
+        "load": true
     },
 
     "transition_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "Transition Industry Mapping"
+        "sheet_name": "Transition Industry Mapping",
+        "load": true
     },
     "adjustment_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "Analyst Adjustment"
+        "sheet_name": "Analyst Adjustment",
+        "load": true
     },
 
     "securitized_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "SecuritizedMapping"
+        "sheet_name": "SecuritizedMapping",
+        "load": true
     },
     "parent_issuer_datasource": {
         "source": 1,
         "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "ApplyParentIssuer"
+        "sheet_name": "ApplyParentIssuer",
+        "load": true
     },
     "theme_calculation": {
         "ALL_exclusions" : ["Casinos & Gaming", "Distillers & Vintners", "Brewers", "Tobacco", "Gaming"],

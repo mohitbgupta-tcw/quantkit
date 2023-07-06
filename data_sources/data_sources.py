@@ -1,3 +1,4 @@
+import quantkit.data_sources.blank as blank
 import quantkit.data_sources.excel as ds_excel
 import quantkit.data_sources.snowflake as snowflake
 import quantkit.data_sources.msci as msci
@@ -22,8 +23,11 @@ class DataSources(object):
     def __init__(self, params: dict):
         self.params = params
 
+        if not params["load"]:
+            self.datasource = blank.Blank()
+
         # Excel
-        if params["source"] == 1:
+        elif params["source"] == 1:
             self.file = params["file"]
             self.datasource = ds_excel.Excel(self.file, sheet_name=params["sheet_name"])
 
