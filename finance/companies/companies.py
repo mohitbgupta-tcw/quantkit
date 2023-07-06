@@ -866,6 +866,12 @@ class CompanyStore(HeadStore):
                 self.securities[s].information["SClass_Level2"] = "Exclusion"
                 self.securities[s].information["SClass_Level1"] = "Excluded"
 
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green/Sustainable Linked":
+                self.securities[s].information["SClass_Level4-P"] = "Green/Sustainable Linked"
+                self.securities[s].information["SClass_Level4"] = "Green/Sustainable Linked"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
             elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
                 self.securities[s].information["SClass_Level4-P"] = "Green"
                 self.securities[s].information["SClass_Level4"] = "Green"
@@ -1079,6 +1085,12 @@ class MuniStore(HeadStore):
                 self.securities[s].information["SClass_Level3"] = "Exclusion"
                 self.securities[s].information["SClass_Level2"] = "Exclusion"
                 self.securities[s].information["SClass_Level1"] = "Excluded"
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green/Sustainable Linked":
+                self.securities[s].information["SClass_Level4-P"] = "Green/Sustainable Linked"
+                self.securities[s].information["SClass_Level4"] = "Green/Sustainable Linked"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
             elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
                 self.securities[s].information["SClass_Level4-P"] = "Green"
                 self.securities[s].information["SClass_Level4"] = "Green"
@@ -1351,6 +1363,12 @@ class SecuritizedStore(HeadStore):
                 self.securities[s].information["SClass_Level2"] = "Exclusion"
                 self.securities[s].information["SClass_Level1"] = "Excluded"
 
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green/Sustainable Linked":
+                self.securities[s].information["SClass_Level4-P"] = "Green/Sustainable Linked"
+                self.securities[s].information["SClass_Level4"] = "Green/Sustainable Linked"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
             elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
                 self.securities[s].information["SClass_Level4-P"] = "Green"
                 self.securities[s].information["SClass_Level4"] = "Green"
@@ -1532,6 +1550,12 @@ class SovereignStore(HeadStore):
             if self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
                 self.securities[s].information["SClass_Level4-P"] = "Green"
                 self.securities[s].information["SClass_Level4"] = "Green"
+                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
+                self.securities[s].information["SClass_Level1"] = "Preferred"
+            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green/Sustainable Linked":
+                self.securities[s].information["SClass_Level4-P"] = "Green/Sustainable Linked"
+                self.securities[s].information["SClass_Level4"] = "Green/Sustainable Linked"
                 self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
                 self.securities[s].information["SClass_Level1"] = "Preferred"
