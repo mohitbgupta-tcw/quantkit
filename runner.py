@@ -562,21 +562,15 @@ class Runner(object):
     def iter_sovereigns(self):
         """
         Iterate over all sovereigns
-        - attach region information
-        - calculate sovereign score
-        - attach analyst adjustment
-        - attach GICS information
-        - attach exclusions
         """
         logging.log("Iterate Sovereigns")
         for s in self.sovereigns:
-            self.sovereigns[s].attach_region(
-                self.region_datasource.df, self.region_datasource.regions
+            self.sovereigns[s].iter(
+                regions_df=self.region_datasource.df,
+                regions=self.region_datasource.regions,
+                adjustment_df=self.adjustment_datasource.df,
+                gics_d=self.gics_datasource.gics,
             )
-            self.sovereigns[s].update_sovereign_score()
-            self.sovereigns[s].attach_analyst_adjustment(self.adjustment_datasource.df)
-            self.sovereigns[s].attach_gics(self.gics_datasource.gics)
-            self.sovereigns[s].exclusion()
         return
 
     def iter_companies(self):
@@ -599,7 +593,7 @@ class Runner(object):
         self.iter_bloomberg()
 
         # attach quandl information
-        self.iter_quandl()
+        # self.iter_quandl()
 
         # attach parent issuer id
         self.attach_parent_issuer()
@@ -724,24 +718,18 @@ class Runner(object):
     def iter_securitized(self):
         """
         Iterate over all Securitized
-        - attach GICS information
-        - attach exclusions
         """
         logging.log("Iterate Securitized")
         for sec in self.securitized:
-            self.securitized[sec].attach_gics(self.gics_datasource.gics)
-            self.securitized[sec].exclusion()
+            self.securitized[sec].iter(gics_d=self.gics_datasource.gics)
 
     def iter_muni(self):
         """
         Iterate over all Munis
-        - attach GICS information
-        - attach exclusions
         """
         logging.log("Iterate Munis")
         for m in self.munis:
-            self.munis[m].attach_gics(self.gics_datasource.gics)
-            self.munis[m].exclusion()
+            self.munis[m].iter(gics_d=self.gics_datasource.gics)
 
     def replace_carbon_median(self):
         """
