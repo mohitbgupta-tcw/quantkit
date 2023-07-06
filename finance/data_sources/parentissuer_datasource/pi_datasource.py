@@ -42,6 +42,32 @@ class ParentIssuerSource(ds.DataSources):
         None
         """
         return
+    
+    def iter(self, companies: dict, securities: dict):
+        """
+        Manually add parent issuer for selected securities
+
+        Parameters
+        ----------
+        companies: dict
+            dictionary of all company objects
+        securities: dict
+            dictionary of all security objects
+        """
+        for index, row in self.df.iterrows():
+            parent = row["ISIN"]
+            sec = row["SECURITY_ISIN"]
+            if parent in companies:
+                if sec in securities:
+                    companies[parent].add_security(
+                        isin=sec, store=securities[sec]
+                    )
+                    securities[
+                        sec
+                    ].add_parent(companies[parent])
+                if sec in companies:
+                    del companies[sec]
+        return
 
     @property
     def df(self):

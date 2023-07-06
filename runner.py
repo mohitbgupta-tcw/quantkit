@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-from copy import deepcopy
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.utils.configs as configs
 import quantkit.finance.data_sources.regions_datasource.regions_datasource as rd
@@ -19,10 +17,7 @@ import quantkit.finance.data_sources.adjustment_datasource.adjustment_database a
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
 import quantkit.finance.companies.companies as comp
-import quantkit.finance.securities.securities as secs
 import quantkit.utils.logging as logging
-import quantkit.finance.sectors.sectors as sectors
-import operator
 
 
 class Runner(object):
@@ -362,44 +357,6 @@ class Runner(object):
         )
         return
 
-    def create_store(
-        self,
-        security_store: secs.SecurityStore,
-        check_type: str,
-        all_parents: dict,
-        companies: dict,
-    ):
-        """
-        create new objects for Muni, Sovereign and Securitized if applicable
-
-        Parameters
-        ----------
-        security_store: secs.SecurityStore
-            security store
-        check_type: str
-            check if security is of this type, either Muni, Securitized or Sovereign
-        all_parents: dict
-            dictionary of current parent object of this type
-        companies: dict
-            dictionary of all company objects
-        """
-        parent_store = security_store.parent_store
-        security_isin = security_store.information["Security ISIN"]
-        issuer_isin = parent_store.isin
-        class_ = mapping_configs.security_type_mapping[check_type]
-        all_parents[issuer_isin] = all_parents.get(issuer_isin, class_(issuer_isin))
-        parent_store.remove_security(security_isin)
-        adj_df = parent_store.Adjustment
-        msci_info = parent_store.msci_information
-        if (not parent_store.securities) and parent_store.type == "company":
-            companies.pop(issuer_isin, None)
-        parent_store = all_parents[issuer_isin]
-        parent_store.msci_information = msci_info
-        parent_store.add_security(security_isin, security_store)
-        parent_store.Adjustment = adj_df
-        security_store.add_parent(parent_store)
-        return
-
     def iter_sdg(self):
         """
         iterate over SDG data
@@ -446,30 +403,41 @@ class Runner(object):
                 gics_d=self.gics_datasource.gics,
             )
         return
+    
+    def iter_securitized(self):
+        """
+        Iterate over all Securitized
+        """
+        logging.log("Iterate Securitized")
+        for sec in self.portfolio_datasource.securitized:
+            self.portfolio_datasource.securitized[sec].iter(
+                gics_d=self.gics_datasource.gics
+            )
+
+    def iter_muni(self):
+        """
+        Iterate over all Munis
+        """
+        logging.log("Iterate Munis")
+        for m in self.portfolio_datasource.munis:
+            self.portfolio_datasource.munis[m].iter(gics_d=self.gics_datasource.gics)
 
     def iter_companies(self):
         """
         Iterate over all companies
-        - attach sdg information
-        - attach bloomberg information
-        - attach exclusions
-        - attach region information
-        - attach GICS information
-        - attach Industry and Sub-Industry information
-        - attach analyst adjustment
-        - run company specific calculations
         """
-
         logging.log("Iterate Companies")
+
         # attach sdg information
         self.iter_sdg()
+
         # attach bloomberg information
         self.iter_bloomberg()
 
         # attach quandl information
-        # self.iter_quandl()
+        self.iter_quandl()
 
-        # attach parent issuer id
+        # attach parent issuer id --> manually added parents from file
         self.attach_parent_issuer()
 
         # load category data
@@ -477,10 +445,7 @@ class Runner(object):
         self.category_datasource.iter()
 
         for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].attach_region(
-                self.region_datasource.df, self.region_datasource.regions
-            )
-            self.portfolio_datasource.companies[c].update_sovereign_score()
+            self.portfolio_datasource.companies[c].iter(regions_df=self.region_datasource.df, regions=self.region_datasource.regions)
 
             # company has parent --> take data from that parent
             if not pd.isna(
@@ -542,21 +507,7 @@ class Runner(object):
         """
         Manually add parent issuer for selected securities
         """
-        df_ = self.parent_issuer_datasource.df
-
-        for index, row in df_.iterrows():
-            parent = row["ISIN"]
-            sec = row["SECURITY_ISIN"]
-            if parent in self.portfolio_datasource.companies:
-                if sec in self.securities:
-                    self.portfolio_datasource.companies[parent].add_security(
-                        isin=sec, store=self.securities[sec]
-                    )
-                    self.securities[
-                        sec
-                    ].parent_store = self.portfolio_datasource.companies[parent]
-                if sec in self.portfolio_datasource.companies:
-                    del self.portfolio_datasource.companies[sec]
+        self.parent_issuer_datasource.iter(self.portfolio_datasource.companies, self.securities)
         return
 
     def parent_issuer(self, isin):
@@ -622,24 +573,6 @@ class Runner(object):
                     val
                 ] = new_val
         return
-
-    def iter_securitized(self):
-        """
-        Iterate over all Securitized
-        """
-        logging.log("Iterate Securitized")
-        for sec in self.portfolio_datasource.securitized:
-            self.portfolio_datasource.securitized[sec].iter(
-                gics_d=self.gics_datasource.gics
-            )
-
-    def iter_muni(self):
-        """
-        Iterate over all Munis
-        """
-        logging.log("Iterate Munis")
-        for m in self.portfolio_datasource.munis:
-            self.portfolio_datasource.munis[m].iter(gics_d=self.gics_datasource.gics)
 
     def replace_carbon_median(self):
         """
@@ -743,10 +676,9 @@ class Runner(object):
             2.3) Create Governance_Score based on Region_Theme
             2.4) Save flags in company_information
         """
-        operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
 
         for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].calculate_esrm_score(operators)
+            self.portfolio_datasource.companies[c].calculate_esrm_score()
         return
 
     def calculate_transition_score(self):

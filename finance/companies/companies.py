@@ -6,6 +6,7 @@ import quantkit.finance.adjustment.adjustment as adjustment
 import quantkit.finance.transition.transition as transition
 import quantkit.finance.data_sources.exclusions_datasource.exclusions_database as edb
 from typing import Union
+import operator
 
 
 class HeadStore(object):
@@ -490,7 +491,7 @@ class CompanyStore(HeadStore):
                     current_sec = msci_sum
         return
 
-    def calculate_esrm_score(self, operators):
+    def calculate_esrm_score(self):
         """
         Calculuate esrm score for each company:
         1) For each category save indicator fields and EM and DM flag scorings
@@ -502,11 +503,6 @@ class CompanyStore(HeadStore):
                 - create ESRM score based on flag scorings and region
             2.3) Create Governance_Score based on Region_Theme
             2.4) Save flags in company_information
-
-        Parameters
-        ----------
-        operators: dict
-            dictionary of operators translating string to operator object
         """
 
         counter = 0
@@ -514,6 +510,7 @@ class CompanyStore(HeadStore):
         flag_d = dict()
         gov_d = dict()
         na_d = dict()
+        operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
 
         if self.non_applicable_securities():
             self.scores["ESRM_Flags"] = flag_d
@@ -1017,6 +1014,41 @@ class CompanyStore(HeadStore):
 
         return
 
+    def iter(        
+            self,
+            regions_df: pd.DataFrame,
+            regions: dict,
+            adjustment_df: pd.DataFrame,
+            gics_d: dict,):
+        """
+        - attach region information
+        - attach sovereign score
+        - attach exclusions
+        - attach GICS information
+        - attach Industry and Sub-Industry information
+        - attach analyst adjustment
+        - run company specific calculations
+
+        Parameters
+        ----------
+        regions_df: pd.DataFrame
+            DataFrame of regions information
+        regions: dict
+            dictionary of all region objects
+        adjustment_df: pd.Dataframe
+            DataFrame of Analyst Adjustments
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        """
+
+        # attach region
+        self.attach_region(
+                regions_df, regions
+            )
+        
+        # update sovereign score for Treausury
+        self.update_sovereign_score()
+        return
 
 class MuniStore(HeadStore):
     """
