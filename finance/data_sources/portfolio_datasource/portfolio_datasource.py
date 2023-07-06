@@ -139,6 +139,7 @@ class PortfolioDataSource(ds.DataSources):
         bclass_dict: dict
             dictionary of all bclass objects
         """
+        logging.log("Iterate Holdings")
         for index, row in self.df.iterrows():
             pf = row["Portfolio"]  # portfolio id
             isin = row["ISIN"]  # security isin
@@ -241,9 +242,7 @@ class PortfolioDataSource(ds.DataSources):
             )
 
             # attach portfolio to security
-            security_store.portfolio_store[pf] = self.portfolio_datasource.portfolios[
-                pf
-            ]
+            security_store.portfolio_store[pf] = self.portfolios[pf]
 
         self.companies["NoISIN"].information["BCLASS_Level4"] = bclass_dict[
             "Unassigned BCLASS"
@@ -278,9 +277,11 @@ class PortfolioDataSource(ds.DataSources):
         all_parents[issuer_isin] = all_parents.get(issuer_isin, class_(issuer_isin))
         parent_store.remove_security(security_isin)
         adj_df = parent_store.Adjustment
+        msci_info = parent_store.msci_information
         if (not parent_store.securities) and parent_store.type == "company":
             companies.pop(issuer_isin, None)
         parent_store = all_parents[issuer_isin]
+        parent_store.msci_information = msci_info
         parent_store.add_security(security_isin, security_store)
         parent_store.Adjustment = adj_df
         security_store.add_parent(parent_store)
@@ -301,7 +302,7 @@ class PortfolioDataSource(ds.DataSources):
         """
         # attach BCLASS object
         # if BCLASS is not in BCLASS store (covered industries), attach 'Unassigned BCLASS'
-        bclass_dict = bclass_dict.get(
+        bclass_dict[bclass4] = bclass_dict.get(
             bclass4,
             sectors.BClass(
                 bclass4,

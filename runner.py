@@ -82,10 +82,6 @@ class Runner(object):
         self.equities = dict()
         self.fixed_income = dict()
         self.other_securities = dict()
-        self.companies = dict()
-        self.munis = dict()
-        self.sovereigns = dict()
-        self.securitized = dict()
         self.reiter = list()
 
         # connect parent issuer datasource
@@ -311,7 +307,9 @@ class Runner(object):
             # create company object
             # company object could already be there if company has more than 1 security --> get
             issuer = sec_info["ISIN"]
-            self.companies[issuer] = self.companies.get(
+            self.portfolio_datasource.companies[
+                issuer
+            ] = self.portfolio_datasource.companies.get(
                 issuer,
                 comp.CompanyStore(
                     isin=issuer,
@@ -320,16 +318,20 @@ class Runner(object):
             )
 
             # attach security to company and vice versa
-            self.companies[issuer].add_security(sec, self.securities[sec])
-            self.securities[sec].parent_store = self.companies[issuer]
+            self.portfolio_datasource.companies[issuer].add_security(
+                sec, self.securities[sec]
+            )
+            self.securities[sec].parent_store = self.portfolio_datasource.companies[
+                issuer
+            ]
 
             # attach adjustment
             adj_df = self.adjustment_datasource.df[
                 self.adjustment_datasource.df["ISIN"] == sec
             ]
             if not adj_df.empty:
-                self.companies[issuer].Adjustment = pd.concat(
-                    [self.companies[issuer].Adjustment, adj_df],
+                self.portfolio_datasource.companies[issuer].Adjustment = pd.concat(
+                    [self.portfolio_datasource.companies[issuer].Adjustment, adj_df],
                     ignore_index=True,
                     sort=False,
                 )
@@ -353,139 +355,11 @@ class Runner(object):
         - attach MSCI rating to company
         - attach holdings, OAS to self.holdings with security object
         """
-        logging.log("Iterate Holdings")
-        df_ = self.portfolio_datasource.df
-        for index, row in df_.iterrows():
-            pf = row.Portfolio  # portfolio id
-            isin = row.ISIN  # security isin
-            # no ISIN for security (cash, swaps, etc.)
-            # --> create company object with name as identifier
-            if isin == "NoISIN":
-                if pd.isna(row.ISSUER_NAME):
-                    isin = "Cash"
-                else:
-                    isin = row.ISSUER_NAME
-                self.companies[isin] = self.companies.get(
-                    isin,
-                    comp.CompanyStore(
-                        isin,
-                        deepcopy(self.companies["NoISIN"].msci_information),
-                    ),
-                )
-                self.companies[isin].msci_information["ISSUER_NAME"] = isin
-                self.companies[isin].msci_information["ISSUER_TICKER"] = row[
-                    "Ticker Cd"
-                ]
-                self.securities[isin] = self.securities.get(
-                    isin,
-                    secs.SecurityStore(
-                        isin,
-                        {
-                            "ISSUERID": "NoISSUERID",
-                            "Security ISIN": isin,
-                            "ISIN": isin,
-                            "IssuerName": isin,
-                            "Security_Name": isin,
-                        },
-                    ),
-                )
-                self.securities[isin].parent_store = self.companies[isin]
-                self.companies[isin].add_security(isin, self.securities[isin])
-
-            security_store = self.securities[isin]
-            parent_store = security_store.parent_store
-
-            # attach information to security
-            security_store.information[
-                "ESG_Collateral_Type"
-            ] = self.securitized_datasource.securitized_mapping[
-                row["ESG Collateral Type"]
-            ]
-            security_store.information["Labeled_ESG_Type"] = row["Labeled ESG Type"]
-            security_store.information["TCW_ESG"] = row["TCW ESG"]
-            security_store.information["Issuer_ESG"] = row["Issuer ESG"]
-            if not pd.isna(row["ISSUER_NAME"]):
-                security_store.information["Security_Name"] = row["ISSUER_NAME"]
-
-            # attach information to security's company
-            # create new objects for Muni, Sovereign and Securitized
-            sector_level2_securitized = ["Residential MBS", "CMBS", "ABS"]
-            sector_level2_sovereign = ["Sovereign"]
-            sector_level2_muni = ["Muni / Local Authority"]
-            issuer_isin = parent_store.isin
-            if row["Sector Level 2"] in sector_level2_securitized:
-                self.create_store(
-                    security_store, "Securitized", self.securitized, self.companies
-                )
-            elif row["Sector Level 2"] in sector_level2_muni:
-                self.create_store(security_store, "Muni", self.munis, self.companies)
-            elif row["Sector Level 2"] in sector_level2_sovereign:
-                self.create_store(
-                    security_store, "Sovereign", self.sovereigns, self.companies
-                )
-
-            parent_store = security_store.parent_store
-            parent_store.information["Sector_Level_1"] = row["Sector Level 1"]
-            parent_store.information["Sector_Level_2"] = row["Sector Level 2"]
-
-            # attach BCLASS object
-            # if BCLASS is not in BCLASS store (covered industries), attach 'Unassigned BCLASS'
-            bclass4 = row["BCLASS_Level4"]
-            self.bclass_datasource.bclass[bclass4] = self.bclass_datasource.bclass.get(
-                bclass4,
-                sectors.BClass(
-                    bclass4,
-                    pd.Series(
-                        self.bclass_datasource.bclass["Unassigned BCLASS"].information
-                    ),
-                ),
-            )
-            bclass_object = self.bclass_datasource.bclass[bclass4]
-
-            # for first initialization of BCLASS
-            parent_store.information["BCLASS_Level4"] = parent_store.information.get(
-                "BCLASS_Level4", bclass_object
-            )
-            # sometimes same security is labeled with different BCLASS_Level4
-            # --> if it was unassigned before: overwrite, else: skipp
-            if not (bclass_object.class_name == "Unassigned BCLASS"):
-                parent_store.information["BCLASS_Level4"] = bclass_object
-
-            # for first initialization of MSCI Rating
-            parent_store.information["Rating_Raw_MSCI"] = parent_store.information.get(
-                "Rating_Raw_MSCI", row["Rating Raw MSCI"]
-            )
-
-            # sometimes same security is labeled with different MSCI Ratings
-            # --> if it's not NA: overwrite, else: skipp
-            if not pd.isna(row["Rating Raw MSCI"]):
-                parent_store.information["Rating_Raw_MSCI"] = row["Rating Raw MSCI"]
-
-            # attach security object, portfolio weight, OAS to portfolio
-            holding_measures = row[
-                ["Portfolio_Weight", "Base Mkt Val", "OAS"]
-            ].to_dict()
-            self.portfolio_datasource.portfolios[pf].holdings[
-                isin
-            ] = self.portfolio_datasource.portfolios[pf].holdings.get(
-                isin,
-                {
-                    "object": security_store,
-                    "holding_measures": [],
-                },
-            )
-            self.portfolio_datasource.portfolios[pf].holdings[isin][
-                "holding_measures"
-            ].append(holding_measures)
-
-            # attach portfolio to security
-            security_store.portfolio_store[pf] = self.portfolio_datasource.portfolios[
-                pf
-            ]
-
-        self.companies["NoISIN"].information[
-            "BCLASS_Level4"
-        ] = self.bclass_datasource.bclass["Unassigned BCLASS"]
+        self.portfolio_datasource.iter_holdings(
+            self.securities,
+            self.securitized_datasource.securitized_mapping,
+            self.bclass_datasource.bclass,
+        )
         return
 
     def create_store(
@@ -534,7 +408,7 @@ class Runner(object):
         """
         # load SDG data
         self.sdg_datasource.load()
-        self.sdg_datasource.iter(self.companies)
+        self.sdg_datasource.iter(self.portfolio_datasource.companies)
         return
 
     def iter_bloomberg(self):
@@ -545,7 +419,7 @@ class Runner(object):
         """
         # load bloomberg data
         self.bloomberg_datasource.load()
-        self.bloomberg_datasource.iter(self.companies)
+        self.bloomberg_datasource.iter(self.portfolio_datasource.companies)
         return
 
     def iter_quandl(self):
@@ -556,7 +430,7 @@ class Runner(object):
         """
         # load quandl data
         self.quandl_datasource.load()
-        self.quandl_datasource.iter(self.companies)
+        self.quandl_datasource.iter(self.portfolio_datasource.companies)
         return
 
     def iter_sovereigns(self):
@@ -564,8 +438,8 @@ class Runner(object):
         Iterate over all sovereigns
         """
         logging.log("Iterate Sovereigns")
-        for s in self.sovereigns:
-            self.sovereigns[s].iter(
+        for s in self.portfolio_datasource.sovereigns:
+            self.portfolio_datasource.sovereigns[s].iter(
                 regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
                 adjustment_df=self.adjustment_datasource.df,
@@ -602,51 +476,63 @@ class Runner(object):
         self.category_datasource.load()
         self.category_datasource.iter()
 
-        for c in self.companies:
-            self.companies[c].attach_region(
+        for c in self.portfolio_datasource.companies:
+            self.portfolio_datasource.companies[c].attach_region(
                 self.region_datasource.df, self.region_datasource.regions
             )
-            self.companies[c].update_sovereign_score()
+            self.portfolio_datasource.companies[c].update_sovereign_score()
 
             # company has parent --> take data from that parent
             if not pd.isna(
-                self.companies[c].msci_information["PARENT_ULTIMATE_ISSUERID"]
+                self.portfolio_datasource.companies[c].msci_information[
+                    "PARENT_ULTIMATE_ISSUERID"
+                ]
             ):
                 self.parent_issuer(c)
 
             # attach exclusion df
-            self.companies[c].attach_exclusion(self.exclusion_datasource.df)
+            self.portfolio_datasource.companies[c].attach_exclusion(
+                self.exclusion_datasource.df
+            )
 
             # attach exclusion article
-            self.companies[c].exclusion()
+            self.portfolio_datasource.companies[c].exclusion()
 
             # attach GICS Sub industry
-            self.companies[c].attach_gics(self.gics_datasource.gics)
+            self.portfolio_datasource.companies[c].attach_gics(
+                self.gics_datasource.gics
+            )
 
             # attach industry and sub industry
-            self.companies[c].attach_industry(
+            self.portfolio_datasource.companies[c].attach_industry(
                 self.gics_datasource.gics, self.bclass_datasource.bclass
             )
 
             # attach category
-            self.companies[c].attach_category(self.category_datasource.categories)
+            self.portfolio_datasource.companies[c].attach_category(
+                self.category_datasource.categories
+            )
 
             # attach analyst adjustment
-            self.companies[c].attach_analyst_adjustment(self.adjustment_datasource.df)
+            self.portfolio_datasource.companies[c].attach_analyst_adjustment(
+                self.adjustment_datasource.df
+            )
 
             # calculate capex
-            self.companies[c].calculate_capex()
+            self.portfolio_datasource.companies[c].calculate_capex()
 
             # calculate climate revenue
-            self.companies[c].calculate_climate_revenue()
+            self.portfolio_datasource.companies[c].calculate_climate_revenue()
 
             # calculate carbon intensite --> if na, reiter and assign industry median
-            reiter = self.companies[c].calculate_carbon_intensity()
+            reiter = self.portfolio_datasource.companies[c].calculate_carbon_intensity()
             if reiter:
                 self.reiter.append(c)
 
             # assign theme and Sustainability_Tag
-            self.companies[c].check_theme_requirements(self.theme_datasource.themes)
+            self.portfolio_datasource.companies[c].check_theme_requirements(
+                self.theme_datasource.themes
+            )
 
         self.replace_carbon_median()
         self.replace_transition_risk()
@@ -661,14 +547,16 @@ class Runner(object):
         for index, row in df_.iterrows():
             parent = row["ISIN"]
             sec = row["SECURITY_ISIN"]
-            if parent in self.companies:
+            if parent in self.portfolio_datasource.companies:
                 if sec in self.securities:
-                    self.companies[parent].add_security(
+                    self.portfolio_datasource.companies[parent].add_security(
                         isin=sec, store=self.securities[sec]
                     )
-                    self.securities[sec].parent_store = self.companies[parent]
-                if sec in self.companies:
-                    del self.companies[sec]
+                    self.securities[
+                        sec
+                    ].parent_store = self.portfolio_datasource.companies[parent]
+                if sec in self.portfolio_datasource.companies:
+                    del self.portfolio_datasource.companies[sec]
         return
 
     def parent_issuer(self, isin):
@@ -685,34 +573,54 @@ class Runner(object):
             isin of sub-company
         """
         # get parent id from msci
-        parent_id = self.companies[isin].msci_information["PARENT_ULTIMATE_ISSUERID"]
+        parent_id = self.portfolio_datasource.companies[isin].msci_information[
+            "PARENT_ULTIMATE_ISSUERID"
+        ]
 
         # find parent store
         parent = "NoISIN"
-        for c in self.companies:
-            if self.companies[c].msci_information["ISSUERID"] == parent_id:
+        for c in self.portfolio_datasource.companies:
+            if (
+                self.portfolio_datasource.companies[c].msci_information["ISSUERID"]
+                == parent_id
+            ):
                 parent = c
                 break
 
         # assign sdg data if all values are nan
         if all(
-            pd.isna(value) for value in self.companies[isin].sdg_information.values()
+            pd.isna(value)
+            for value in self.portfolio_datasource.companies[
+                isin
+            ].sdg_information.values()
         ):
-            self.companies[isin].sdg_information = self.companies[
+            self.portfolio_datasource.companies[
+                isin
+            ].sdg_information = self.portfolio_datasource.companies[
                 parent
             ].sdg_information
 
         # assign msci data for missing values
-        for val in self.companies[isin].msci_information:
-            if pd.isna(self.companies[isin].msci_information[val]):
-                new_val = self.companies[parent].msci_information[val]
-                self.companies[isin].msci_information[val] = new_val
+        for val in self.portfolio_datasource.companies[isin].msci_information:
+            if pd.isna(self.portfolio_datasource.companies[isin].msci_information[val]):
+                new_val = self.portfolio_datasource.companies[parent].msci_information[
+                    val
+                ]
+                self.portfolio_datasource.companies[isin].msci_information[
+                    val
+                ] = new_val
 
         # assign bloomberg data for missing values
-        for val in self.companies[isin].bloomberg_information:
-            if pd.isna(self.companies[isin].bloomberg_information[val]):
-                new_val = self.companies[parent].bloomberg_information[val]
-                self.companies[isin].bloomberg_information[val] = new_val
+        for val in self.portfolio_datasource.companies[isin].bloomberg_information:
+            if pd.isna(
+                self.portfolio_datasource.companies[isin].bloomberg_information[val]
+            ):
+                new_val = self.portfolio_datasource.companies[
+                    parent
+                ].bloomberg_information[val]
+                self.portfolio_datasource.companies[isin].bloomberg_information[
+                    val
+                ] = new_val
         return
 
     def iter_securitized(self):
@@ -720,16 +628,18 @@ class Runner(object):
         Iterate over all Securitized
         """
         logging.log("Iterate Securitized")
-        for sec in self.securitized:
-            self.securitized[sec].iter(gics_d=self.gics_datasource.gics)
+        for sec in self.portfolio_datasource.securitized:
+            self.portfolio_datasource.securitized[sec].iter(
+                gics_d=self.gics_datasource.gics
+            )
 
     def iter_muni(self):
         """
         Iterate over all Munis
         """
         logging.log("Iterate Munis")
-        for m in self.munis:
-            self.munis[m].iter(gics_d=self.gics_datasource.gics)
+        for m in self.portfolio_datasource.munis:
+            self.portfolio_datasource.munis[m].iter(gics_d=self.gics_datasource.gics)
 
     def replace_carbon_median(self):
         """
@@ -738,9 +648,9 @@ class Runner(object):
         --> replace NA with company's industry median
         """
         for c in self.reiter:
-            self.companies[c].information["Carbon Intensity (Scope 123)"] = (
-                self.companies[c].information["Industry"].median
-            )
+            self.portfolio_datasource.companies[c].information[
+                "Carbon Intensity (Scope 123)"
+            ] = (self.portfolio_datasource.companies[c].information["Industry"].median)
         return
 
     def replace_transition_risk(self):
@@ -752,7 +662,7 @@ class Runner(object):
         # create new Industry objects for Unassigned High and Low
 
         for c in self.bclass_datasource.industries["Unassigned BCLASS"].companies:
-            company_store = self.companies[c]
+            company_store = self.portfolio_datasource.companies[c]
             carb_int = company_store.information["Carbon Intensity (Scope 123)"]
             # carbon intensity greater than threshold --> high risk
             if carb_int > self.params["transition_parameters"]["High_Threshold"]:
@@ -785,8 +695,8 @@ class Runner(object):
         """
         Calculation of Securitized Score
         """
-        for sec in self.securitized:
-            self.securitized[sec].calculate_securitized_score()
+        for sec in self.portfolio_datasource.securitized:
+            self.portfolio_datasource.securitized[sec].calculate_securitized_score()
         return
 
     def analyst_adjustment(self):
@@ -799,17 +709,25 @@ class Runner(object):
             - Planet
         See quantkit.finance.adjustments for more information
         """
-        for c in self.companies:
-            self.companies[c].analyst_adjustment(self.theme_datasource.themes)
+        for c in self.portfolio_datasource.companies:
+            self.portfolio_datasource.companies[c].analyst_adjustment(
+                self.theme_datasource.themes
+            )
 
-        for sov in self.sovereigns:
-            self.sovereigns[sov].analyst_adjustment(self.theme_datasource.themes)
+        for sov in self.portfolio_datasource.sovereigns:
+            self.portfolio_datasource.sovereigns[sov].analyst_adjustment(
+                self.theme_datasource.themes
+            )
 
-        for muni in self.munis:
-            self.munis[muni].analyst_adjustment(self.theme_datasource.themes)
+        for muni in self.portfolio_datasource.munis:
+            self.portfolio_datasource.munis[muni].analyst_adjustment(
+                self.theme_datasource.themes
+            )
 
-        for sec in self.securitized:
-            self.securitized[sec].analyst_adjustment(self.theme_datasource.themes)
+        for sec in self.portfolio_datasource.securitized:
+            self.portfolio_datasource.securitized[sec].analyst_adjustment(
+                self.theme_datasource.themes
+            )
         return
 
     def calculate_esrm_score(self):
@@ -827,8 +745,8 @@ class Runner(object):
         """
         operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
 
-        for c in self.companies:
-            self.companies[c].calculate_esrm_score(operators)
+        for c in self.portfolio_datasource.companies:
+            self.portfolio_datasource.companies[c].calculate_esrm_score(operators)
         return
 
     def calculate_transition_score(self):
@@ -844,8 +762,8 @@ class Runner(object):
                 - if in lowest quantile of industry: -2
                 - if in medium quantile of industry: -1
         """
-        for c in self.companies:
-            self.companies[c].calculate_transition_score()
+        for c in self.portfolio_datasource.companies:
+            self.portfolio_datasource.companies[c].calculate_transition_score()
         return
 
     def calculate_corporate_score(self):
@@ -855,8 +773,8 @@ class Runner(object):
 
             (Governance Score + ESRM Score + Transition Score) / 3
         """
-        for c in self.companies:
-            self.companies[c].calculate_corporate_score()
+        for c in self.portfolio_datasource.companies:
+            self.portfolio_datasource.companies[c].calculate_corporate_score()
         return
 
     def calculate_risk_overall_score(self):
@@ -867,17 +785,17 @@ class Runner(object):
             - if security specific score above 4: Poor
             - if security specific score 0: not scored
         """
-        for c in self.companies:
-            self.companies[c].calculate_risk_overall_score()
+        for c in self.portfolio_datasource.companies:
+            self.portfolio_datasource.companies[c].calculate_risk_overall_score()
 
-        for sov in self.sovereigns:
-            self.sovereigns[sov].calculate_risk_overall_score()
+        for sov in self.portfolio_datasource.sovereigns:
+            self.portfolio_datasource.sovereigns[sov].calculate_risk_overall_score()
 
-        for muni in self.munis:
-            self.munis[muni].calculate_risk_overall_score()
+        for muni in self.portfolio_datasource.munis:
+            self.portfolio_datasource.munis[muni].calculate_risk_overall_score()
 
-        for sec in self.securitized:
-            self.securitized[sec].calculate_risk_overall_score()
+        for sec in self.portfolio_datasource.securitized:
+            self.portfolio_datasource.securitized[sec].calculate_risk_overall_score()
         return
 
     def update_sclass(self):
@@ -885,18 +803,18 @@ class Runner(object):
         Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
         and SClass_Level5 for each security rule based
         """
-        for c in self.companies:
-            if not self.companies[c].isin == "NoISIN":
-                self.companies[c].update_sclass()
+        for c in self.portfolio_datasource.companies:
+            if not self.portfolio_datasource.companies[c].isin == "NoISIN":
+                self.portfolio_datasource.companies[c].update_sclass()
 
-        for sov in self.sovereigns:
-            self.sovereigns[sov].update_sclass()
+        for sov in self.portfolio_datasource.sovereigns:
+            self.portfolio_datasource.sovereigns[sov].update_sclass()
 
-        for muni in self.munis:
-            self.munis[muni].update_sclass()
+        for muni in self.portfolio_datasource.munis:
+            self.portfolio_datasource.munis[muni].update_sclass()
 
-        for sec in self.securitized:
-            self.securitized[sec].update_sclass()
+        for sec in self.portfolio_datasource.securitized:
+            self.portfolio_datasource.securitized[sec].update_sclass()
 
     def run(self):
         """
