@@ -155,6 +155,7 @@ def risk_framework():
                         sov_score,
                         esrm_score,
                         sum(comp_store.scores["ESRM_Flags"].values()),
+                        sum(comp_store.scores["NA_Flags_ESRM"].values()),
                         comp_store.scores["ESRM_Flags"].get(
                             "PRIVACY_DATA_SEC_EXP_SCORE_Flag", 0
                         ),
@@ -196,6 +197,7 @@ def risk_framework():
                         comp_store.msci_information["UNGC_COMPLIANCE"],
                         gov_score,
                         sum(comp_store.scores["Governance_Flags"].values()),
+                        sum(comp_store.scores["NA_Flags_Governance"].values()),
                         comp_store.scores["Governance_Flags"].get(
                             "CARBON_EMISSIONS_CDP_DISCLOSURE_Flag", 0
                         ),
@@ -317,6 +319,7 @@ def risk_framework():
         "Sovereign Score",
         "ESRM Score",
         "ESRM_flagged",
+        "NA_Flags_ESRM",
         "PRIVACY_DATA_SEC_EXP_SCORE_Flag",
         "PRIVACY_DATA_SEC_EXP_SCORE",
         "COMM_REL_RISK_EXP_SCORE_Flag",
@@ -340,6 +343,7 @@ def risk_framework():
         "UNGC_COMPLIANCE",
         "Governance Score",
         "Governance_flagged",
+        "NA_Flags_Governance",
         "CARBON_EMISSIONS_CDP_DISCLOSURE_Flag",
         "CARBON_EMISSIONS_CDP_DISCLOSURE",
         "COMBINED_CEO_CHAIR_Flag",
