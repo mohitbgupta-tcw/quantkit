@@ -62,6 +62,8 @@ class HeadStore(object):
         self.scores["Corporate_Score"] = 0
         self.scores["Review_Flag"] = ""
         self.scores["Review_Comments"] = ""
+        self.scores["ESRM_Flags"] = dict()
+        self.scores["Governance_Flags"] = dict()
         self.Adjustment = pd.DataFrame(
             columns=["Thematic Type", "Category", "Adjustment"]
         )

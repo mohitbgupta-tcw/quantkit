@@ -559,9 +559,11 @@ class Runner(object):
                 )
                 parent_store.remove_security(isin)
                 adj_df = parent_store.Adjustment
+                msci_info = parent_store.msci_information
                 if (not parent_store.securities) and parent_store.type == "company":
                     self.companies.pop(issuer_isin, None)
                 parent_store = self.securitized[issuer_isin]
+                parent_store.msci_information = msci_info
                 parent_store.add_security(isin, security_store)
                 parent_store.Adjustment = adj_df
                 security_store.parent_store = parent_store
@@ -572,9 +574,11 @@ class Runner(object):
                 )
                 parent_store.remove_security(isin)
                 adj_df = parent_store.Adjustment
+                msci_info = parent_store.msci_information
                 if (not parent_store.securities) and parent_store.type == "company":
                     self.companies.pop(issuer_isin, None)
                 parent_store = self.munis[issuer_isin]
+                parent_store.msci_information = msci_info
                 parent_store.add_security(isin, security_store)
                 parent_store.Adjustment = adj_df
                 security_store.parent_store = parent_store
@@ -679,6 +683,19 @@ class Runner(object):
             # assign empty sdg information to companies that dont have these information
             if not hasattr(self.companies[c], "sdg_information"):
                 self.companies[c].sdg_information = deepcopy(empty_sdg)
+
+        for m in self.munis:
+            # assign empty sdg information to companies that dont have these information
+            if not hasattr(self.munis[m], "sdg_information"):
+                self.munis[m].sdg_information = deepcopy(empty_sdg)
+        for sov in self.sovereigns:
+            # assign empty sdg information to companies that dont have these information
+            if not hasattr(self.sovereigns[sov], "sdg_information"):
+                self.sovereigns[sov].sdg_information = deepcopy(empty_sdg)
+        for sec in self.securitized:
+            # assign empty sdg information to companies that dont have these information
+            if not hasattr(self.securitized[sec], "sdg_information"):
+                self.securitized[sec].sdg_information = deepcopy(empty_sdg)
 
         return
 
