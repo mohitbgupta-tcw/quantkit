@@ -530,20 +530,163 @@ def isin_lookup(isin_list: list):
     msci_df = msci_df.to_json(orient="index")
 
     configs_overwrite = {
-        "portfolio_datasource": {"source": 6, "json_str": portfolio_df},
+        "portfolio_datasource": {"source": 6, "json_str": portfolio_df, "load": True},
         "security_datasource": {
             "iss": {
                 "source": 2,
                 "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230503.csv",
+                "load": True,
             },
-            "msci": {"source": 6, "json_str": msci_df},
+            "msci": {"source": 6, "json_str": msci_df, "load": True},
         },
     }
     with open(params["configs_path"], "w") as f:
         json.dump(configs_overwrite, f)
 
     # run framework
-    df = risk_framework()
+    r = runner.Runner()
+    r.init()
+    r.run()
+    data = []
+    for p in r.portfolios:
+        portfolio_isin = r.portfolios[p].id
+        portfolio_name = r.portfolios[p].name
+        for s in r.portfolios[p].holdings:
+            sec_store = r.portfolios[p].holdings[s]["object"]
+            comp_store = sec_store.parent_store
+            issuer_name = sec_store.information["IssuerName"]
+            ticker = comp_store.msci_information["ISSUER_TICKER"]
+            iva_rating = comp_store.information["IVA_COMPANY_RATING"]
+            s2 = comp_store.information["Sector_Level_2"]
+            bclass = comp_store.information["BCLASS_Level4"].class_name
+            gics = comp_store.information["GICS_SUB_IND"].class_name
+            muni_score = comp_store.scores["Muni_Score"]
+            sec_score = sec_store.scores["Securitized_Score"]
+            sov_score = comp_store.scores["Sovereign_Score"]
+            esrm_score = comp_store.scores["ESRM_Score"]
+            na_esrm = sum(comp_store.scores["NA_Flags_ESRM"].values())
+            gov_score = comp_store.scores["Governance_Score"]
+            na_gov = sum(comp_store.scores["NA_Flags_Governance"].values())
+            trans_score = comp_store.scores["Transition_Score"]
+            level_1 = sec_store.information["SClass_Level1"]
+            level_2 = sec_store.information["SClass_Level2"]
+            level_3 = sec_store.information["SClass_Level3"]
+            level_4 = sec_store.information["SClass_Level4"]
+            level_4p = sec_store.information["SClass_Level4-P"]
+            risk_score_overall = sec_store.scores["Risk_Score_Overall"]
+            labeled_esg_type = sec_store.information["Labeled_ESG_Type"]
+
+            if (
+                portfolio_isin in r.params["A8Funds"]
+                and "Article 8" in comp_store.information["Exclusion"]
+                and not (
+                    labeled_esg_type
+                    in [
+                        "Labeled Green",
+                        "Labeled Social",
+                        "Labeled Sustainable",
+                        "Labeled Sustainable Linked",
+                    ]
+                    and bclass in r.params["carve_out_sectors"]
+                )
+            ):
+                level_1 = "Excluded"
+                level_2 = "Exclusion"
+                level_3 = "Exclusion"
+                level_4 = "Excluded Sector"
+                level_4p = "Excluded Sector"
+            elif (
+                portfolio_isin in r.params["A9Funds"]
+                and "Article 9" in comp_store.information["Exclusion"]
+                and not (
+                    labeled_esg_type
+                    in [
+                        "Labeled Green",
+                        "Labeled Social",
+                        "Labeled Sustainable",
+                        "Labeled Sustainable Linked",
+                    ]
+                    and bclass in r.params["carve_out_sectors"]
+                )
+            ):
+                level_1 = "Excluded"
+                level_2 = "Exclusion"
+                level_3 = "Exclusion"
+                level_4 = "Excluded Sector"
+                level_4p = "Excluded Sector"
+
+            if "INTELSAT" in sec_store.information["Security_Name"]:
+                level_1 = "Preferred"
+                level_2 = "Sustainable Theme"
+                level_3 = "People"
+                level_4 = "INCLUSION"
+                level_4p = "INCLUSION"
+                gov_score = 4
+                esrm_score = 1
+
+            holding_measures = r.portfolios[p].holdings[s]["holding_measures"]
+            for h in holding_measures:
+                portfolio_weight = h["Portfolio_Weight"]
+                oas = h["OAS"]
+                data.append(
+                    (
+                        portfolio_isin,
+                        portfolio_name,
+                        s,
+                        issuer_name,
+                        ticker,
+                        iva_rating,
+                        s2,
+                        bclass,
+                        gics,
+                        portfolio_weight,
+                        oas,
+                        muni_score,
+                        sec_score,
+                        sov_score,
+                        esrm_score,
+                        na_esrm,
+                        gov_score,
+                        na_gov,
+                        trans_score,
+                        risk_score_overall,
+                        level_1,
+                        level_2,
+                        level_3,
+                        level_4,
+                        level_4p,
+                    )
+                )
+
+    columns = [
+        "Portfolio ISIN",
+        "Portfolio Name",
+        "Security ISIN",
+        "Issuer Name",
+        "Ticker",
+        "IVA_COMPANY_RATING",
+        "Sector Level 2",
+        "BCLASS",
+        "GICS",
+        "Portfolio Weight",
+        "OAS",
+        "Muni Score",
+        "Securitized Score",
+        "Sovereign Score",
+        "ESRM Score",
+        "NA_Flags_ESRM",
+        "Governance Score",
+        "NA_Flags_Governance",
+        "Transition Score",
+        "Risk Overall Score",
+        "SCLASS_Level1",
+        "SCLASS_Level2",
+        "SCLASS_Level3",
+        "SCLASS_Level4",
+        "SCLASS_Level4-P",
+    ]
+
+    df = pd.DataFrame(data, columns=columns)
 
     with open(params["configs_path"], "w") as f:
         json.dump({}, f)
