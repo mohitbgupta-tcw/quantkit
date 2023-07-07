@@ -365,7 +365,12 @@ class Runner(object):
         """
         # load SDG data
         self.sdg_datasource.load()
-        self.sdg_datasource.iter(self.portfolio_datasource.companies)
+        self.sdg_datasource.iter(
+            self.portfolio_datasource.companies,
+            self.portfolio_datasource.munis,
+            self.portfolio_datasource.sovereigns,
+            self.portfolio_datasource.securitized,
+        )
         return
 
     def iter_bloomberg(self):
@@ -403,7 +408,7 @@ class Runner(object):
                 gics_d=self.gics_datasource.gics,
             )
         return
-    
+
     def iter_securitized(self):
         """
         Iterate over all Securitized
@@ -445,7 +450,10 @@ class Runner(object):
         self.category_datasource.iter()
 
         for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].iter(regions_df=self.region_datasource.df, regions=self.region_datasource.regions)
+            self.portfolio_datasource.companies[c].iter(
+                regions_df=self.region_datasource.df,
+                regions=self.region_datasource.regions,
+            )
 
             # company has parent --> take data from that parent
             if not pd.isna(
@@ -507,7 +515,9 @@ class Runner(object):
         """
         Manually add parent issuer for selected securities
         """
-        self.parent_issuer_datasource.iter(self.portfolio_datasource.companies, self.securities)
+        self.parent_issuer_datasource.iter(
+            self.portfolio_datasource.companies, self.securities
+        )
         return
 
     def parent_issuer(self, isin):

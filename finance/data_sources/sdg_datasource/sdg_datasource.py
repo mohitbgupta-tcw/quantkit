@@ -56,7 +56,7 @@ class SDGDataSource(object):
         self.df_ = df_
         return
 
-    def iter(self, companies: dict):
+    def iter(self, companies: dict, munis: dict, sovereigns: dict, securitized: dict):
         """
         Attach SDG information to company objects
 
@@ -64,6 +64,12 @@ class SDGDataSource(object):
         ----------
         companies: dict
             dictionary of all company objects
+        munis: dict
+            dictionary of all muni objects
+        sovereigns: dict
+            dictionary of all sovereign objects
+        securitized: dict
+            dictionary of all securitized objects
         """
         # only iterate over companies we hold in the portfolios
         for index, row in self.df[self.df["ISIN"].isin(companies.keys())].iterrows():
@@ -79,6 +85,21 @@ class SDGDataSource(object):
             # assign empty sdg information to companies that dont have these information
             if not hasattr(companies[c], "sdg_information"):
                 companies[c].sdg_information = deepcopy(empty_sdg)
+
+        for m in munis:
+            # assign empty sdg information to munis that dont have these information
+            if not hasattr(munis[m], "sdg_information"):
+                munis[m].sdg_information = deepcopy(empty_sdg)
+
+        for sov in sovereigns:
+            # assign empty sdg information to sovereigns that dont have these information
+            if not hasattr(sovereigns[sov], "sdg_information"):
+                sovereigns[sov].sdg_information = deepcopy(empty_sdg)
+
+        for sec in securitized:
+            # assign empty sdg information to companies that dont have these information
+            if not hasattr(securitized[sec], "sdg_information"):
+                securitized[sec].sdg_information = deepcopy(empty_sdg)
         return
 
     @property

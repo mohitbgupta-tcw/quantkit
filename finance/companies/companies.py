@@ -45,6 +45,10 @@ class HeadStore(object):
         self.scores["Corporate_Score"] = 0
         self.scores["Review_Flag"] = ""
         self.scores["Review_Comments"] = ""
+        self.scores["ESRM_Flags"] = dict()
+        self.scores["Governance_Flags"] = dict()
+        self.scores["NA_Flags_ESRM"] = dict()
+        self.scores["NA_Flags_Governance"] = dict()
         self.Adjustment = pd.DataFrame(
             columns=["Thematic Type", "Category", "Adjustment"]
         )
@@ -509,13 +513,15 @@ class CompanyStore(HeadStore):
         counter_gov = 0
         flag_d = dict()
         gov_d = dict()
-        na_d = dict()
         operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
+        na_esrm = dict()
+        na_gov = dict()
 
         if self.non_applicable_securities():
             self.scores["ESRM_Flags"] = flag_d
             self.scores["Governance_Flags"] = gov_d
-            self.scores["NA_Flags"] = na_d
+            self.scores["NA_Flags_ESRM"] = na_esrm
+            self.scores["NA_Flags_Governance"] = na_gov
             return
 
         # get ESRM Module
@@ -528,7 +534,7 @@ class CompanyStore(HeadStore):
             ft = row["Flag_Threshold"]
             if pd.isna(v):
                 flag_d[i + "_Flag"] = 1
-                na_d[i] = 1
+                na_esrm[i] = 1
                 counter += 1
             elif operators[o](v, ft):
                 flag_d[i + "_Flag"] = 1
@@ -562,7 +568,7 @@ class CompanyStore(HeadStore):
             ft = row["Flag_Threshold"]
             if pd.isna(v):
                 gov_d[i + "_Flag"] = 1
-                na_d[i] = 1
+                na_gov[i] = 1
                 counter_gov += 1
             elif operators[o](v, ft):
                 gov_d[i + "_Flag"] = 1
@@ -581,7 +587,8 @@ class CompanyStore(HeadStore):
 
         self.scores["ESRM_Flags"] = flag_d
         self.scores["Governance_Flags"] = gov_d
-        self.scores["NA_Flags"] = na_d
+        self.scores["NA_Flags_ESRM"] = na_esrm
+        self.scores["NA_Flags_Governance"] = na_gov
         return
 
     def non_applicable_securities(self):
@@ -1014,12 +1021,13 @@ class CompanyStore(HeadStore):
 
         return
 
-    def iter(        
-            self,
-            regions_df: pd.DataFrame,
-            regions: dict,
-            adjustment_df: pd.DataFrame,
-            gics_d: dict,):
+    def iter(
+        self,
+        regions_df: pd.DataFrame,
+        regions: dict,
+        adjustment_df: pd.DataFrame,
+        gics_d: dict,
+    ):
         """
         - attach region information
         - attach sovereign score
@@ -1042,13 +1050,12 @@ class CompanyStore(HeadStore):
         """
 
         # attach region
-        self.attach_region(
-                regions_df, regions
-            )
-        
+        self.attach_region(regions_df, regions)
+
         # update sovereign score for Treausury
         self.update_sovereign_score()
         return
+
 
 class MuniStore(HeadStore):
     """

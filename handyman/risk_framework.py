@@ -15,17 +15,20 @@ def risk_framework():
     Returns
     -------
     pd.DataFrame
-
+        Summary DataFrame
+    pd.DataFrame
+        Detailed DataFrame
     """
     r = runner.Runner()
     r.init()
     r.run()
-    data = []
-    for p in r.portfolio_datasource.portfolios:
-        portfolio_isin = r.portfolio_datasource.portfolios[p].id
-        portfolio_name = r.portfolio_datasource.portfolios[p].name
-        for s in r.portfolio_datasource.portfolios[p].holdings:
-            sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
+    data_summary = []
+    data_detail = []
+    for p in r.portfolios:
+        portfolio_isin = r.portfolios[p].id
+        portfolio_name = r.portfolios[p].name
+        for s in r.portfolios[p].holdings:
+            sec_store = r.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
             issuer_name = sec_store.information["IssuerName"]
             iva_rating = comp_store.information["IVA_COMPANY_RATING"]
@@ -45,13 +48,15 @@ def risk_framework():
             level_3 = sec_store.information["SClass_Level3"]
             level_4 = sec_store.information["SClass_Level4"]
             level_4p = sec_store.information["SClass_Level4-P"]
+            level_5 = sec_store.information["SClass_Level5"]
             risk_score_overall = sec_store.scores["Risk_Score_Overall"]
+            labeled_esg_type = sec_store.information["Labeled_ESG_Type"]
 
             if (
                 portfolio_isin in r.params["A8Funds"]
                 and "Article 8" in comp_store.information["Exclusion"]
                 and not (
-                    sec_store.information["Labeled_ESG_Type"]
+                    labeled_esg_type
                     in [
                         "Labeled Green",
                         "Labeled Social",
@@ -70,7 +75,7 @@ def risk_framework():
                 portfolio_isin in r.params["A9Funds"]
                 and "Article 9" in comp_store.information["Exclusion"]
                 and not (
-                    sec_store.information["Labeled_ESG_Type"]
+                    labeled_esg_type
                     in [
                         "Labeled Green",
                         "Labeled Social",
@@ -101,15 +106,13 @@ def risk_framework():
             for h in holding_measures:
                 portfolio_weight = h["Portfolio_Weight"]
                 oas = h["OAS"]
-                data.append(
+                data_summary.append(
                     (
                         portfolio_isin,
                         portfolio_name,
                         s,
                         issuer_name,
                         iva_rating,
-                        r_flag,
-                        r_comments,
                         s2,
                         bclass,
                         gics,
@@ -120,8 +123,8 @@ def risk_framework():
                         sov_score,
                         esrm_score,
                         gov_score,
-                        risk_score_overall,
                         trans_score,
+                        risk_score_overall,
                         level_1,
                         level_2,
                         level_3,
@@ -130,14 +133,153 @@ def risk_framework():
                     )
                 )
 
-    columns = [
+                data_detail.append(
+                    (
+                        portfolio_isin,
+                        portfolio_name,
+                        s,
+                        issuer_name,
+                        portfolio_weight,
+                        labeled_esg_type,
+                        s2,
+                        bclass,
+                        gics,
+                        level_1,
+                        level_2,
+                        level_3,
+                        level_4,
+                        level_4p,
+                        level_5,
+                        r_flag,
+                        r_comments,
+                        muni_score,
+                        sec_score,
+                        sov_score,
+                        esrm_score,
+                        sum(comp_store.scores["ESRM_Flags"].values()),
+                        sum(comp_store.scores["NA_Flags_ESRM"].values()),
+                        comp_store.scores["ESRM_Flags"].get(
+                            "PRIVACY_DATA_SEC_EXP_SCORE_Flag", 0
+                        ),
+                        comp_store.msci_information["PRIVACY_DATA_SEC_EXP_SCORE"],
+                        comp_store.scores["ESRM_Flags"].get(
+                            "COMM_REL_RISK_EXP_SCORE_Flag", 0
+                        ),
+                        comp_store.msci_information["COMM_REL_RISK_EXP_SCORE"],
+                        comp_store.scores["ESRM_Flags"].get(
+                            "LABOR_MGMT_EXP_SCORE_Flag", 0
+                        ),
+                        comp_store.msci_information["LABOR_MGMT_EXP_SCORE"],
+                        comp_store.scores["ESRM_Flags"].get(
+                            "WATER_STRESS_EXP_SCORE_Flag", 0
+                        ),
+                        comp_store.msci_information["WATER_STRESS_EXP_SCORE"],
+                        comp_store.scores["ESRM_Flags"].get(
+                            "ENERGY_EFFICIENCY_EXP_SCORE_Flag", 0
+                        ),
+                        comp_store.msci_information["ENERGY_EFFICIENCY_EXP_SCORE"],
+                        comp_store.scores["ESRM_Flags"].get(
+                            "BIODIV_LAND_USE_EXP_SCORE_Flag", 0
+                        ),
+                        comp_store.msci_information["BIODIV_LAND_USE_EXP_SCORE"],
+                        comp_store.scores["ESRM_Flags"].get(
+                            "CONTR_SUPPLY_CHAIN_LABOR_N_TOTAL_Flag", 0
+                        ),
+                        comp_store.msci_information["CONTR_SUPPLY_CHAIN_LABOR_N_TOTAL"],
+                        comp_store.scores["ESRM_Flags"].get(
+                            "CUSTOMER_RELATIONS_SCORE_Flag", 0
+                        ),
+                        comp_store.msci_information["CUSTOMER_RELATIONS_SCORE"],
+                        comp_store.scores["ESRM_Flags"].get(
+                            "PROD_SFTY_QUALITY_EXP_SCORE_Flag", 0
+                        ),
+                        comp_store.msci_information["PROD_SFTY_QUALITY_EXP_SCORE"],
+                        comp_store.msci_information["IVA_COMPANY_RATING"],
+                        comp_store.msci_information["OVERALL_FLAG"],
+                        comp_store.msci_information["UNGC_COMPLIANCE"],
+                        gov_score,
+                        sum(comp_store.scores["Governance_Flags"].values()),
+                        sum(comp_store.scores["NA_Flags_Governance"].values()),
+                        comp_store.scores["Governance_Flags"].get(
+                            "CARBON_EMISSIONS_CDP_DISCLOSURE_Flag", 0
+                        ),
+                        comp_store.msci_information["CARBON_EMISSIONS_CDP_DISCLOSURE"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "COMBINED_CEO_CHAIR_Flag", 0
+                        ),
+                        comp_store.msci_information["COMBINED_CEO_CHAIR"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "CONTROLLING_SHAREHOLDER_Flag", 0
+                        ),
+                        comp_store.msci_information["CONTROLLING_SHAREHOLDER"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "CROSS_SHAREHOLDINGS_Flag", 0
+                        ),
+                        comp_store.msci_information["CROSS_SHAREHOLDINGS"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "FEMALE_DIRECTORS_PCT_Flag", 0
+                        ),
+                        comp_store.msci_information["FEMALE_DIRECTORS_PCT"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "INDEPENDENT_BOARD_MAJORITY_Flag", 0
+                        ),
+                        comp_store.msci_information["INDEPENDENT_BOARD_MAJORITY"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "NEGATIVE_DIRECTOR_VOTES_Flag", 0
+                        ),
+                        comp_store.msci_information["NEGATIVE_DIRECTOR_VOTES"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "PAY_LINKED_TO_SUSTAINABILITY_Flag", 0
+                        ),
+                        comp_store.msci_information["PAY_LINKED_TO_SUSTAINABILITY"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "POISON_PILL_Flag", 0
+                        ),
+                        comp_store.msci_information["POISON_PILL"],
+                        comp_store.scores["Governance_Flags"].get(
+                            "WOMEN_EXEC_MGMT_PCT_RECENT_Flag", 0
+                        ),
+                        comp_store.msci_information["WOMEN_EXEC_MGMT_PCT_RECENT"],
+                        trans_score,
+                        comp_store.information.get("Carbon Intensity (Scope 123)", 0),
+                        comp_store.sdg_information["ClimateGHGReductionTargets"],
+                        comp_store.msci_information["HAS_SBTI_APPROVED_TARGET"],
+                        comp_store.msci_information["HAS_COMMITTED_TO_SBTI_TARGET"],
+                        comp_store.information.get("CapEx", 0),
+                        comp_store.information.get("Climate_Revenue", 0),
+                        comp_store.information.get("RENEWENERGY_MSCI", 0),
+                        comp_store.information.get("RENEWENERGY_ISS", 0),
+                        comp_store.information.get("MOBILITY_MSCI", 0),
+                        comp_store.information.get("MOBILITY_ISS", 0),
+                        comp_store.information.get("CIRCULARITY_MSCI", 0),
+                        comp_store.information.get("CIRCULARITY_ISS", 0),
+                        comp_store.information.get("CCADAPT_MSCI", 0),
+                        comp_store.information.get("CCADAPT_ISS", 0),
+                        comp_store.information.get("BIODIVERSITY_MSCI", 0),
+                        comp_store.information.get("BIODIVERSITY_ISS", 0),
+                        comp_store.information.get("SMARTCITIES_MSCI", 0),
+                        comp_store.information.get("SMARTCITIES_ISS", 0),
+                        comp_store.information.get("EDU_MSCI", 0),
+                        comp_store.information.get("EDU_ISS", 0),
+                        comp_store.information.get("HEALTH_MSCI", 0),
+                        comp_store.information.get("HEALTH_ISS", 0),
+                        comp_store.information.get("SANITATION_MSCI", 0),
+                        comp_store.information.get("SANITATION_ISS", 0),
+                        comp_store.information.get("INCLUSION_MSCI", 0),
+                        comp_store.information.get("INCLUSION_ISS", 0),
+                        comp_store.information.get("NUTRITION_MSCI", 0),
+                        comp_store.information.get("NUTRITION_ISS", 0),
+                        comp_store.information.get("AFFORDABLE_MSCI", 0),
+                        comp_store.information.get("AFFORDABLE_ISS", 0),
+                    )
+                )
+
+    columns_summary = [
         "Portfolio ISIN",
         "Portfolio Name",
         "Security ISIN",
         "Issuer Name",
         "IVA_COMPANY_RATING",
-        "Review Flag",
-        "Review Comments",
         "Sector Level 2",
         "BCLASS",
         "GICS",
@@ -148,17 +290,117 @@ def risk_framework():
         "Sovereign Score",
         "ESRM Score",
         "Governance Score",
-        "Risk_Score_Overall",
         "Transition Score",
+        "Risk_Score_Overall",
         "SCLASS_Level1",
         "SCLASS_Level2",
         "SCLASS_Level3",
         "SCLASS_Level4",
         "SCLASS_Level4-P",
     ]
-    df = pd.DataFrame(data)
-    df.columns = columns
-    return df
+    columns_detailed = [
+        "Portfolio ISIN",
+        "Portfolio Name",
+        "Security ISIN",
+        "Issuer Name",
+        "Portfolio Weight",
+        "Labeled ESG Type",
+        "Sector Level 2",
+        "BCLASS",
+        "GICS",
+        "SCLASS_Level1",
+        "SCLASS_Level2",
+        "SCLASS_Level3",
+        "SCLASS_Level4",
+        "SCLASS_Level4-P",
+        "SCLASS-Level5",
+        "Review Flag",
+        "Review Comments",
+        "Muni Score",
+        "Securitized Score",
+        "Sovereign Score",
+        "ESRM Score",
+        "ESRM_flagged",
+        "NA_Flags_ESRM",
+        "PRIVACY_DATA_SEC_EXP_SCORE_Flag",
+        "PRIVACY_DATA_SEC_EXP_SCORE",
+        "COMM_REL_RISK_EXP_SCORE_Flag",
+        "COMM_REL_RISK_EXP_SCORE",
+        "LABOR_MGMT_EXP_SCORE_Flag",
+        "LABOR_MGMT_EXP_SCORE",
+        "WATER_STRESS_EXP_SCORE_Flag",
+        "WATER_STRESS_EXP_SCORE",
+        "ENERGY_EFFICIENCY_EXP_SCORE_Flag",
+        "ENERGY_EFFICIENCY_EXP_SCORE",
+        "BIODIV_LAND_USE_EXP_SCORE_Flag",
+        "BIODIV_LAND_USE_EXP_SCORE",
+        "CONTR_SUPPLY_CHAIN_LABOR_N_TOTAL_Flag",
+        "CONTR_SUPPLY_CHAIN_LABOR_N_TOTAL",
+        "CUSTOMER_RELATIONS_SCORE_Flag",
+        "CUSTOMER_RELATIONS_SCORE",
+        "PROD_SFTY_QUALITY_EXP_SCORE_Flag",
+        "PROD_SFTY_QUALITY_EXP_SCORE",
+        "IVA_COMPANY_RATING",
+        "OVERALL_FLAG",
+        "UNGC_COMPLIANCE",
+        "Governance Score",
+        "Governance_flagged",
+        "NA_Flags_Governance",
+        "CARBON_EMISSIONS_CDP_DISCLOSURE_Flag",
+        "CARBON_EMISSIONS_CDP_DISCLOSURE",
+        "COMBINED_CEO_CHAIR_Flag",
+        "COMBINED_CEO_CHAIR",
+        "CONTROLLING_SHAREHOLDER_Flag",
+        "CONTROLLING_SHAREHOLDER",
+        "CROSS_SHAREHOLDINGS_Flag",
+        "CROSS_SHAREHOLDINGS",
+        "FEMALE_DIRECTORS_PCT_Flag",
+        "FEMALE_DIRECTORS_PCT",
+        "INDEPENDENT_BOARD_MAJORITY_Flag",
+        "INDEPENDENT_BOARD_MAJORITY",
+        "NEGATIVE_DIRECTOR_VOTES_Flag",
+        "NEGATIVE_DIRECTOR_VOTES",
+        "PAY_LINKED_TO_SUSTAINABILITY_Flag",
+        "PAY_LINKED_TO_SUSTAINABILITY",
+        "POISON_PILL_Flag",
+        "POISON_PILL",
+        "WOMEN_EXEC_MGMT_PCT_RECENT_Flag",
+        "WOMEN_EXEC_MGMT_PCT_RECENT",
+        "Transition Score",
+        "Carbon Intensity (Scope 123)",
+        "ClimateGHGReductionTargets",
+        "HAS_SBTI_APPROVED_TARGET",
+        "HAS_COMMITTED_TO_SBTI_TARGET",
+        "CapEx",
+        "Climate_Revenue",
+        "RENEWENERGY_MSCI",
+        "RENEWENERGY_ISS",
+        "MOBILITY_MSCI",
+        "MOBILITY_ISS",
+        "CIRCULARITY_MSCI",
+        "CIRCULARITY_ISS",
+        "CCADAPT_MSCI",
+        "CCADAPT_ISS",
+        "BIODIVERSITY_MSCI",
+        "BIODIVERSITY_ISS",
+        "SMARTCITIES_MSCI",
+        "SMARTCITIES_ISS",
+        "EDU_MSCI",
+        "EDU_ISS",
+        "HEALTH_MSCI",
+        "HEALTH_ISS",
+        "SANITATION_MSCI",
+        "SANITATION_ISS",
+        "INCLUSION_MSCI",
+        "INCLUSION_ISS",
+        "NUTRITION_MSCI",
+        "NUTRITION_ISS",
+        "AFFORDABLE_MSCI",
+        "AFFORDABLE_ISS",
+    ]
+    df_summary = pd.DataFrame(data_summary, columns=columns_summary)
+    df_detailed = pd.DataFrame(data_detail, columns=columns_detailed)
+    return df_summary, df_detailed
 
 
 def sector_subset(gics_list, bclass_list):
