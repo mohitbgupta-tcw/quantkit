@@ -24,11 +24,11 @@ def risk_framework():
     r.run()
     data_summary = []
     data_detail = []
-    for p in r.portfolios:
-        portfolio_isin = r.portfolios[p].id
-        portfolio_name = r.portfolios[p].name
-        for s in r.portfolios[p].holdings:
-            sec_store = r.portfolios[p].holdings[s]["object"]
+    for p in r.portfolio_datasource.portfolios:
+        portfolio_isin = r.portfolio_datasource.portfolios[p].id
+        portfolio_name = r.portfolio_datasource.portfolios[p].name
+        for s in r.portfolio_datasource.portfolios[p].holdings:
+            sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
             issuer_name = sec_store.information["IssuerName"]
             iva_rating = comp_store.information["IVA_COMPANY_RATING"]
@@ -425,8 +425,8 @@ def sector_subset(gics_list, bclass_list):
     r.init()
     r.run()
     data = []
-    for c in r.companies:
-        comp_store = r.companies[c]
+    for c in r.portfolio_datasource.companies:
+        comp_store = r.portfolio_datasource.companies[c]
         issuer_name = comp_store.msci_information["ISSUER_NAME"]
         r_flag = comp_store.scores["Review_Flag"]
         r_comments = comp_store.scores["Review_Comments"]
@@ -485,8 +485,7 @@ def sector_subset(gics_list, bclass_list):
         "SCLASS_Level4",
         "SCLASS_Level4-P",
     ]
-    df = pd.DataFrame(data)
-    df.columns = columns
+    df = pd.DataFrame(data, columns=columns)
     return df
 
 
@@ -532,13 +531,14 @@ def isin_lookup(isin_list: list):
     msci_df = msci_df.to_json(orient="index")
 
     configs_overwrite = {
-        "portfolio_datasource": {"source": 6, "json_str": portfolio_df},
+        "portfolio_datasource": {"source": 6, "json_str": portfolio_df, "load": True},
         "security_datasource": {
             "iss": {
                 "source": 2,
                 "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230503.csv",
+                "load": True,
             },
-            "msci": {"source": 6, "json_str": msci_df},
+            "msci": {"source": 6, "json_str": msci_df, "load": True},
         },
     }
     with open(params["configs_path"], "w") as f:

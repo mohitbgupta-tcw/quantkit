@@ -450,10 +450,15 @@ class Runner(object):
         self.category_datasource.iter()
 
         for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].iter(
-                regions_df=self.region_datasource.df,
-                regions=self.region_datasource.regions,
+            # self.portfolio_datasource.companies[c].iter(
+            #     regions_df=self.region_datasource.df,
+            #     regions=self.region_datasource.regions,
+            # )
+
+            self.portfolio_datasource.companies[c].attach_region(
+                self.region_datasource.df, self.region_datasource.regions
             )
+            self.portfolio_datasource.companies[c].update_sovereign_score()
 
             # company has parent --> take data from that parent
             if not pd.isna(
