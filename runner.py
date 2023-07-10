@@ -450,57 +450,63 @@ class Runner(object):
         self.category_datasource.iter()
 
         for c in self.portfolio_datasource.companies:
-            # self.portfolio_datasource.companies[c].iter(
-            #     regions_df=self.region_datasource.df,
-            #     regions=self.region_datasource.regions,
+            self.portfolio_datasource.companies[c].iter(
+                companies=self.portfolio_datasource.companies,
+                regions_df=self.region_datasource.df,
+                regions=self.region_datasource.regions,
+                exclusion_df=self.exclusion_datasource.df,
+                gics_d = self.gics_datasource.gics,
+                bclass_d = self.bclass_datasource.bclass,
+                categroy_d = self.category_datasource.categories,
+                adjustment_df=self.adjustment_datasource.df
+            )
+
+            # self.portfolio_datasource.companies[c].attach_region(
+            #     self.region_datasource.df, self.region_datasource.regions
+            # )
+            # self.portfolio_datasource.companies[c].update_sovereign_score()
+
+            # # company has parent --> take data from that parent
+            # if not pd.isna(
+            #     self.portfolio_datasource.companies[c].msci_information[
+            #         "PARENT_ULTIMATE_ISSUERID"
+            #     ]
+            # ):
+            #     self.parent_issuer(c)
+
+            # # attach exclusion df
+            # self.portfolio_datasource.companies[c].attach_exclusion(
+            #     self.exclusion_datasource.df
             # )
 
-            self.portfolio_datasource.companies[c].attach_region(
-                self.region_datasource.df, self.region_datasource.regions
-            )
-            self.portfolio_datasource.companies[c].update_sovereign_score()
+            # # attach exclusion article
+            # self.portfolio_datasource.companies[c].exclusion()
 
-            # company has parent --> take data from that parent
-            if not pd.isna(
-                self.portfolio_datasource.companies[c].msci_information[
-                    "PARENT_ULTIMATE_ISSUERID"
-                ]
-            ):
-                self.parent_issuer(c)
+            # # attach GICS Sub industry
+            # self.portfolio_datasource.companies[c].attach_gics(
+            #     self.gics_datasource.gics
+            # )
 
-            # attach exclusion df
-            self.portfolio_datasource.companies[c].attach_exclusion(
-                self.exclusion_datasource.df
-            )
+            # # attach industry and sub industry
+            # self.portfolio_datasource.companies[c].attach_industry(
+            #     self.gics_datasource.gics, self.bclass_datasource.bclass
+            # )
 
-            # attach exclusion article
-            self.portfolio_datasource.companies[c].exclusion()
+            # # attach category
+            # self.portfolio_datasource.companies[c].attach_category(
+            #     self.category_datasource.categories
+            # )
 
-            # attach GICS Sub industry
-            self.portfolio_datasource.companies[c].attach_gics(
-                self.gics_datasource.gics
-            )
+            # # attach analyst adjustment
+            # self.portfolio_datasource.companies[c].attach_analyst_adjustment(
+            #     self.adjustment_datasource.df
+            # )
 
-            # attach industry and sub industry
-            self.portfolio_datasource.companies[c].attach_industry(
-                self.gics_datasource.gics, self.bclass_datasource.bclass
-            )
+            # # calculate capex
+            # self.portfolio_datasource.companies[c].calculate_capex()
 
-            # attach category
-            self.portfolio_datasource.companies[c].attach_category(
-                self.category_datasource.categories
-            )
-
-            # attach analyst adjustment
-            self.portfolio_datasource.companies[c].attach_analyst_adjustment(
-                self.adjustment_datasource.df
-            )
-
-            # calculate capex
-            self.portfolio_datasource.companies[c].calculate_capex()
-
-            # calculate climate revenue
-            self.portfolio_datasource.companies[c].calculate_climate_revenue()
+            # # calculate climate revenue
+            # self.portfolio_datasource.companies[c].calculate_climate_revenue()
 
             # calculate carbon intensite --> if na, reiter and assign industry median
             reiter = self.portfolio_datasource.companies[c].calculate_carbon_intensity()

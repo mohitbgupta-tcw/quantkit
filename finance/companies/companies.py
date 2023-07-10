@@ -297,8 +297,8 @@ class CompanyStore(HeadStore):
 
         Parameters
         ----------
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
+        category_d: dict
+            dictionary of ESRM categories
         """
 
         esrm_module = self.information["Sub-Industry"].information["ESRM Module"]
@@ -1020,33 +1020,106 @@ class CompanyStore(HeadStore):
                 self.securities[s].information["SClass_Level4-P"] = "Not Scored"
 
         return
+    
+    def get_parent_issuer_data(self, companies: dict):
+        """
+        Assign data from parent to sub-company if data is missing (nan)
+        Data includes:
+            - MSCI
+            - SDG
+            - Bloomberg
+
+        Parameters
+        ----------
+        companies: dict
+            dictionary of all company objects
+        """
+        # get parent id from msci
+        parent_id = self.msci_information[
+            "PARENT_ULTIMATE_ISSUERID"
+        ]
+
+        # find parent store
+        parent = "NoISIN"
+        for c in companies:
+            if (
+                companies[c].msci_information["ISSUERID"]
+                == parent_id
+            ):
+                parent = c
+                break
+
+        # assign sdg data for missing values
+        for val in self.sdg_information:
+            if pd.isna(self.sdg_information[val]):
+                new_val = companies[parent].sdg_information[
+                    val
+                ]
+                self.sdg_information[
+                    val
+                ] = new_val
+
+        # assign msci data for missing values
+        for val in self.msci_information:
+            if pd.isna(self.msci_information[val]):
+                new_val = companies[parent].msci_information[
+                    val
+                ]
+                self.msci_information[
+                    val
+                ] = new_val
+
+        # assign bloomberg data for missing values
+        for val in self.bloomberg_information:
+            if pd.isna(self.bloomberg_information[val]):
+                new_val = companies[parent].bloomberg_information[
+                    val
+                ]
+                self.bloomberg_information[
+                    val
+                ] = new_val
+        return
 
     def iter(
         self,
+        companies: dict,
         regions_df: pd.DataFrame,
         regions: dict,
+        exclusion_df: pd.DataFrame,
         adjustment_df: pd.DataFrame,
         gics_d: dict,
+        bclass_d: dict,
+        category_d: dict
     ):
         """
         - attach region information
         - attach sovereign score
+        - attach data from parent 
         - attach exclusions
         - attach GICS information
         - attach Industry and Sub-Industry information
+        - attach category
         - attach analyst adjustment
         - run company specific calculations
 
         Parameters
         ----------
+        companies: dict
+            dictionary of all company objects
         regions_df: pd.DataFrame
             DataFrame of regions information
         regions: dict
             dictionary of all region objects
+        exclusion_df: pd.DataFrame
+            DataFrame of Exclusions
         adjustment_df: pd.Dataframe
             DataFrame of Analyst Adjustments
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
+        bclass_d: dict
+            dictionary of bclass sub industries with bclass as key, bclass object as value
+        category_d: dict
+            dictionary of ESRM categories
         """
 
         # attach region
@@ -1054,6 +1127,48 @@ class CompanyStore(HeadStore):
 
         # update sovereign score for Treausury
         self.update_sovereign_score()
+
+        # attach data from parent if missing
+        if not pd.isna(
+            self.msci_information[
+                "PARENT_ULTIMATE_ISSUERID"
+            ]
+        ):
+            self.get_parent_issuer_data(companies)
+
+        # attach exclusion df
+        self.attach_exclusion(
+            exclusion_df
+        )
+
+        # attach exclusion article
+        self.exclusion()
+
+        # attach GICS Sub industry
+        self.attach_gics(
+            gics_d
+        )
+
+        # attach industry and sub industry
+        self.attach_industry(
+            gics_d, bclass_d
+        )
+
+        # attach category
+        self.attach_category(
+            category_d
+        )
+
+        # attach analyst adjustment
+        self.attach_analyst_adjustment(
+            adjustment_df
+        )
+
+        # calculate capex
+        self.calculate_capex()
+
+        # calculate climate revenue
+        self.calculate_climate_revenue()
         return
 
 
@@ -1503,7 +1618,10 @@ class SecuritizedStore(HeadStore):
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
         """
+        # attach GICS
         self.attach_gics(gics_d)
+
+        # attach exclusions
         self.exclusion()
         return
 
