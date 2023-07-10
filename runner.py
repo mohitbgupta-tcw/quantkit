@@ -77,7 +77,6 @@ class Runner(object):
         self.equities = dict()
         self.fixed_income = dict()
         self.other_securities = dict()
-        self.reiter = list()
 
         # connect parent issuer datasource
         self.parent_issuer_datasource = pis.ParentIssuerSource(
@@ -449,16 +448,20 @@ class Runner(object):
         self.category_datasource.load()
         self.category_datasource.iter()
 
+        # reiter list
+        reiter_list = list()
+
         for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].iter(
+            r = self.portfolio_datasource.companies[c].iter(
                 companies=self.portfolio_datasource.companies,
                 regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
                 exclusion_df=self.exclusion_datasource.df,
                 gics_d = self.gics_datasource.gics,
                 bclass_d = self.bclass_datasource.bclass,
-                categroy_d = self.category_datasource.categories,
-                adjustment_df=self.adjustment_datasource.df
+                category_d = self.category_datasource.categories,
+                adjustment_df=self.adjustment_datasource.df,
+                themes = self.theme_datasource.themes
             )
 
             # self.portfolio_datasource.companies[c].attach_region(
@@ -508,17 +511,17 @@ class Runner(object):
             # # calculate climate revenue
             # self.portfolio_datasource.companies[c].calculate_climate_revenue()
 
-            # calculate carbon intensite --> if na, reiter and assign industry median
-            reiter = self.portfolio_datasource.companies[c].calculate_carbon_intensity()
-            if reiter:
-                self.reiter.append(c)
+            # # calculate carbon intensite --> if na, reiter and assign industry median
+            # reiter = self.portfolio_datasource.companies[c].calculate_carbon_intensity()
+            if r:
+                reiter_list.append(c)
 
-            # assign theme and Sustainability_Tag
-            self.portfolio_datasource.companies[c].check_theme_requirements(
-                self.theme_datasource.themes
-            )
+            # # assign theme and Sustainability_Tag
+            # self.portfolio_datasource.companies[c].check_theme_requirements(
+            #     self.theme_datasource.themes
+            # )
 
-        self.replace_carbon_median()
+        self.replace_carbon_median(reiter_list)
         self.replace_transition_risk()
         return
 
@@ -595,13 +598,18 @@ class Runner(object):
                 ] = new_val
         return
 
-    def replace_carbon_median(self):
+    def replace_carbon_median(self, reiter_list: list):
         """
         For companies without 'Carbon Intensity (Scope 123)'
         --> (CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT) couldnt be calculuated
         --> replace NA with company's industry median
+
+        Parameters
+        ----------
+        reiter_list: list
+            list of all companies which carbon intensity couldnt be calculated for
         """
-        for c in self.reiter:
+        for c in reiter_list:
             self.portfolio_datasource.companies[c].information[
                 "Carbon Intensity (Scope 123)"
             ] = (self.portfolio_datasource.companies[c].information["Industry"].median)

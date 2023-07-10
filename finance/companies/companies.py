@@ -1089,7 +1089,8 @@ class CompanyStore(HeadStore):
         adjustment_df: pd.DataFrame,
         gics_d: dict,
         bclass_d: dict,
-        category_d: dict
+        category_d: dict,
+        themes: dict
     ):
         """
         - attach region information
@@ -1120,6 +1121,13 @@ class CompanyStore(HeadStore):
             dictionary of bclass sub industries with bclass as key, bclass object as value
         category_d: dict
             dictionary of ESRM categories
+        themes: dict
+            dictionary of all theme objects
+
+        Return
+        ------
+        Boolean
+            Company has to be reiterated because of missing data
         """
 
         # attach region
@@ -1169,7 +1177,15 @@ class CompanyStore(HeadStore):
 
         # calculate climate revenue
         self.calculate_climate_revenue()
-        return
+
+        # calculate carbon intensite --> if na, reiter and assign industry median
+        reiter = self.calculate_carbon_intensity()
+
+        # assign theme and Sustainability_Tag
+        self.check_theme_requirements(
+            themes
+        )
+        return reiter
 
 
 class MuniStore(HeadStore):
