@@ -576,7 +576,7 @@ class CompanyStore(HeadStore):
                 self.scores["ESRM_Score"] = i + 1
 
                 if i + 1 == 5:
-                    self.scores["Review_Flag"] == "Needs Review"
+                    self.scores["Review_Flag"] = "Needs Review"
                 break
 
         # get region theme (DM, JP, EM, EUCohort)
@@ -603,7 +603,7 @@ class CompanyStore(HeadStore):
                 self.scores["Governance_Score"] = i + 1
 
                 if i + 1 == 5:
-                    self.scores["Review_Flag"] == "Needs Review"
+                    self.scores["Review_Flag"] = "Needs Review"
                 break
 
         self.scores["ESRM_Flags"] = flag_d
@@ -673,7 +673,7 @@ class CompanyStore(HeadStore):
         self.scores["Transition_Score"] = transition_score
 
         if transition_score == 5:
-            self.scores["Review_Flag"] == "Needs Review"
+            self.scores["Review_Flag"] = "Needs Review"
         return
 
     def calculate_target_score(self):
