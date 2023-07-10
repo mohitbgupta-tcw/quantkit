@@ -377,14 +377,8 @@ class CompanyStore(HeadStore):
 
         Calculation:
             CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT
-
-        Returns
-        -------
-        bool
-            True: carbon intensity couldn't be calculated and company has to be reitered
-
         """
-        reiter = False
+        self.information["reiter"] = False
         if (
             self.msci_information["SALES_USD_RECENT"] > 0
             and self.msci_information["CARBON_EMISSIONS_SCOPE123"] > 0
@@ -399,10 +393,10 @@ class CompanyStore(HeadStore):
         # --> replace with median later in reiteration (therefore append to reiter)
         else:
             carbon_intensity = np.nan
-            reiter = True
+            self.information["reiter"] = True
 
         self.information["Carbon Intensity (Scope 123)"] = carbon_intensity
-        return reiter
+        return
 
     def check_theme_requirements(self, themes):
         """
@@ -1020,7 +1014,7 @@ class CompanyStore(HeadStore):
                 self.securities[s].information["SClass_Level4-P"] = "Not Scored"
 
         return
-    
+
     def get_parent_issuer_data(self, companies: dict):
         """
         Assign data from parent to sub-company if data is missing (nan)
@@ -1035,49 +1029,77 @@ class CompanyStore(HeadStore):
             dictionary of all company objects
         """
         # get parent id from msci
-        parent_id = self.msci_information[
-            "PARENT_ULTIMATE_ISSUERID"
-        ]
+        parent_id = self.msci_information["PARENT_ULTIMATE_ISSUERID"]
 
         # find parent store
         parent = "NoISIN"
         for c in companies:
-            if (
-                companies[c].msci_information["ISSUERID"]
-                == parent_id
-            ):
+            if companies[c].msci_information["ISSUERID"] == parent_id:
                 parent = c
                 break
 
         # assign sdg data for missing values
         for val in self.sdg_information:
             if pd.isna(self.sdg_information[val]):
-                new_val = companies[parent].sdg_information[
-                    val
-                ]
-                self.sdg_information[
-                    val
-                ] = new_val
+                new_val = companies[parent].sdg_information[val]
+                self.sdg_information[val] = new_val
 
         # assign msci data for missing values
         for val in self.msci_information:
             if pd.isna(self.msci_information[val]):
-                new_val = companies[parent].msci_information[
-                    val
-                ]
-                self.msci_information[
-                    val
-                ] = new_val
+                new_val = companies[parent].msci_information[val]
+                self.msci_information[val] = new_val
 
         # assign bloomberg data for missing values
         for val in self.bloomberg_information:
             if pd.isna(self.bloomberg_information[val]):
-                new_val = companies[parent].bloomberg_information[
-                    val
-                ]
-                self.bloomberg_information[
-                    val
-                ] = new_val
+                new_val = companies[parent].bloomberg_information[val]
+                self.bloomberg_information[val] = new_val
+        return
+
+    def replace_carbon_median(self):
+        """
+        For companies without 'Carbon Intensity (Scope 123)'
+        --> (CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT) couldnt be calculuated
+        --> replace NA with company's industry median
+        """
+        if self.information["reiter"]:
+            self.information["Carbon Intensity (Scope 123)"] = self.information[
+                "Industry"
+            ].median
+        return
+
+    def replace_unassigned_industry(self, high_threshold: float, industries: dict):
+        """
+        Split companies with unassigned industry and sub-industry into
+        high and low transition risk
+        --> check if carbon intensity is bigger or smaller than predefined threshold
+
+        Parameters
+        ----------
+        high_threshold: float
+            high threshold for transition risk
+        industries: dict
+            dictionary of all industry objects
+        """
+        # create new Industry objects for Unassigned High and Low
+        carb_int = self.information["Carbon Intensity (Scope 123)"]
+        # carbon intensity greater than threshold --> high risk
+        if carb_int > high_threshold:
+            self.information["Transition_Risk_Module"] = "High"
+            industries["Unassigned BCLASS High"].companies[self.isin] = self
+            self.information["Industry"] = industries["Unassigned BCLASS High"]
+            industries["Unassigned BCLASS High"].update(
+                self.information["Carbon Intensity (Scope 123)"]
+            )
+        # carbon intensity smaller than threshold --> low risk
+        else:
+            self.information["Transition_Risk_Module"] = "Low"
+            industries["Unassigned BCLASS Low"].companies[self.isin] = self
+            self.information["Industry"] = industries["Unassigned BCLASS Low"]
+            industries["Unassigned BCLASS Low"].update(
+                self.information["Carbon Intensity (Scope 123)"]
+            )
         return
 
     def iter(
@@ -1090,12 +1112,12 @@ class CompanyStore(HeadStore):
         gics_d: dict,
         bclass_d: dict,
         category_d: dict,
-        themes: dict
+        themes: dict,
     ):
         """
         - attach region information
         - attach sovereign score
-        - attach data from parent 
+        - attach data from parent
         - attach exclusions
         - attach GICS information
         - attach Industry and Sub-Industry information
@@ -1123,11 +1145,6 @@ class CompanyStore(HeadStore):
             dictionary of ESRM categories
         themes: dict
             dictionary of all theme objects
-
-        Return
-        ------
-        Boolean
-            Company has to be reiterated because of missing data
         """
 
         # attach region
@@ -1137,40 +1154,26 @@ class CompanyStore(HeadStore):
         self.update_sovereign_score()
 
         # attach data from parent if missing
-        if not pd.isna(
-            self.msci_information[
-                "PARENT_ULTIMATE_ISSUERID"
-            ]
-        ):
+        if not pd.isna(self.msci_information["PARENT_ULTIMATE_ISSUERID"]):
             self.get_parent_issuer_data(companies)
 
         # attach exclusion df
-        self.attach_exclusion(
-            exclusion_df
-        )
+        self.attach_exclusion(exclusion_df)
 
         # attach exclusion article
         self.exclusion()
 
         # attach GICS Sub industry
-        self.attach_gics(
-            gics_d
-        )
+        self.attach_gics(gics_d)
 
         # attach industry and sub industry
-        self.attach_industry(
-            gics_d, bclass_d
-        )
+        self.attach_industry(gics_d, bclass_d)
 
         # attach category
-        self.attach_category(
-            category_d
-        )
+        self.attach_category(category_d)
 
         # attach analyst adjustment
-        self.attach_analyst_adjustment(
-            adjustment_df
-        )
+        self.attach_analyst_adjustment(adjustment_df)
 
         # calculate capex
         self.calculate_capex()
@@ -1179,13 +1182,11 @@ class CompanyStore(HeadStore):
         self.calculate_climate_revenue()
 
         # calculate carbon intensite --> if na, reiter and assign industry median
-        reiter = self.calculate_carbon_intensity()
+        self.calculate_carbon_intensity()
 
         # assign theme and Sustainability_Tag
-        self.check_theme_requirements(
-            themes
-        )
-        return reiter
+        self.check_theme_requirements(themes)
+        return
 
 
 class MuniStore(HeadStore):

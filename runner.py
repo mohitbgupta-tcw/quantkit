@@ -448,80 +448,20 @@ class Runner(object):
         self.category_datasource.load()
         self.category_datasource.iter()
 
-        # reiter list
-        reiter_list = list()
-
         for c in self.portfolio_datasource.companies:
-            r = self.portfolio_datasource.companies[c].iter(
+            self.portfolio_datasource.companies[c].iter(
                 companies=self.portfolio_datasource.companies,
                 regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
                 exclusion_df=self.exclusion_datasource.df,
-                gics_d = self.gics_datasource.gics,
-                bclass_d = self.bclass_datasource.bclass,
-                category_d = self.category_datasource.categories,
+                gics_d=self.gics_datasource.gics,
+                bclass_d=self.bclass_datasource.bclass,
+                category_d=self.category_datasource.categories,
                 adjustment_df=self.adjustment_datasource.df,
-                themes = self.theme_datasource.themes
+                themes=self.theme_datasource.themes,
             )
 
-            # self.portfolio_datasource.companies[c].attach_region(
-            #     self.region_datasource.df, self.region_datasource.regions
-            # )
-            # self.portfolio_datasource.companies[c].update_sovereign_score()
-
-            # # company has parent --> take data from that parent
-            # if not pd.isna(
-            #     self.portfolio_datasource.companies[c].msci_information[
-            #         "PARENT_ULTIMATE_ISSUERID"
-            #     ]
-            # ):
-            #     self.parent_issuer(c)
-
-            # # attach exclusion df
-            # self.portfolio_datasource.companies[c].attach_exclusion(
-            #     self.exclusion_datasource.df
-            # )
-
-            # # attach exclusion article
-            # self.portfolio_datasource.companies[c].exclusion()
-
-            # # attach GICS Sub industry
-            # self.portfolio_datasource.companies[c].attach_gics(
-            #     self.gics_datasource.gics
-            # )
-
-            # # attach industry and sub industry
-            # self.portfolio_datasource.companies[c].attach_industry(
-            #     self.gics_datasource.gics, self.bclass_datasource.bclass
-            # )
-
-            # # attach category
-            # self.portfolio_datasource.companies[c].attach_category(
-            #     self.category_datasource.categories
-            # )
-
-            # # attach analyst adjustment
-            # self.portfolio_datasource.companies[c].attach_analyst_adjustment(
-            #     self.adjustment_datasource.df
-            # )
-
-            # # calculate capex
-            # self.portfolio_datasource.companies[c].calculate_capex()
-
-            # # calculate climate revenue
-            # self.portfolio_datasource.companies[c].calculate_climate_revenue()
-
-            # # calculate carbon intensite --> if na, reiter and assign industry median
-            # reiter = self.portfolio_datasource.companies[c].calculate_carbon_intensity()
-            if r:
-                reiter_list.append(c)
-
-            # # assign theme and Sustainability_Tag
-            # self.portfolio_datasource.companies[c].check_theme_requirements(
-            #     self.theme_datasource.themes
-            # )
-
-        self.replace_carbon_median(reiter_list)
+        self.replace_carbon_median()
         self.replace_transition_risk()
         return
 
@@ -534,85 +474,14 @@ class Runner(object):
         )
         return
 
-    def parent_issuer(self, isin):
-        """
-        Assign data from parent to sub-company.
-        Dara includes:
-            - MSCI
-            - SDG
-            - Bloomberg
-
-        Parameters
-        ----------
-        isin: str
-            isin of sub-company
-        """
-        # get parent id from msci
-        parent_id = self.portfolio_datasource.companies[isin].msci_information[
-            "PARENT_ULTIMATE_ISSUERID"
-        ]
-
-        # find parent store
-        parent = "NoISIN"
-        for c in self.portfolio_datasource.companies:
-            if (
-                self.portfolio_datasource.companies[c].msci_information["ISSUERID"]
-                == parent_id
-            ):
-                parent = c
-                break
-
-        # assign sdg data if all values are nan
-        if all(
-            pd.isna(value)
-            for value in self.portfolio_datasource.companies[
-                isin
-            ].sdg_information.values()
-        ):
-            self.portfolio_datasource.companies[
-                isin
-            ].sdg_information = self.portfolio_datasource.companies[
-                parent
-            ].sdg_information
-
-        # assign msci data for missing values
-        for val in self.portfolio_datasource.companies[isin].msci_information:
-            if pd.isna(self.portfolio_datasource.companies[isin].msci_information[val]):
-                new_val = self.portfolio_datasource.companies[parent].msci_information[
-                    val
-                ]
-                self.portfolio_datasource.companies[isin].msci_information[
-                    val
-                ] = new_val
-
-        # assign bloomberg data for missing values
-        for val in self.portfolio_datasource.companies[isin].bloomberg_information:
-            if pd.isna(
-                self.portfolio_datasource.companies[isin].bloomberg_information[val]
-            ):
-                new_val = self.portfolio_datasource.companies[
-                    parent
-                ].bloomberg_information[val]
-                self.portfolio_datasource.companies[isin].bloomberg_information[
-                    val
-                ] = new_val
-        return
-
-    def replace_carbon_median(self, reiter_list: list):
+    def replace_carbon_median(self):
         """
         For companies without 'Carbon Intensity (Scope 123)'
         --> (CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT) couldnt be calculuated
         --> replace NA with company's industry median
-
-        Parameters
-        ----------
-        reiter_list: list
-            list of all companies which carbon intensity couldnt be calculated for
         """
-        for c in reiter_list:
-            self.portfolio_datasource.companies[c].information[
-                "Carbon Intensity (Scope 123)"
-            ] = (self.portfolio_datasource.companies[c].information["Industry"].median)
+        for c in self.portfolio_datasource.companies:
+            self.portfolio_datasource.companies[c].replace_carbon_median()
         return
 
     def replace_transition_risk(self):
@@ -624,33 +493,10 @@ class Runner(object):
         # create new Industry objects for Unassigned High and Low
 
         for c in self.bclass_datasource.industries["Unassigned BCLASS"].companies:
-            company_store = self.portfolio_datasource.companies[c]
-            carb_int = company_store.information["Carbon Intensity (Scope 123)"]
-            # carbon intensity greater than threshold --> high risk
-            if carb_int > self.params["transition_parameters"]["High_Threshold"]:
-                company_store.information["Transition_Risk_Module"] = "High"
-                self.bclass_datasource.industries["Unassigned BCLASS High"].companies[
-                    c
-                ] = company_store
-                company_store.information[
-                    "Industry"
-                ] = self.bclass_datasource.industries["Unassigned BCLASS High"]
-                self.bclass_datasource.industries["Unassigned BCLASS High"].update(
-                    company_store.information["Carbon Intensity (Scope 123)"]
-                )
-            # carbon intensity smaller than threshold --> low risk
-            else:
-                company_store.information["Transition_Risk_Module"] = "Low"
-                self.bclass_datasource.industries["Unassigned BCLASS Low"].companies[
-                    c
-                ] = company_store
-                company_store.information[
-                    "Industry"
-                ] = self.bclass_datasource.industries["Unassigned BCLASS Low"]
-                self.bclass_datasource.industries["Unassigned BCLASS Low"].update(
-                    company_store.information["Carbon Intensity (Scope 123)"]
-                )
-
+            self.portfolio_datasource.companies[c].replace_unassigned_industry(
+                high_threshold=self.params["transition_parameters"]["High_Threshold"],
+                industries=self.bclass_datasource.industries,
+            )
         return
 
     def calculate_securitized_score(self):
