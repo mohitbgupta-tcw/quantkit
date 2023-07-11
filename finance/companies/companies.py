@@ -4,10 +4,8 @@ import quantkit.finance.securities.securities as securities
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.finance.adjustment.adjustment as adjustment
 import quantkit.finance.transition.transition as transition
-import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as adb
-import quantkit.finance.data_sources.regions_datasource.regions_datasource as rdb
-import quantkit.finance.data_sources.exclusions_datasource.exclusions_database as edb
 from typing import Union
+import operator
 
 
 class HeadStore(object):
@@ -23,29 +21,13 @@ class HeadStore(object):
     ----------
     isin: str
         company's isin. NoISIN if no isin is available
-    regions_datasource: regions_datasource.RegionsDataSource, optional
-        regions datasource
-    adjustment_datasource: adjustment_database.AdjustmentDataSource, optional
-        adjustment datasource
-    exclusion_datasource: exclusion_database.ExclusionDataBase, optional
-        exclusion datasource
     """
 
-    def __init__(
-        self,
-        isin: str,
-        regions_datasource: rdb.RegionsDataSource = None,
-        adjustment_datasource: adb.AdjustmentDataSource = None,
-        exclusion_datasource: edb.ExclusionsDataSource = None,
-        **kwargs
-    ):
+    def __init__(self, isin: str, **kwargs):
         self.isin = isin
         self.securities = dict()
         self.scores = dict()
         self.information = dict()
-        self.regions_datasource = regions_datasource
-        self.adjustment_datasource = adjustment_datasource
-        self.exclusion_datasource = exclusion_datasource
 
         # assign some default values for measures
         self.scores["Themes"] = dict()
@@ -109,20 +91,22 @@ class HeadStore(object):
         self.securities.pop(isin, None)
         return
 
-    def attach_region(self, regions: dict):
+    def attach_region(self, regions_df: pd.DataFrame, regions: dict):
         """
         Attach region information (including ISO2, name, sovereign score) to parent object
         Save region object in self.information["Issuer_Country"]
 
         Parameters
         ----------
+        regions_df: pd.DataFrame
+            DataFrame of regions information
         regions: dict
-            dictionary of regions with ISO2 as key and corresponding region object as value
+            dictionary of all region objects
         """
         # dict to map name to ISO2
         temp_regions = pd.Series(
-            self.regions_datasource.df.ISO2.values,
-            index=self.regions_datasource.df.Country,
+            regions_df["ISO2"].values,
+            index=regions_df["Country"],
         ).to_dict()
 
         # if issuer country is country name, map to ISO2
@@ -130,7 +114,28 @@ class HeadStore(object):
         country = self.msci_information["ISSUER_CNTRY_DOMICILE"]
         country = temp_regions.get(country, country)
         self.information["Issuer_Country"] = regions[country]
-        regions[country].companies[self.isin] = self
+        regions[country].add_company(self.isin, self)
+        return
+
+    def attach_analyst_adjustment(self, adjustment_df: pd.DataFrame):
+        """
+        Attach analyst adjustment to company object
+        Link to adjustment datasource by MSCI issuer id
+
+        Parameters
+        ----------
+        adjustment_df: pd.Dataframe
+            DataFrame of Analyst Adjustments
+        """
+        # attach analyst adjustment
+        msci_issuerid = self.msci_information["ISSUERID"]
+        adj_df = adjustment_df[adjustment_df["ISIN"] == msci_issuerid]
+        if not adj_df.empty:
+            self.Adjustment = pd.concat(
+                [self.Adjustment, adj_df],
+                ignore_index=True,
+                sort=False,
+            )
         return
 
     def analyst_adjustment(self, themes: dict):
@@ -209,30 +214,10 @@ class CompanyStore(HeadStore):
         company's isin. NoISIN if no isin is available
     row_data: dict
         company information derived from MSCI
-    regions_datasource: regions_datasource.RegionsDataSource, optional
-        regions datasource
-    adjustment_datasource: adjustment_database.AdjustmentDataSource, optional
-        adjustment datasource
-    exclusion_datasource: exclusion_database.ExclusionDataBase, optional
-        exclusion datasource
     """
 
-    def __init__(
-        self,
-        isin: str,
-        row_data: pd.Series,
-        regions_datasource: rdb.RegionsDataSource,
-        adjustment_datasource: adb.AdjustmentDataSource,
-        exclusion_datasource: edb.ExclusionsDataSource,
-        **kwargs
-    ):
-        super().__init__(
-            isin,
-            regions_datasource=regions_datasource,
-            adjustment_datasource=adjustment_datasource,
-            exclusion_datasource=exclusion_datasource,
-            **kwargs
-        )
+    def __init__(self, isin: str, row_data: pd.Series, **kwargs):
+        super().__init__(isin, **kwargs)
         self.msci_information = row_data
         self.type = "company"
         self.information["IVA_COMPANY_RATING"] = self.msci_information[
@@ -304,34 +289,38 @@ class CompanyStore(HeadStore):
             bclass_object.industry.companies[self.isin] = self
         return
 
-    def attach_analyst_adjustment(self):
+    def attach_category(self, category_d):
         """
-        Attach analyst adjustment to company object
-        Link to adjustment datasource by MSCI issuer id
+        Attach ESRM category based on ESRM module of sub industry
+        Attach Region Theme based on Region
+
+        Parameters
+        ----------
+        category_d: dict
+            dictionary of ESRM categories
         """
-        # attach analyst adjustment
-        msci_issuerid = self.msci_information["ISSUERID"]
-        adj_df = self.adjustment_datasource.df[
-            self.adjustment_datasource.df["ISIN"] == msci_issuerid
-        ]
-        if not adj_df.empty:
-            self.Adjustment = pd.concat(
-                [self.Adjustment, adj_df],
-                ignore_index=True,
-                sort=False,
-            )
+
+        esrm_module = self.information["Sub-Industry"].information["ESRM Module"]
+        self.information["ESRM Module"] = category_d[esrm_module]
+
+        # get region theme (DM, JP, EM, EUCohort)
+        region_theme = self.information["Issuer_Country"].information["Region"]
+        self.information["region_theme"] = category_d[region_theme]
         return
 
-    def attach_exclusion(self):
+    def attach_exclusion(self, exclusion_df: pd.DataFrame):
         """
         Attach exclusions from MSCI to company object
         Link to exclusion datasource by MSCI issuer id
+
+        Parameters
+        ----------
+        exclusion_df: pd.DataFrame
+            DataFrame of exclusions based on articles 8 and 9
         """
         # map exclusion based on Article 8 and 9
         msci_issuerid = self.msci_information["ISSUERID"]
-        excl_df = self.exclusion_datasource.df[
-            self.exclusion_datasource.df["MSCI Issuer ID"] == msci_issuerid
-        ]
+        excl_df = exclusion_df[exclusion_df["MSCI Issuer ID"] == msci_issuerid]
         if not excl_df.empty:
             self.Exclusion = pd.concat(
                 [self.Exclusion, excl_df],
@@ -387,14 +376,8 @@ class CompanyStore(HeadStore):
 
         Calculation:
             CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT
-
-        Returns
-        -------
-        bool
-            True: carbon intensity couldn't be calculated and company has to be reitered
-
         """
-        reiter = False
+        self.information["reiter"] = False
         if (
             self.msci_information["SALES_USD_RECENT"] > 0
             and self.msci_information["CARBON_EMISSIONS_SCOPE123"] > 0
@@ -409,10 +392,10 @@ class CompanyStore(HeadStore):
         # --> replace with median later in reiteration (therefore append to reiter)
         else:
             carbon_intensity = np.nan
-            reiter = True
+            self.information["reiter"] = True
 
         self.information["Carbon Intensity (Scope 123)"] = carbon_intensity
-        return reiter
+        return
 
     def check_theme_requirements(self, themes):
         """
@@ -505,7 +488,7 @@ class CompanyStore(HeadStore):
                     current_sec = msci_sum
         return
 
-    def calculate_esrm_score(self, esrm_d, scoring_d, operators):
+    def calculate_esrm_score(self):
         """
         Calculuate esrm score for each company:
         1) For each category save indicator fields and EM and DM flag scorings
@@ -517,21 +500,13 @@ class CompanyStore(HeadStore):
                 - create ESRM score based on flag scorings and region
             2.3) Create Governance_Score based on Region_Theme
             2.4) Save flags in company_information
-
-        Parameters
-        ----------
-        esrm_d: dict
-            dictionary with esrm Sub-Sector as key, df filter for that subsector as value
-        scoring_d: dict
-            dictionary with esrm Sub-Sector as key, scoring metrics for EM and DM as value
-        operators: dict
-            dictionary of operators translating string to operator object
         """
 
         counter = 0
         counter_gov = 0
         flag_d = dict()
         gov_d = dict()
+        operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
         na_esrm = dict()
         na_gov = dict()
 
@@ -543,9 +518,7 @@ class CompanyStore(HeadStore):
             return
 
         # get ESRM Module
-        sub_industry = self.information["Sub-Industry"]
-        esrm = sub_industry.information["ESRM Module"]
-        df_ = esrm_d[esrm]
+        df_ = self.information["ESRM Module"].esrm_df
         # count flags
         for index, row in df_.iterrows():
             i = row["Indicator Field Name"]
@@ -566,9 +539,9 @@ class CompanyStore(HeadStore):
         region = self.information["Issuer_Country"].information["Region_EM"]
         # --> regions have different scoring thresholds
         if region == "DM":
-            l = scoring_d[esrm][0]
+            l = self.information["ESRM Module"].DM_flags
         else:
-            l = scoring_d[esrm][1]
+            l = self.information["ESRM Module"].EM_flags
 
         # create esrm score based on flag scoring
         for i in range(len(l) - 1, -1, -1):
@@ -579,10 +552,8 @@ class CompanyStore(HeadStore):
                     self.scores["Review_Flag"] = "Needs Review"
                 break
 
-        # get region theme (DM, JP, EM, EUCohort)
-        region_theme = self.information["Issuer_Country"].information["Region"]
         # calculate governance score
-        df_ = esrm_d[region_theme]
+        df_ = self.information["region_theme"].esrm_df
         for index, row in df_.iterrows():
             i = row["Indicator Field Name"]
             v = self.msci_information[i]
@@ -598,8 +569,9 @@ class CompanyStore(HeadStore):
             else:
                 gov_d[i + "_Flag"] = 0
 
-        for i in range(len(scoring_d[region_theme][0]) - 1, -1, -1):
-            if counter_gov >= (scoring_d[region_theme][0][i]):
+        scoring_d = self.information["region_theme"].EM_flags
+        for i in range(len(scoring_d) - 1, -1, -1):
+            if counter_gov >= (scoring_d[i]):
                 self.scores["Governance_Score"] = i + 1
 
                 if i + 1 == 5:
@@ -1042,6 +1014,179 @@ class CompanyStore(HeadStore):
 
         return
 
+    def get_parent_issuer_data(self, companies: dict):
+        """
+        Assign data from parent to sub-company if data is missing (nan)
+        Data includes:
+            - MSCI
+            - SDG
+            - Bloomberg
+
+        Parameters
+        ----------
+        companies: dict
+            dictionary of all company objects
+        """
+        # get parent id from msci
+        parent_id = self.msci_information["PARENT_ULTIMATE_ISSUERID"]
+
+        # find parent store
+        parent = "NoISIN"
+        for c in companies:
+            if companies[c].msci_information["ISSUERID"] == parent_id:
+                parent = c
+                break
+
+        # assign sdg data for missing values
+        for val in self.sdg_information:
+            if pd.isna(self.sdg_information[val]):
+                new_val = companies[parent].sdg_information[val]
+                self.sdg_information[val] = new_val
+
+        # assign msci data for missing values
+        for val in self.msci_information:
+            if pd.isna(self.msci_information[val]):
+                new_val = companies[parent].msci_information[val]
+                self.msci_information[val] = new_val
+
+        # assign bloomberg data for missing values
+        for val in self.bloomberg_information:
+            if pd.isna(self.bloomberg_information[val]):
+                new_val = companies[parent].bloomberg_information[val]
+                self.bloomberg_information[val] = new_val
+        return
+
+    def replace_carbon_median(self):
+        """
+        For companies without 'Carbon Intensity (Scope 123)'
+        --> (CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT) couldnt be calculuated
+        --> replace NA with company's industry median
+        """
+        if self.information["reiter"]:
+            self.information["Carbon Intensity (Scope 123)"] = self.information[
+                "Industry"
+            ].median
+        return
+
+    def replace_unassigned_industry(self, high_threshold: float, industries: dict):
+        """
+        Split companies with unassigned industry and sub-industry into
+        high and low transition risk
+        --> check if carbon intensity is bigger or smaller than predefined threshold
+
+        Parameters
+        ----------
+        high_threshold: float
+            high threshold for transition risk
+        industries: dict
+            dictionary of all industry objects
+        """
+        # create new Industry objects for Unassigned High and Low
+        carb_int = self.information["Carbon Intensity (Scope 123)"]
+        # carbon intensity greater than threshold --> high risk
+        if carb_int > high_threshold:
+            self.information["Transition_Risk_Module"] = "High"
+            industries["Unassigned BCLASS High"].companies[self.isin] = self
+            self.information["Industry"] = industries["Unassigned BCLASS High"]
+            industries["Unassigned BCLASS High"].update(
+                self.information["Carbon Intensity (Scope 123)"]
+            )
+        # carbon intensity smaller than threshold --> low risk
+        else:
+            self.information["Transition_Risk_Module"] = "Low"
+            industries["Unassigned BCLASS Low"].companies[self.isin] = self
+            self.information["Industry"] = industries["Unassigned BCLASS Low"]
+            industries["Unassigned BCLASS Low"].update(
+                self.information["Carbon Intensity (Scope 123)"]
+            )
+        return
+
+    def iter(
+        self,
+        companies: dict,
+        regions_df: pd.DataFrame,
+        regions: dict,
+        exclusion_df: pd.DataFrame,
+        adjustment_df: pd.DataFrame,
+        gics_d: dict,
+        bclass_d: dict,
+        category_d: dict,
+        themes: dict,
+    ):
+        """
+        - attach region information
+        - attach sovereign score
+        - attach data from parent
+        - attach exclusions
+        - attach GICS information
+        - attach Industry and Sub-Industry information
+        - attach category
+        - attach analyst adjustment
+        - run company specific calculations
+
+        Parameters
+        ----------
+        companies: dict
+            dictionary of all company objects
+        regions_df: pd.DataFrame
+            DataFrame of regions information
+        regions: dict
+            dictionary of all region objects
+        exclusion_df: pd.DataFrame
+            DataFrame of Exclusions
+        adjustment_df: pd.Dataframe
+            DataFrame of Analyst Adjustments
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        bclass_d: dict
+            dictionary of bclass sub industries with bclass as key, bclass object as value
+        category_d: dict
+            dictionary of ESRM categories
+        themes: dict
+            dictionary of all theme objects
+        """
+
+        # attach region
+        self.attach_region(regions_df, regions)
+
+        # update sovereign score for Treausury
+        self.update_sovereign_score()
+
+        # attach data from parent if missing
+        if not pd.isna(self.msci_information["PARENT_ULTIMATE_ISSUERID"]):
+            self.get_parent_issuer_data(companies)
+
+        # attach exclusion df
+        self.attach_exclusion(exclusion_df)
+
+        # attach exclusion article
+        self.exclusion()
+
+        # attach GICS Sub industry
+        self.attach_gics(gics_d)
+
+        # attach industry and sub industry
+        self.attach_industry(gics_d, bclass_d)
+
+        # attach category
+        self.attach_category(category_d)
+
+        # attach analyst adjustment
+        self.attach_analyst_adjustment(adjustment_df)
+
+        # calculate capex
+        self.calculate_capex()
+
+        # calculate climate revenue
+        self.calculate_climate_revenue()
+
+        # calculate carbon intensite --> if na, reiter and assign industry median
+        self.calculate_carbon_intensity()
+
+        # assign theme and Sustainability_Tag
+        self.check_theme_requirements(themes)
+        return
+
 
 class MuniStore(HeadStore):
     """
@@ -1267,6 +1412,20 @@ class MuniStore(HeadStore):
                 self.securities[s].information["SClass_Level4-P"] = "Not Scored"
         return
 
+    def iter(self, gics_d: dict):
+        """
+        - attach GICS information
+        - attach exclusions
+
+        Parameters
+        ----------
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        """
+        self.attach_gics(gics_d)
+        self.exclusion()
+        return
+
 
 class SecuritizedStore(HeadStore):
     """
@@ -1465,6 +1624,23 @@ class SecuritizedStore(HeadStore):
                 self.securities[s].information["SClass_Level4-P"] = "Not Scored"
         return
 
+    def iter(self, gics_d: dict):
+        """
+        - attach GICS information
+        - attach exclusions
+
+        Parameters
+        ----------
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        """
+        # attach GICS
+        self.attach_gics(gics_d)
+
+        # attach exclusions
+        self.exclusion()
+        return
+
 
 class SovereignStore(HeadStore):
     """
@@ -1478,25 +1654,10 @@ class SovereignStore(HeadStore):
         company's isin. NoISIN if no isin is available
     row_data: pd.Series
         company information derived from SSI and MSCI
-    regions_datasource: regions_datasource.RegionsDataSource, optional
-        regions datasource
-    adjustment_datasource: adjustment_database.AdjustmentDataSource, optional
-        adjustment datasource
     """
 
-    def __init__(
-        self,
-        isin: str,
-        regions_datasource: rdb.RegionsDataSource,
-        adjustment_datasource: adb.AdjustmentDataSource,
-        **kwargs
-    ):
-        super().__init__(
-            isin,
-            regions_datasource=regions_datasource,
-            adjustment_datasource=adjustment_datasource,
-            **kwargs
-        )
+    def __init__(self, isin: str, **kwargs):
+        super().__init__(isin, **kwargs)
         self.msci_information = {}
         self.type = "sovereign"
 
@@ -1507,24 +1668,6 @@ class SovereignStore(HeadStore):
         self.scores["Sovereign_Score"] = self.information["Issuer_Country"].information[
             "Sovereign_Score"
         ]
-        return
-
-    def attach_analyst_adjustment(self):
-        """
-        Attach analyst adjustment to sovereign object
-        Link to adjustment datasource by MSCI issuer id
-        """
-        # attach analyst adjustment
-        msci_issuerid = self.msci_information["ISSUERID"]
-        adj_df = self.adjustment_datasource.df[
-            self.adjustment_datasource.df["ISIN"] == msci_issuerid
-        ]
-        if not adj_df.empty:
-            self.Adjustment = pd.concat(
-                [self.Adjustment, adj_df],
-                ignore_index=True,
-                sort=False,
-            )
         return
 
     def attach_gics(self, gics_d: dict):
@@ -1637,4 +1780,36 @@ class SovereignStore(HeadStore):
                 self.securities[s].information["SClass_Level3"] = "Exclusion"
                 self.securities[s].information["SClass_Level2"] = "Exclusion"
                 self.securities[s].information["SClass_Level1"] = "Excluded"
+        return
+
+    def iter(
+        self,
+        regions_df: pd.DataFrame,
+        regions: dict,
+        adjustment_df: pd.DataFrame,
+        gics_d: dict,
+    ):
+        """
+        - attach region information
+        - calculate sovereign score
+        - attach analyst adjustment
+        - attach GICS information
+        - attach exclusions
+
+        Parameters
+        ----------
+        regions_df: pd.DataFrame
+            DataFrame of regions information
+        regions: dict
+            dictionary of all region objects
+        adjustment_df: pd.Dataframe
+            DataFrame of Analyst Adjustments
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        """
+        self.attach_region(regions_df, regions)
+        self.update_sovereign_score()
+        self.attach_analyst_adjustment(adjustment_df)
+        self.attach_gics(gics_d)
+        self.exclusion()
         return

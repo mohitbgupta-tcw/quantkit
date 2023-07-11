@@ -21,3 +21,17 @@ class Region(object):
         self.region = name
         self.information = row_data.to_dict()
         self.companies = dict()
+
+    def add_company(self, isin: str, company):
+        """
+        add company object to region
+
+        Parameters
+        ----------
+        isin: str
+            company isin
+        company: CompanyStore
+            company store
+        """
+        self.companies[isin] = company
+        return

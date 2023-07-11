@@ -1,6 +1,7 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import numpy as np
+import quantkit.finance.regions.regions as regions
 
 
 class RegionsDataSource(ds.DataSources):
@@ -33,6 +34,7 @@ class RegionsDataSource(ds.DataSources):
 
     def __init__(self, params: dict):
         super().__init__(params)
+        self.regions = dict()
 
     def load(self):
         """
@@ -50,6 +52,17 @@ class RegionsDataSource(ds.DataSources):
         """
         self.df["ISO2"] = self.df["ISO2"].fillna("NA")
         self.df.loc[-1] = [np.nan, np.nan, np.nan, "DM", "DM", "DM", 0]
+        return
+
+    def iter(self):
+        """
+        - create Region objects for each region
+        - save object for each region in self.regions
+        - key is ISO2
+        """
+        for index, row in self.df.iterrows():
+            r = row["ISO2"]
+            self.regions[r] = regions.Region(r, row)
         return
 
     @property

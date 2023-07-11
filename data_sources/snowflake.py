@@ -29,14 +29,14 @@ class Snowflake(object):
 
     def __init__(
         self,
-        user,
-        password,
-        role,
-        database,
-        schema,
-        table_name,
-        account="tcw",
-        host="tcw.west-us-2.azure.snowflakecomputing.com",
+        user: str,
+        password: str,
+        role: str,
+        database: str,
+        schema: str,
+        table_name: str,
+        account: str = "tcw",
+        host: str = "tcw.west-us-2.azure.snowflakecomputing.com",
     ):
         self.account = account
         self.user = user

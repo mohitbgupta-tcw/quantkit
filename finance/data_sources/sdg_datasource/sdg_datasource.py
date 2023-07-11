@@ -1,6 +1,8 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import numpy as np
+import pandas as pd
+from copy import deepcopy
 
 
 class SDGDataSource(object):
@@ -52,6 +54,52 @@ class SDGDataSource(object):
             "SDGSolClimatePercentCombCont"
         ].astype(float)
         self.df_ = df_
+        return
+
+    def iter(self, companies: dict, munis: dict, sovereigns: dict, securitized: dict):
+        """
+        Attach SDG information to company objects
+
+        Parameters
+        ----------
+        companies: dict
+            dictionary of all company objects
+        munis: dict
+            dictionary of all muni objects
+        sovereigns: dict
+            dictionary of all sovereign objects
+        securitized: dict
+            dictionary of all securitized objects
+        """
+        # only iterate over companies we hold in the portfolios
+        for index, row in self.df[self.df["ISIN"].isin(companies.keys())].iterrows():
+            isin = row["ISIN"]
+
+            sdg_information = row.to_dict()
+            companies[isin].sdg_information = sdg_information
+
+        # --> not every company has these information, so create empty df with NA's for those
+        empty_sdg = pd.Series(np.nan, index=self.df.columns).to_dict()
+
+        for c in companies:
+            # assign empty sdg information to companies that dont have these information
+            if not hasattr(companies[c], "sdg_information"):
+                companies[c].sdg_information = deepcopy(empty_sdg)
+
+        for m in munis:
+            # assign empty sdg information to munis that dont have these information
+            if not hasattr(munis[m], "sdg_information"):
+                munis[m].sdg_information = deepcopy(empty_sdg)
+
+        for sov in sovereigns:
+            # assign empty sdg information to sovereigns that dont have these information
+            if not hasattr(sovereigns[sov], "sdg_information"):
+                sovereigns[sov].sdg_information = deepcopy(empty_sdg)
+
+        for sec in securitized:
+            # assign empty sdg information to companies that dont have these information
+            if not hasattr(securitized[sec], "sdg_information"):
+                securitized[sec].sdg_information = deepcopy(empty_sdg)
         return
 
     @property

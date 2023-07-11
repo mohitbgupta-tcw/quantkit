@@ -32,6 +32,7 @@ class SecuritizedDataSource(ds.DataSources):
 
     def __init__(self, params: dict):
         super().__init__(params)
+        self.securitized_mapping = dict()
 
     def load(self):
         """
@@ -47,6 +48,14 @@ class SecuritizedDataSource(ds.DataSources):
         None
         """
         return
+
+    def iter(self):
+        """
+        Iterate over securitized mapping and add to dictionary
+        """
+        for index, row in self.df.iterrows():
+            collat_type = row["ESG Collat Type"]
+            self.securitized_mapping[collat_type] = row.to_dict()
 
     @property
     def df(self):
