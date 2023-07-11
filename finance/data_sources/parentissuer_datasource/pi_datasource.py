@@ -43,6 +43,18 @@ class ParentIssuerSource(ds.DataSources):
         """
         return
 
+    def parent_issuer_ids(self):
+        """
+        For specified securities, return a list of MSCI ISSUERIDs of their parent
+
+        Returns
+        -------
+        list
+            list of MSCI ISSUERIDs for parents
+        """
+        pii = list(self.df["PARENT_ULTIMATE_ISSUERID"].dropna().unique())
+        return pii
+
     def iter(self, companies: dict, securities: dict):
         """
         Manually add parent issuer for selected securities

@@ -1,5 +1,4 @@
 import pandas as pd
-import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.utils.configs as configs
 import quantkit.finance.data_sources.regions_datasource.regions_datasource as rd
 import quantkit.finance.data_sources.category_datasource.category_database as cd
@@ -16,7 +15,6 @@ import quantkit.finance.data_sources.transition_datasource.transition_datasource
 import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as ads
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
-import quantkit.finance.companies.companies as comp
 import quantkit.utils.logging as logging
 
 
@@ -73,10 +71,6 @@ class Runner(object):
         self.security_datasource = sd.SecurityDataSource(
             self.params["security_datasource"]
         )
-        self.securities = dict()
-        self.equities = dict()
-        self.fixed_income = dict()
-        self.other_securities = dict()
 
         # connect parent issuer datasource
         self.parent_issuer_datasource = pis.ParentIssuerSource(
@@ -222,26 +216,18 @@ class Runner(object):
         # load security data
         self.security_datasource.load()
 
-        df_ = self.security_datasource.df
-        df_ = df_[df_["Security ISIN"].isin(self.portfolio_datasource.all_holdings)]
-        df_portfolio = self.portfolio_datasource.df
-
         # load parent issuer data
         self.parent_issuer_datasource.load()
-        parent_ids = list(
-            self.parent_issuer_datasource.df["PARENT_ULTIMATE_ISSUERID"]
-            .dropna()
-            .unique()
-        )
+        parent_ids = self.parent_issuer_datasource.parent_issuer_ids()
 
         # load MSCI data
-        issuer_ids = list(df_["ISSUERID"].unique())
-        issuer_ids.remove("NoISSUERID")
+        issuer_ids = self.security_datasource.issuer_ids(
+            self.portfolio_datasource.all_holdings
+        )
         issuer_ids += parent_ids
         issuer_ids = list(set(issuer_ids))
         self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
         self.msci_datasource.load()
-        msci_df = self.msci_datasource.df
 
         # load adjustment data
         self.adjustment_datasource.load()
@@ -249,86 +235,94 @@ class Runner(object):
         # load exclusion data
         self.exclusion_datasource.load()
 
-        # only iterate over securities the portfolios actually hold so save time
         logging.log("Iterate Securities")
-        for sec in self.portfolio_datasource.all_holdings:
-            security_row = df_[df_["Security ISIN"] == sec]
-            # we have information for security in our database
-            if not security_row.empty:
-                sec_info = security_row.squeeze().to_dict()
-                if pd.isna(sec_info["ISIN"]):
-                    sec_info["ISIN"] = sec
+        # only iterate over securities the portfolios actually hold so save time
+        self.security_datasource.iter(
+            securities=self.portfolio_datasource.all_holdings,
+            companies=self.portfolio_datasource.companies,
+            df_portfolio=self.portfolio_datasource.df,
+            msci_df=self.msci_datasource.df,
+            adjustment_df=self.adjustment_datasource.df,
+        )
 
-            # no information about security in database --> get information from portfoliot tab
-            else:
-                portfolio_row = df_portfolio[df_portfolio["ISIN"] == sec]
-                sec_info = security_row.reindex(list(range(1))).squeeze().to_dict()
-                sec_info["Security ISIN"] = sec
-                sec_info["ISIN"] = sec
-                sec_info["ISSUERID"] = "NoISSUERID"
-                sec_info["IssuerName"] = portfolio_row["ISSUER_NAME"].values[0]
-                sec_info["Ticker"] = portfolio_row["Ticker Cd"].values[0]
+        # for sec in self.portfolio_datasource.all_holdings:
+        # security_row = df_[df_["Security ISIN"] == sec]
+        # # we have information for security in our database
+        # if not security_row.empty:
+        #     sec_info = security_row.squeeze().to_dict()
+        #     if pd.isna(sec_info["ISIN"]):
+        #         sec_info["ISIN"] = sec
 
-            # get MSCI information of parent issuer
-            issuer_id = sec_info["ISSUERID"]
-            msci_row = msci_df[msci_df["CLIENT_IDENTIFIER"] == issuer_id]
-            # issuer has msci information --> overwrite security information
-            if not msci_row.empty:
-                issuer_isin = msci_row["ISSUER_ISIN"].values[0]
-                if not pd.isna(issuer_isin):
-                    sec_info["ISIN"] = issuer_isin
-                    sec_info["IssuerName"] = msci_row["ISSUER_NAME"].values[0]
-                    sec_info["Ticker"] = msci_row["ISSUER_TICKER"].values[0]
-                msci_information = msci_row.squeeze().to_dict()
-            else:
-                msci_information = msci_row.reindex(list(range(1))).squeeze().to_dict()
-                msci_information["ISSUER_NAME"] = sec_info["IssuerName"]
-                msci_information["ISSUER_ISIN"] = sec_info["ISIN"]
-                msci_information["ISSUER_TICKER"] = sec_info["Ticker"]
+        # # no information about security in database --> get information from portfoliot tab
+        # else:
+        #     portfolio_row = df_portfolio[df_portfolio["ISIN"] == sec]
+        #     sec_info = security_row.reindex(list(range(1))).squeeze().to_dict()
+        #     sec_info["Security ISIN"] = sec
+        #     sec_info["ISIN"] = sec
+        #     sec_info["ISSUERID"] = "NoISSUERID"
+        #     sec_info["IssuerName"] = portfolio_row["ISSUER_NAME"].values[0]
+        #     sec_info["Ticker"] = portfolio_row["Ticker Cd"].values[0]
 
-            # append to all ticker list
-            self.quandl_datasource.all_tickers.append(sec_info["Ticker"])
+        # # get MSCI information of parent issuer
+        # issuer_id = sec_info["ISSUERID"]
+        # msci_row = msci_df[msci_df["CLIENT_IDENTIFIER"] == issuer_id]
+        # # issuer has msci information --> overwrite security information
+        # if not msci_row.empty:
+        #     issuer_isin = msci_row["ISSUER_ISIN"].values[0]
+        #     if not pd.isna(issuer_isin):
+        #         sec_info["ISIN"] = issuer_isin
+        #         sec_info["IssuerName"] = msci_row["ISSUER_NAME"].values[0]
+        #         sec_info["Ticker"] = msci_row["ISSUER_TICKER"].values[0]
+        #     msci_information = msci_row.squeeze().to_dict()
+        # else:
+        #     msci_information = msci_row.reindex(list(range(1))).squeeze().to_dict()
+        #     msci_information["ISSUER_NAME"] = sec_info["IssuerName"]
+        #     msci_information["ISSUER_ISIN"] = sec_info["ISIN"]
+        #     msci_information["ISSUER_TICKER"] = sec_info["Ticker"]
 
-            # create security store --> seperate Fixed Income and Equity stores based on Security Type
-            # if Security Type is NA, just create Security object
-            sec_type = sec_info["Security Type"]
-            class_ = mapping_configs.security_store_mapping[sec_type]
-            type_mapping = mapping_configs.security_mapping[sec_type]
-            security_store = class_(isin=sec, information=sec_info)
-            self.securities[sec] = security_store
-            getattr(self, type_mapping)[sec] = self.securities[sec]
+        # # append to all ticker list
+        # self.quandl_datasource.all_tickers.append(sec_info["Ticker"])
 
-            # create company object
-            # company object could already be there if company has more than 1 security --> get
-            issuer = sec_info["ISIN"]
-            self.portfolio_datasource.companies[
-                issuer
-            ] = self.portfolio_datasource.companies.get(
-                issuer,
-                comp.CompanyStore(
-                    isin=issuer,
-                    row_data=msci_information,
-                ),
-            )
+        # # create security store --> seperate Fixed Income and Equity stores based on Security Type
+        # # if Security Type is NA, just create Security object
+        # sec_type = sec_info["Security Type"]
+        # class_ = mapping_configs.security_store_mapping[sec_type]
+        # type_mapping = mapping_configs.security_mapping[sec_type]
+        # security_store = class_(isin=sec, information=sec_info)
+        # self.securities[sec] = security_store
+        # getattr(self, type_mapping)[sec] = self.securities[sec]
 
-            # attach security to company and vice versa
-            self.portfolio_datasource.companies[issuer].add_security(
-                sec, self.securities[sec]
-            )
-            self.securities[sec].parent_store = self.portfolio_datasource.companies[
-                issuer
-            ]
+        # # create company object
+        # # company object could already be there if company has more than 1 security --> get
+        # issuer = sec_info["ISIN"]
+        # self.portfolio_datasource.companies[
+        #     issuer
+        # ] = self.portfolio_datasource.companies.get(
+        #     issuer,
+        #     comp.CompanyStore(
+        #         isin=issuer,
+        #         row_data=msci_information,
+        #     ),
+        # )
 
-            # attach adjustment
-            adj_df = self.adjustment_datasource.df[
-                self.adjustment_datasource.df["ISIN"] == sec
-            ]
-            if not adj_df.empty:
-                self.portfolio_datasource.companies[issuer].Adjustment = pd.concat(
-                    [self.portfolio_datasource.companies[issuer].Adjustment, adj_df],
-                    ignore_index=True,
-                    sort=False,
-                )
+        # # attach security to company and vice versa
+        # self.portfolio_datasource.companies[issuer].add_security(
+        #     sec, self.securities[sec]
+        # )
+        # self.securities[sec].parent_store = self.portfolio_datasource.companies[
+        #     issuer
+        # ]
+
+        # # attach adjustment
+        # adj_df = self.adjustment_datasource.df[
+        #     self.adjustment_datasource.df["ISIN"] == sec
+        # ]
+        # if not adj_df.empty:
+        #     self.portfolio_datasource.companies[issuer].Adjustment = pd.concat(
+        #         [self.portfolio_datasource.companies[issuer].Adjustment, adj_df],
+        #         ignore_index=True,
+        #         sort=False,
+        #     )
         return
 
     def iter_securitized_mapping(self):
@@ -350,7 +344,7 @@ class Runner(object):
         - attach holdings, OAS to self.holdings with security object
         """
         self.portfolio_datasource.iter_holdings(
-            self.securities,
+            self.security_datasource.securities,
             self.securitized_datasource.securitized_mapping,
             self.bclass_datasource.bclass,
         )
@@ -390,7 +384,7 @@ class Runner(object):
         - if company doesn't have data, attach all nan's
         """
         # load quandl data
-        self.quandl_datasource.load()
+        self.quandl_datasource.load(self.security_datasource.all_tickers)
         self.quandl_datasource.iter(self.portfolio_datasource.companies)
         return
 
@@ -470,7 +464,7 @@ class Runner(object):
         Manually add parent issuer for selected securities
         """
         self.parent_issuer_datasource.iter(
-            self.portfolio_datasource.companies, self.securities
+            self.portfolio_datasource.companies, self.security_datasource.securities
         )
         return
 

@@ -21,15 +21,19 @@ class QuandlDataSource(ds.DataSources):
 
     def __init__(self, params: dict):
         super().__init__(params)
-        self.all_tickers = []
 
-    def load(self):
+    def load(self, ticker: list):
         """
         load data and transform dataframe
+
+        Parameters
+        ----------
+        ticker: list
+            list of all tickers in portfolios
         """
         logging.log("Loading Quandl Data")
 
-        self.params["filters"]["ticker"] = list(set(self.all_tickers))
+        self.params["filters"]["ticker"] = list(set(ticker))
 
         self.datasource.load()
         self.transform_df()
