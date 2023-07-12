@@ -15,14 +15,11 @@ def risk_framework():
     Returns
     -------
     pd.DataFrame
-        Summary DataFrame
-    pd.DataFrame
         Detailed DataFrame
     """
     r = runner.Runner()
     r.init()
     r.run()
-    data_summary = []
     data_detail = []
     for p in r.portfolio_datasource.portfolios:
         portfolio_isin = r.portfolio_datasource.portfolios[p].id
@@ -106,33 +103,6 @@ def risk_framework():
             for h in holding_measures:
                 portfolio_weight = h["Portfolio_Weight"]
                 oas = h["OAS"]
-                data_summary.append(
-                    (
-                        portfolio_isin,
-                        portfolio_name,
-                        s,
-                        issuer_name,
-                        iva_rating,
-                        s2,
-                        bclass,
-                        gics,
-                        portfolio_weight,
-                        oas,
-                        comp_store.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN"],
-                        muni_score,
-                        sec_score,
-                        sov_score,
-                        esrm_score,
-                        gov_score,
-                        trans_score,
-                        risk_score_overall,
-                        level_1,
-                        level_2,
-                        level_3,
-                        level_4,
-                        level_4p,
-                    )
-                )
 
                 data_detail.append(
                     (
@@ -140,11 +110,19 @@ def risk_framework():
                         portfolio_name,
                         s,
                         issuer_name,
+                        comp_store.information["Issuer_Country"].information["Country"],
+                        iva_rating,
                         portfolio_weight,
+                        oas,
+                        comp_store.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN"],
                         labeled_esg_type,
                         s2,
                         bclass,
+                        comp_store.information["BCLASS_Level4"].information[
+                            "INDUSTRY_BCLASS_LEVEL3"
+                        ],
                         gics,
+                        comp_store.information["GICS_SUB_IND"].information["SECTOR"],
                         level_1,
                         level_2,
                         level_3,
@@ -275,41 +253,22 @@ def risk_framework():
                     )
                 )
 
-    columns_summary = [
-        "Portfolio ISIN",
-        "Portfolio Name",
-        "Security ISIN",
-        "Issuer Name",
-        "IVA_COMPANY_RATING",
-        "Sector Level 2",
-        "BCLASS",
-        "GICS",
-        "Portfolio Weight",
-        "OAS",
-        "CARBON_EMISSIONS_SCOPE_12_INTEN",
-        "Muni Score",
-        "Securitized Score",
-        "Sovereign Score",
-        "ESRM Score",
-        "Governance Score",
-        "Transition Score",
-        "Risk_Score_Overall",
-        "SCLASS_Level1",
-        "SCLASS_Level2",
-        "SCLASS_Level3",
-        "SCLASS_Level4",
-        "SCLASS_Level4-P",
-    ]
     columns_detailed = [
         "Portfolio ISIN",
         "Portfolio Name",
         "Security ISIN",
         "Issuer Name",
+        "Issuer Country",
+        "IVA_COMPANY_RATING",
         "Portfolio Weight",
+        "OAS",
+        "CARBON_EMISSIONS_SCOPE_12_INTEN",
         "Labeled ESG Type",
         "Sector Level 2",
         "BCLASS",
+        "BCLASS_SECTOR",
         "GICS",
+        "GICS_SECTOR",
         "SCLASS_Level1",
         "SCLASS_Level2",
         "SCLASS_Level3",
@@ -400,9 +359,8 @@ def risk_framework():
         "AFFORDABLE_MSCI",
         "AFFORDABLE_ISS",
     ]
-    df_summary = pd.DataFrame(data_summary, columns=columns_summary)
     df_detailed = pd.DataFrame(data_detail, columns=columns_detailed)
-    return df_summary, df_detailed
+    return df_detailed
 
 
 def sector_subset(gics_list, bclass_list):

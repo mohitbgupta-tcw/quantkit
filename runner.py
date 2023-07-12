@@ -236,7 +236,9 @@ class Runner(loader.Runner):
         logging.log("Iterate Securitized")
         for sec in self.portfolio_datasource.securitized:
             self.portfolio_datasource.securitized[sec].iter(
-                gics_d=self.gics_datasource.gics
+                regions_df=self.region_datasource.df,
+                regions=self.region_datasource.regions,
+                gics_d=self.gics_datasource.gics,
             )
 
     def iter_muni(self):
@@ -245,7 +247,11 @@ class Runner(loader.Runner):
         """
         logging.log("Iterate Munis")
         for m in self.portfolio_datasource.munis:
-            self.portfolio_datasource.munis[m].iter(gics_d=self.gics_datasource.gics)
+            self.portfolio_datasource.munis[m].iter(
+                regions_df=self.region_datasource.df,
+                regions=self.region_datasource.regions,
+                gics_d=self.gics_datasource.gics,
+            )
 
     def iter_companies(self):
         """

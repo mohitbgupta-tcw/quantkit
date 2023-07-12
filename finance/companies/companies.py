@@ -1412,18 +1412,29 @@ class MuniStore(HeadStore):
                 self.securities[s].information["SClass_Level4-P"] = "Not Scored"
         return
 
-    def iter(self, gics_d: dict):
+    def iter(self, regions_df: pd.DataFrame, regions: dict, gics_d: dict):
         """
         - attach GICS information
         - attach exclusions
+        - attach region
 
         Parameters
         ----------
+        regions_df: pd.DataFrame
+            DataFrame of regions information
+        regions: dict
+            dictionary of all region objects
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
         """
+        # attach GICS
         self.attach_gics(gics_d)
+
+        # attach exclusions
         self.exclusion()
+
+        # attach region
+        self.attach_region(regions_df, regions)
         return
 
 
@@ -1624,13 +1635,18 @@ class SecuritizedStore(HeadStore):
                 self.securities[s].information["SClass_Level4-P"] = "Not Scored"
         return
 
-    def iter(self, gics_d: dict):
+    def iter(self, regions_df: pd.DataFrame, regions: dict, gics_d: dict):
         """
         - attach GICS information
         - attach exclusions
+        - attach region
 
         Parameters
         ----------
+        regions_df: pd.DataFrame
+            DataFrame of regions information
+        regions: dict
+            dictionary of all region objects
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
         """
@@ -1639,6 +1655,9 @@ class SecuritizedStore(HeadStore):
 
         # attach exclusions
         self.exclusion()
+
+        # attach region
+        self.attach_region(regions_df, regions)
         return
 
 
