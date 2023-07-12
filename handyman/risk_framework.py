@@ -249,6 +249,7 @@ def risk_framework():
                         comp_store.information.get("NUTRITION_ISS", 0),
                         comp_store.information.get("AFFORDABLE_MSCI", 0),
                         comp_store.information.get("AFFORDABLE_ISS", 0),
+                        risk_score_overall,
                     )
                 )
 
@@ -356,6 +357,7 @@ def risk_framework():
         "NUTRITION_ISS",
         "AFFORDABLE_MSCI",
         "AFFORDABLE_ISS",
+        "Risk_Score_Overall",
     ]
     df_detailed = pd.DataFrame(data_detail, columns=columns_detailed)
     return df_detailed
