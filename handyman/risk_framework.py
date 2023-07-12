@@ -118,6 +118,7 @@ def risk_framework():
                         gics,
                         portfolio_weight,
                         oas,
+                        comp_store.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN"],
                         muni_score,
                         sec_score,
                         sov_score,
@@ -285,6 +286,7 @@ def risk_framework():
         "GICS",
         "Portfolio Weight",
         "OAS",
+        "CARBON_EMISSIONS_SCOPE_12_INTEN",
         "Muni Score",
         "Securitized Score",
         "Sovereign Score",
@@ -549,11 +551,11 @@ def isin_lookup(isin_list: list):
     r.init()
     r.run()
     data = []
-    for p in r.portfolios:
-        portfolio_isin = r.portfolios[p].id
-        portfolio_name = r.portfolios[p].name
-        for s in r.portfolios[p].holdings:
-            sec_store = r.portfolios[p].holdings[s]["object"]
+    for p in r.portfolio_datasource.portfolios:
+        portfolio_isin = r.portfolio_datasource.portfolios[p].id
+        portfolio_name = r.portfolio_datasource.portfolios[p].name
+        for s in r.portfolio_datasource.portfolios[p].holdings:
+            sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
             issuer_name = sec_store.information["IssuerName"]
             ticker = comp_store.msci_information["ISSUER_TICKER"]
@@ -625,7 +627,9 @@ def isin_lookup(isin_list: list):
                 gov_score = 4
                 esrm_score = 1
 
-            holding_measures = r.portfolios[p].holdings[s]["holding_measures"]
+            holding_measures = r.portfolio_datasource.portfolios[p].holdings[s][
+                "holding_measures"
+            ]
             for h in holding_measures:
                 portfolio_weight = h["Portfolio_Weight"]
                 oas = h["OAS"]
@@ -656,6 +660,30 @@ def isin_lookup(isin_list: list):
                         level_3,
                         level_4,
                         level_4p,
+                        comp_store.information.get("RENEWENERGY_MSCI", 0),
+                        comp_store.information.get("RENEWENERGY_ISS", 0),
+                        comp_store.information.get("MOBILITY_MSCI", 0),
+                        comp_store.information.get("MOBILITY_ISS", 0),
+                        comp_store.information.get("CIRCULARITY_MSCI", 0),
+                        comp_store.information.get("CIRCULARITY_ISS", 0),
+                        comp_store.information.get("CCADAPT_MSCI", 0),
+                        comp_store.information.get("CCADAPT_ISS", 0),
+                        comp_store.information.get("BIODIVERSITY_MSCI", 0),
+                        comp_store.information.get("BIODIVERSITY_ISS", 0),
+                        comp_store.information.get("SMARTCITIES_MSCI", 0),
+                        comp_store.information.get("SMARTCITIES_ISS", 0),
+                        comp_store.information.get("EDU_MSCI", 0),
+                        comp_store.information.get("EDU_ISS", 0),
+                        comp_store.information.get("HEALTH_MSCI", 0),
+                        comp_store.information.get("HEALTH_ISS", 0),
+                        comp_store.information.get("SANITATION_MSCI", 0),
+                        comp_store.information.get("SANITATION_ISS", 0),
+                        comp_store.information.get("INCLUSION_MSCI", 0),
+                        comp_store.information.get("INCLUSION_ISS", 0),
+                        comp_store.information.get("NUTRITION_MSCI", 0),
+                        comp_store.information.get("NUTRITION_ISS", 0),
+                        comp_store.information.get("AFFORDABLE_MSCI", 0),
+                        comp_store.information.get("AFFORDABLE_ISS", 0),
                     )
                 )
 
@@ -685,6 +713,30 @@ def isin_lookup(isin_list: list):
         "SCLASS_Level3",
         "SCLASS_Level4",
         "SCLASS_Level4-P",
+        "RENEWENERGY_MSCI",
+        "RENEWENERGY_ISS",
+        "MOBILITY_MSCI",
+        "MOBILITY_ISS",
+        "CIRCULARITY_MSCI",
+        "CIRCULARITY_ISS",
+        "CCADAPT_MSCI",
+        "CCADAPT_ISS",
+        "BIODIVERSITY_MSCI",
+        "BIODIVERSITY_ISS",
+        "SMARTCITIES_MSCI",
+        "SMARTCITIES_ISS",
+        "EDU_MSCI",
+        "EDU_ISS",
+        "HEALTH_MSCI",
+        "HEALTH_ISS",
+        "SANITATION_MSCI",
+        "SANITATION_ISS",
+        "INCLUSION_MSCI",
+        "INCLUSION_ISS",
+        "NUTRITION_MSCI",
+        "NUTRITION_ISS",
+        "AFFORDABLE_MSCI",
+        "AFFORDABLE_ISS",
     ]
 
     df = pd.DataFrame(data, columns=columns)

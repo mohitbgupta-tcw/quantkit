@@ -116,6 +116,10 @@ class PortfolioDataSource(ds.DataSources):
 
         # save all securities that occur in portfolios to filter down security database later on
         self.all_holdings = list(self.df["ISIN"].unique())
+        self.all_holdings.append(
+            "NoISIN"
+        ) if "NoISIN" not in self.all_holdings else self.all_holdings
+
         return
 
     def iter_holdings(
