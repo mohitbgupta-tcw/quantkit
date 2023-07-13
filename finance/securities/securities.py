@@ -40,7 +40,7 @@ class SecurityStore(object):
         self.information["SClass_Level4-P"] = "Average ESG Score"
         self.information["SClass_Level5"] = "Unknown"
 
-    def add_parent(self, parent):
+    def add_parent(self, parent) -> None:
         """
         Add parent store to security
 
@@ -50,7 +50,6 @@ class SecurityStore(object):
             parent store
         """
         self.parent_store = parent
-        return
 
 
 class EquityStore(SecurityStore):

@@ -22,23 +22,21 @@ class BloombergDataSource(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Bloomberg Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
+        pass
 
-        return
-
-    def iter(self, companies: dict):
+    def iter(self, companies: dict) -> None:
         """
         Attach bloomberg information to company objects
 
@@ -62,10 +60,9 @@ class BloombergDataSource(ds.DataSources):
         for c in companies:
             if not hasattr(companies[c], "bloomberg_information"):
                 companies[c].bloomberg_information = deepcopy(empty_bloomberg)
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

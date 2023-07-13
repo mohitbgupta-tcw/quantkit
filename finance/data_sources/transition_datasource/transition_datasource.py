@@ -34,25 +34,23 @@ class TransitionDataSource(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Transition Mapping Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
-        None
+        - Title BCLASS (REITs -> Reits)
         """
         self.datasource.df["BCLASS_LEVEL4"] = self.datasource.df[
             "BCLASS_LEVEL4"
         ].str.title()
-        return
 
-    def iter(self, gics: dict, bclass: dict):
+    def iter(self, gics: dict, bclass: dict) -> None:
         """
         For each Sub-Sector, assign transition targets and transition revenue
 
@@ -89,7 +87,7 @@ class TransitionDataSource(ds.DataSources):
                 bclass[bclass4].add_transition(row.to_dict())
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

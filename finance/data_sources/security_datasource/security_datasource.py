@@ -62,7 +62,7 @@ class SecurityDataSource(object):
         self.fixed_income = dict()
         self.other_securities = dict()
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
@@ -72,9 +72,8 @@ class SecurityDataSource(object):
         self.iss.datasource.load()
         self.iss.transform_df()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         Several transformations
         """
@@ -130,9 +129,8 @@ class SecurityDataSource(object):
         df_.reset_index()
 
         self.df_ = df_
-        return
 
-    def issuer_ids(self, securities: list):
+    def issuer_ids(self, securities: list) -> list:
         """
         For a list of isin's, return the corresponding MSCI ISSUERIDs
 
@@ -158,7 +156,7 @@ class SecurityDataSource(object):
         df_portfolio: pd.DataFrame,
         msci_df: pd.DataFrame,
         adjustment_df: pd.DataFrame,
-    ):
+    ) -> None:
         """
         - create Company object for each security with key ISIN
         - create Security object with key Security ISIN
@@ -250,10 +248,9 @@ class SecurityDataSource(object):
                     ignore_index=True,
                     sort=False,
                 )
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------
@@ -276,8 +273,8 @@ class SecurityData(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass

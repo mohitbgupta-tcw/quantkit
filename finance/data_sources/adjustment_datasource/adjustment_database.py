@@ -1,5 +1,6 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
+import pandas as pd
 
 
 class AdjustmentDataSource(ds.DataSources):
@@ -39,26 +40,24 @@ class AdjustmentDataSource(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Adjustment Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         Sort datasource descending by 'Adjustment'
         """
         self.datasource.df = self.datasource.df.sort_values(
             by=["Adjustment"], ascending=False
         )
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

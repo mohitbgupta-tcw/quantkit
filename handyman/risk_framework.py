@@ -1,16 +1,15 @@
 import quantkit.runner as runner
 import quantkit.utils.configs as configs
-import quantkit.utils.util_functions as util_functions
+import quantkit.utils.data_loaders as data_loaders
 import pandas as pd
 import numpy as np
 import json
 
 
-def risk_framework():
+def risk_framework() -> pd.DataFrame:
     """
-    Run risk framework
-
-    In future: enter portfolio id and run framework
+    Run risk framework and return detailed DataFrame with portfolio and
+    security information
 
     Returns
     -------
@@ -363,11 +362,9 @@ def risk_framework():
     return df_detailed
 
 
-def sector_subset(gics_list, bclass_list):
+def sector_subset(gics_list, bclass_list) -> pd.DataFrame:
     """
     Run risk framework and return scores for specific industries
-
-    In future: enter portfolio id and run framework
 
     Parameters
     ----------
@@ -379,7 +376,7 @@ def sector_subset(gics_list, bclass_list):
     Returns
     -------
     pd.DataFrame
-
+        Summary DataFrame for specific industries
     """
     r = runner.Runner()
     r.init()
@@ -449,9 +446,9 @@ def sector_subset(gics_list, bclass_list):
     return df
 
 
-def isin_lookup(isin_list: list):
+def isin_lookup(isin_list: list) -> pd.DataFrame:
     """
-    For a list of ISINs, run the riskframework
+    For a list of ISINs, run the risk framework
 
     Parameters
     ----------
@@ -461,6 +458,7 @@ def isin_lookup(isin_list: list):
     Returns
     -------
     pd.DataFrame
+        Summary DataFrame with score data for entered isins
     """
 
     params = configs.read_configs()
@@ -487,7 +485,7 @@ def isin_lookup(isin_list: list):
     portfolio_df = portfolio_df.to_json(orient="index")
 
     # create msci mapping file
-    msci_df = util_functions.create_msci_mapping(isin_list=isin_list, params=params)
+    msci_df = data_loaders.create_msci_mapping(isin_list=isin_list, params=params)
     msci_df = msci_df.to_json(orient="index")
 
     configs_overwrite = {

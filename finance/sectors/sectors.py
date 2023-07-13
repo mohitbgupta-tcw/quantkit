@@ -1,5 +1,6 @@
 import quantkit.mathstats.median.median as median
 import pandas as pd
+import numpy as np
 from typing import Union
 
 
@@ -44,7 +45,7 @@ class Industry(object):
         else:
             self.initial_score = 3
 
-    def calculate_quantiles(self):
+    def calculate_quantiles(self) -> np.array:
         """
         Calculate quantiles for carbon intensity based on Q_Low and Q_High
 
@@ -56,7 +57,7 @@ class Industry(object):
         return self.carbon_median.quantiles([self.Q_Low, self.Q_High])
 
     @property
-    def median(self):
+    def median(self) -> float:
         """
         Median for carbon intensity out of all companies attached to this Industry
 
@@ -67,7 +68,7 @@ class Industry(object):
         """
         return self.carbon_median.median
 
-    def update(self, carbon_intensity: float):
+    def update(self, carbon_intensity: float) -> None:
         """
         update Industry information such as collecting carbon intensity whenever company is added to Industry
         and calcualte quantiles based on new value, update Industry specific Q_Low and Q_High
@@ -81,7 +82,7 @@ class Industry(object):
         self.quantiles = self.calculate_quantiles()
         self.Q_Low_score, self.Q_High_score = self.quantiles[0], self.quantiles[1]
 
-    def add_sub_sector(self, sub_sector):
+    def add_sub_sector(self, sub_sector) -> None:
         """
         Add sub sector object
 
@@ -91,7 +92,6 @@ class Industry(object):
         """
         ss_name = sub_sector.class_name
         self.sub_sectors[ss_name] = sub_sector
-        return
 
 
 class BClass(object):
@@ -117,7 +117,7 @@ class BClass(object):
         self.class_name = class_name
         self.information = row_information.to_dict()
 
-    def add_sector(self, sector):
+    def add_sector(self, sector) -> None:
         """
         Add main sector object (GICS or BClass)
 
@@ -127,9 +127,8 @@ class BClass(object):
             main sector
         """
         self.sector = sector
-        return
 
-    def add_industry(self, industry: Industry):
+    def add_industry(self, industry: Industry) -> None:
         """
         Add main Industry object
 
@@ -139,9 +138,8 @@ class BClass(object):
             industry object
         """
         self.industry = industry
-        return
 
-    def add_transition(self, transition: dict):
+    def add_transition(self, transition: dict) -> None:
         """
         Add transition targets
 
@@ -151,7 +149,6 @@ class BClass(object):
             transition target
         """
         self.transition = transition
-        return
 
 
 class GICS(object):
@@ -177,7 +174,7 @@ class GICS(object):
         self.class_name = class_name
         self.information = row_information.to_dict()
 
-    def add_sector(self, sector):
+    def add_sector(self, sector) -> None:
         """
         Add main sector object (GICS or BClass)
 
@@ -187,9 +184,8 @@ class GICS(object):
             main sector
         """
         self.sector = sector
-        return
 
-    def add_industry(self, industry: Industry):
+    def add_industry(self, industry: Industry) -> None:
         """
         Add main Industry object
 
@@ -199,9 +195,8 @@ class GICS(object):
             industry object
         """
         self.industry = industry
-        return
 
-    def add_transition(self, transition: dict):
+    def add_transition(self, transition: dict) -> None:
         """
         Add transition targets
 
@@ -211,7 +206,6 @@ class GICS(object):
             transition target
         """
         self.transition = transition
-        return
 
 
 class Sector(object):
@@ -232,7 +226,7 @@ class Sector(object):
         self.name = name
         self.sub_sectors = dict()
 
-    def add_sub_sector(self, sub_sector: Union[BClass, GICS]):
+    def add_sub_sector(self, sub_sector: Union[BClass, GICS]) -> None:
         """
         Add sub sector object to sector
 
@@ -242,4 +236,3 @@ class Sector(object):
             BClass or GICS sub sector object
         """
         self.sub_sectors[sub_sector.class_name] = sub_sector
-        return

@@ -11,7 +11,7 @@ class Category(object):
     def __init__(self, name):
         self.name = name
 
-    def add_esrm_df(self, esrm_df: pd.DataFrame):
+    def add_esrm_df(self, esrm_df: pd.DataFrame) -> None:
         """
         Attach ESRM df to category
 
@@ -20,9 +20,8 @@ class Category(object):
             DataFrame with esrm information
         """
         self.esrm_df = esrm_df
-        return
 
-    def add_DM_flags(self, dm_flags: list):
+    def add_DM_flags(self, dm_flags: list) -> None:
         """
         Attach flag thresholds for developed markets
 
@@ -32,9 +31,8 @@ class Category(object):
             ordered list of thresholds
         """
         self.DM_flags = dm_flags
-        return
 
-    def add_EM_flags(self, em_flags: list):
+    def add_EM_flags(self, em_flags: list) -> None:
         """
         Attach flag thresholds for emerging markets
 
@@ -44,4 +42,3 @@ class Category(object):
             ordered list of thresholds
         """
         self.EM_flags = em_flags
-        return

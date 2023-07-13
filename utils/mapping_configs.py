@@ -33,3 +33,17 @@ security_type_mapping = {
     "Muni": comp.MuniStore,
     "Sovereign": comp.SovereignStore,
 }
+
+TargetA = ["Approved SBT"]
+TargetAA = ["Approved SBT", "Ambitious Target"]
+TargetAAC = ["Approved SBT", "Committed SBT", "Ambitious Target"]
+TargetAACN = [
+    "Approved SBT",
+    "Committed SBT",
+    "Ambitious Target",
+    "Non-Ambitious Target",
+]
+TargetAC = ["Approved SBT", "Committed SBT"]
+TargetCA = ["Committed SBT", "Ambitious Target"]
+TargetCN = ["Committed SBT", "Non-Ambitious Target"]
+TargetN = ["Non-Ambitious Target"]

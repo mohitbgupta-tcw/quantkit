@@ -30,7 +30,7 @@ class MSCI(object):
         self.url = url
         self.filters = filters
 
-    def load(self):
+    def load(self) -> None:
         """
         Load data from MSCI API and save as pd.DataFrame in self.df
         """
@@ -69,4 +69,3 @@ class MSCI(object):
                 logging.log(message)
             df = pd.DataFrame(response.json()["result"]["issuers"])
             self.df = pd.concat([self.df, df], ignore_index=True)
-        return

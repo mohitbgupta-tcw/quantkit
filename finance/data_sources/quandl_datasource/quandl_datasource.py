@@ -22,7 +22,7 @@ class QuandlDataSource(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def load(self, ticker: list):
+    def load(self, ticker: list) -> None:
         """
         load data and transform dataframe
 
@@ -37,15 +37,14 @@ class QuandlDataSource(ds.DataSources):
 
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass
 
-    def iter(self, companies: dict):
+    def iter(self, companies: dict) -> None:
         """
         Attach quandl information to company objects
 
@@ -65,10 +64,9 @@ class QuandlDataSource(ds.DataSources):
                 companies[c].quandl_information = quandl_information.squeeze().to_dict()
             else:
                 companies[c].quandl_information = deepcopy(empty_quandl)
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

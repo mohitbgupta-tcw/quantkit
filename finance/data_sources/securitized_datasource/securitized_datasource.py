@@ -1,5 +1,6 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
+import pandas as pd
 
 
 class SecuritizedDataSource(ds.DataSources):
@@ -34,22 +35,21 @@ class SecuritizedDataSource(ds.DataSources):
         super().__init__(params)
         self.securitized_mapping = dict()
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Securitized Mapping")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass
 
-    def iter(self):
+    def iter(self) -> None:
         """
         Iterate over securitized mapping and add to dictionary
         """
@@ -58,7 +58,7 @@ class SecuritizedDataSource(ds.DataSources):
             self.securitized_mapping[collat_type] = row.to_dict()
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

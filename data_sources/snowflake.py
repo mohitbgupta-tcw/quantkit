@@ -56,7 +56,7 @@ class Snowflake(object):
         }
         self.table_name = table_name
 
-    def load(self):
+    def load(self) -> None:
         """
         Load data from snowflake and save as pd.DataFrame in self.df
         """
@@ -70,4 +70,3 @@ class Snowflake(object):
 
         df_table = session.sql(query)
         self.df = pd.DataFrame(df_table.collect())
-        return

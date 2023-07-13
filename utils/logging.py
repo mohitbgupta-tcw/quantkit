@@ -1,7 +1,7 @@
 import logging
 
 
-def log(message):
+def log(message) -> None:
     """
     log message into console
     format:
@@ -17,4 +17,3 @@ def log(message):
     logging.basicConfig(format=FORMAT)
     logger = logging.getLogger("tcpserver")
     logger.warning("WORKING ON: %s", message)
-    return

@@ -3,7 +3,7 @@ import quantkit.data_sources.excel as ds_excel
 import quantkit.data_sources.snowflake as snowflake
 import quantkit.data_sources.msci as msci
 import quantkit.data_sources.quandl as quandl
-import quantkit.data_sources.json_ds as json_api
+import quantkit.data_sources.json_ds as json_ds
 import quantkit.utils.configs as configs
 
 
@@ -23,6 +23,7 @@ class DataSources(object):
     def __init__(self, params: dict):
         self.params = params
 
+        # ignore datasource if load is False
         if not params["load"]:
             self.datasource = blank.Blank()
 
@@ -59,9 +60,9 @@ class DataSources(object):
 
         # JSON
         elif params["source"] == 6:
-            self.datasource = json_api.JSON(json_str=params["json_str"])
+            self.datasource = json_ds.JSON(json_str=params["json_str"])
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         Transformations to DataFrame
         """

@@ -14,7 +14,7 @@ class Microsoft(object):
     def __init__(self, file: str):
         self.file = file
 
-    def load(self):
+    def load(self) -> None:
         """
         Load file and save data as pd.DataFrame in self.df
         """
@@ -34,7 +34,7 @@ class CSV(Microsoft):
     def __init__(self, file):
         super().__init__(file)
 
-    def load(self):
+    def load(self) -> None:
         """
         Load csv file and save data as pd.DataFrame in self.df
         """
@@ -60,7 +60,7 @@ class Excel(Microsoft):
         self.engine = engine
         super().__init__(file)
 
-    def load(self):
+    def load(self) -> None:
         """
         Load Excel file and save data as pd.DataFrame in self.df
         """

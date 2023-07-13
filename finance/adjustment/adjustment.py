@@ -1,7 +1,4 @@
-from typing import Union
-
-
-def planet_people(store, adjustment: str, themes: dict, theme: str):
+def planet_people(store, adjustment: str, themes: dict, theme: str) -> None:
     """
     Do analyst adjustments for Thematic Type 'Planet' and 'People'
     Add or delete Theme and Sustainability Tag to company
@@ -26,10 +23,9 @@ def planet_people(store, adjustment: str, themes: dict, theme: str):
         store.information["Primary_Rev_Sustainable"] = themes[theme]
     else:
         raise ValueError("Adjustment value should either be 'Addition' or 'Deletion'")
-    return
 
 
-def Planet(store, adjustment: str, themes: dict, theme: str, **kwargs):
+def Planet(store, adjustment: str, themes: dict, theme: str, **kwargs) -> None:
     """
     Do analyst adjustments for Thematic Type 'Planet'
     Add or delete Theme and Sustainability Tag to company
@@ -45,10 +41,10 @@ def Planet(store, adjustment: str, themes: dict, theme: str, **kwargs):
     theme: str
         theme to be added or deleted to company
     """
-    return planet_people(store=store, adjustment=adjustment, themes=themes, theme=theme)
+    planet_people(store=store, adjustment=adjustment, themes=themes, theme=theme)
 
 
-def People(store, adjustment: str, themes: dict, theme: str, **kwargs):
+def People(store, adjustment: str, themes: dict, theme: str, **kwargs) -> None:
     """
     Do analyst adjustments for Thematic Type 'People'
     Add or delete Theme and Sustainability Tag to company
@@ -64,10 +60,10 @@ def People(store, adjustment: str, themes: dict, theme: str, **kwargs):
     theme: str
         theme to be added or deleted to company
     """
-    return planet_people(store=store, adjustment=adjustment, themes=themes, theme=theme)
+    planet_people(store=store, adjustment=adjustment, themes=themes, theme=theme)
 
 
-def Risk(store, adjustment: str, theme: str, comment: str, **kwargs):
+def Risk(store, adjustment: str, theme: str, comment: str, **kwargs) -> None:
     """
     Do analyst adjustments for Thematic Type 'Risk'
     adjust scores (ESRM, Muni, Governance, Transition) for company
@@ -98,10 +94,8 @@ def Risk(store, adjustment: str, theme: str, comment: str, **kwargs):
         store.scores["Review_Comments"] += " & "
     store.scores["Review_Comments"] += str(comment)
 
-    return
 
-
-def Transition(store, adjustment: str, theme: str, **kwargs):
+def Transition(store, adjustment: str, theme: str, **kwargs) -> None:
     """
     Do analyst adjustments for Thematic Type 'Transition'
     Add or delete Transition Category and Transition Tag to company
@@ -126,4 +120,3 @@ def Transition(store, adjustment: str, theme: str, **kwargs):
             store.scores["Transition_Category"].append(theme)
     else:
         raise ValueError("Adjustment value should either be 'Addition' or 'Deletion'")
-    return

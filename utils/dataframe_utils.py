@@ -1,7 +1,9 @@
 import pandas as pd
 
 
-def group_mode(df: pd.DataFrame, group_by_column: str, mode_column: str):
+def group_mode(
+    df: pd.DataFrame, group_by_column: str, mode_column: str
+) -> pd.DataFrame:
     """
     For a DataFrame, find the mode of a column for each group of another column.
 

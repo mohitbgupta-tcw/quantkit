@@ -1,5 +1,5 @@
 import pandas as pd
-from typing import Union
+import quantkit.utils.util_functions as util_functions
 
 
 class Theme(object):
@@ -48,7 +48,7 @@ class Theme(object):
         self.params = params
         self.companies = dict()
 
-    def add_ISS(self):
+    def add_ISS(self) -> list:
         """
         Add data fields from ISS. These data fields are used to check if company should be
         assigned to this theme.
@@ -61,13 +61,10 @@ class Theme(object):
         ISS1Uniques = set(self.information_df["ISS 1"].unique())
         ISS2Uniques = set(self.information_df["ISS 2"].unique())
         iss_list = ISS1Uniques.union(ISS2Uniques)
-        iss_cols = []
-        for iss in iss_list:
-            if not (pd.isna(iss) or iss in iss_cols):
-                iss_cols.append(iss)
+        iss_cols = util_functions.iter_list(iss_list)
         return iss_cols
 
-    def add_MSCI_sub(self):
+    def add_MSCI_sub(self) -> list:
         """
         Add data fields from MSCI. These data fields are used to check if company should be
         assigned to this theme.
@@ -78,13 +75,10 @@ class Theme(object):
             list of theme specific columns provided by MSCI
         """
         msci_list = set(self.information_df["MSCI Subcategories"].unique())
-        msci_sub = []
-        for sub in msci_list:
-            if not (pd.isna(sub) or sub in msci_sub):
-                msci_sub.append(sub)
+        msci_sub = util_functions.iter_list(msci_list)
         return msci_sub
 
-    def add_product_key(self):
+    def add_product_key(self) -> list:
         """
         Add theme specific words. When these words occur in company's description,
         it is more likely that this company belongs to theme
@@ -95,114 +89,12 @@ class Theme(object):
             list of theme specific words
         """
         product_list = set(self.information_df["ProductKeyAdd"].unique())
-        product_key_add = []
-        for p in product_list:
-            if not (pd.isna(p) or p in product_key_add):
-                product_key_add.append(p)
+        product_key_add = util_functions.iter_list(product_list)
         return product_key_add
-
-    def exclude_rule(self, industry: str, exclusions: list, **kwargs):
-        """
-        Checks if a company's industry is in exclusion list
-        (list of industries company's industry should not be in to be included in theme)
-        if industry is excluded, return False, else True
-
-        Parameters
-        ----------
-        industry: str
-            name of industry company belongs to
-        exclusions: list
-            list of industries for exclusion
-
-        Returns
-        -------
-        bool
-            industry excluded
-        """
-        if industry in exclusions:
-            return False
-        return True
-
-    def include_rule(self, industry: str, inclusions: list, **kwargs):
-        """
-        Checks if a company's industry is in inclusion list
-        (list of industries company's industry should be in to be included in theme)
-
-        Parameters
-        ----------
-        industry: str
-            name of industry company belongs to
-        exclusions: list
-            list of industries for inclusion
-
-        Returns
-        -------
-        bool
-            industry included
-        """
-        if industry in inclusions:
-            return True
-        return False
-
-    def bool_rule(self, b: bool, **kwargs):
-        """
-        Check if boolean is True.
-
-        Parameters
-        ----------
-        b: bool
-            boolean to be checked
-
-        Returns
-        -------
-        bool
-            input is True
-        """
-        if b == True:
-            return True
-        return False
-
-    def reverse_bool_rule(self, b: bool, **kwargs):
-        """
-        Reverse a boolean: if True, return False. If False or nan, return True
-
-        Parameters
-        ----------
-        b: bool
-            boolean to be checked
-
-        Returns
-        -------
-        bool
-            Input is False
-        """
-        if b == True:
-            return False
-        return True
-
-    def bigger_eq_rule(self, val: float, threshold: float, **kwargs):
-        """
-        Check if value inputted is bigger or equal than specified threshold
-
-        Parameters
-        ----------
-        val: float
-            value
-        threshold: float
-            threshold value
-
-        Returns
-        -------
-        bool
-            input is bigger than threshold
-        """
-        if val >= threshold:
-            return True
-        return False
 
     def exclusion_key_rule(
         self, industry: str, exclusions: list, iss_key: bool, **kwargs
-    ):
+    ) -> bool:
         """
         Two way rule: either industry is not in exclusions or if industry is in exclusions,
         check if company has keyword for theme
@@ -221,13 +113,15 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.exclude_rule(industry, exclusions) or self.bool_rule(iss_key):
+        if util_functions.exclude_rule(
+            industry, exclusions
+        ) or util_functions.bool_rule(iss_key):
             return True
         return False
 
     def inclusion_key_rule(
         self, industry: str, inclusions: list, iss_key: bool, **kwargs
-    ):
+    ) -> bool:
         """
         Two way rule: either industry is in inclusions or check if company has keyword for theme
 
@@ -245,31 +139,15 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.include_rule(industry, inclusions) or self.bool_rule(iss_key):
+        if util_functions.include_rule(
+            industry, inclusions
+        ) or util_functions.bool_rule(iss_key):
             return True
         return False
 
-    def revenue_bigger_rule(self, rev: float, min_revenue: float, **kwargs):
-        """
-        Check if revenue inputted is bigger or equal than specified minimum value
-
-        Parameters
-        ----------
-        rev: float
-            revenue
-        min_revenue: float
-            minimum revenue threshold
-
-        Returns
-        -------
-        bool
-            rule is fulfilled
-        """
-        return self.bigger_eq_rule(rev, min_revenue)
-
     def min_revenue_rule(
         self, msci_rev: float, iss_rev: float, revenue_threshold: float, **kwargs
-    ):
+    ) -> bool:
         """
         Check if either revenue calculated on MSCI or ISS measures is bigger than threshold
 
@@ -287,29 +165,11 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.revenue_bigger_rule(
+        if util_functions.bigger_eq_rule(
             msci_rev, revenue_threshold
-        ) or self.revenue_bigger_rule(iss_rev, revenue_threshold):
+        ) or util_functions.bigger_eq_rule(iss_rev, revenue_threshold):
             return True
         return False
-
-    def CapEx_rule(self, capex: float, capex_threshold: float, **kwargs):
-        """
-        Check if capex inputted is bigger or equal than specified minimum value
-
-        Parameters
-        ----------
-        capex: float
-            capex
-        capex_threshold: float
-            minimum capex threshold
-
-        Returns
-        -------
-        bool
-            rule is fulfilled
-        """
-        return self.bigger_eq_rule(capex, capex_threshold)
 
     def revenue_capex_rule(
         self,
@@ -319,7 +179,7 @@ class Theme(object):
         capex: float,
         capex_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if MSCI or ISS revenue is bigger than revenue threshold
         AND
@@ -343,9 +203,9 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.min_revenue_rule(msci_rev, iss_rev, min_revenue) and self.CapEx_rule(
-            capex, capex_threshold
-        ):
+        if self.min_revenue_rule(
+            msci_rev, iss_rev, min_revenue
+        ) and util_functions.bigger_eq_rule(capex, capex_threshold):
             return True
         return False
 
@@ -358,7 +218,7 @@ class Theme(object):
         capex: float,
         capex_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if MSCI or ISS revenue is bigger than revenue threshold
         OR
@@ -401,7 +261,7 @@ class Theme(object):
         iss_rev: float,
         revenue_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if ISS revenue is bigger than revenue threshold
         AND
@@ -425,7 +285,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.revenue_bigger_rule(
+        if util_functions.bigger_eq_rule(
             iss_rev, revenue_threshold
         ) and self.inclusion_key_rule(industry, inclusions, iss_key):
             return True
@@ -438,7 +298,7 @@ class Theme(object):
         msci_rev: float,
         revenue_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if MSCI revenue is bigger than revenue threshold
         AND
@@ -460,9 +320,9 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.revenue_bigger_rule(msci_rev, revenue_threshold) and self.include_rule(
-            industry, inclusions
-        ):
+        if util_functions.bigger_eq_rule(
+            msci_rev, revenue_threshold
+        ) and util_functions.include_rule(industry, inclusions):
             return True
         return False
 
@@ -475,7 +335,7 @@ class Theme(object):
         iss_rev: float,
         revenue_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if MSCI revenue is bigger than revenue threshold
         OR
@@ -505,7 +365,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.revenue_bigger_rule(
+        if util_functions.bigger_eq_rule(
             msci_rev, revenue_threshold
         ) or self.ISS_inclusion_key_rule(
             inclusions, industry, iss_key, iss_rev, revenue_threshold
@@ -525,7 +385,7 @@ class Theme(object):
         capex: float,
         capex_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         (
             Check if MSCI revenue is bigger than revenue threshold
@@ -584,7 +444,7 @@ class Theme(object):
         social_inclusion: float,
         si_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Checks if a company's industry is in inclusion list
         AND
@@ -606,9 +466,9 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.include_rule(industry, inclusions) and self.bigger_eq_rule(
-            social_inclusion, si_threshold
-        ):
+        if util_functions.include_rule(
+            industry, inclusions
+        ) and util_functions.bigger_eq_rule(social_inclusion, si_threshold):
             return True
         return False
 
@@ -621,7 +481,7 @@ class Theme(object):
         social_inclusion: float,
         si_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check is MSCI revenue is bigger than minimum revenue threshold
         OR
@@ -651,7 +511,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.revenue_bigger_rule(
+        if util_functions.bigger_eq_rule(
             msci_rev, revenue_threshold
         ) or self.social_impact_revenue_inclusion_rule(
             industry, inclusions, social_inclusion, si_threshold
@@ -671,7 +531,7 @@ class Theme(object):
         social_connect: float,
         sc_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if
         (
@@ -716,8 +576,8 @@ class Theme(object):
             self.ISS_inclusion_key_rule(
                 inclusions, industry, iss_key, iss_rev, revenue_threshold
             )
-            or self.bigger_eq_rule(social_fin, sf_threshold)
-            or self.bigger_eq_rule(social_connect, sc_threshold)
+            or util_functions.bigger_eq_rule(social_fin, sf_threshold)
+            or util_functions.bigger_eq_rule(social_connect, sc_threshold)
         ):
             return True
         return False
@@ -731,7 +591,7 @@ class Theme(object):
         trailing_rd_sales: float,
         sales_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if
         (
@@ -763,9 +623,9 @@ class Theme(object):
             rule is fulfilled
         """
         if (
-            self.bigger_eq_rule(acc_to_health, acc_threshold)
-            or self.bigger_eq_rule(trailing_rd_sales, sales_threshold)
-        ) and self.include_rule(industry, inclusions):
+            util_functions.bigger_eq_rule(acc_to_health, acc_threshold)
+            or util_functions.bigger_eq_rule(trailing_rd_sales, sales_threshold)
+        ) and util_functions.include_rule(industry, inclusions):
             return True
         return False
 
@@ -780,7 +640,7 @@ class Theme(object):
         trailing_rd_sales: float,
         sales_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if
         MSCI revenue is bigger than threshold
@@ -817,7 +677,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.revenue_bigger_rule(
+        if util_functions.bigger_eq_rule(
             msci_rev, revenue_threshold
         ) and self.health_factors(
             industry,
@@ -845,7 +705,7 @@ class Theme(object):
         trailing_rd_sales: float,
         sales_threshold: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if
         (
@@ -914,8 +774,8 @@ class Theme(object):
                 sales_threshold,
             )
             or self.MSCI_inclusion_rule(health2, industry, msci_rev, revenue_threshold)
-            or self.include_rule(industry, health3)
-            or self.bigger_eq_rule(orphan_drug_rev, orphan_drug_threshold)
+            or util_functions.include_rule(industry, health3)
+            or util_functions.bigger_eq_rule(orphan_drug_rev, orphan_drug_threshold)
         ):
             return True
         return False
@@ -928,7 +788,7 @@ class Theme(object):
         iss_rev: float,
         capex: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if a company should be assigned to RENEWENERGY theme
 
@@ -955,7 +815,7 @@ class Theme(object):
             iss_rev = 0
 
         if (
-            self.exclude_rule(industry, self.params["ALL_exclusions"])
+            util_functions.exclude_rule(industry, self.params["ALL_exclusions"])
             and self.exclusion_key_rule(
                 industry=industry, iss_key=iss_key, **self.params["RENEWENERGY"]
             )
@@ -977,7 +837,7 @@ class Theme(object):
         iss_rev: float,
         capex: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if a company should be assigned to MOBILITY theme
 
@@ -1002,7 +862,7 @@ class Theme(object):
         if not iss_key:
             iss_rev = 0
 
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.MSCI_ISS_inclusion_key_capex_rule(
             industry=industry,
@@ -1017,7 +877,7 @@ class Theme(object):
 
     def CIRCULARITY(
         self, industry: str, iss_key: bool, msci_rev: float, iss_rev: float, **kwargs
-    ):
+    ) -> bool:
         """
         Check if a company should be assigned to CIRCULARITY theme
 
@@ -1037,7 +897,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.MSCI_ISS_inclusion_key_rule(
             industry=industry,
@@ -1049,7 +909,7 @@ class Theme(object):
             return True
         return False
 
-    def CCADAPT(self, industry: str, msci_rev: float, iss_rev: float, **kwargs):
+    def CCADAPT(self, industry: str, msci_rev: float, iss_rev: float, **kwargs) -> bool:
         """
         Check if a company should be assigned to CCADAPT theme
 
@@ -1067,7 +927,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.min_revenue_rule(
             msci_rev=msci_rev, iss_rev=iss_rev, **self.params["CCADAPT"]
@@ -1077,7 +937,7 @@ class Theme(object):
 
     def BIODIVERSITY(
         self, industry: str, msci_rev: float, iss_rev: float, palm_tie: bool, **kwargs
-    ):
+    ) -> bool:
         """
         Check if a company should be assigned to BIODIVERSITY theme
 
@@ -1098,9 +958,11 @@ class Theme(object):
             rule is fulfilled
         """
         if (
-            self.exclude_rule(industry, self.params["ALL_exclusions"])
-            and self.exclude_rule(industry=industry, **self.params["BIODIVERSITY"])
-            and self.reverse_bool_rule(b=palm_tie)
+            util_functions.exclude_rule(industry, self.params["ALL_exclusions"])
+            and util_functions.exclude_rule(
+                value=industry, **self.params["BIODIVERSITY"]
+            )
+            and util_functions.reverse_bool_rule(b=palm_tie)
             and self.min_revenue_rule(
                 msci_rev=msci_rev, iss_rev=iss_rev, **self.params["BIODIVERSITY"]
             )
@@ -1110,7 +972,7 @@ class Theme(object):
 
     def SMARTCITIES(
         self, industry: str, iss_key: bool, msci_rev: float, iss_rev: float, **kwargs
-    ):
+    ) -> bool:
         """
         Check if a company should be assigned to RENEWENERGY theme
 
@@ -1133,7 +995,7 @@ class Theme(object):
         if not iss_key:
             iss_rev = 0
 
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.MSCI_ISS_inclusion_key_rule(
             industry=industry,
@@ -1145,7 +1007,7 @@ class Theme(object):
             return True
         return False
 
-    def EDU(self, industry: str, msci_rev: float, iss_rev: float, **kwargs):
+    def EDU(self, industry: str, msci_rev: float, iss_rev: float, **kwargs) -> bool:
         """
         Check if a company should be assigned to EDU theme
 
@@ -1163,7 +1025,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.min_revenue_rule(
             msci_rev=msci_rev, iss_rev=iss_rev, **self.params["EDU"]
@@ -1179,7 +1041,7 @@ class Theme(object):
         acc_to_health: float,
         trailing_rd_sales: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if a company should be assigned to HEALTH theme
 
@@ -1201,7 +1063,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.health_inclusion(
             msci_rev=msci_rev,
@@ -1214,7 +1076,9 @@ class Theme(object):
             return True
         return False
 
-    def SANITATION(self, industry: str, msci_rev: float, iss_rev: float, **kwargs):
+    def SANITATION(
+        self, industry: str, msci_rev: float, iss_rev: float, **kwargs
+    ) -> bool:
         """
         Check if a company should be assigned to SANITATION theme
 
@@ -1232,7 +1096,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.min_revenue_rule(
             msci_rev=msci_rev, iss_rev=iss_rev, **self.params["SANITATION"]
@@ -1248,7 +1112,7 @@ class Theme(object):
         social_fin: float,
         social_connect: float,
         **kwargs
-    ):
+    ) -> bool:
         """
         Check if a company should be assigned to INCLUSION theme
 
@@ -1272,7 +1136,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.social_themes_ISS_inclusion(
             industry=industry,
@@ -1285,7 +1149,9 @@ class Theme(object):
             return True
         return False
 
-    def NUTRITION(self, industry: str, msci_rev: float, iss_rev: float, **kwargs):
+    def NUTRITION(
+        self, industry: str, msci_rev: float, iss_rev: float, **kwargs
+    ) -> bool:
         """
         Check if a company should be assigned to NUTRITION theme
 
@@ -1304,8 +1170,8 @@ class Theme(object):
             rule is fulfilled
         """
         if (
-            self.exclude_rule(industry, self.params["ALL_exclusions"])
-            and self.exclude_rule(industry, **self.params["NUTRITION"])
+            util_functions.exclude_rule(industry, self.params["ALL_exclusions"])
+            and util_functions.exclude_rule(industry, **self.params["NUTRITION"])
             and self.min_revenue_rule(
                 msci_rev=msci_rev, iss_rev=iss_rev, **self.params["NUTRITION"]
             )
@@ -1315,7 +1181,7 @@ class Theme(object):
 
     def AFFORDABLE(
         self, industry: str, msci_rev: float, social_inclusion: float, **kwargs
-    ):
+    ) -> bool:
         """
         Check if a company should be assigned to AFFORDABLE theme
 
@@ -1333,7 +1199,7 @@ class Theme(object):
         bool
             rule is fulfilled
         """
-        if self.exclude_rule(
+        if util_functions.exclude_rule(
             industry, self.params["ALL_exclusions"]
         ) and self.MSCI_social_impact_revenue_inclusion_rule(
             industry=industry,

@@ -65,16 +65,15 @@ class PortfolioDataSource(ds.DataSources):
         self.sovereigns = dict()
         self.securitized = dict()
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Portfolio Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         - replace NA's in ISIN with 'NoISIN'
         - replace NA's in BCLASS_Level4 with 'Unassigned BCLASS'
@@ -94,14 +93,15 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["BCLASS_Level4"].replace(
             "Unassigned Bclass", "Unassigned BCLASS", inplace=True
         )
-        return
 
-    def iter(self):
+    def iter(self) -> None:
         """
-        iterate over portfolios and:
-        - Create Portfolio Objects
-        - Save in self.portfolios
-        - key is portfolio id
+        - iterate over portfolios and:
+            - Create Portfolio Objects
+            - Save in self.portfolios
+            - key is portfolio id
+            - add holdings df
+        - save all held securities
         """
         for index, row in (
             self.df[["Portfolio", "Portfolio Name"]].drop_duplicates().iterrows()
@@ -120,11 +120,9 @@ class PortfolioDataSource(ds.DataSources):
             "NoISIN"
         ) if "NoISIN" not in self.all_holdings else self.all_holdings
 
-        return
-
     def iter_holdings(
         self, securities: dict, securitized_mapping: dict, bclass_dict: dict
-    ):
+    ) -> None:
         """
         Iterate over portfolio holdings
         - attach ESG information so security
@@ -251,7 +249,6 @@ class PortfolioDataSource(ds.DataSources):
         self.companies["NoISIN"].information["BCLASS_Level4"] = bclass_dict[
             "Unassigned BCLASS"
         ]
-        return
 
     def create_store(
         self,
@@ -259,7 +256,7 @@ class PortfolioDataSource(ds.DataSources):
         check_type: str,
         all_parents: dict,
         companies: dict,
-    ):
+    ) -> None:
         """
         create new objects for Muni, Sovereign and Securitized if applicable
 
@@ -289,9 +286,8 @@ class PortfolioDataSource(ds.DataSources):
         parent_store.add_security(security_isin, security_store)
         parent_store.Adjustment = adj_df
         security_store.add_parent(parent_store)
-        return
 
-    def attach_bclass(self, parent_store, bclass4: str, bclass_dict: dict):
+    def attach_bclass(self, parent_store, bclass4: str, bclass_dict: dict) -> None:
         """
         Attach BCLASS object to security parent
 
@@ -323,9 +319,8 @@ class PortfolioDataSource(ds.DataSources):
         # --> if it was unassigned before: overwrite, else: skipp
         if not (bclass_object.class_name == "Unassigned BCLASS"):
             parent_store.information["BCLASS_Level4"] = bclass_object
-        return
 
-    def attach_msci_rating(self, parent_store, msci_rating):
+    def attach_msci_rating(self, parent_store, msci_rating) -> None:
         """
         Attach MSCI Rating to security parent
 
@@ -343,10 +338,9 @@ class PortfolioDataSource(ds.DataSources):
         # --> if it's not NA: overwrite, else: skipp
         if not pd.isna(msci_rating):
             parent_store.information["Rating_Raw_MSCI"] = msci_rating
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

@@ -1,6 +1,7 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import quantkit.finance.categories.categories as categories
+import pandas as pd
 
 
 class CategoryDataSource(ds.DataSources):
@@ -42,16 +43,15 @@ class CategoryDataSource(ds.DataSources):
         super().__init__(params)
         self.categories = dict()
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Category Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         Delete first 3 rows and set 4th row as header
         """
@@ -59,9 +59,8 @@ class CategoryDataSource(ds.DataSources):
         new_header = self.datasource.df.iloc[0]
         self.datasource.df = self.datasource.df[1:]
         self.datasource.df.columns = new_header
-        return
 
-    def iter(self):
+    def iter(self) -> None:
         """
         For each category save indicator fields and EM and DM flag scorings in category object
         """
@@ -101,10 +100,9 @@ class CategoryDataSource(ds.DataSources):
             cat_store.add_EM_flags(em)
 
             self.categories[cat] = cat_store
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------
