@@ -1,7 +1,7 @@
 import json
 
 
-def read_configs():
+def read_configs() -> dict:
     """
     read configs file from quantkit\\utils\\configs.json
     if there are local changes, overwrite existing configs file

@@ -1,6 +1,6 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
-import numpy as np
+import pandas as pd
 
 
 class ParentIssuerSource(ds.DataSources):
@@ -28,22 +28,21 @@ class ParentIssuerSource(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Parent Issuer Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass
 
-    def parent_issuer_ids(self):
+    def parent_issuer_ids(self) -> list:
         """
         For specified securities, return a list of MSCI ISSUERIDs of their parent
 
@@ -55,7 +54,7 @@ class ParentIssuerSource(ds.DataSources):
         pii = list(self.df["PARENT_ULTIMATE_ISSUERID"].dropna().unique())
         return pii
 
-    def iter(self, companies: dict, securities: dict):
+    def iter(self, companies: dict, securities: dict) -> None:
         """
         Manually add parent issuer for selected securities
 
@@ -75,10 +74,9 @@ class ParentIssuerSource(ds.DataSources):
                     securities[sec].add_parent(companies[parent])
                 if sec in companies:
                     del companies[sec]
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

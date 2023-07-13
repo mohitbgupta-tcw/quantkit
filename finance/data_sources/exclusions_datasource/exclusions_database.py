@@ -40,7 +40,7 @@ class ExclusionsDataSource(object):
         self.article8 = ExclusionData(params["Article8"])
         self.article9 = ExclusionData(params["Article9"])
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
@@ -50,9 +50,8 @@ class ExclusionsDataSource(object):
         self.article9.datasource.load()
         self.article9.transform_df()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         - Add column to indicate if exclusion is based on Article 8 or 9
         - Concat Article 8 and 9 df's
@@ -64,10 +63,9 @@ class ExclusionsDataSource(object):
             ignore_index=True,
         )
         self.df_ = df_
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------
@@ -90,8 +88,8 @@ class ExclusionData(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass

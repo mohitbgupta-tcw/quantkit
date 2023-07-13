@@ -1,6 +1,7 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import quantkit.finance.themes.themes as themes
+import pandas as pd
 
 
 class ThemeDataSource(ds.DataSources):
@@ -40,22 +41,21 @@ class ThemeDataSource(ds.DataSources):
         self.theme_calculations = theme_calculations
         self.themes = dict()
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Thematic Mapping Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass
 
-    def iter(self):
+    def iter(self) -> None:
         """
         - create Theme objects for each theme
         - save object for each theme in self.themes
@@ -73,10 +73,9 @@ class ThemeDataSource(ds.DataSources):
                 information_df=df_information,
                 params=self.theme_calculations,
             )
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

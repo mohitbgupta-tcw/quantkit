@@ -6,7 +6,7 @@ class StreamingBase(object):
     def __init__(self):
         self.values = []
 
-    def add_value(self, value: float):
+    def add_value(self, value: float) -> None:
         """
         add data point to values
 
@@ -16,4 +16,3 @@ class StreamingBase(object):
             new data point
         """
         self.values.append(value)
-        return

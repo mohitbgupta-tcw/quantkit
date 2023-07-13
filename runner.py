@@ -16,7 +16,7 @@ class Runner(loader.Runner):
         logging.log("Start Iterating")
         self.iter()
 
-    def iter(self):
+    def iter(self) -> None:
         """
         iterate over DataFrames and create connected objects
         """
@@ -31,27 +31,24 @@ class Runner(loader.Runner):
         self.iter_sovereigns()
         self.iter_securitized()
         self.iter_muni()
-        return
 
-    def iter_themes(self):
+    def iter_themes(self) -> None:
         """
         - load theme data
         - create Theme objects for each theme
         """
         self.theme_datasource.load()
         self.theme_datasource.iter()
-        return
 
-    def iter_regions(self):
+    def iter_regions(self) -> None:
         """
         - load region data
         - create region objects and save in dict
         """
         self.region_datasource.load()
         self.region_datasource.iter()
-        return
 
-    def iter_sectors(self):
+    def iter_sectors(self) -> None:
         """
         - create Sector objects
         - create BClass4 objects and attached Industry object
@@ -88,9 +85,8 @@ class Runner(loader.Runner):
 
         # map transition target and transition revenue to each sub-sector
         self.iter_transitions()
-        return
 
-    def iter_transitions(self):
+    def iter_transitions(self) -> None:
         """
         - load transition data
         """
@@ -98,9 +94,8 @@ class Runner(loader.Runner):
         self.transition_datasource.iter(
             self.gics_datasource.gics, self.bclass_datasource.bclass
         )
-        return
 
-    def iter_portfolios(self):
+    def iter_portfolios(self) -> None:
         """
         - load portfolio data
         - create portfolio objects
@@ -111,9 +106,8 @@ class Runner(loader.Runner):
 
         # attach sector to portfolio
         self.sector_datasource.iter_portfolios(self.portfolio_datasource.portfolios)
-        return
 
-    def iter_securities(self):
+    def iter_securities(self) -> None:
         """
         - create Company object for each security with key ISIN
         - create Security object with key Security ISIN
@@ -142,7 +136,7 @@ class Runner(loader.Runner):
         self.exclusion_datasource.load()
 
         logging.log("Iterate Securities")
-        # only iterate over securities the portfolios actually hold so save time
+        # only iterate over securities the portfolios actually hold to save time
         self.security_datasource.iter(
             securities=self.portfolio_datasource.all_holdings,
             companies=self.portfolio_datasource.companies,
@@ -150,17 +144,15 @@ class Runner(loader.Runner):
             msci_df=self.msci_datasource.df,
             adjustment_df=self.adjustment_datasource.df,
         )
-        return
 
-    def iter_securitized_mapping(self):
+    def iter_securitized_mapping(self) -> None:
         """
         Iterate over the securitized mapping
         """
         self.securitized_datasource.load()
         self.securitized_datasource.iter()
-        return
 
-    def iter_holdings(self):
+    def iter_holdings(self) -> None:
         """
         Iterate over portfolio holdings
         - attach ESG information so security
@@ -175,9 +167,8 @@ class Runner(loader.Runner):
             self.securitized_datasource.securitized_mapping,
             self.bclass_datasource.bclass,
         )
-        return
 
-    def iter_sdg(self):
+    def iter_sdg(self) -> None:
         """
         iterate over SDG data
         - attach sdg information to company in self.sdg_information
@@ -191,9 +182,8 @@ class Runner(loader.Runner):
             self.portfolio_datasource.sovereigns,
             self.portfolio_datasource.securitized,
         )
-        return
 
-    def iter_bloomberg(self):
+    def iter_bloomberg(self) -> None:
         """
         iterate over bloomberg data
         - attach bloomberg information to company in self.bloomberg_information
@@ -202,9 +192,8 @@ class Runner(loader.Runner):
         # load bloomberg data
         self.bloomberg_datasource.load()
         self.bloomberg_datasource.iter(self.portfolio_datasource.companies)
-        return
 
-    def iter_quandl(self):
+    def iter_quandl(self) -> None:
         """
         iterate over quandl data
         - attach quandl information to company in self.quandl_information
@@ -213,9 +202,8 @@ class Runner(loader.Runner):
         # load quandl data
         self.quandl_datasource.load(self.security_datasource.all_tickers)
         self.quandl_datasource.iter(self.portfolio_datasource.companies)
-        return
 
-    def iter_sovereigns(self):
+    def iter_sovereigns(self) -> None:
         """
         Iterate over all sovereigns
         """
@@ -227,9 +215,8 @@ class Runner(loader.Runner):
                 adjustment_df=self.adjustment_datasource.df,
                 gics_d=self.gics_datasource.gics,
             )
-        return
 
-    def iter_securitized(self):
+    def iter_securitized(self) -> None:
         """
         Iterate over all Securitized
         """
@@ -241,7 +228,7 @@ class Runner(loader.Runner):
                 gics_d=self.gics_datasource.gics,
             )
 
-    def iter_muni(self):
+    def iter_muni(self) -> None:
         """
         Iterate over all Munis
         """
@@ -253,7 +240,7 @@ class Runner(loader.Runner):
                 gics_d=self.gics_datasource.gics,
             )
 
-    def iter_companies(self):
+    def iter_companies(self) -> None:
         """
         Iterate over all companies
         """
@@ -290,18 +277,16 @@ class Runner(loader.Runner):
 
         self.replace_carbon_median()
         self.replace_transition_risk()
-        return
 
-    def attach_parent_issuer(self):
+    def attach_parent_issuer(self) -> None:
         """
         Manually add parent issuer for selected securities
         """
         self.parent_issuer_datasource.iter(
             self.portfolio_datasource.companies, self.security_datasource.securities
         )
-        return
 
-    def replace_carbon_median(self):
+    def replace_carbon_median(self) -> None:
         """
         For companies without 'Carbon Intensity (Scope 123)'
         --> (CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT) couldnt be calculuated
@@ -309,9 +294,8 @@ class Runner(loader.Runner):
         """
         for c in self.portfolio_datasource.companies:
             self.portfolio_datasource.companies[c].replace_carbon_median()
-        return
 
-    def replace_transition_risk(self):
+    def replace_transition_risk(self) -> None:
         """
         Split companies with unassigned industry and sub-industry into
         high and low transition risk
@@ -324,17 +308,15 @@ class Runner(loader.Runner):
                 high_threshold=self.params["transition_parameters"]["High_Threshold"],
                 industries=self.bclass_datasource.industries,
             )
-        return
 
-    def calculate_securitized_score(self):
+    def calculate_securitized_score(self) -> None:
         """
         Calculation of Securitized Score
         """
         for sec in self.portfolio_datasource.securitized:
             self.portfolio_datasource.securitized[sec].calculate_securitized_score()
-        return
 
-    def analyst_adjustment(self):
+    def analyst_adjustment(self) -> None:
         """
         Do analyst adjustments for each company.
         Different calculations for each thematic type:
@@ -363,9 +345,8 @@ class Runner(loader.Runner):
             self.portfolio_datasource.securitized[sec].analyst_adjustment(
                 self.theme_datasource.themes
             )
-        return
 
-    def calculate_esrm_score(self):
+    def calculate_esrm_score(self) -> None:
         """
         Calculuate esrm score for each company:
         1) For each category save indicator fields and EM and DM flag scorings
@@ -381,9 +362,8 @@ class Runner(loader.Runner):
 
         for c in self.portfolio_datasource.companies:
             self.portfolio_datasource.companies[c].calculate_esrm_score()
-        return
 
-    def calculate_transition_score(self):
+    def calculate_transition_score(self) -> None:
         """
         Calculate transition score (Transition_Score) for each company:
         0) Check if company is excempted --> set score to 0
@@ -398,9 +378,8 @@ class Runner(loader.Runner):
         """
         for c in self.portfolio_datasource.companies:
             self.portfolio_datasource.companies[c].calculate_transition_score()
-        return
 
-    def calculate_corporate_score(self):
+    def calculate_corporate_score(self) -> None:
         """
         Calculate corporate score for a company based on other scores.
         Calculation:
@@ -409,9 +388,8 @@ class Runner(loader.Runner):
         """
         for c in self.portfolio_datasource.companies:
             self.portfolio_datasource.companies[c].calculate_corporate_score()
-        return
 
-    def calculate_risk_overall_score(self):
+    def calculate_risk_overall_score(self) -> None:
         """
         Calculate risk overall score on security level:
             - if security specific score between 1 and 2: Leading
@@ -430,9 +408,8 @@ class Runner(loader.Runner):
 
         for sec in self.portfolio_datasource.securitized:
             self.portfolio_datasource.securitized[sec].calculate_risk_overall_score()
-        return
 
-    def update_sclass(self):
+    def update_sclass(self) -> None:
         """
         Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
         and SClass_Level5 for each security rule based
@@ -450,7 +427,7 @@ class Runner(loader.Runner):
         for sec in self.portfolio_datasource.securitized:
             self.portfolio_datasource.securitized[sec].update_sclass()
 
-    def run(self):
+    def run(self) -> None:
         """
         run calculations
         """
@@ -462,4 +439,3 @@ class Runner(loader.Runner):
         self.calculate_corporate_score()
         self.calculate_risk_overall_score()
         self.update_sclass()
-        return

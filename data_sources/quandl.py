@@ -1,7 +1,3 @@
-import sys, os
-
-sys.path.append(os.getcwd())
-
 import pandas as pd
 from copy import deepcopy
 import nasdaqdatalink
@@ -27,7 +23,7 @@ class Quandl(object):
         self.table = table
         self.filters = filters
 
-    def load(self):
+    def load(self) -> None:
         """
         Load data from quandl API and save as pd.DataFrame in self.df
         """
@@ -42,19 +38,3 @@ class Quandl(object):
 
             df = nasdaqdatalink.get_table(self.table, **filters)
             self.df = pd.concat([self.df, df], ignore_index=True)
-        return
-
-
-if __name__ == "__main__":
-    api_key = "MxE6oNePp886npLJ2CGs"
-    table = "SHARADAR/SF1"
-    filters = {
-        "ticker": ["AAPL", "MSFT", "TSLA"],
-        "dimension": "MRT",
-        "calendardate": {"gte": "2023-01-01"},
-        "paginate": True,
-    }
-
-    quandl = Quandl(api_key, table, filters)
-    quandl.load()
-    print(quandl.df)

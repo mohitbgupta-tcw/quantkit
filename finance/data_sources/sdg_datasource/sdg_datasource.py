@@ -28,7 +28,7 @@ class SDGDataSource(object):
         self.sdg = SDGData(params["sdg"])
         self.sdga = SDGData(params["sdga"])
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
@@ -38,11 +38,11 @@ class SDGDataSource(object):
         self.sdga.datasource.load()
         self.sdga.transform_df()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
-        merge sdg and sdga data into one DataFrame
+        - merge sdg and sdga data into one DataFrame
+        - change datatype to float for specified columns
         """
         df_ = self.sdg.datasource.df.merge(
             self.sdga.datasource.df, left_on="ISIN", right_on="ISIN", how="outer"
@@ -54,9 +54,10 @@ class SDGDataSource(object):
             "SDGSolClimatePercentCombCont"
         ].astype(float)
         self.df_ = df_
-        return
 
-    def iter(self, companies: dict, munis: dict, sovereigns: dict, securitized: dict):
+    def iter(
+        self, companies: dict, munis: dict, sovereigns: dict, securitized: dict
+    ) -> None:
         """
         Attach SDG information to company objects
 
@@ -81,29 +82,16 @@ class SDGDataSource(object):
         # --> not every company has these information, so create empty df with NA's for those
         empty_sdg = pd.Series(np.nan, index=self.df.columns).to_dict()
 
-        for c in companies:
-            # assign empty sdg information to companies that dont have these information
-            if not hasattr(companies[c], "sdg_information"):
-                companies[c].sdg_information = deepcopy(empty_sdg)
+        parents = [companies, munis, sovereigns, securitized]
 
-        for m in munis:
-            # assign empty sdg information to munis that dont have these information
-            if not hasattr(munis[m], "sdg_information"):
-                munis[m].sdg_information = deepcopy(empty_sdg)
-
-        for sov in sovereigns:
-            # assign empty sdg information to sovereigns that dont have these information
-            if not hasattr(sovereigns[sov], "sdg_information"):
-                sovereigns[sov].sdg_information = deepcopy(empty_sdg)
-
-        for sec in securitized:
-            # assign empty sdg information to companies that dont have these information
-            if not hasattr(securitized[sec], "sdg_information"):
-                securitized[sec].sdg_information = deepcopy(empty_sdg)
-        return
+        for p in parents:
+            for security in p:
+                # assign empty sdg information to companies that dont have these information
+                if not hasattr(p[security], "sdg_information"):
+                    p[security].sdg_information = deepcopy(empty_sdg)
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------
@@ -126,7 +114,7 @@ class SDGData(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         - drop not needed columns
         - replace 'Not Collected' by nan for every column
@@ -144,4 +132,3 @@ class SDGData(ds.DataSources):
             axis=1,
         )
         self.datasource.df = self.datasource.df.replace("Not Collected", np.nan)
-        return

@@ -1,101 +1,5 @@
-TargetA = ["Approved SBT"]
-TargetAA = ["Approved SBT", "Ambitious Target"]
-TargetAAC = ["Approved SBT", "Committed SBT", "Ambitious Target"]
-TargetAACN = [
-    "Approved SBT",
-    "Committed SBT",
-    "Ambitious Target",
-    "Non-Ambitious Target",
-]
-TargetAC = ["Approved SBT", "Committed SBT"]
-TargetCA = ["Committed SBT", "Ambitious Target"]
-TargetCN = ["Committed SBT", "Non-Ambitious Target"]
-TargetN = ["Non-Ambitious Target"]
-
-
-def include_rule(industry, inclusions, **kwargs):
-    """
-    Checks if a company's industry is in inclusion list
-    (list of industries company's industry should be in to be included in theme)
-
-    Parameters
-    ----------
-    industry: str
-        name of industry company belongs to
-    exclusions: list
-        list of industries for inclusion
-
-    Returns
-    -------
-    bool
-        industry included
-    """
-    if industry in inclusions:
-        return True
-    return False
-
-
-def bigger_eq_rule(val: float, threshold: float, **kwargs):
-    """
-    Check if value inputted is bigger or equal than specified threshold
-
-    Parameters
-    ----------
-    val: float
-        value
-    threshold: float
-        threshold value
-
-    Returns
-    -------
-    bool
-        input is bigger than threshold
-    """
-    if val >= threshold:
-        return True
-    return False
-
-
-def eq_rule(val: float, threshold: float, **kwargs):
-    """
-    Check if value inputted is equal to specified threshold
-
-    Parameters
-    ----------
-    val: float
-        value
-    threshold: float
-        threshold value
-
-    Returns
-    -------
-    bool
-        input is bigger than threshold
-    """
-    if val == threshold:
-        return True
-    return False
-
-
-def bigger_rule(val: float, threshold: float, **kwargs):
-    """
-    Check if value inputted is bigger than specified threshold
-
-    Parameters
-    ----------
-    val: float
-        value
-    threshold: float
-        threshold value
-
-    Returns
-    -------
-    bool
-        input is bigger than threshold
-    """
-    if val > threshold:
-        return True
-    return False
+import quantkit.utils.util_functions as util_functions
+import quantkit.utils.mapping_configs as mapping_configs
 
 
 def OilandGas(
@@ -106,7 +10,7 @@ def OilandGas(
     climate_rev: float,
     biofuel_rev: float,
     **kwargs
-):
+) -> bool:
     """
     Check Transition target for oil and gas companies
 
@@ -133,23 +37,32 @@ def OilandGas(
         rule is fulfilled
     """
     if (
-        include_rule(reduction_target, TargetAAC)
-        or eq_rule(sbti_commited_target, 1)
-        or eq_rule(sbti_approved_target, 1)
-    ) and (bigger_rule(capex, 0) or bigger_rule(climate_rev, 0)):
-        return True
-    elif (bigger_eq_rule(capex, 15) and bigger_rule(climate_rev, 0)) or (
-        bigger_rule(capex, 0) and bigger_eq_rule(climate_rev, 15)
+        util_functions.include_rule(reduction_target, mapping_configs.TargetAAC)
+        or util_functions.eq_rule(sbti_commited_target, 1)
+        or util_functions.eq_rule(sbti_approved_target, 1)
+    ) and (
+        util_functions.bigger_rule(capex, 0)
+        or util_functions.bigger_rule(climate_rev, 0)
     ):
         return True
-    elif bigger_eq_rule(climate_rev, 25) or bigger_rule(biofuel_rev, 25):
+    elif (
+        util_functions.bigger_eq_rule(capex, 15)
+        and util_functions.bigger_rule(climate_rev, 0)
+    ) or (
+        util_functions.bigger_rule(capex, 0)
+        and util_functions.bigger_eq_rule(climate_rev, 15)
+    ):
+        return True
+    elif util_functions.bigger_eq_rule(climate_rev, 25) or util_functions.bigger_rule(
+        biofuel_rev, 25
+    ):
         return True
     return False
 
 
 def CoalFuels(
     alt_energy_rev: float, climate_rev: float, thermal_coal_rev: float, **kwargs
-):
+) -> bool:
     """
     Check Transition target for coal companies
 
@@ -171,9 +84,9 @@ def CoalFuels(
         rule is fulfilled
     """
     if (
-        bigger_eq_rule(alt_energy_rev, 95)
-        or bigger_eq_rule(climate_rev, 95)
-        or eq_rule(thermal_coal_rev, 0)
+        util_functions.bigger_eq_rule(alt_energy_rev, 95)
+        or util_functions.bigger_eq_rule(climate_rev, 95)
+        or util_functions.eq_rule(thermal_coal_rev, 0)
     ):
         return True
     return False
@@ -186,7 +99,7 @@ def IndGases(
     climate_rev: float,
     company_name: str,
     **kwargs
-):
+) -> bool:
     """
     Check Transition target for industrial gases companies
 
@@ -210,17 +123,17 @@ def IndGases(
         rule is fulfilled
     """
     if (
-        include_rule(reduction_target, TargetAAC)
-        or eq_rule(sbti_commited_target, 1)
-        or eq_rule(sbti_approved_target, 1)
-        or include_rule("Lithium", company_name)
+        util_functions.include_rule(reduction_target, mapping_configs.TargetAAC)
+        or util_functions.eq_rule(sbti_commited_target, 1)
+        or util_functions.eq_rule(sbti_approved_target, 1)
+        or util_functions.include_rule("Lithium", company_name)
     ):
         return True
     elif (
-        include_rule(reduction_target, TargetAACN)
-        or eq_rule(sbti_commited_target, 1)
-        or eq_rule(sbti_approved_target, 1)
-    ) and bigger_eq_rule(climate_rev, 5):
+        util_functions.include_rule(reduction_target, mapping_configs.TargetAACN)
+        or util_functions.eq_rule(sbti_commited_target, 1)
+        or util_functions.eq_rule(sbti_approved_target, 1)
+    ) and util_functions.bigger_eq_rule(climate_rev, 5):
         return True
     return False
 
@@ -232,7 +145,7 @@ def Utilities(
     capex: float,
     climate_rev: float,
     **kwargs
-):
+) -> bool:
     """
     Check Transition target for utilities companies
 
@@ -255,22 +168,26 @@ def Utilities(
     bool
         rule is fulfilled
     """
-    if reduction_target == "Approved SBT" or eq_rule(sbti_approved_target, 1):
+    if reduction_target == "Approved SBT" or util_functions.eq_rule(
+        sbti_approved_target, 1
+    ):
         return True
     elif reduction_target == "Ambitious Target" and (
-        bigger_eq_rule(capex, 30) or bigger_eq_rule(climate_rev, 20)
+        util_functions.bigger_eq_rule(capex, 30)
+        or util_functions.bigger_eq_rule(climate_rev, 20)
     ):
         return True
     elif (
-        reduction_target == "Committed SBT" or eq_rule(sbti_commited_target, 1)
-    ) and bigger_eq_rule(climate_rev, 35):
+        reduction_target == "Committed SBT"
+        or util_functions.eq_rule(sbti_commited_target, 1)
+    ) and util_functions.bigger_eq_rule(climate_rev, 35):
         return True
-    elif bigger_eq_rule(climate_rev, 40):
+    elif util_functions.bigger_eq_rule(climate_rev, 40):
         return True
     return False
 
 
-def Target_A(reduction_target: str, sbti_approved_target: int, **kwargs):
+def Target_A(reduction_target: str, sbti_approved_target: int, **kwargs) -> bool:
     """
     Check Transition target for Target A companies
 
@@ -287,12 +204,14 @@ def Target_A(reduction_target: str, sbti_approved_target: int, **kwargs):
     bool
         rule is fulfilled
     """
-    if include_rule(reduction_target, TargetA) or eq_rule(sbti_approved_target, 1):
+    if util_functions.include_rule(
+        reduction_target, mapping_configs.TargetA
+    ) or util_functions.eq_rule(sbti_approved_target, 1):
         return True
     return False
 
 
-def Target_AA(reduction_target: str, sbti_approved_target: int, **kwargs):
+def Target_AA(reduction_target: str, sbti_approved_target: int, **kwargs) -> bool:
     """
     Check Transition target for Target AA companies
 
@@ -309,7 +228,9 @@ def Target_AA(reduction_target: str, sbti_approved_target: int, **kwargs):
     bool
         rule is fulfilled
     """
-    if include_rule(reduction_target, TargetAA) or eq_rule(sbti_approved_target, 1):
+    if util_functions.include_rule(
+        reduction_target, mapping_configs.TargetAA
+    ) or util_functions.eq_rule(sbti_approved_target, 1):
         return True
     return False
 
@@ -319,7 +240,7 @@ def Target_AAC(
     sbti_approved_target: int,
     sbti_commited_target: int,
     **kwargs
-):
+) -> bool:
     """
     Check Transition target for Target AAC companies
 
@@ -339,9 +260,9 @@ def Target_AAC(
         rule is fulfilled
     """
     if (
-        include_rule(reduction_target, TargetAAC)
-        or eq_rule(sbti_approved_target, 1)
-        or eq_rule(sbti_commited_target, 1)
+        util_functions.include_rule(reduction_target, mapping_configs.TargetAAC)
+        or util_functions.eq_rule(sbti_approved_target, 1)
+        or util_functions.eq_rule(sbti_commited_target, 1)
     ):
         return True
     return False
@@ -352,7 +273,7 @@ def Target_AACN(
     sbti_approved_target: int,
     sbti_commited_target: int,
     **kwargs
-):
+) -> bool:
     """
     Check Transition target for Target AACN companies
 
@@ -372,9 +293,9 @@ def Target_AACN(
         rule is fulfilled
     """
     if (
-        include_rule(reduction_target, TargetAACN)
-        or eq_rule(sbti_approved_target, 1)
-        or eq_rule(sbti_commited_target, 1)
+        util_functions.include_rule(reduction_target, mapping_configs.TargetAACN)
+        or util_functions.eq_rule(sbti_approved_target, 1)
+        or util_functions.eq_rule(sbti_commited_target, 1)
     ):
         return True
     return False
@@ -385,7 +306,7 @@ def Target_AC(
     sbti_approved_target: int,
     sbti_commited_target: int,
     **kwargs
-):
+) -> bool:
     """
     Check Transition target for Target AC companies
 
@@ -405,15 +326,15 @@ def Target_AC(
         rule is fulfilled
     """
     if (
-        include_rule(reduction_target, TargetAC)
-        or eq_rule(sbti_approved_target, 1)
-        or eq_rule(sbti_commited_target, 1)
+        util_functions.include_rule(reduction_target, mapping_configs.TargetAC)
+        or util_functions.eq_rule(sbti_approved_target, 1)
+        or util_functions.eq_rule(sbti_commited_target, 1)
     ):
         return True
     return False
 
 
-def Target_CA(reduction_target: str, sbti_commited_target: int, **kwargs):
+def Target_CA(reduction_target: str, sbti_commited_target: int, **kwargs) -> bool:
     """
     Check Transition target for Target CA companies
 
@@ -429,12 +350,14 @@ def Target_CA(reduction_target: str, sbti_commited_target: int, **kwargs):
     bool
         rule is fulfilled
     """
-    if include_rule(reduction_target, TargetCA) or eq_rule(sbti_commited_target, 1):
+    if util_functions.include_rule(
+        reduction_target, mapping_configs.TargetCA
+    ) or util_functions.eq_rule(sbti_commited_target, 1):
         return True
     return False
 
 
-def Target_CN(reduction_target: str, sbti_commited_target: int, **kwargs):
+def Target_CN(reduction_target: str, sbti_commited_target: int, **kwargs) -> bool:
     """
     Check Transition target for Target CN companies
 
@@ -450,12 +373,14 @@ def Target_CN(reduction_target: str, sbti_commited_target: int, **kwargs):
     bool
         rule is fulfilled
     """
-    if include_rule(reduction_target, TargetCN) or eq_rule(sbti_commited_target, 1):
+    if util_functions.include_rule(
+        reduction_target, mapping_configs.TargetCN
+    ) or util_functions.eq_rule(sbti_commited_target, 1):
         return True
     return False
 
 
-def Target_N(reduction_target: str, **kwargs):
+def Target_N(reduction_target: str, **kwargs) -> bool:
     """
     Check Transition target for Target N companies
 
@@ -469,12 +394,14 @@ def Target_N(reduction_target: str, **kwargs):
     bool
         rule is fulfilled
     """
-    if include_rule(reduction_target, TargetN):
+    if util_functions.include_rule(reduction_target, mapping_configs.TargetN):
         return True
     return False
 
 
-def Target_NRev(reduction_target: str, climate_rev: float, capex: float, **kwargs):
+def Target_NRev(
+    reduction_target: str, climate_rev: float, capex: float, **kwargs
+) -> bool:
     """
     Check Transition target for Target NRev companies
 
@@ -493,13 +420,14 @@ def Target_NRev(reduction_target: str, climate_rev: float, capex: float, **kwarg
         rule is fulfilled
     """
     if (
-        include_rule(reduction_target, TargetN) and bigger_rule(climate_rev, 0)
-    ) or bigger_rule(capex, 10):
+        util_functions.include_rule(reduction_target, mapping_configs.TargetN)
+        and util_functions.bigger_rule(climate_rev, 0)
+    ) or util_functions.bigger_rule(capex, 10):
         return True
     return False
 
 
-def Revenue(climate_rev: float, revenue_threshold: int, capex: float):
+def Revenue(climate_rev: float, revenue_threshold: int, capex: float) -> bool:
     """
     Check Transition Revenue Target
 
@@ -517,6 +445,8 @@ def Revenue(climate_rev: float, revenue_threshold: int, capex: float):
     bool
         rule is fulfilled
     """
-    if bigger_eq_rule(climate_rev, revenue_threshold) or bigger_eq_rule(capex, 10):
+    if util_functions.bigger_eq_rule(
+        climate_rev, revenue_threshold
+    ) or util_functions.bigger_eq_rule(capex, 10):
         return True
     return False

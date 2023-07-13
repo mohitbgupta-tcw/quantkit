@@ -23,7 +23,7 @@ class PortfolioStore(object):
         self.name = name
         self.holdings = dict()
 
-    def add_holdings(self, holdings_df: pd.DataFrame):
+    def add_holdings(self, holdings_df: pd.DataFrame) -> None:
         """
         Safe historical holdings of portfolio with date, weight, oas, market value as
         dataframe in self.holdings_df.
@@ -34,9 +34,8 @@ class PortfolioStore(object):
 
         """
         self.holdings_df = holdings_df
-        return
 
-    def add_sector(self, sector: sectors.Sector):
+    def add_sector(self, sector: sectors.Sector) -> None:
         """
         Attach Sector to portfolio
 
@@ -45,4 +44,3 @@ class PortfolioStore(object):
         sector: sectors.Sector
         """
         self.Sector = sector
-        return

@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 class Region(object):
     """
     Region object. Regions are stored by their ISO2 code, p.e. US for United States.
@@ -17,12 +20,12 @@ class Region(object):
         Series of information for the region. Safed in self.information
     """
 
-    def __init__(self, name: str, row_data):
+    def __init__(self, name: str, row_data: pd.Series):
         self.region = name
         self.information = row_data.to_dict()
         self.companies = dict()
 
-    def add_company(self, isin: str, company):
+    def add_company(self, isin: str, company) -> None:
         """
         add company object to region
 
@@ -34,4 +37,3 @@ class Region(object):
             company store
         """
         self.companies[isin] = company
-        return

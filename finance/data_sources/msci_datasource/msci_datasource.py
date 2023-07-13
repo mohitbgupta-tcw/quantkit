@@ -21,18 +21,18 @@ class MSCIDataSource(ds.DataSources):
     def __init__(self, params: dict):
         super().__init__(params)
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading MSCI Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         - fill GICS na's with 'Unassigned GICS'
+        - translate None's to nan's
         - change values for columns in params["transformation"]
         """
         # fill GICS industry NA's with 'Unassigned GICS'
@@ -46,10 +46,8 @@ class MSCIDataSource(ds.DataSources):
         # replace values in each column from params transformation file
         self.datasource.df = self.datasource.df.replace(self.params["transformation"])
 
-        return
-
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------

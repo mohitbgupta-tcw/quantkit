@@ -11,7 +11,7 @@ class Quantiles(object):
     def __init__(self):
         self.streaming_base = sb.StreamingBase()
 
-    def add_value(self, value: float):
+    def add_value(self, value: float) -> None:
         """
         add data point to saved values
 
@@ -21,10 +21,9 @@ class Quantiles(object):
             new data point
         """
         self.streaming_base.add_value(value)
-        return
 
     @property
-    def median(self):
+    def median(self) -> float:
         """
         calculate median from saved values
 
@@ -35,7 +34,7 @@ class Quantiles(object):
         """
         return np.median(np.array(self.streaming_base.values))
 
-    def quantiles(self, q: Union[float, np.array]):
+    def quantiles(self, q: Union[float, np.array]) -> Union[float, np.array]:
         """
         calculate q-th quantile from saved values
 

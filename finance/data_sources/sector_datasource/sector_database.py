@@ -1,6 +1,7 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import quantkit.finance.sectors.sectors as sectors
+import pandas as pd
 
 
 class SectorDataSource(ds.DataSources):
@@ -26,24 +27,22 @@ class SectorDataSource(ds.DataSources):
         super().__init__(params)
         self.sectors = dict()
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Sector Data")
         self.datasource.load()
         self.transform_df()
-        return
 
-    def iter(self):
+    def iter(self) -> None:
         """
         create Sector objects for GICS and BCLASS
         """
         for s in list(self.df["Sector_Code"].unique()):
             self.sectors[s] = sectors.Sector(s)
-        return
 
-    def iter_portfolios(self, portfolios: dict):
+    def iter_portfolios(self, portfolios: dict) -> None:
         """
         Attach sector to each portfolio
 
@@ -59,14 +58,14 @@ class SectorDataSource(ds.DataSources):
             pf = row["Portfolio"]
             portfolios[pf].add_sector(self.sectors[row["Sector_Code"]])
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------
@@ -118,21 +117,20 @@ class BClassDataSource(ds.DataSources):
             "Unassigned BCLASS Low", transition_risk="Low", **transition_params
         )
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass
 
-    def iter(self):
+    def iter(self) -> None:
         """
         Create Sub Sector and Industry objects for specific sector
         Save objects in sub-sector and industry attributes.
@@ -160,10 +158,9 @@ class BClassDataSource(ds.DataSources):
             # assign Sub Sector object to Industry and vice verse
             self.industries[industry].add_sub_sector(ss_object)
             ss_object.add_industry(self.industries[industry])
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------
@@ -210,21 +207,20 @@ class GICSDataSource(ds.DataSources):
         self.gics = dict()
         self.industries = dict()
 
-    def load(self):
+    def load(self) -> None:
         """
         load data and transform dataframe
         """
         self.datasource.load()
         self.transform_df()
-        return
 
-    def transform_df(self):
+    def transform_df(self) -> None:
         """
         None
         """
-        return
+        pass
 
-    def iter(self):
+    def iter(self) -> None:
         """
         Create Sub Sector and Industry objects for specific sector
         Save objects in sub-sector and industry attributes.
@@ -252,10 +248,9 @@ class GICSDataSource(ds.DataSources):
             # assign Sub Sector object to Industry and vice verse
             self.industries[industry].add_sub_sector(ss_object)
             ss_object.add_industry(self.industries[industry])
-        return
 
     @property
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """
         Returns
         -------
