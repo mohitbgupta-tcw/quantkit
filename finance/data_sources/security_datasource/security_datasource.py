@@ -216,38 +216,95 @@ class SecurityDataSource(object):
             # append to all ticker list
             self.all_tickers.append(sec_info["Ticker"])
 
-            # create security store --> seperate Fixed Income and Equity stores based on Security Type
-            # if Security Type is NA, just create Security object
-            sec_type = sec_info["Security Type"]
-            class_ = mapping_configs.security_store_mapping[sec_type]
-            type_mapping = mapping_configs.security_mapping[sec_type]
-            security_store = class_(isin=sec, information=sec_info)
-            self.securities[sec] = security_store
-            getattr(self, type_mapping)[sec] = self.securities[sec]
+            # create security store
+            self.create_security_store(sec, sec_info)
 
             # create company object
-            # company object could already be there if company has more than 1 security --> get
             issuer = sec_info["ISIN"]
-            companies[issuer] = companies.get(
-                issuer,
-                comp.CompanyStore(
-                    isin=issuer,
-                    row_data=msci_information,
-                ),
-            )
+            self.create_company_store(issuer, companies, msci_information)
 
             # attach security to company and vice versa
             companies[issuer].add_security(sec, self.securities[sec])
             self.securities[sec].parent_store = companies[issuer]
 
             # attach adjustment
-            adj_df = adjustment_df[adjustment_df["ISIN"] == sec]
-            if not adj_df.empty:
-                companies[issuer].Adjustment = pd.concat(
-                    [companies[issuer].Adjustment, adj_df],
-                    ignore_index=True,
-                    sort=False,
-                )
+            self.attach_analyst_adjustment(issuer, sec, companies, adjustment_df)
+
+    def create_security_store(
+        self, security_isin: str, security_information: dict
+    ) -> None:
+        """
+        create security store
+        --> seperate Fixed Income and Equity stores based on Security Type
+        if Security Type is NA, just create Security object
+
+        Parameters
+        ----------
+        security isin: str
+            isin of security
+        security_information: dict
+            dictionary of information about the security
+        """
+        sec_type = security_information["Security Type"]
+        class_ = mapping_configs.security_store_mapping[sec_type]
+        type_mapping = mapping_configs.security_mapping[sec_type]
+        security_store = class_(isin=security_isin, information=security_information)
+        self.securities[security_isin] = security_store
+        getattr(self, type_mapping)[security_isin] = self.securities[security_isin]
+
+    def create_company_store(
+        self, company_isin: str, companies: dict, msci_information: dict
+    ) -> None:
+        """
+        Create company object with msci information
+
+        Parameters
+        ----------
+        company_isin: str
+            isin of company
+        companies: dict
+            dictionary of all company objects
+        msci_information: dict
+            dictionary of msci information on company level
+        """
+        # company object could already be there if company has more than 1 security --> get
+        companies[company_isin] = companies.get(
+            company_isin,
+            comp.CompanyStore(
+                isin=company_isin,
+                row_data=msci_information,
+            ),
+        )
+
+    def attach_analyst_adjustment(
+        self,
+        company_isin: str,
+        security_isin: str,
+        companies: dict,
+        adjustment_df: pd.DataFrame,
+    ) -> None:
+        """
+        Attach Analyst Adjustment to company
+        Adjustment in adjustment_df is on security level
+
+        Parameters
+        ----------
+        company_isin: str
+            isin of company
+        security_isin: str
+            isin of security
+        companies: dict
+            dictionary of all company objects
+        adjustment_df: pd.DataFrame
+            DataFrame with analyst adjustment information
+        """
+        adj_df = adjustment_df[adjustment_df["ISIN"] == security_isin]
+        if not adj_df.empty:
+            companies[company_isin].Adjustment = pd.concat(
+                [companies[company_isin].Adjustment, adj_df],
+                ignore_index=True,
+                sort=False,
+            )
 
     @property
     def df(self) -> pd.DataFrame:
