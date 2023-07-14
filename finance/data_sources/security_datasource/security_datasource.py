@@ -196,22 +196,8 @@ class SecurityDataSource(object):
                 sec_info["IssuerName"] = portfolio_row["ISSUER_NAME"].values[0]
                 sec_info["Ticker"] = portfolio_row["Ticker Cd"].values[0]
 
-            # get MSCI information of parent issuer
-            issuer_id = sec_info["ISSUERID"]
-            msci_row = msci_df[msci_df["ISSUERID"] == issuer_id]
-            # issuer has msci information --> overwrite security information
-            if not msci_row.empty:
-                issuer_isin = msci_row["ISSUER_ISIN"].values[0]
-                if not pd.isna(issuer_isin):
-                    sec_info["ISIN"] = issuer_isin
-                    sec_info["IssuerName"] = msci_row["ISSUER_NAME"].values[0]
-                    sec_info["Ticker"] = msci_row["ISSUER_TICKER"].values[0]
-                msci_information = msci_row.squeeze().to_dict()
-            else:
-                msci_information = msci_row.reindex(list(range(1))).squeeze().to_dict()
-                msci_information["ISSUER_NAME"] = sec_info["IssuerName"]
-                msci_information["ISSUER_ISIN"] = sec_info["ISIN"]
-                msci_information["ISSUER_TICKER"] = sec_info["Ticker"]
+            # get MSCI information
+            msci_information = self.create_msci_information(sec_info, msci_df)
 
             # append to all ticker list
             self.all_tickers.append(sec_info["Ticker"])
@@ -275,6 +261,41 @@ class SecurityDataSource(object):
                 row_data=msci_information,
             ),
         )
+
+    def create_msci_information(
+        self, security_information: dict, msci_df: pd.DataFrame
+    ) -> dict:
+        """
+        Get MSCI information of company
+
+        Parameters
+        ----------
+        security_information: dict
+            dictionary of information about the security
+        msci_df: pd.DataFrame
+            DataFrame with all MSCI information
+
+        Returns
+        -------
+        dict
+            dictionary of MSCI information
+        """
+        issuer_id = security_information["ISSUERID"]
+        msci_row = msci_df[msci_df["ISSUERID"] == issuer_id]
+        # issuer has msci information --> overwrite security information
+        if not msci_row.empty:
+            issuer_isin = msci_row["ISSUER_ISIN"].values[0]
+            if not pd.isna(issuer_isin):
+                security_information["ISIN"] = issuer_isin
+                security_information["IssuerName"] = msci_row["ISSUER_NAME"].values[0]
+                security_information["Ticker"] = msci_row["ISSUER_TICKER"].values[0]
+            msci_information = msci_row.squeeze().to_dict()
+        else:
+            msci_information = msci_row.reindex(list(range(1))).squeeze().to_dict()
+            msci_information["ISSUER_NAME"] = security_information["IssuerName"]
+            msci_information["ISSUER_ISIN"] = security_information["ISIN"]
+            msci_information["ISSUER_TICKER"] = security_information["Ticker"]
+        return msci_information
 
     def attach_analyst_adjustment(
         self,
