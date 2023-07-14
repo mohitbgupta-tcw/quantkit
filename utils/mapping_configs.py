@@ -1,6 +1,7 @@
 import importlib
 import numpy as np
 import quantkit.finance.companies.companies as comp
+import quantkit.finance.sectors.sectors as sectors
 
 security_store_mapping = {
     "Equity": getattr(
@@ -33,6 +34,8 @@ security_type_mapping = {
     "Muni": comp.MuniStore,
     "Sovereign": comp.SovereignStore,
 }
+
+sector_mapping = {"BCLASS_Level4": sectors.BClass, "GICS_SUB_IND": sectors.GICS}
 
 TargetA = ["Approved SBT"]
 TargetAA = ["Approved SBT", "Ambitious Target"]

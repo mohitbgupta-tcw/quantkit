@@ -1,6 +1,7 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import quantkit.finance.sectors.sectors as sectors
+import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 
 
@@ -75,7 +76,84 @@ class SectorDataSource(ds.DataSources):
         return self.datasource.df
 
 
-class BClassDataSource(ds.DataSources):
+class SubIndustryDataSpurce(ds.DataSources):
+    """
+    Load Sub-Industry (BCLASS and GICS) data
+    Assign Sub-Industry to industry, ESRM module etc.
+
+    Parameter
+    ---------
+    params: dict
+        datasource specific parameters including source
+    transition_params: dict
+        transition paramaters
+    """
+
+    def __init__(self, params: dict, transition_params: dict):
+        super().__init__(params)
+        self.transition_params = transition_params
+        self.industries = dict()
+
+    def load(self) -> None:
+        """
+        load data and transform dataframe
+        """
+        self.datasource.load()
+        self.transform_df()
+
+    def transform_df(self) -> None:
+        """
+        None
+        """
+        pass
+
+    def iter(self, sub_industry: str, sub_dict: dict) -> None:
+        """
+        Create Sub Sector and Industry objects for specific sector
+        Save objects in sub-sector and industry attributes.
+
+        Parameters
+        ----------
+        sub_industry: str
+            sub industry name, either BCLASS_Level4 or GICS_SUB_IND
+        sub_dict: dict
+            dictionary of all sub-industry object
+        """
+        # create Sub-Sector and Industry objects
+        for index, row in self.df.iterrows():
+            # create Sub Sector object
+            sub_sector = row[sub_industry]
+            class_ = mapping_configs.sector_mapping[sub_industry]
+            sub_dict[sub_sector] = class_(class_name=sub_sector, row_information=row)
+            ss_object = sub_dict[sub_sector]
+
+            # create Industry object if not already available
+            industry = row["Industry"]
+            self.industries[industry] = self.industries.get(
+                industry,
+                sectors.Industry(
+                    industry,
+                    transition_risk=row["Transition Risk Module"],
+                    **self.transition_params
+                ),
+            )
+
+            # assign Sub Sector object to Industry and vice verse
+            self.industries[industry].add_sub_sector(ss_object)
+            ss_object.add_industry(self.industries[industry])
+
+    @property
+    def df(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        DataFrame
+            df
+        """
+        return self.datasource.df
+
+
+class BClassDataSource(SubIndustryDataSpurce):
     """
     Load BClass data
     Assign Bclass to industry, ESRM module etc.
@@ -105,10 +183,8 @@ class BClassDataSource(ds.DataSources):
     """
 
     def __init__(self, params: dict, transition_params: dict):
-        super().__init__(params)
-        self.transition_params = transition_params
+        super().__init__(params, transition_params)
         self.bclass = dict()
-        self.industries = dict()
 
         self.industries["Unassigned BCLASS High"] = sectors.Industry(
             "Unassigned BCLASS High", transition_risk="High", **transition_params
@@ -117,60 +193,16 @@ class BClassDataSource(ds.DataSources):
             "Unassigned BCLASS Low", transition_risk="Low", **transition_params
         )
 
-    def load(self) -> None:
-        """
-        load data and transform dataframe
-        """
-        self.datasource.load()
-        self.transform_df()
-
-    def transform_df(self) -> None:
-        """
-        None
-        """
-        pass
-
     def iter(self) -> None:
         """
         Create Sub Sector and Industry objects for specific sector
         Save objects in sub-sector and industry attributes.
         """
         # create Sub-Sector and Industry objects
-        for index, row in self.df.iterrows():
-            # create Sub Sector object
-            sub_sector = row["BCLASS_Level4"]
-            self.bclass[sub_sector] = sectors.BClass(
-                class_name=sub_sector, row_information=row
-            )
-            ss_object = self.bclass[sub_sector]
-
-            # create Industry object if not already available
-            industry = row["Industry"]
-            self.industries[industry] = self.industries.get(
-                industry,
-                sectors.Industry(
-                    industry,
-                    transition_risk=row["Transition Risk Module"],
-                    **self.transition_params
-                ),
-            )
-
-            # assign Sub Sector object to Industry and vice verse
-            self.industries[industry].add_sub_sector(ss_object)
-            ss_object.add_industry(self.industries[industry])
-
-    @property
-    def df(self) -> pd.DataFrame:
-        """
-        Returns
-        -------
-        DataFrame
-            df
-        """
-        return self.datasource.df
+        super().iter("BCLASS_Level4", self.bclass)
 
 
-class GICSDataSource(ds.DataSources):
+class GICSDataSource(SubIndustryDataSpurce):
     """
     Load GICS data
     Assign GICS to industry, ESRM module etc.
@@ -202,23 +234,8 @@ class GICSDataSource(ds.DataSources):
     """
 
     def __init__(self, params: dict, transition_params: dict):
-        super().__init__(params)
-        self.transition_params = transition_params
+        super().__init__(params, transition_params)
         self.gics = dict()
-        self.industries = dict()
-
-    def load(self) -> None:
-        """
-        load data and transform dataframe
-        """
-        self.datasource.load()
-        self.transform_df()
-
-    def transform_df(self) -> None:
-        """
-        None
-        """
-        pass
 
     def iter(self) -> None:
         """
@@ -226,35 +243,4 @@ class GICSDataSource(ds.DataSources):
         Save objects in sub-sector and industry attributes.
         """
         # create Sub-Sector and Industry objects
-        for index, row in self.df.iterrows():
-            # create Sub Sector object
-            sub_sector = row["GICS_SUB_IND"]
-            self.gics[sub_sector] = sectors.GICS(
-                class_name=sub_sector, row_information=row
-            )
-            ss_object = self.gics[sub_sector]
-
-            # create Industry object if not already available
-            industry = row["Industry"]
-            self.industries[industry] = self.industries.get(
-                industry,
-                sectors.Industry(
-                    industry,
-                    transition_risk=row["Transition Risk Module"],
-                    **self.transition_params
-                ),
-            )
-
-            # assign Sub Sector object to Industry and vice verse
-            self.industries[industry].add_sub_sector(ss_object)
-            ss_object.add_industry(self.industries[industry])
-
-    @property
-    def df(self) -> pd.DataFrame:
-        """
-        Returns
-        -------
-        DataFrame
-            df
-        """
-        return self.datasource.df
+        super().iter("GICS_SUB_IND", self.gics)
