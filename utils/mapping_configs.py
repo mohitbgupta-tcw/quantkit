@@ -1,6 +1,8 @@
 import importlib
 import numpy as np
-import quantkit.finance.companies.companies as comp
+import quantkit.finance.companies.munis as munis
+import quantkit.finance.companies.securitized as securitized
+import quantkit.finance.companies.sovereigns as sovereigns
 import quantkit.finance.sectors.sectors as sectors
 
 security_store_mapping = {
@@ -30,9 +32,9 @@ security_mapping = {
 
 
 security_type_mapping = {
-    "Securitized": comp.SecuritizedStore,
-    "Muni": comp.MuniStore,
-    "Sovereign": comp.SovereignStore,
+    "Securitized": securitized.SecuritizedStore,
+    "Muni": munis.MuniStore,
+    "Sovereign": sovereigns.SovereignStore,
 }
 
 sector_mapping = {"BCLASS_Level4": sectors.BClass, "GICS_SUB_IND": sectors.GICS}

@@ -1,206 +1,11 @@
 import pandas as pd
 import numpy as np
-import quantkit.finance.securities.securities as securities
-import quantkit.finance.sectors.sectors as sectors
-import quantkit.finance.adjustment.adjustment as adjustment
 import quantkit.finance.transition.transition as transition
-from typing import Union
+import quantkit.finance.companies.headstore as headstore
 import operator
 
 
-class HeadStore(object):
-    """
-    HeadStore object. Basket for Securities
-    Stores information such as:
-        - isin
-        - attached securities (Equity and Bonds)
-        - industry (including GICS and BCLASS objects)
-        - scores
-
-    Parameters
-    ----------
-    isin: str
-        company's isin. NoISIN if no isin is available
-    """
-
-    def __init__(self, isin: str, **kwargs):
-        self.isin = isin
-        self.securities = dict()
-        self.scores = dict()
-        self.information = dict()
-
-        # assign some default values for measures
-        self.scores["Themes"] = dict()
-        self.scores["Transition_Category"] = list()
-        self.scores["Sustainability_Tag"] = "N"
-        self.scores["Transition_Tag"] = "N"
-        # self.scores["Sector_Level_2"] = "No Sector"
-        self.scores["Muni_Score"] = 0
-        self.scores["Sovereign_Score"] = 0
-        self.scores["ESRM_Score"] = 0
-        self.scores["Governance_Score"] = 0
-        self.scores["Target_Score"] = 0
-        self.scores["Transition_Score"] = 0
-        self.scores["Corporate_Score"] = 0
-        self.scores["Review_Flag"] = ""
-        self.scores["Review_Comments"] = ""
-        self.scores["ESRM_Flags"] = dict()
-        self.scores["Governance_Flags"] = dict()
-        self.scores["NA_Flags_ESRM"] = dict()
-        self.scores["NA_Flags_Governance"] = dict()
-        self.Adjustment = pd.DataFrame(
-            columns=["Thematic Type", "Category", "Adjustment"]
-        )
-        self.Exclusion = pd.DataFrame()
-        self.information["Sector_Level_2"] = np.nan
-        self.information["IVA_COMPANY_RATING"] = np.nan
-        self.information["Exclusion"] = []
-
-    def add_security(
-        self,
-        isin: str,
-        store: Union[
-            securities.EquityStore,
-            securities.FixedIncomeStore,
-            securities.SecurityStore,
-        ],
-    ):
-        """
-        Add security object to parent.
-        Security could be stock or issued Fixed Income of company.
-
-        Parameters
-        ----------
-        isin: str
-            security's isin
-        store: securities.EquityStore | securities.FixedIncomeStore | securities.SecurityStore:
-            security store of new security
-        """
-        self.securities[isin] = store
-        return
-
-    def remove_security(self, isin: str):
-        """
-        Remove security object from company.
-
-        Parameters
-        ----------
-        isin: str
-            security's isin
-        """
-        self.securities.pop(isin, None)
-        return
-
-    def attach_region(self, regions_df: pd.DataFrame, regions: dict):
-        """
-        Attach region information (including ISO2, name, sovereign score) to parent object
-        Save region object in self.information["Issuer_Country"]
-
-        Parameters
-        ----------
-        regions_df: pd.DataFrame
-            DataFrame of regions information
-        regions: dict
-            dictionary of all region objects
-        """
-        # dict to map name to ISO2
-        temp_regions = pd.Series(
-            regions_df["ISO2"].values,
-            index=regions_df["Country"],
-        ).to_dict()
-
-        # if issuer country is country name, map to ISO2
-        # attach region object to company
-        country = self.msci_information["ISSUER_CNTRY_DOMICILE"]
-        country = temp_regions.get(country, country)
-        self.information["Issuer_Country"] = regions[country]
-        regions[country].add_company(self.isin, self)
-        return
-
-    def attach_analyst_adjustment(self, adjustment_df: pd.DataFrame):
-        """
-        Attach analyst adjustment to company object
-        Link to adjustment datasource by MSCI issuer id
-
-        Parameters
-        ----------
-        adjustment_df: pd.Dataframe
-            DataFrame of Analyst Adjustments
-        """
-        # attach analyst adjustment
-        msci_issuerid = self.msci_information["ISSUERID"]
-        adj_df = adjustment_df[adjustment_df["ISIN"] == msci_issuerid]
-        if not adj_df.empty:
-            self.Adjustment = pd.concat(
-                [self.Adjustment, adj_df],
-                ignore_index=True,
-                sort=False,
-            )
-        return
-
-    def analyst_adjustment(self, themes: dict):
-        """
-        Do analyst adjustments for each parent.
-        Different calculations for each thematic type:
-            - Risk
-            - Transition
-            - People
-            - Planet
-        See quantkit.finance.adjustments for more information
-
-        Parameters
-        ----------
-        themes: dict
-            dictionary of all themes
-        """
-        # check for analyst adjustment
-        for index, row in self.Adjustment.iterrows():
-            thematic_type = row["Thematic Type"]
-            cat = row["Category"]
-            a = row["Adjustment"]
-            comment = row["Comments"]
-            func_ = getattr(adjustment, thematic_type)
-            func_(
-                store=self,
-                adjustment=a,
-                themes=themes,
-                theme=cat,
-                comment=comment,
-            )
-        return
-
-    def exclusion(self):
-        """
-        Do exclusion for each parent.
-        Attach if parent would be A8 or A9 excluded
-        """
-        # check for exclusions
-        for index, row in self.Exclusion.iterrows():
-            article = row["Article"]
-            self.information["Exclusion"].append(article)
-        return
-
-    def attach_gics(self, gics_d: dict):
-        """
-        Attach GICS object to parent store
-        Save GICS object in self.information["GICS_SUB_IND"]
-
-        Parameters
-        ----------
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
-        """
-        # if we can't find GICS in store, create new one as 'Unassigned GICS'
-        gics_sub = "Unassigned GICS"
-        gics_d[gics_sub] = gics_d.get(
-            gics_sub,
-            sectors.GICS(gics_sub, pd.Series(gics_d["Unassigned GICS"].information)),
-        )
-        self.information["GICS_SUB_IND"] = gics_d[gics_sub]
-        return
-
-
-class CompanyStore(HeadStore):
+class CompanyStore(headstore.HeadStore):
     """
     Company object. Stores information such as:
         - isin
@@ -224,7 +29,7 @@ class CompanyStore(HeadStore):
             "IVA_COMPANY_RATING"
         ]
 
-    def update_sovereign_score(self):
+    def update_sovereign_score(self) -> None:
         """
         For Treasuries update the Sovereign Score (in self.scores)
         """
@@ -232,104 +37,8 @@ class CompanyStore(HeadStore):
             self.scores["Sovereign_Score"] = self.information[
                 "Issuer_Country"
             ].information["Sovereign_Score"]
-        return
 
-    def attach_gics(self, gics_d: dict):
-        """
-        Attach GICS object to parent store
-        Save GICS object in self.information["GICS_SUB_IND"]
-
-        Parameters
-        ----------
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
-        """
-        # if we can't find GICS in store, create new one as 'Unassigned GICS'
-        gics_sub = self.msci_information["GICS_SUB_IND"]
-        gics_d[gics_sub] = gics_d.get(
-            gics_sub,
-            sectors.GICS(gics_sub, pd.Series(gics_d["Unassigned GICS"].information)),
-        )
-        self.information["GICS_SUB_IND"] = gics_d[gics_sub]
-        return
-
-    def attach_industry(self, gics_d: dict, bclass_d: dict):
-        """
-        Attach industry and sub industry object to parent store
-        logic: take GICS information, if GICS is unassigned, take BCLASS
-        Save industry object in self.information["Industry"]
-
-        Parameters
-        ----------
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
-        bclass_d: dict
-            dictionary of bclass_level4 with bclass as key, bclass object as value
-        """
-        gics_sub = self.information["GICS_SUB_IND"].information["GICS_SUB_IND"]
-        bclass4 = self.information["BCLASS_Level4"].information["BCLASS_Level4"]
-
-        if gics_sub != "Unassigned GICS":
-            gics_object = gics_d[gics_sub]
-            self.information["Industry"] = gics_object.industry
-            self.information["Sub-Industry"] = gics_object
-            self.information["Transition_Risk_Module"] = gics_object.information[
-                "Transition Risk Module"
-            ]
-            # attach company to industry
-            gics_object.industry.companies[self.isin] = self
-        else:
-            bclass_object = bclass_d[bclass4]
-            self.information["Industry"] = bclass_object.industry
-            self.information["Sub-Industry"] = bclass_object
-            self.information["Transition_Risk_Module"] = bclass_object.information[
-                "Transition Risk Module"
-            ]
-            # attach company to industry
-            bclass_object.industry.companies[self.isin] = self
-        return
-
-    def attach_category(self, category_d):
-        """
-        Attach ESRM category based on ESRM module of sub industry
-        Attach Region Theme based on Region
-
-        Parameters
-        ----------
-        category_d: dict
-            dictionary of ESRM categories
-        """
-
-        esrm_module = self.information["Sub-Industry"].information["ESRM Module"]
-        self.information["ESRM Module"] = category_d[esrm_module]
-
-        # get region theme (DM, JP, EM, EUCohort)
-        region_theme = self.information["Issuer_Country"].information["Region"]
-        self.information["region_theme"] = category_d[region_theme]
-        return
-
-    def attach_exclusion(self, exclusion_df: pd.DataFrame):
-        """
-        Attach exclusions from MSCI to company object
-        Link to exclusion datasource by MSCI issuer id
-
-        Parameters
-        ----------
-        exclusion_df: pd.DataFrame
-            DataFrame of exclusions based on articles 8 and 9
-        """
-        # map exclusion based on Article 8 and 9
-        msci_issuerid = self.msci_information["ISSUERID"]
-        excl_df = exclusion_df[exclusion_df["MSCI Issuer ID"] == msci_issuerid]
-        if not excl_df.empty:
-            self.Exclusion = pd.concat(
-                [self.Exclusion, excl_df],
-                ignore_index=True,
-                sort=False,
-            )
-        return
-
-    def calculate_capex(self):
+    def calculate_capex(self) -> None:
         """
         Calculate the green CapEx of a company
         save capex in information[CapEx]
@@ -347,9 +56,8 @@ class CompanyStore(HeadStore):
                 0,
             ]
         )
-        return
 
-    def calculate_climate_revenue(self):
+    def calculate_climate_revenue(self) -> None:
         """
         Calculate the green climate revenue of a company
         save climate revenue in information[Climate_Revenue]
@@ -367,9 +75,8 @@ class CompanyStore(HeadStore):
                 0,
             ]
         )
-        return
 
-    def calculate_carbon_intensity(self):
+    def calculate_carbon_intensity(self) -> None:
         """
         Calculate the carbon intensity of a company
         save carbon intensity in information[Carbon Intensity (Scope 123)]
@@ -389,15 +96,14 @@ class CompanyStore(HeadStore):
             self.information["Industry"].update(carbon_intensity)
         # numerator or denominator are zero
         # --> set carbon intensity to NA for now
-        # --> replace with median later in reiteration (therefore append to reiter)
+        # --> replace with median later in reiteration (therefore set reiter to true)
         else:
             carbon_intensity = np.nan
             self.information["reiter"] = True
 
         self.information["Carbon Intensity (Scope 123)"] = carbon_intensity
-        return
 
-    def check_theme_requirements(self, themes):
+    def check_theme_requirements(self, themes) -> None:
         """
         Iterate over themes and
             - assign theme_ISSKeyAdd in sdg_information
@@ -486,9 +192,8 @@ class CompanyStore(HeadStore):
                     self.information["Primary_Rev_Sustainable"] = themes[theme]
                     current_max = iss_max
                     current_sec = msci_sum
-        return
 
-    def calculate_esrm_score(self):
+    def calculate_esrm_score(self) -> None:
         """
         Calculuate esrm score for each company:
         1) For each category save indicator fields and EM and DM flag scorings
@@ -582,9 +287,8 @@ class CompanyStore(HeadStore):
         self.scores["Governance_Flags"] = gov_d
         self.scores["NA_Flags_ESRM"] = na_esrm
         self.scores["NA_Flags_Governance"] = na_gov
-        return
 
-    def non_applicable_securities(self):
+    def non_applicable_securities(self) -> bool:
         """
         For non-applicable securities, apply a score of 0 accross all risk scores
 
@@ -592,6 +296,11 @@ class CompanyStore(HeadStore):
             - Sector Level 2 in excemption list
             - BCLASS is Treasury
             - ISIN is NoISIN
+
+        Returns
+        -------
+        bool
+            security is non applicable
         """
         sector_level2 = ["Cash and Other"]
 
@@ -607,7 +316,7 @@ class CompanyStore(HeadStore):
             return True
         return False
 
-    def calculate_transition_score(self):
+    def calculate_transition_score(self) -> None:
         """
         Calculate transition score (Transition_Score) for each company:
         0) Check if company is excempted --> set score to 0
@@ -646,9 +355,8 @@ class CompanyStore(HeadStore):
 
         if transition_score == 5:
             self.scores["Review_Flag"] = "Needs Review"
-        return
 
-    def calculate_target_score(self):
+    def calculate_target_score(self) -> None:
         """
         Calculate the target score of a company
         This target score will be used as reduction in transition score calculation
@@ -676,9 +384,8 @@ class CompanyStore(HeadStore):
         else:
             target_score = 0
         self.scores["Target_Score"] = target_score
-        return
 
-    def create_transition_tag(self):
+    def create_transition_tag(self) -> None:
         """
         create transition tags by:
         1) If company's sub industry is in removal list and already is sustainable, skipp
@@ -750,9 +457,8 @@ class CompanyStore(HeadStore):
                     self.scores["Transition_Category"].append(
                         self.information["Sub-Industry"].transition["Acronym"]
                     )
-        return
 
-    def calculate_corporate_score(self):
+    def calculate_corporate_score(self) -> None:
         """
         Calculate corporate score for a company based on other scores.
         Calculation:
@@ -766,9 +472,8 @@ class CompanyStore(HeadStore):
                 self.scores["Transition_Score"],
             ]
         )
-        return
 
-    def calculate_risk_overall_score(self):
+    def calculate_risk_overall_score(self) -> None:
         """
         Calculate risk overall score on security level:
             - if corporate score between 1 and 2: Leading
@@ -783,43 +488,34 @@ class CompanyStore(HeadStore):
         for s in self.securities:
             if esrm_score == 5 or gov_score == 5 or trans_score == 5:
                 self.securities[s].scores["Risk_Score_Overall"] = "Poor Risk Score"
-            elif score >= 1 and score <= 2:
-                self.securities[s].scores["Risk_Score_Overall"] = "Leading ESG Score"
-            elif score > 2 and score <= 4:
-                self.securities[s].scores["Risk_Score_Overall"] = "Average ESG Score"
-            elif score == 0:
-                self.securities[s].scores["Risk_Score_Overall"] = "Not Scored"
-        return
+            else:
+                self.securities[s].set_risk_overall_score(score)
 
-    def update_sclass(self):
+    def update_sclass(self) -> None:
         """
         Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
         and SClass_Level5 for each security rule based
+
+        Order:
+        1) Poor Transition, Governance or ESRM Score
+        2) Is Labeled Bond
+        3) Analyst Adjustment
+        4) Is Sustainable
+        5) Is Transition
+        6) Is Leading
+        7) Is not Scored
         """
         transition_score = self.scores["Transition_Score"]
         governance_score = self.scores["Governance_Score"]
         esrm_score = self.scores["ESRM_Score"]
         score_sum = governance_score + transition_score + esrm_score
-        transition_category = self.scores["Transition_Category"]
         transition_tag = self.scores["Transition_Tag"]
-        sustainability_category = self.scores["Themes"]
-        themes = list(sustainability_category.keys())
         sustainability_tag = self.scores["Sustainability_Tag"]
         for s in self.securities:
-            self.securities[s].information["SClass_Level5"] = self.securities[
-                s
-            ].information["ESG_Collateral_Type"]["ESG Collat Type"]
+            self.securities[s].level_5()
 
             if governance_score == 5:
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Poor Governance Score"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Poor Governance Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
+                self.securities[s].is_score_5("Governance")
 
             elif (
                 esrm_score == 5
@@ -827,194 +523,50 @@ class CompanyStore(HeadStore):
                 or self.msci_information["OVERALL_FLAG"] == "Red"
                 or self.msci_information["IVA_COMPANY_RATING"] == "CCC"
             ):
-                self.securities[s].information["SClass_Level4-P"] = "Poor ESRM Score"
-                self.securities[s].information["SClass_Level4"] = "Poor ESRM Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
+                self.securities[s].is_score_5("ESRM")
                 self.scores["ESRM_Score"] = 5
 
             elif transition_score == 5:
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Poor Transition Score"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Poor Transition Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
+                self.securities[s].is_score_5("Transition")
 
             elif (
                 self.securities[s].information["Labeled_ESG_Type"]
                 == "Labeled Green/Sustainable Linked"
             ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Green/Sustainable Linked"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Green/Sustainable Linked"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
+                self.securities[s].is_esg_labeled("Green/Sustainable Linked")
             elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].information["SClass_Level4-P"] = "Green"
-                self.securities[s].information["SClass_Level4"] = "Green"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
+                self.securities[s].is_esg_labeled("Green")
             elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].information["SClass_Level4-P"] = "Social"
-                self.securities[s].information["SClass_Level4"] = "Social"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
+                self.securities[s].is_esg_labeled("Social")
             elif (
                 self.securities[s].information["Labeled_ESG_Type"]
                 == "Labeled Sustainable"
             ):
-                self.securities[s].information["SClass_Level4-P"] = "Sustainable"
-                self.securities[s].information["SClass_Level4"] = "Sustainable"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
+                self.securities[s].is_esg_labeled("Sustainable")
             elif (
                 self.securities[s].information["Labeled_ESG_Type"]
                 == "Labeled Sustainable Linked"
             ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
+                self.securities[s].is_esg_labeled("Sustainability-Linked Bonds")
 
             elif sustainability_tag == "Y*":
-                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-                if len(sustainability_category) == 1:
-                    theme = themes[0]
-                    self.securities[s].information["SClass_Level4"] = theme
-                    self.securities[s].information["SClass_Level4-P"] = theme
-                    self.securities[s].information[
-                        "SClass_Level3"
-                    ] = sustainability_category[theme].pillar
-                elif len(sustainability_category) >= 2:
-                    self.securities[s].information["SClass_Level3"] = "Multi-Thematic"
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = self.information["Primary_Rev_Sustainable"].acronym
-                    people_count = 0
-                    planet_count = 0
-                    for t in sustainability_category:
-                        if sustainability_category[t].pillar == "People":
-                            people_count += 1
-                        elif sustainability_category[t].pillar == "Planet":
-                            planet_count += 1
-
-                        if planet_count >= 1 and people_count >= 1:
-                            self.securities[s].information[
-                                "SClass_Level4"
-                            ] = "Planet & People"
-                        elif planet_count >= 2:
-                            self.securities[s].information["SClass_Level4"] = "Planet"
-                        elif people_count >= 2:
-                            self.securities[s].information["SClass_Level4"] = "People"
-                else:
-                    raise ValueError(
-                        "If sustainability tag is 'Y*', theme should be assigned."
-                    )
+                self.securities[s].is_sustainable()
 
             elif transition_tag == "Y*":
-                self.securities[s].information["SClass_Level3"] = "Transition"
-                self.securities[s].information["SClass_Level2"] = "Transition"
-                self.securities[s].information["SClass_Level1"] = "Eligible"
-                if len(transition_category) > 1:
-                    self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = transition_category[-1]
-                elif len(transition_category) == 1:
-                    self.securities[s].information[
-                        "SClass_Level4"
-                    ] = transition_category[0]
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = transition_category[0]
-                else:
-                    raise ValueError(
-                        "If transition tag is 'Y*', category should be assigned."
-                    )
+                self.securities[s].is_transition()
 
             elif sustainability_tag == "Y":
-                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-                if len(sustainability_category) == 1:
-                    theme = themes[0]
-                    self.securities[s].information["SClass_Level4"] = theme
-                    self.securities[s].information["SClass_Level4-P"] = theme
-                    self.securities[s].information[
-                        "SClass_Level3"
-                    ] = sustainability_category[theme].pillar
-                elif len(sustainability_category) >= 2:
-                    self.securities[s].information["SClass_Level3"] = "Multi-Thematic"
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = self.information["Primary_Rev_Sustainable"].acronym
-                    people_count = 0
-                    planet_count = 0
-                    for t in sustainability_category:
-                        if sustainability_category[t].pillar == "People":
-                            people_count += 1
-                        elif sustainability_category[t].pillar == "Planet":
-                            planet_count += 1
-
-                        if planet_count >= 1 and people_count >= 1:
-                            self.securities[s].information[
-                                "SClass_Level4"
-                            ] = "Planet & People"
-                        elif planet_count >= 2:
-                            self.securities[s].information["SClass_Level4"] = "Planet"
-                        elif people_count >= 2:
-                            self.securities[s].information["SClass_Level4"] = "People"
-                else:
-                    raise ValueError(
-                        "If sustainability tag is 'Y', theme should be assigned."
-                    )
+                self.securities[s].is_sustainable()
 
             elif transition_tag == "Y":
-                self.securities[s].information["SClass_Level3"] = "Transition"
-                self.securities[s].information["SClass_Level2"] = "Transition"
-                self.securities[s].information["SClass_Level1"] = "Eligible"
-                if len(transition_category) > 1:
-                    self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
-                    self.securities[s].information["SClass_Level4-P"] = "Multi-Thematic"
-                elif len(transition_category) == 1:
-                    self.securities[s].information[
-                        "SClass_Level4"
-                    ] = transition_category[0]
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = transition_category[0]
-                else:
-                    raise ValueError(
-                        "If transition tag is 'Y', category should be assigned."
-                    )
+                self.securities[s].is_transition()
 
             elif score_sum <= 6 and score_sum > 0:
-                self.securities[s].information["SClass_Level4"] = "Leading ESG Score"
-                self.securities[s].information["SClass_Level4-P"] = "Leading ESG Score"
+                self.securities[s].is_leading()
             elif score_sum == 0:
-                self.securities[s].information["SClass_Level4"] = "Not Scored"
-                self.securities[s].information["SClass_Level4-P"] = "Not Scored"
+                self.securities[s].is_not_scored()
 
-        return
-
-    def get_parent_issuer_data(self, companies: dict):
+    def get_parent_issuer_data(self, companies: dict) -> None:
         """
         Assign data from parent to sub-company if data is missing (nan)
         Data includes:
@@ -1054,9 +606,8 @@ class CompanyStore(HeadStore):
             if pd.isna(self.bloomberg_information[val]):
                 new_val = companies[parent].bloomberg_information[val]
                 self.bloomberg_information[val] = new_val
-        return
 
-    def replace_carbon_median(self):
+    def replace_carbon_median(self) -> None:
         """
         For companies without 'Carbon Intensity (Scope 123)'
         --> (CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT) couldnt be calculuated
@@ -1066,9 +617,10 @@ class CompanyStore(HeadStore):
             self.information["Carbon Intensity (Scope 123)"] = self.information[
                 "Industry"
             ].median
-        return
 
-    def replace_unassigned_industry(self, high_threshold: float, industries: dict):
+    def replace_unassigned_industry(
+        self, high_threshold: float, industries: dict
+    ) -> None:
         """
         Split companies with unassigned industry and sub-industry into
         high and low transition risk
@@ -1099,7 +651,6 @@ class CompanyStore(HeadStore):
             industries["Unassigned BCLASS Low"].update(
                 self.information["Carbon Intensity (Scope 123)"]
             )
-        return
 
     def iter(
         self,
@@ -1112,7 +663,7 @@ class CompanyStore(HeadStore):
         bclass_d: dict,
         category_d: dict,
         themes: dict,
-    ):
+    ) -> None:
         """
         - attach region information
         - attach sovereign score
@@ -1160,10 +711,10 @@ class CompanyStore(HeadStore):
         self.attach_exclusion(exclusion_df)
 
         # attach exclusion article
-        self.exclusion()
+        self.iter_exclusion()
 
         # attach GICS Sub industry
-        self.attach_gics(gics_d)
+        self.attach_gics(gics_d, self.msci_information["GICS_SUB_IND"])
 
         # attach industry and sub industry
         self.attach_industry(gics_d, bclass_d)
@@ -1185,650 +736,3 @@ class CompanyStore(HeadStore):
 
         # assign theme and Sustainability_Tag
         self.check_theme_requirements(themes)
-        return
-
-
-class MuniStore(HeadStore):
-    """
-    Muni object. Stores information such as:
-        - isin
-        - attached securities (Equity and Bonds)
-
-    Parameters
-    ----------
-    isin: str
-        muni's isin. NoISIN if no isin is available
-    """
-
-    def __init__(self, isin: str, **kwargs):
-        super().__init__(isin, **kwargs)
-        self.type = "muni"
-
-    def calculate_risk_overall_score(self):
-        """
-        Calculate risk overall score on security level:
-            - if muni score between 1 and 2: Leading
-            - if muni score between 2 and 4: Average
-            - if muni score above 4: Poor
-            - if muni score 0: not scored
-        """
-        score = self.scores["Muni_Score"]
-        for s in self.securities:
-            if score in [1, 2]:
-                self.securities[s].scores["Risk_Score_Overall"] = "Leading ESG Score"
-            elif score in [3, 4]:
-                self.securities[s].scores["Risk_Score_Overall"] = "Average ESG Score"
-            elif score == 0:
-                self.securities[s].scores["Risk_Score_Overall"] = "Not Scored"
-        return
-
-    def update_sclass(self):
-        """
-        Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
-        and SClass_Level5 for each security rule based
-        """
-        score = self.scores["Muni_Score"]
-        transition_category = self.scores["Transition_Category"]
-        transition_tag = self.scores["Transition_Tag"]
-        sustainability_category = self.scores["Themes"]
-        themes = list(sustainability_category.keys())
-        sustainability_tag = self.scores["Sustainability_Tag"]
-        for s in self.securities:
-            self.securities[s].information["SClass_Level5"] = self.securities[
-                s
-            ].information["ESG_Collateral_Type"]["ESG Collat Type"]
-
-            if score == 5:
-                self.securities[s].information["SClass_Level4-P"] = "Poor Muni Score"
-                self.securities[s].information["SClass_Level4"] = "Poor Muni Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Green/Sustainable Linked"
-            ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Green/Sustainable Linked"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Green/Sustainable Linked"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].information["SClass_Level4-P"] = "Green"
-                self.securities[s].information["SClass_Level4"] = "Green"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].information["SClass_Level4-P"] = "Social"
-                self.securities[s].information["SClass_Level4"] = "Social"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable"
-            ):
-                self.securities[s].information["SClass_Level4-P"] = "Sustainable"
-                self.securities[s].information["SClass_Level4"] = "Sustainable"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable Linked"
-            ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-
-            elif sustainability_tag == "Y*":
-                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-                if len(sustainability_category) == 1:
-                    theme = themes[0]
-                    self.securities[s].information["SClass_Level4"] = theme
-                    self.securities[s].information["SClass_Level4-P"] = theme
-                    self.securities[s].information[
-                        "SClass_Level3"
-                    ] = sustainability_category[theme].pillar
-                elif len(sustainability_category) >= 2:
-                    self.securities[s].information["SClass_Level3"] = "Multi-Thematic"
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = self.information["Primary_Rev_Sustainable"].acronym
-                    people_count = 0
-                    planet_count = 0
-                    for t in sustainability_category:
-                        if sustainability_category[t].pillar == "People":
-                            people_count += 1
-                        elif sustainability_category[t].pillar == "Planet":
-                            planet_count += 1
-
-                        if planet_count >= 1 and people_count >= 1:
-                            self.securities[s].information[
-                                "SClass_Level4"
-                            ] = "Planet & People"
-                        elif planet_count >= 2:
-                            self.securities[s].information["SClass_Level4"] = "Planet"
-                        elif people_count >= 2:
-                            self.securities[s].information["SClass_Level4"] = "People"
-                else:
-                    raise ValueError(
-                        "If sustainability tag is 'Y', theme should be assigned."
-                    )
-
-            elif transition_tag == "Y*":
-                self.securities[s].information["SClass_Level3"] = "Transition"
-                self.securities[s].information["SClass_Level2"] = "Transition"
-                self.securities[s].information["SClass_Level1"] = "Eligible"
-                if len(transition_category) > 1:
-                    self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = transition_category[-1]
-                elif len(transition_category) == 1:
-                    self.securities[s].information[
-                        "SClass_Level4"
-                    ] = transition_category[0]
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = transition_category[0]
-                else:
-                    raise ValueError(
-                        "If transition tag is 'Y', category should be assigned."
-                    )
-
-            elif sustainability_tag == "Y":
-                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-                if len(sustainability_category) == 1:
-                    theme = themes[0]
-                    self.securities[s].information["SClass_Level4"] = theme
-                    self.securities[s].information["SClass_Level4-P"] = theme
-                    self.securities[s].information[
-                        "SClass_Level3"
-                    ] = sustainability_category[theme].pillar
-                elif len(sustainability_category) >= 2:
-                    self.securities[s].information["SClass_Level3"] = "Multi-Thematic"
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = self.information["Primary_Rev_Sustainable"].acronym
-                    people_count = 0
-                    planet_count = 0
-                    for t in sustainability_category:
-                        if sustainability_category[t].pillar == "People":
-                            people_count += 1
-                        elif sustainability_category[t].pillar == "Planet":
-                            planet_count += 1
-
-                        if planet_count >= 1 and people_count >= 1:
-                            self.securities[s].information[
-                                "SClass_Level4"
-                            ] = "Planet & People"
-                        elif planet_count >= 2:
-                            self.securities[s].information["SClass_Level4"] = "Planet"
-                        elif people_count >= 2:
-                            self.securities[s].information["SClass_Level4"] = "People"
-                else:
-                    raise ValueError(
-                        "If sustainability tag is 'Y', theme should be assigned."
-                    )
-
-            elif transition_tag == "Y":
-                self.securities[s].information["SClass_Level3"] = "Transition"
-                self.securities[s].information["SClass_Level2"] = "Transition"
-                self.securities[s].information["SClass_Level1"] = "Eligible"
-                if len(transition_category) > 1:
-                    self.securities[s].information["SClass_Level4"] = "Multi-Thematic"
-                    self.securities[s].information["SClass_Level4-P"] = "Multi-Thematic"
-                elif len(transition_category) == 1:
-                    self.securities[s].information[
-                        "SClass_Level4"
-                    ] = transition_category[0]
-                    self.securities[s].information[
-                        "SClass_Level4-P"
-                    ] = transition_category[0]
-                else:
-                    raise ValueError(
-                        "If transition tag is 'Y', category should be assigned."
-                    )
-
-            elif score <= 2 and score > 0:
-                self.securities[s].information["SClass_Level4"] = "Leading ESG Score"
-                self.securities[s].information["SClass_Level4-P"] = "Leading ESG Score"
-            elif score == 0:
-                self.securities[s].information["SClass_Level4"] = "Not Scored"
-                self.securities[s].information["SClass_Level4-P"] = "Not Scored"
-        return
-
-    def iter(self, regions_df: pd.DataFrame, regions: dict, gics_d: dict):
-        """
-        - attach GICS information
-        - attach exclusions
-        - attach region
-
-        Parameters
-        ----------
-        regions_df: pd.DataFrame
-            DataFrame of regions information
-        regions: dict
-            dictionary of all region objects
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
-        """
-        # attach GICS
-        self.attach_gics(gics_d)
-
-        # attach exclusions
-        self.exclusion()
-
-        # attach region
-        self.attach_region(regions_df, regions)
-        return
-
-
-class SecuritizedStore(HeadStore):
-    """
-    Securitized object. Stores information such as:
-        - isin
-        - attached securities (Equity and Bonds)
-
-    Parameters
-    ----------
-    isin: str
-        securitized's isin. NoISIN if no isin is available
-    """
-
-    def __init__(self, isin: str, **kwargs):
-        super().__init__(isin, **kwargs)
-        self.type = "securitized"
-
-    def calculate_securitized_score(self):
-        """
-        Calculation of Securitized Score (on security level)
-        """
-        collat_type_1 = [
-            "LEED Platinum",
-            "LEED Gold",
-            "LEED Silver",
-            "LEED Certified",
-            "LEED (Multi Property)",
-            "BREEAM Very Good",
-        ]
-        collat_type_2 = ["TCW Criteria", "Small Business Loan", "FFELP Student Loan"]
-        for s in self.securities:
-            sec_store = self.securities[s]
-
-            if (
-                not pd.isna(sec_store.information["Labeled_ESG_Type"])
-            ) or sec_store.information["Issuer_ESG"] == "Yes":
-                if pd.isna(sec_store.information["TCW_ESG"]):
-                    sec_store.scores["Securitized_Score"] = 5
-                    continue
-                else:
-                    sec_store.scores["Securitized_Score"] = 1
-                    continue
-            elif (
-                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
-                in collat_type_1
-                and sec_store.information["Labeled_ESG_Type"] != "Labeled Green"
-                and sec_store.information["TCW_ESG"] == "TCW Green"
-            ):
-                sec_store.scores["Securitized_Score"] = 2
-                continue
-            elif (
-                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
-                in collat_type_2
-                and sec_store.information["Labeled_ESG_Type"] != "Labeled Social"
-                and sec_store.information["TCW_ESG"] == "TCW Social"
-                and not "TBA " in sec_store.information["IssuerName"]
-            ):
-                sec_store.scores["Securitized_Score"] = 2
-                continue
-            elif (
-                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
-                == "ESG CLO"
-            ):
-                sec_store.scores["Securitized_Score"] = 2
-                continue
-            elif "TBA " in sec_store.information["IssuerName"]:
-                sec_store.scores["Securitized_Score"] = 3
-            elif (
-                (pd.isna(sec_store.information["Labeled_ESG_Type"]))
-                and pd.isna(sec_store.information["TCW_ESG"])
-                and not "TBA " in sec_store.information["IssuerName"]
-            ):
-                sec_store.scores["Securitized_Score"] = 4
-                continue
-
-        return
-
-    def calculate_risk_overall_score(self):
-        """
-        Calculate risk overall score on security level:
-            - if securitized score between 1 and 2: Leading
-            - if securitized score between 2 and 4: Average
-            - if securitized score above 4: Poor
-            - if securitized score 0: not scored
-        """
-        for s in self.securities:
-            score = self.securities[s].scores["Securitized_Score"]
-            if score in [1, 2]:
-                self.securities[s].scores["Risk_Score_Overall"] = "Leading ESG Score"
-            elif score in [3, 4]:
-                self.securities[s].scores["Risk_Score_Overall"] = "Average ESG Score"
-            elif score == 0:
-                self.securities[s].scores["Risk_Score_Overall"] = "Not Scored"
-        return
-
-    def update_sclass(self):
-        """
-        Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
-        and SClass_Level5 for each security rule based
-        """
-        for s in self.securities:
-            score = self.securities[s].scores["Securitized_Score"]
-            self.securities[s].information["SClass_Level5"] = self.securities[
-                s
-            ].information["ESG_Collateral_Type"]["ESG Collat Type"]
-
-            if score == 5:
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Poor Securitized Score"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Poor Securitized Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
-
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Green/Sustainable Linked"
-            ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Green/Sustainable Linked"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Green/Sustainable Linked"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].information["SClass_Level4-P"] = "Green"
-                self.securities[s].information["SClass_Level4"] = "Green"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].information["SClass_Level4-P"] = "Social"
-                self.securities[s].information["SClass_Level4"] = "Social"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable"
-            ):
-                self.securities[s].information["SClass_Level4-P"] = "Sustainable"
-                self.securities[s].information["SClass_Level4"] = "Sustainable"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable Linked"
-            ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-
-            elif (
-                not self.securities[s].information["ESG_Collateral_Type"][
-                    "ESG Collat Type"
-                ]
-                == "Unknown"
-            ):
-                self.securities[s].information["SClass_Level4-P"] = self.securities[
-                    s
-                ].information["ESG_Collateral_Type"]["Primary"]
-                self.securities[s].information["SClass_Level4"] = self.securities[
-                    s
-                ].information["ESG_Collateral_Type"]["Primary"]
-                self.securities[s].information["SClass_Level3"] = self.securities[
-                    s
-                ].information["ESG_Collateral_Type"]["Sclass_Level3"]
-                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-
-            elif " TBA " in self.securities[s].information["Security_Name"]:
-                self.securities[s].information["SClass_Level4-P"] = "AFFORDABLE"
-                self.securities[s].information["SClass_Level4"] = "AFFORDABLE"
-                self.securities[s].information["SClass_Level3"] = "People"
-                self.securities[s].information["SClass_Level2"] = "Sustainable Theme"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-
-            elif score <= 2 and score > 0:
-                self.securities[s].information["SClass_Level4"] = "Leading ESG Score"
-                self.securities[s].information["SClass_Level4-P"] = "Leading ESG Score"
-            elif score == 0:
-                self.securities[s].information["SClass_Level4"] = "Not Scored"
-                self.securities[s].information["SClass_Level4-P"] = "Not Scored"
-        return
-
-    def iter(self, regions_df: pd.DataFrame, regions: dict, gics_d: dict):
-        """
-        - attach GICS information
-        - attach exclusions
-        - attach region
-
-        Parameters
-        ----------
-        regions_df: pd.DataFrame
-            DataFrame of regions information
-        regions: dict
-            dictionary of all region objects
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
-        """
-        # attach GICS
-        self.attach_gics(gics_d)
-
-        # attach exclusions
-        self.exclusion()
-
-        # attach region
-        self.attach_region(regions_df, regions)
-        return
-
-
-class SovereignStore(HeadStore):
-    """
-    Sovereign object. Stores information such as:
-        - isin
-        - attached securities (Equity and Bonds)
-
-    Parameters
-    ----------
-    isin: str
-        company's isin. NoISIN if no isin is available
-    row_data: pd.Series
-        company information derived from SSI and MSCI
-    """
-
-    def __init__(self, isin: str, **kwargs):
-        super().__init__(isin, **kwargs)
-        self.msci_information = {}
-        self.type = "sovereign"
-
-    def update_sovereign_score(self):
-        """
-        Set Sovereign Score
-        """
-        self.scores["Sovereign_Score"] = self.information["Issuer_Country"].information[
-            "Sovereign_Score"
-        ]
-        return
-
-    def attach_gics(self, gics_d: dict):
-        """
-        Attach GICS object to parent store
-        Save GICS object in self.information["GICS_SUB_IND"]
-
-        Parameters
-        ----------
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
-        """
-        # if we can't find GICS in store, create new one as 'Unassigned GICS'
-        gics_sub = self.msci_information["GICS_SUB_IND"]
-        gics_d[gics_sub] = gics_d.get(
-            gics_sub,
-            sectors.GICS(gics_sub, pd.Series(gics_d["Unassigned GICS"].information)),
-        )
-        self.information["GICS_SUB_IND"] = gics_d[gics_sub]
-        return
-
-    def calculate_risk_overall_score(self):
-        """
-        Calculate risk overall score on security level:
-            - if sovereign score between 1 and 2: Leading
-            - if sovereign score between 2 and 4: Average
-            - if sovereign score above 4: Poor
-            - if sovereign score 0: not scored
-        """
-        score = self.scores["Sovereign_Score"]
-        for s in self.securities:
-            if score in [1, 2]:
-                self.securities[s].scores["Risk_Score_Overall"] = "Leading ESG Score"
-            elif score in [3, 4]:
-                self.securities[s].scores["Risk_Score_Overall"] = "Average ESG Score"
-            elif score == 0:
-                self.securities[s].scores["Risk_Score_Overall"] = "Not Scored"
-        return
-
-    def update_sclass(self):
-        """
-        Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
-        and SClass_Level5 for each security rule based
-        """
-        score = self.scores["Sovereign_Score"]
-        for s in self.securities:
-            self.securities[s].information["SClass_Level5"] = self.securities[
-                s
-            ].information["ESG_Collateral_Type"]["ESG Collat Type"]
-
-            if self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].information["SClass_Level4-P"] = "Green"
-                self.securities[s].information["SClass_Level4"] = "Green"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Green/Sustainable Linked"
-            ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Green/Sustainable Linked"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Green/Sustainable Linked"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].information["SClass_Level4-P"] = "Social"
-                self.securities[s].information["SClass_Level4"] = "Social"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable"
-            ):
-                self.securities[s].information["SClass_Level4-P"] = "Sustainable"
-                self.securities[s].information["SClass_Level4"] = "Sustainable"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable Linked"
-            ):
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information[
-                    "SClass_Level4"
-                ] = "Sustainability-Linked Bonds"
-                self.securities[s].information["SClass_Level3"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level2"] = "ESG-Labeled Bonds"
-                self.securities[s].information["SClass_Level1"] = "Preferred"
-
-            elif score <= 2 and score > 0:
-                self.securities[s].information["SClass_Level4"] = "Leading ESG Score"
-                self.securities[s].information["SClass_Level4-P"] = "Leading ESG Score"
-            elif score == 0:
-                self.securities[s].information["SClass_Level4"] = "Not Scored"
-                self.securities[s].information["SClass_Level4-P"] = "Not Scored"
-            elif score == 5:
-                self.securities[s].information[
-                    "SClass_Level4-P"
-                ] = "Poor Sovereign Score"
-                self.securities[s].information["SClass_Level4"] = "Poor Sovereign Score"
-                self.securities[s].information["SClass_Level3"] = "Exclusion"
-                self.securities[s].information["SClass_Level2"] = "Exclusion"
-                self.securities[s].information["SClass_Level1"] = "Excluded"
-        return
-
-    def iter(
-        self,
-        regions_df: pd.DataFrame,
-        regions: dict,
-        adjustment_df: pd.DataFrame,
-        gics_d: dict,
-    ):
-        """
-        - attach region information
-        - calculate sovereign score
-        - attach analyst adjustment
-        - attach GICS information
-        - attach exclusions
-
-        Parameters
-        ----------
-        regions_df: pd.DataFrame
-            DataFrame of regions information
-        regions: dict
-            dictionary of all region objects
-        adjustment_df: pd.Dataframe
-            DataFrame of Analyst Adjustments
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
-        """
-        self.attach_region(regions_df, regions)
-        self.update_sovereign_score()
-        self.attach_analyst_adjustment(adjustment_df)
-        self.attach_gics(gics_d)
-        self.exclusion()
-        return
