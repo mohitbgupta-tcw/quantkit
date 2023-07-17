@@ -327,22 +327,22 @@ class Runner(loader.Runner):
         See quantkit.finance.adjustments for more information
         """
         for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].analyst_adjustment(
+            self.portfolio_datasource.companies[c].iter_analyst_adjustment(
                 self.theme_datasource.themes
             )
 
         for sov in self.portfolio_datasource.sovereigns:
-            self.portfolio_datasource.sovereigns[sov].analyst_adjustment(
+            self.portfolio_datasource.sovereigns[sov].iter_analyst_adjustment(
                 self.theme_datasource.themes
             )
 
         for muni in self.portfolio_datasource.munis:
-            self.portfolio_datasource.munis[muni].analyst_adjustment(
+            self.portfolio_datasource.munis[muni].iter_analyst_adjustment(
                 self.theme_datasource.themes
             )
 
         for sec in self.portfolio_datasource.securitized:
-            self.portfolio_datasource.securitized[sec].analyst_adjustment(
+            self.portfolio_datasource.securitized[sec].iter_analyst_adjustment(
                 self.theme_datasource.themes
             )
 
