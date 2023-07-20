@@ -253,14 +253,19 @@ class SecurityDataSource(object):
         msci_information: dict
             dictionary of msci information on company level
         """
-        # company object could already be there if company has more than 1 security --> get
-        companies[company_isin] = companies.get(
-            company_isin,
-            comp.CompanyStore(
+        # company object could already be there if company has more than 1 security
+        if company_isin in companies:
+            # assign msci data for missing values
+            for val in msci_information:
+                if pd.isna(companies[company_isin].msci_information[val]):
+                    companies[company_isin].msci_information[val] = msci_information[
+                        val
+                    ]
+        else:
+            companies[company_isin] = comp.CompanyStore(
                 isin=company_isin,
                 row_data=msci_information,
-            ),
-        )
+            )
 
     def create_msci_information(
         self, security_information: dict, msci_df: pd.DataFrame
