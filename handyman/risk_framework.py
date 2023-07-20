@@ -27,6 +27,7 @@ def risk_framework() -> pd.DataFrame:
             sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
             issuer_name = sec_store.information["IssuerName"]
+            analyst = comp_store.information["Sub-Industry"].information["Analyst"]
             iva_rating = comp_store.information["IVA_COMPANY_RATING"]
             r_flag = comp_store.scores["Review_Flag"]
             r_comments = comp_store.scores["Review_Comments"]
@@ -95,6 +96,7 @@ def risk_framework() -> pd.DataFrame:
                 level_4p = "INCLUSION"
                 gov_score = 4
                 esrm_score = 1
+                risk_score_overall = "Average ESG Score"
 
             holding_measures = r.portfolio_datasource.portfolios[p].holdings[s][
                 "holding_measures"
@@ -109,6 +111,7 @@ def risk_framework() -> pd.DataFrame:
                         portfolio_name,
                         s,
                         issuer_name,
+                        analyst,
                         comp_store.information["Issuer_Country"].information["Country"],
                         portfolio_weight,
                         oas,
@@ -257,6 +260,7 @@ def risk_framework() -> pd.DataFrame:
         "Portfolio Name",
         "Security ISIN",
         "Issuer Name",
+        "Analyst",
         "Issuer Country",
         "Portfolio Weight",
         "OAS",
