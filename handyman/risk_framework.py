@@ -95,6 +95,7 @@ def risk_framework() -> pd.DataFrame:
                 level_4p = "INCLUSION"
                 gov_score = 4
                 esrm_score = 1
+                risk_score_overall = "Average ESG Score"
 
             holding_measures = r.portfolio_datasource.portfolios[p].holdings[s][
                 "holding_measures"
