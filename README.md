@@ -30,7 +30,7 @@
 
 ## About the Project
 ---
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+The quantkit project aims to combine data operations such as data pulling through API usage, data transformations and validations with high-level calculations such as risk measurement. The SIG's team risk framework calculation is build on top of quantkit. Quantkit aims to make quantitative research easier by giving easy-to-use functions to retrieve and play around with data from various data sources, such as MSCI, Quandl and Snowflake databases.
 
 ### Built With
 [![python][python]][python-url]
@@ -58,11 +58,14 @@ Let people know what your project can do specifically. Provide context and add a
 requirements file
 
 ### Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- locally (create environment, git etc.)
+- in ML Azure (git)
 
 ### Configarations
 The configs file
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
+
+add to portfolio file
 
 ## Usage
 ---
@@ -190,6 +193,7 @@ df_isin = risk_framework.isin_lookup(isins)
 - [ ] Add to mathstats folder for mathematical calculations
 - [ ] create data visualization folder
 - [ ] add functions to handyman folder
+- update data pipelines (connect portfolio data to snowflake)
 
 See the [open issues](https://gitlab.com/tcw-group/quant-research/quantkit/-/issues) for a full list of proposed features (and known issues).
 
