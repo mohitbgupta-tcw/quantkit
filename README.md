@@ -73,6 +73,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ```shell
 > conda activate quantkit
 ```
+- Select python Interpreter: Press CTRL+SHIFT+P on your keyboard. A window will open from the top. Type Python: Select Interpreter and click it. Choose your conda quantkit environment.
 - Head to the gitlab folder of [quantkit](https://gitlab.com/tcw-group/quant-research/quantkit) and clone the repo: Clone > Clone with HTTPS > Copy URL
 - In a terminal in VSC, type the following command:  
 ```shell
@@ -87,6 +88,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ```shell
 > pip install -r requirements.txt
 ```
+- ATTENTION: please do not make changes to the development branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
 ### Configarations
 The configs file
@@ -96,9 +98,25 @@ add to portfolio file
 ### ML Azure environment
 ---
 ### Prerequisites
+- ML Azure access: make sure you have access to ML Azure and can run code in there.
 ### Installation
-- in ML Azure (git)
+- Head to the gitlab folder of [quantkit](https://gitlab.com/tcw-group/quant-research/quantkit) and clone the repo: Clone > Clone with HTTPS > Copy URL
+- in ML Azure, open the folder you want the quantkit code to be in, right click the folder and click Open Terminal
+- In the terminal type the following command:
+```shell
+> git clone copied_path_from_step_above
+```
+- This clones the repository to your machine. Activate the ml_azure branch by typing the following commands into the terminal:
+```shell
+> cd quantkit
+> git checkout ml_azure
+```
+- You might be asked to add an excemption for this directory in order to run the command above. Copy and run the command provided in the error message and run the checkout again after.
+- ATTENTION: please do not make changes to the ml_azure branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
+
 ### Configarations
+
+<p align="right">(<a href="#quantkit">back to top</a>)</p>
 
 ## Usage
 ---
