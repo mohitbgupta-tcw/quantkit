@@ -91,6 +91,7 @@ class SovereignStore(headstore.HeadStore):
         regions: dict,
         adjustment_df: pd.DataFrame,
         gics_d: dict,
+        bclass_d: dict,
     ) -> None:
         """
         - attach region information
@@ -98,6 +99,7 @@ class SovereignStore(headstore.HeadStore):
         - attach analyst adjustment
         - attach GICS information
         - attach exclusions
+        - attach industry
 
         Parameters
         ----------
@@ -109,10 +111,12 @@ class SovereignStore(headstore.HeadStore):
             DataFrame of Analyst Adjustments
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
+        bclass_d: dict
+            dictionary of bclass sub industries with bclass as key, bclass object as value
         """
         self.attach_region(regions_df, regions)
         self.update_sovereign_score()
         self.attach_analyst_adjustment(adjustment_df)
         self.attach_gics(gics_d, self.msci_information["GICS_SUB_IND"])
         self.iter_exclusion()
-        return
+        self.attach_industry(gics_d, bclass_d)

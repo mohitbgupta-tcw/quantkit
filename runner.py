@@ -214,6 +214,7 @@ class Runner(loader.Runner):
                 regions=self.region_datasource.regions,
                 adjustment_df=self.adjustment_datasource.df,
                 gics_d=self.gics_datasource.gics,
+                bclass_d=self.bclass_datasource.bclass,
             )
 
     def iter_securitized(self) -> None:
@@ -226,6 +227,7 @@ class Runner(loader.Runner):
                 regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
+                bclass_d=self.bclass_datasource.bclass,
             )
 
     def iter_muni(self) -> None:
@@ -238,6 +240,7 @@ class Runner(loader.Runner):
                 regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
+                bclass_d=self.bclass_datasource.bclass,
             )
 
     def iter_companies(self) -> None:
