@@ -4,6 +4,7 @@ import quantkit.utils.data_loaders as data_loaders
 import pandas as pd
 import numpy as np
 import json
+import os
 
 
 def risk_framework() -> pd.DataFrame:
@@ -503,8 +504,15 @@ def isin_lookup(isin_list: list) -> pd.DataFrame:
             "msci": {"source": 6, "json_str": msci_df, "load": True},
         },
     }
+    with open(params["configs_path"], "r") as f:
+        try:
+            configs_local = json.load(f)
+            c = {**configs_local, **configs_overwrite}
+        except:
+            configs_local = None
+            c = configs_overwrite
     with open(params["configs_path"], "w") as f:
-        json.dump(configs_overwrite, f)
+        json.dump(c, f)
 
     # run framework
     r = runner.Runner()
@@ -701,6 +709,9 @@ def isin_lookup(isin_list: list) -> pd.DataFrame:
 
     df = pd.DataFrame(data, columns=columns)
 
-    with open(params["configs_path"], "w") as f:
-        json.dump({}, f)
+    if configs_local:
+        with open(params["configs_path"], "w") as f:
+            json.dump(configs_local, f)
+    else:
+        os.remove(params["configs_path"])
     return df
