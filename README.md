@@ -51,21 +51,54 @@ The quantkit project aims to combine data operations such as data pulling throug
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
-## Getting Started
+## Getting Started 
 ---
 
-### Prerequisites
-requirements file
+### Local environment
+---
+
+#### Prerequisites
+- IDE: the following steps are performed in Visual Studio Code (VSC). The use of every other IDE works as well, but different steps may be necessary. 
+- Install Anaconda: It is recommended, but not needed, to install anaconda from [here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). Make sure to select the version for your operating system. In the window below, add anaconda to your PATH environmental variable and finish the setup.
+![Anaconda](img/anaconda.png)  
+- Create Environment: create a project specific environment through anaconda. Open a command line and type the following command. You can close the command line after.
+```shell
+> conda create -n "quantkit" ipython -y
+```
+- git: a working version of git installed on your computer is required. Please request access to [the quantkit folder](https://gitlab.com/tcw-group/quant-research/quantkit) in gitlab, if not already provided.
 
 ### Installation
-- locally (create environment, git etc.)
-- in ML Azure (git)
+- Open VSC (or your IDE of choice) 
+- Activate Environment: In VSC, open a new window. Open the folder you want quantkit to be installed in. On the top, go to Terminal > New Terminal. In the terminal, type the following command:
+```shell
+> conda activate quantkit
+```
+- Head to the gitlab folder of [quantkit](https://gitlab.com/tcw-group/quant-research/quantkit) and clone the repo: Clone > Clone with HTTPS > Copy URL
+- In a terminal in VSC, type the following command:  
+```shell
+> git clone copied_path_from_step_above
+```
+- This clones the repository to your machine. Activate the development branch by typing the following commands into the terminal:
+```shell
+> cd quantkit
+> git checkout develop
+```
+- install the requirements: in the terminal, type the following command. Make sure the quantkit environment is still activated.
+```shell
+> pip install -r requirements.txt
+```
 
 ### Configarations
 The configs file
+add to portfolio file
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
-add to portfolio file
+### ML Azure environment
+---
+### Prerequisites
+### Installation
+- in ML Azure (git)
+### Configarations
 
 ## Usage
 ---
