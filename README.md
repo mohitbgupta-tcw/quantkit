@@ -112,6 +112,12 @@ add to portfolio file
 > git checkout ml_azure
 ```
 - You might be asked to add an excemption for this directory in order to run the command above. Copy and run the command provided in the error message and run the checkout again after.
+- Create a notebook inside your top folder on the same level as the quantkit.
+- Select Python 3.8 - ML Azure as your default kernel in the right top corner. 
+- install the requirements: In a cell, type in the following command:
+```shell
+pip install -r "quantkit/requirements.txt"
+```
 - ATTENTION: please do not make changes to the ml_azure branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
 ### Configarations
