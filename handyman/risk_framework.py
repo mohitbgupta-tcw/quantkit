@@ -24,7 +24,6 @@ def risk_framework() -> pd.DataFrame:
         portfolio_isin = r.portfolio_datasource.portfolios[p].id
         portfolio_name = r.portfolio_datasource.portfolios[p].name
         for s in r.portfolio_datasource.portfolios[p].holdings:
-            print(s)
             sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
             issuer_name = sec_store.information["IssuerName"]
