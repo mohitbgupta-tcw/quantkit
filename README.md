@@ -54,7 +54,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ## Getting Started 
 ---
 
-### Local environment
+### Local Environment
 ---
 
 #### Prerequisites
@@ -95,7 +95,7 @@ The configs file
 add to portfolio file
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
-### ML Azure environment
+### ML Azure Environment
 ---
 ### Prerequisites
 - ML Azure access: make sure you have access to ML Azure and can run code in there.
@@ -112,7 +112,7 @@ add to portfolio file
 > git checkout ml_azure
 ```
 - You might be asked to add an excemption for this directory in order to run the command above. Copy and run the command provided in the error message and run the checkout again after.
-- Create a notebook inside your top folder on the same level as the quantkit.
+- Create a notebook inside your top folder on the same level as quantkit.
 - Select Python 3.8 - ML Azure as your default kernel in the right top corner. 
 - install the requirements: In a cell, type in the following command:
 ```shell
@@ -123,6 +123,25 @@ pip install -r "quantkit/requirements.txt"
 ### Configarations
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
+
+## Update Version
+---
+As the framework develops, there will be changes to the code base too. To get the newest version of the code, you need to pull from the gitlab repository.
+
+### Local Environment
+- In VSC, open a Terminal from your working folder und run the following commands:
+```shell
+> cd quantkit
+> git pull
+```
+
+### ML Azure Environment
+- In ML Azure, open a Terminal from your working folder und run the following commands:
+```shell
+> cd quantkit
+> git pull
+```
+- You are prompted to enter User Name and Password to your git account linked to gitlab.
 
 ## Usage
 ---
