@@ -91,7 +91,38 @@ The quantkit project aims to combine data operations such as data pulling throug
 - ATTENTION: please do not make changes to the development branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
 ### Configarations
-The configs file
+The configarations file includes all the settings a user can change. It is located in quantkit > utils > configs.json.
+
+#### Local configs file
+It is recommended to use a local configs.json file and not overwriting the parameters in the original file. To do so, open Notepad on your machine, type in `{}`, and save it as configs.json on your local system. Next, go to the original configs file and change the configs_path parameters to link to your newly created local configs file.
+
+```json
+{
+      "configs_path":"path_to_your_file.json"
+}
+```
+
+#### The configs file
+The user is able to change keys for API usage, thresholds for calculations, datasources, etc. First, make sure the settings are right. If you need to make changes to the configs file, please do so to the local file you created in the step above. For example, to change the portfolio_datasource, copy over the portfolio_datasource part you want to change into your local file.
+The source numeration works as follows:
+1. Excel
+2. CSV
+3. Snowflake
+4. MSCI API
+5. Quandl API
+6. JSON
+
+So, if you want to change the portfolio_datasource to snowflake, enter the following paramaters to your local file:
+
+```json
+    "portfolio_datasource": {
+        "source": 3,
+        "table_name": "TABLE_NAME" ,
+        "load": true 
+    },
+
+```
+
 add to portfolio file
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
@@ -269,7 +300,7 @@ df_isin = risk_framework.isin_lookup(isins)
 - [ ] Add to mathstats folder for mathematical calculations
 - [ ] create data visualization folder
 - [ ] add functions to handyman folder
-- update data pipelines (connect portfolio data to snowflake)
+- [ ] update data pipelines (connect portfolio data to snowflake)
 
 See the [open issues](https://gitlab.com/tcw-group/quant-research/quantkit/-/issues) for a full list of proposed features (and known issues).
 
