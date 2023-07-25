@@ -16,11 +16,11 @@ class DataSources(object):
     ----------
         params: dict
             data specific parameters including source
+        api_settings: dict, optional
+            dictionary of api settings
     """
 
-    all_params = configs.read_configs()
-
-    def __init__(self, params: dict):
+    def __init__(self, params: dict, api_settings: dict = None, **kwargs):
         self.params = params
 
         # ignore datasource if load is False
@@ -39,21 +39,21 @@ class DataSources(object):
 
         # Snowflake
         elif params["source"] == 3:
-            snowflake_params = self.all_params["snowflake_parameters"]
+            snowflake_params = api_settings["snowflake_parameters"]
             self.datasource = snowflake.Snowflake(
                 table_name=params["table_name"], **snowflake_params
             )
 
         # MSCI API
         elif params["source"] == 4:
-            msci_params = self.all_params["msci_parameters"]
+            msci_params = api_settings["msci_parameters"]
             self.datasource = msci.MSCI(
                 url=params["url"], filters=params["filters"], **msci_params
             )
 
-        # Quand; API
+        # Quandl API
         elif params["source"] == 5:
-            quandl_params = self.all_params["quandl_parameters"]
+            quandl_params = api_settings["quandl_parameters"]
             self.datasource = quandl.Quandl(
                 table=params["table"], filters=params["filters"], **quandl_params
             )

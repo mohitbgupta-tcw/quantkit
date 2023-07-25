@@ -36,8 +36,8 @@ class ThemeDataSource(ds.DataSources):
             words linked with theme
     """
 
-    def __init__(self, params: dict, theme_calculations: dict):
-        super().__init__(params)
+    def __init__(self, params: dict, theme_calculations: dict, **kwargs):
+        super().__init__(params, **kwargs)
         self.theme_calculations = theme_calculations
         self.themes = dict()
 

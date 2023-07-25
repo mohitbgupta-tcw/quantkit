@@ -1,5 +1,4 @@
 {   
-    "configs_path":"C:\\Users\\bastit\\Documents\\quantkit\\configs.json",
     "A9Funds": [6781, 16705, 3738, 3750, 16719, 16706, "BB HIGH YIELD 2% CAP", "MSCI WORLD", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "BB INTERMEDIATE CORP", "JPM CEMBI BROAD DIVERSE"],
     "A8Funds":  [13727, 3735, 3775, 13751, "BLOOMBERG AGGREGATE INDEX"],
     "carve_out_sectors": ["Electric Utilities", "Electric", "Gas Utilities","Multi-Utilities","Other Utility","Water Utilities","Independent Power Producers & Energy Traders","Integrated Oil & Gas","Oil & Gas Drilling","Oil & Gas Equipment & Services","Oil & Gas Exploration & Production","Oil & Gas Refining & Marketing","Oil & Gas Storage & Transportation","Oil Field Services", "Government Owned, No Guarantee"],
@@ -10,22 +9,24 @@
         "High_Threshold": 1500
 
     },
-
-    "snowflake_parameters": {
-        "user": "tim.bastian@tcw.com",   
-        "password": "fd*@emJpu@uCorH6",    
-        "role": "APP-SNOWF-ESG_ADVANCED",
-        "database": "ESG_SANDBOX",
-        "schema": "SHERVEEN_SCHEMA"
+    
+    "API_settings": {
+        "snowflake_parameters": {
+            "user": "",   
+            "password": "",    
+            "role": "APP-SNOWF-ESG_ADVANCED",
+            "database": "ESG_SANDBOX",
+            "schema": "ESG"
+            },
+    
+        "msci_parameters": {
+            "key": "b769e9c4-16c4-45f8-89a5-6f555587a640",
+            "secret" : "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
         },
-
-    "msci_parameters": {
-        "key": "b769e9c4-16c4-45f8-89a5-6f555587a640",
-        "secret" : "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
-    },
-
-    "quandl_parameters": {
-        "key": "MxE6oNePp886npLJ2CGs"
+    
+        "quandl_parameters": {
+            "key": "MxE6oNePp886npLJ2CGs"
+        }
     },
     
     "portfolio_datasource": {

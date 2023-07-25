@@ -31,8 +31,8 @@ class SecuritizedDataSource(ds.DataSources):
             seconday theme
     """
 
-    def __init__(self, params: dict):
-        super().__init__(params)
+    def __init__(self, params: dict, **kwargs):
+        super().__init__(params, **kwargs)
         self.securitized_mapping = dict()
 
     def load(self) -> None:
