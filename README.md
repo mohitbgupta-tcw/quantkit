@@ -67,7 +67,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ```
 - git: a working version of git installed on your computer is required. Please request access to [the quantkit folder](https://gitlab.com/tcw-group/quant-research/quantkit) in gitlab, if not already provided.
 
-### Installation
+#### Installation
 - Open VSC (or your IDE of choice) 
 - Activate Environment: In VSC, open a new window. Open the folder you want quantkit to be installed in. On the top, go to Terminal > New Terminal. In the terminal, type the following command:
 ```shell
@@ -90,7 +90,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ```
 - ATTENTION: please do not make changes to the development branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
-### Configarations
+#### Configarations
 The configarations file includes all the settings a user can change. It is located in quantkit > utils > configs.json.
 
 #### Local configs file
@@ -119,11 +119,24 @@ So, if you want to change the portfolio_datasource to snowflake, enter the follo
         "source": 3,
         "table_name": "TABLE_NAME" ,
         "load": true 
-    },
-
+    }
 ```
 
-add to portfolio file
+If you want to make changes to the calanderdate in the quandl_datasource only, you can do that by adding the following to your configs file:
+
+```json
+    "quandl_datasource": {
+        "filters": {
+            "calendardate": {"gte": "2023-04-01"},
+        }
+    }
+```
+
+There is no need to copy over all other settings for the datasource. 
+
+#### Changes to the Input data
+To change the input data, just change the file linked to in the parameters file. For example, if you want to add a portfolio to the portfolio datasource and you linked it to an Excel file, just add the portfolio to that Excel file. If the data is in snowflake, follow this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/snowflake-demo-copy.ipynb) to change the data. 
+
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
 ### ML Azure Environment
@@ -153,6 +166,8 @@ pip install -r "quantkit/requirements.txt"
 
 ### Configarations
 
+See configarations section in Local Environment.
+
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
 ## Update Version
@@ -176,7 +191,7 @@ As the framework develops, there will be changes to the code base too. To get th
 
 ## Usage
 ---
-Quantkit users can use and run the package in two ways. For more details, please see this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/quantkit/demo.ipynb).
+Quantkit users can use and run the package in two ways. For more details, please see this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/quantkit/demo.ipynb). Please see the configarations section on top first to set up the parameters in a right way.
 
 ### The Object Method
 The experienced user can make use of the objects structure itself created in the code. First, initialize a runner object in the following way.
@@ -296,7 +311,7 @@ df_isin = risk_framework.isin_lookup(isins)
 ---
 - [ ] Write full comprahensive README
 - [ ] Add to CONTRIBUTING file
-- [ ] Push first version of quantkit
+- [ ] Release first version of quantkit
 - [ ] Add to mathstats folder for mathematical calculations
 - [ ] create data visualization folder
 - [ ] add functions to handyman folder
