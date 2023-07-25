@@ -57,7 +57,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ### Local Environment
 ---
 
-#### Prerequisites
+### Prerequisites
 - IDE: the following steps are performed in Visual Studio Code (VSC). The use of every other IDE works as well, but different steps may be necessary. 
 - Install Anaconda: It is recommended, but not needed, to install anaconda from [here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). Make sure to select the version for your operating system. In the window below, add anaconda to your PATH environmental variable and finish the setup.
 ![Anaconda](img/anaconda.png)  
@@ -67,7 +67,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ```
 - git: a working version of git installed on your computer is required. Please request access to [the quantkit folder](https://gitlab.com/tcw-group/quant-research/quantkit) in gitlab, if not already provided.
 
-#### Installation
+### Installation
 - Open VSC (or your IDE of choice) 
 - Activate Environment: In VSC, open a new window. Open the folder you want quantkit to be installed in. On the top, go to Terminal > New Terminal. In the terminal, type the following command:
 ```shell
@@ -90,7 +90,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ```
 - ATTENTION: please do not make changes to the development branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
-#### Configarations
+### Configarations
 The configarations file includes all the settings a user can change. It is located in quantkit > utils > configs.json.
 
 #### Local configs file
@@ -309,9 +309,7 @@ df_isin = risk_framework.isin_lookup(isins)
 
 ## Roadmap
 ---
-- [ ] Write full comprahensive README
 - [ ] Add to CONTRIBUTING file
-- [ ] Release first version of quantkit
 - [ ] Add to mathstats folder for mathematical calculations
 - [ ] create data visualization folder
 - [ ] add functions to handyman folder

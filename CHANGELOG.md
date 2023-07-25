@@ -12,12 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - handyman functions for easy use of functionality
 - mathstats folder for mathematical calculations such as mean, median, covariance
 - logic to iter over data and calculate risk framework output
+- README, CONTRIBUTING, CHANGELOG files
+
+### Fixed
+
+### Changed
+
+### Removed
 
 
-## [0.0.1] - 2023-07-31
+
+## [0.0.1] - 2023-05-01
 
 ### Added
-- first release of quantkit scheduled
+- original risk framework code
+- pandas based approach to calculate risk metrics
 
 ### Fixed
 
@@ -27,4 +36,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
-[0.0.1]: #
+[0.0.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/0.0.1
