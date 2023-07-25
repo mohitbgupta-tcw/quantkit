@@ -62,7 +62,7 @@ class MSCI(object):
             inp = json.dumps(filters)
 
             response = requests.request(
-                "POST", self.url, headers=headers, data=inp, verify="certs.crt"
+                "POST", self.url, headers=headers, data=inp, verify="quantkit/certs.crt"
             )
             message = response.json()["messages"]
             if message:
