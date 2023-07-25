@@ -1,6 +1,6 @@
 import quantkit.runner as runner
 import quantkit.utils.configs as configs
-import quantkit.utils.data_loaders as data_loaders
+import quantkit.handyman.msci_data_loader as msci_data_loaders
 import pandas as pd
 import numpy as np
 import json
@@ -490,7 +490,7 @@ def isin_lookup(isin_list: list) -> pd.DataFrame:
     portfolio_df = portfolio_df.to_json(orient="index")
 
     # create msci mapping file
-    msci_df = data_loaders.create_msci_mapping(isin_list=isin_list, params=params)
+    msci_df = msci_data_loaders.create_msci_mapping(isin_list=isin_list, params=params)
     msci_df = msci_df.to_json(orient="index")
 
     configs_overwrite = {
