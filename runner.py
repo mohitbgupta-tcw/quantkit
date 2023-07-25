@@ -4,13 +4,18 @@ import quantkit.utils.logging as logging
 
 
 class Runner(loader.Runner):
-    def init(self):
+    def init(self, local_configs: str = None):
         """
         - initialize datsources and load data
         - create reusable attributes
         - itereate over DataFrames and create connected objects
+
+        Parameters
+        ----------
+        local_configs: str, optional
+            path to a local configarations file
         """
-        super().init()
+        super().init(local_configs)
 
         # iterate over dataframes and create objects
         logging.log("Start Iterating")

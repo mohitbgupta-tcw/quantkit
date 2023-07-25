@@ -39,6 +39,31 @@ def iter_list(input_list: Union[list, set]) -> list:
     return output_list
 
 
+def replace_dictionary(new_d: dict, original_d: dict) -> dict:
+    """
+    Recursively iterate over dictionary.
+    Replace values in orignal dictionary by values from new dictionary.
+
+    Parameters
+    ----------
+    new_d: dict
+        dictionary with new values
+    original_d: dict
+        original dictionary
+
+    Returns
+    -------
+    dict
+        original dictionary with replaced values
+    """
+    if isinstance(new_d, dict):
+        for k, v in new_d.items():
+            if isinstance(new_d[k], (list, int, str, float)):
+                original_d[k] = new_d[k]
+            replace_dictionary(v, original_d[k])
+    return original_d
+
+
 def exclude_rule(value: str, exclusions: list, **kwargs) -> bool:
     """
     Checks if a value is in exclusion list

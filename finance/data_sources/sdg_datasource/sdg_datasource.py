@@ -24,9 +24,9 @@ class SDGDataSource(object):
             several ESG measures
     """
 
-    def __init__(self, params: dict):
-        self.sdg = SDGData(params["sdg"])
-        self.sdga = SDGData(params["sdga"])
+    def __init__(self, params: dict, **kwargs):
+        self.sdg = SDGData(params["sdg"], **kwargs)
+        self.sdga = SDGData(params["sdga"], **kwargs)
 
     def load(self) -> None:
         """
@@ -111,8 +111,8 @@ class SDGData(ds.DataSources):
         datasource specific parameters including datasource
     """
 
-    def __init__(self, params: dict):
-        super().__init__(params)
+    def __init__(self, params: dict, **kwargs):
+        super().__init__(params, **kwargs)
 
     def transform_df(self) -> None:
         """

@@ -57,8 +57,8 @@ class PortfolioDataSource(ds.DataSources):
             OAS
     """
 
-    def __init__(self, params: dict):
-        super().__init__(params)
+    def __init__(self, params: dict, **kwargs):
+        super().__init__(params, **kwargs)
         self.portfolios = dict()
         self.companies = dict()
         self.munis = dict()

@@ -17,87 +17,107 @@ import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pi
 
 
 class Runner(object):
-    def init(self):
+    def init(self, local_configs: str = None):
         """
         - initialize datsources
+
+        Parameters
+        ----------
+        local_configs: str, optional
+            path to a local configarations file
         """
 
         # read params file
-        self.params = configs.read_configs()
+        self.params = configs.read_configs(local_configs)
+        api_settings = self.params["API_settings"]
 
         # connect themes datasource
         self.theme_datasource = thd.ThemeDataSource(
-            self.params["theme_datasource"], self.params["theme_calculation"]
+            params=self.params["theme_datasource"],
+            theme_calculations=self.params["theme_calculation"],
+            api_settings=api_settings,
         )
 
         # connect regions datasource
-        self.region_datasource = rd.RegionsDataSource(self.params["regions_datasource"])
+        self.region_datasource = rd.RegionsDataSource(
+            params=self.params["regions_datasource"], api_settings=api_settings
+        )
 
         # connect portfolio datasource
         self.portfolio_datasource = pod.PortfolioDataSource(
-            self.params["portfolio_datasource"]
+            params=self.params["portfolio_datasource"], api_settings=api_settings
         )
 
         # connect category datasource
         self.category_datasource = cd.CategoryDataSource(
-            self.params["category_datasource"]
+            params=self.params["category_datasource"], api_settings=api_settings
         )
 
         # connect sector datasource
         self.sector_datasource = secdb.SectorDataSource(
-            self.params["sector_datasource"]
+            params=self.params["sector_datasource"], api_settings=api_settings
         )
 
         # connect BCLASS datasource
         self.bclass_datasource = secdb.BClassDataSource(
-            self.params["bclass_datasource"], self.params["transition_parameters"]
+            params=self.params["bclass_datasource"],
+            transition_params=self.params["transition_parameters"],
+            api_settings=api_settings,
         )
 
         # connect GICS datasource
         self.gics_datasource = secdb.GICSDataSource(
-            self.params["gics_datasource"], self.params["transition_parameters"]
+            params=self.params["gics_datasource"],
+            transition_params=self.params["transition_parameters"],
+            api_settings=api_settings,
         )
 
         # connect transition datasource
         self.transition_datasource = trd.TransitionDataSource(
-            self.params["transition_datasource"]
+            params=self.params["transition_datasource"], api_settings=api_settings
         )
 
         # connecy security datasource
         self.security_datasource = sd.SecurityDataSource(
-            self.params["security_datasource"]
+            params=self.params["security_datasource"], api_settings=api_settings
         )
 
         # connect parent issuer datasource
         self.parent_issuer_datasource = pis.ParentIssuerSource(
-            self.params["parent_issuer_datasource"]
+            params=self.params["parent_issuer_datasource"], api_settings=api_settings
         )
 
         # connect SDG datasource
-        self.sdg_datasource = sdgp.SDGDataSource(self.params["sdg_datasource"])
+        self.sdg_datasource = sdgp.SDGDataSource(
+            params=self.params["sdg_datasource"], api_settings=api_settings
+        )
 
         # connect securitized mapping datasource
         self.securitized_datasource = securidb.SecuritizedDataSource(
-            self.params["securitized_datasource"]
+            params=self.params["securitized_datasource"], api_settings=api_settings
         )
 
         # connect exclusion datasource
         self.exclusion_datasource = exd.ExclusionsDataSource(
-            self.params["exclusion_datasource"]
+            params=self.params["exclusion_datasource"], api_settings=api_settings
         )
 
         # connect analyst adjustment datasource
         self.adjustment_datasource = ads.AdjustmentDataSource(
-            self.params["adjustment_datasource"]
+            params=self.params["adjustment_datasource"], api_settings=api_settings
         )
 
         # connect msci datasource
-        self.msci_datasource = mscids.MSCIDataSource(self.params["msci_datasource"])
+        self.msci_datasource = mscids.MSCIDataSource(
+            params=self.params["msci_datasource"], api_settings=api_settings
+        )
 
         # connect bloomberg datasource
         self.bloomberg_datasource = blds.BloombergDataSource(
-            self.params["bloomberg_datasource"]
+            params=self.params["bloomberg_datasource"], api_settings=api_settings
         )
 
         # connect quandl datasource
-        self.quandl_datasource = quds.QuandlDataSource(self.params["quandl_datasource"])
+        self.quandl_datasource = quds.QuandlDataSource(
+            params=self.params["quandl_datasource"], api_settings=api_settings
+        )

@@ -37,8 +37,8 @@ class AdjustmentDataSource(ds.DataSources):
             date
     """
 
-    def __init__(self, params: dict):
-        super().__init__(params)
+    def __init__(self, params: dict, **kwargs):
+        super().__init__(params, **kwargs)
 
     def load(self) -> None:
         """
