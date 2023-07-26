@@ -316,7 +316,6 @@ df_isin = risk_framework.isin_lookup(isin_list=isins, local_configs=local_config
 
 ## Roadmap
 ---
-- [ ] Add to CONTRIBUTING file
 - [ ] Add to mathstats folder for mathematical calculations
 - [ ] create data visualization folder
 - [ ] add functions to handyman folder
