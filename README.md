@@ -54,11 +54,11 @@ The quantkit project aims to combine data operations such as data pulling throug
 ## Getting Started 
 ---
 
-### Local environment
+### Local Environment
 ---
 
-#### Prerequisites
-- IDE: the following steps are performed in Visual Studio Code (VSC). The use of every other IDE works as well, but different steps may be necessary. 
+### Prerequisites
+- IDE: the following steps are performed in Visual Studio Code (VSC). The use of every other IDE works as well, but different steps may be required. 
 - Install Anaconda: It is recommended, but not needed, to install anaconda from [here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). Make sure to select the version for your operating system. In the window below, add anaconda to your PATH environmental variable and finish the setup.
 ![Anaconda](img/anaconda.png)  
 - Create Environment: create a project specific environment through anaconda. Open a command line and type the following command. You can close the command line after.
@@ -91,11 +91,58 @@ The quantkit project aims to combine data operations such as data pulling throug
 - ATTENTION: please do not make changes to the development branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
 ### Configarations
-The configs file
-add to portfolio file
+The configarations file includes all the settings a user can change. It is located in quantkit > utils > configs.json.
+
+#### Local configs file
+It is recommended to use a local configs.json file and not overwriting the parameters in the original file. To do so, open Notepad on your machine, type in `{}`, and save it as configs.json on your local system outside of the quantkit folder.
+
+#### The configs file
+The user is able to change keys for API usage, thresholds for calculations, datasources, etc. First, make sure the settings and pathes in the original configs file are right. If you need to make changes to the configs file, please do so to the local file you created in the step above. For example, to change the portfolio_datasource, copy over the portfolio_datasource part you want to change into your local file.
+The source numeration works as follows:
+1. Excel
+2. CSV
+3. Snowflake
+4. MSCI API
+5. Quandl API
+6. JSON
+
+So, if you want to change the portfolio_datasource to snowflake, enter the following paramaters to your local file:
+
+```json
+    "portfolio_datasource": {
+        "source": 3,
+        "table_name": "TABLE_NAME" ,
+        "load": true 
+    }
+```
+
+If you want to make changes to the calanderdate in the quandl_datasource only, you can do that by adding the following to your configs file:
+
+```json
+    "quandl_datasource": {
+        "filters": {
+            "calendardate": {"gte": "2023-04-01"},
+        }
+    }
+```
+
+There is no need to copy over all other settings for the datasource. Lastly, if you want to use the snowflake API, it is required to put your credentials into your local configs file in the following way.
+
+```json
+    "API_settings": {
+        "snowflake_parameters": {
+            "user": "your.email@tcw.com",
+            "password": "your_password"
+        }
+    }
+```
+
+#### Changes to the Input data
+To change the input data, just change the file linked to in the parameters file. For example, if you want to add a portfolio to the portfolio datasource and you linked it to an Excel file, just add the portfolio to that Excel file. If the data is in snowflake, follow this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/snowflake-demo-copy.ipynb) to change the data. 
+
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
-### ML Azure environment
+### ML Azure Environment
 ---
 ### Prerequisites
 - ML Azure access: make sure you have access to ML Azure and can run code in there.
@@ -112,15 +159,42 @@ add to portfolio file
 > git checkout ml_azure
 ```
 - You might be asked to add an excemption for this directory in order to run the command above. Copy and run the command provided in the error message and run the checkout again after.
+- Create a notebook inside your top folder on the same level as quantkit.
+- Select Python 3.8 - ML Azure as your default kernel in the right top corner. 
+- install the requirements: In a cell, type in the following command:
+```shell
+pip install -r "quantkit/requirements.txt"
+```
 - ATTENTION: please do not make changes to the ml_azure branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
 ### Configarations
 
+See configarations section in Local Environment.
+
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
+
+## Update Version
+---
+As the framework develops, there will be changes to the code base too. To get the newest version of the code, you need to pull from the gitlab repository.
+
+### Local Environment
+- In VSC, open a Terminal from your working folder und run the following commands:
+```shell
+> cd quantkit
+> git pull
+```
+
+### ML Azure Environment
+- In ML Azure, open a Terminal from your working folder und run the following commands:
+```shell
+> cd quantkit
+> git pull
+```
+- You are prompted to enter User Name and Password to your git account linked to gitlab.
 
 ## Usage
 ---
-Quantkit users can use and run the package in two ways. For more details, please see this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/quantkit/demo.ipynb).
+Quantkit users can use and run the package in two ways. For more details, please see this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/quantkit/demo.ipynb). Please see the configarations section on top first to set up the parameters in a right way.
 
 ### The Object Method
 The experienced user can make use of the objects structure itself created in the code. First, initialize a runner object in the following way.
@@ -128,8 +202,10 @@ The experienced user can make use of the objects structure itself created in the
 ```python
 import quantkit.runner as runner
 
+local_configs = "path\\to\\your\\configs.json"
+
 r = runner.Runner()
-r.init() 
+r.init(local_configs=local_configs) 
 r.run()
 ```
 This connects to all the databases and runs the calculations. To access the datapoints, we can "look" into the objects. First, we access a portfolio object.
@@ -223,28 +299,28 @@ The handyman folder is an easy-to-use alternative if the user is just interested
 ```python
 import quantkit.handyman.risk_framework as risk_framework
 
+local_configs = "path\\to\\your\\configs.json"
+
 # run risk framework
-df_detailed = risk_framework.risk_framework()
+df_detailed = risk_framework.risk_framework(local_configs=local_configs)
 ```
 To only run the framework on specific isins, the user can make use of the isin_lookup() function in the risk_framework package. This returns a DataFrame with relevant information about the inputted securities.
 
 ```python
 # isin lookup
 isins = ["US88160R1014", "US0378331005"]
-df_isin = risk_framework.isin_lookup(isins)
+df_isin = risk_framework.isin_lookup(isin_list=isins, local_configs=local_configs)
 ```
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
 ## Roadmap
 ---
-- [ ] Write full comprahensive README
 - [ ] Add to CONTRIBUTING file
-- [ ] Push first version of quantkit
 - [ ] Add to mathstats folder for mathematical calculations
 - [ ] create data visualization folder
 - [ ] add functions to handyman folder
-- update data pipelines (connect portfolio data to snowflake)
+- [ ] update data pipelines (connect portfolio data to snowflake)
 
 See the [open issues](https://gitlab.com/tcw-group/quant-research/quantkit/-/issues) for a full list of proposed features (and known issues).
 
