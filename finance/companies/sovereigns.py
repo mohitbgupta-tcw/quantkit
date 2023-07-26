@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 import quantkit.finance.companies.headstore as headstore
 
 
@@ -26,6 +27,9 @@ class SovereignStore(headstore.HeadStore):
         """
         Set Sovereign Score
         """
+        self.scores["Sovereign_Score_unadjusted"] = deepcopy(
+            self.information["Issuer_Country"].information["Sovereign_Score"]
+        )
         self.scores["Sovereign_Score"] = self.information["Issuer_Country"].information[
             "Sovereign_Score"
         ]

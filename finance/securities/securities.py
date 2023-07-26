@@ -33,6 +33,7 @@ class SecurityStore(object):
         self.information["Issuer_ESG"] = "No"
         self.information["Security_Name"] = ""
         self.scores["Securitized_Score"] = 0
+        self.scores["Securitized_Score_unadjusted"] = 0
         self.scores["Risk_Score_Overall"] = "Poor Risk Score"
         self.information["SClass_Level1"] = "Eligible"
         self.information["SClass_Level2"] = "ESG Scores"

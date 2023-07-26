@@ -39,8 +39,10 @@ class SecuritizedStore(headstore.HeadStore):
                 not pd.isna(sec_store.information["Labeled_ESG_Type"])
             ) or sec_store.information["Issuer_ESG"] == "Yes":
                 if pd.isna(sec_store.information["TCW_ESG"]):
+                    sec_store.scores["Securitized_Score_unadjusted"] = 5
                     sec_store.scores["Securitized_Score"] = 5
                 else:
+                    sec_store.scores["Securitized_Score_unadjusted"] = 1
                     sec_store.scores["Securitized_Score"] = 1
             elif (
                 sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
@@ -48,6 +50,7 @@ class SecuritizedStore(headstore.HeadStore):
                 and sec_store.information["Labeled_ESG_Type"] != "Labeled Green"
                 and sec_store.information["TCW_ESG"] == "TCW Green"
             ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif (
                 sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
@@ -56,19 +59,23 @@ class SecuritizedStore(headstore.HeadStore):
                 and sec_store.information["TCW_ESG"] == "TCW Social"
                 and not "TBA " in sec_store.information["IssuerName"]
             ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif (
                 sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
                 == "ESG CLO"
             ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif "TBA " in sec_store.information["IssuerName"]:
+                sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
             elif (
                 (pd.isna(sec_store.information["Labeled_ESG_Type"]))
                 and pd.isna(sec_store.information["TCW_ESG"])
                 and not "TBA " in sec_store.information["IssuerName"]
             ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 4
                 sec_store.scores["Securitized_Score"] = 4
 
     def calculate_risk_overall_score(self) -> None:
