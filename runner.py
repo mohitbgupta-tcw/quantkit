@@ -4,7 +4,7 @@ import quantkit.utils.logging as logging
 
 
 class Runner(loader.Runner):
-    def init(self, local_configs: str = None):
+    def init(self, local_configs: str = ""):
         """
         - initialize datsources and load data
         - create reusable attributes

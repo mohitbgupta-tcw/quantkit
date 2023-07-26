@@ -3,7 +3,7 @@ import os
 import quantkit.utils.util_functions as util_functions
 
 
-def read_configs(local_configs: str = None) -> dict:
+def read_configs(local_configs: str = "") -> dict:
     """
     read configs file from quantkit\\utils\\configs.json
     if there are local changes, overwrite existing configs file
