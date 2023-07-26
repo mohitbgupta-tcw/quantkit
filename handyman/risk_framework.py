@@ -1,16 +1,22 @@
 import quantkit.runner as runner
 import quantkit.utils.configs as configs
 import quantkit.handyman.msci_data_loader as msci_data_loaders
+import quantkit.utils.util_functions as util_functions
 import pandas as pd
 import numpy as np
 import json
 import os
 
 
-def risk_framework() -> pd.DataFrame:
+def risk_framework(local_configs: str = "") -> pd.DataFrame:
     """
     Run risk framework and return detailed DataFrame with portfolio and
     security information
+
+    Parameters
+    ----------
+    local_configs: str, optional
+        path to a local configarations file
 
     Returns
     -------
@@ -18,7 +24,7 @@ def risk_framework() -> pd.DataFrame:
         Detailed DataFrame
     """
     r = runner.Runner()
-    r.init()
+    r.init(local_configs=local_configs)
     r.run()
     data_detail = []
     for p in r.portfolio_datasource.portfolios:
@@ -367,7 +373,7 @@ def risk_framework() -> pd.DataFrame:
     return df_detailed
 
 
-def sector_subset(gics_list, bclass_list) -> pd.DataFrame:
+def sector_subset(gics_list, bclass_list, local_configs: str = "") -> pd.DataFrame:
     """
     Run risk framework and return scores for specific industries
 
@@ -377,6 +383,8 @@ def sector_subset(gics_list, bclass_list) -> pd.DataFrame:
         list of GICS_SUB_IND
     bclass_list: list
         list of BCLASS_LEVEL4
+    local_configs: str, optional
+        path to a local configarations file
 
     Returns
     -------
@@ -384,7 +392,7 @@ def sector_subset(gics_list, bclass_list) -> pd.DataFrame:
         Summary DataFrame for specific industries
     """
     r = runner.Runner()
-    r.init()
+    r.init(local_configs=local_configs)
     r.run()
     data = []
     for c in r.portfolio_datasource.companies:
@@ -451,7 +459,7 @@ def sector_subset(gics_list, bclass_list) -> pd.DataFrame:
     return df
 
 
-def isin_lookup(isin_list: list) -> pd.DataFrame:
+def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     """
     For a list of ISINs, run the risk framework
 
@@ -459,6 +467,8 @@ def isin_lookup(isin_list: list) -> pd.DataFrame:
     ----------
     isin_list: list
         list of isins
+    local_configs: str, optional
+        path to a local configarations file
 
     Returns
     -------
@@ -466,7 +476,7 @@ def isin_lookup(isin_list: list) -> pd.DataFrame:
         Summary DataFrame with score data for entered isins
     """
 
-    params = configs.read_configs()
+    params = configs.read_configs(local_configs=local_configs)
 
     # create portfolio sheet
     portfolio_df = pd.DataFrame()
@@ -490,33 +500,31 @@ def isin_lookup(isin_list: list) -> pd.DataFrame:
     portfolio_df = portfolio_df.to_json(orient="index")
 
     # create msci mapping file
-    msci_df = msci_data_loaders.create_msci_mapping(isin_list=isin_list, params=params)
+    msci_df = msci_data_loaders.create_msci_mapping(
+        isin_list=isin_list, params=params["API_settings"]
+    )
     msci_df = msci_df.to_json(orient="index")
 
     configs_overwrite = {
-        "portfolio_datasource": {"source": 6, "json_str": portfolio_df, "load": True},
+        "portfolio_datasource": {"source": 6, "json_str": portfolio_df},
         "security_datasource": {
-            "iss": {
-                "source": 2,
-                "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230503.csv",
-                "load": True,
-            },
-            "msci": {"source": 6, "json_str": msci_df, "load": True},
+            "msci": {"source": 6, "json_str": msci_df},
         },
     }
-    with open(params["configs_path"], "r") as f:
-        try:
-            configs_local = json.load(f)
-            c = {**configs_local, **configs_overwrite}
-        except:
-            configs_local = None
-            c = configs_overwrite
-    with open(params["configs_path"], "w") as f:
+
+    if os.path.isfile(local_configs):
+        with open(local_configs) as f_in:
+            configs_local = json.load(f_in)
+        c = {**configs_local, **configs_overwrite}
+    else:
+        configs_local = None
+        c = configs_overwrite
+    with open("quantkit\\params_temp.json", "w") as f:
         json.dump(c, f)
 
     # run framework
     r = runner.Runner()
-    r.init()
+    r.init("quantkit\\params_temp.json")
     r.run()
     data = []
     for p in r.portfolio_datasource.portfolios:
@@ -708,10 +716,5 @@ def isin_lookup(isin_list: list) -> pd.DataFrame:
     ]
 
     df = pd.DataFrame(data, columns=columns)
-
-    if configs_local:
-        with open(params["configs_path"], "w") as f:
-            json.dump(configs_local, f)
-    else:
-        os.remove(params["configs_path"])
+    os.remove("quantkit\\params_temp.json")
     return df
