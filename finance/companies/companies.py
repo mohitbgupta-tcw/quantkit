@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 import quantkit.finance.transition.transition as transition
 import quantkit.finance.companies.headstore as headstore
 import operator
@@ -34,6 +35,9 @@ class CompanyStore(headstore.HeadStore):
         For Treasuries update the Sovereign Score (in self.scores)
         """
         if self.information["BCLASS_Level4"].class_name == "Treasury":
+            self.scores["Sovereign_Score_unadjusted"] = deepcopy(
+                self.information["Issuer_Country"].information["Sovereign_Score"]
+            )
             self.scores["Sovereign_Score"] = self.information[
                 "Issuer_Country"
             ].information["Sovereign_Score"]
@@ -172,6 +176,7 @@ class CompanyStore(headstore.HeadStore):
             # if requirement fulfilled, assign theme to company and vice versa
             if theme_score:
                 themes[theme].companies[self.isin] = self
+                self.scores["Themes_unadjusted"][theme] = themes[theme]
                 self.scores["Themes"][theme] = themes[theme]
                 self.scores["Sustainability_Tag"] = "Y"
 
@@ -251,6 +256,7 @@ class CompanyStore(headstore.HeadStore):
         # create esrm score based on flag scoring
         for i in range(len(l) - 1, -1, -1):
             if counter >= (l[i]):
+                self.scores["ESRM_Score_unadjusted"] = i + 1
                 self.scores["ESRM_Score"] = i + 1
 
                 if i + 1 == 5:
@@ -277,6 +283,7 @@ class CompanyStore(headstore.HeadStore):
         scoring_d = self.information["region_theme"].EM_flags
         for i in range(len(scoring_d) - 1, -1, -1):
             if counter_gov >= (scoring_d[i]):
+                self.scores["Governance_Score_unadjusted"] = i + 1
                 self.scores["Governance_Score"] = i + 1
 
                 if i + 1 == 5:
@@ -351,6 +358,7 @@ class CompanyStore(headstore.HeadStore):
 
         # assign transition score
         transition_score = np.maximum(transition_score, 1)
+        self.scores["Transition_Score_unadjusted"] = transition_score
         self.scores["Transition_Score"] = transition_score
 
         if transition_score == 5:
@@ -439,6 +447,9 @@ class CompanyStore(headstore.HeadStore):
                 # transition requirements fulfilled
                 if transition_:
                     self.scores["Transition_Tag"] = "Y"
+                    self.scores["Transition_Category_unadjusted"].append(
+                        self.information["Sub-Industry"].transition["Acronym"]
+                    )
                     self.scores["Transition_Category"].append(
                         self.information["Sub-Industry"].transition["Acronym"]
                     )
@@ -454,6 +465,9 @@ class CompanyStore(headstore.HeadStore):
                 )
                 if transition_:
                     self.scores["Transition_Tag"] = "Y"
+                    self.scores["Transition_Category_unadjusted"].append(
+                        self.information["Sub-Industry"].transition["Acronym"]
+                    )
                     self.scores["Transition_Category"].append(
                         self.information["Sub-Industry"].transition["Acronym"]
                     )

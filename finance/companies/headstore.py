@@ -29,15 +29,22 @@ class HeadStore(object):
 
         # assign some default values for measures
         self.scores["Themes"] = dict()
+        self.scores["Themes_unadjusted"] = dict()
         self.scores["Transition_Category"] = list()
+        self.scores["Transition_Category_unadjusted"] = list()
         self.scores["Sustainability_Tag"] = "N"
         self.scores["Transition_Tag"] = "N"
         self.scores["Muni_Score"] = 0
+        self.scores["Muni_Score_unadjusted"] = 0
         self.scores["Sovereign_Score"] = 0
+        self.scores["Sovereign_Score_unadjusted"] = 0
         self.scores["ESRM_Score"] = 0
+        self.scores["ESRM_Score_unadjusted"] = 0
         self.scores["Governance_Score"] = 0
+        self.scores["Governance_Score_unadjusted"] = 0
         self.scores["Target_Score"] = 0
         self.scores["Transition_Score"] = 0
+        self.scores["Transition_Score_unadjusted"] = 0
         self.scores["Corporate_Score"] = 0
         self.scores["Review_Flag"] = ""
         self.scores["Review_Comments"] = ""
