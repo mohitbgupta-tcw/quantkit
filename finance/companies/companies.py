@@ -3,7 +3,7 @@ import numpy as np
 from copy import deepcopy
 import quantkit.finance.transition.transition as transition
 import quantkit.finance.companies.headstore as headstore
-import operator
+import quantkit.utils.util_functions as util_functions
 
 
 class CompanyStore(headstore.HeadStore):
@@ -212,38 +212,19 @@ class CompanyStore(headstore.HeadStore):
             2.4) Save flags in company_information
         """
 
-        counter = 0
-        counter_gov = 0
-        flag_d = dict()
-        gov_d = dict()
-        operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
-        na_esrm = dict()
-        na_gov = dict()
-
         if self.non_applicable_securities():
-            self.scores["ESRM_Flags"] = flag_d
-            self.scores["Governance_Flags"] = gov_d
-            self.scores["NA_Flags_ESRM"] = na_esrm
-            self.scores["NA_Flags_Governance"] = na_gov
+            self.scores["ESRM_Flags"] = dict()
+            self.scores["Governance_Flags"] = dict()
+            self.scores["NA_Flags_ESRM"] = dict()
+            self.scores["NA_Flags_Governance"] = dict()
             return
 
         # get ESRM Module
         df_ = self.information["ESRM Module"].esrm_df
         # count flags
-        for index, row in df_.iterrows():
-            i = row["Indicator Field Name"]
-            v = self.msci_information[i]
-            o = row["Operator"]
-            ft = row["Flag_Threshold"]
-            if pd.isna(v):
-                flag_d[i + "_Flag"] = 1
-                na_esrm[i] = 1
-                counter += 1
-            elif operators[o](v, ft):
-                flag_d[i + "_Flag"] = 1
-                counter += 1
-            else:
-                flag_d[i + "_Flag"] = 0
+        esrm_flags, na_esrm, esrm_counter = util_functions.check_threshold(
+            df_, self.msci_information
+        )
 
         # specific region for company (DM or EM)
         region = self.information["Issuer_Country"].information["Region_EM"]
@@ -255,7 +236,7 @@ class CompanyStore(headstore.HeadStore):
 
         # create esrm score based on flag scoring
         for i in range(len(l) - 1, -1, -1):
-            if counter >= (l[i]):
+            if esrm_counter >= (l[i]):
                 self.scores["ESRM_Score_unadjusted"] = i + 1
                 self.scores["ESRM_Score"] = i + 1
 
@@ -265,24 +246,13 @@ class CompanyStore(headstore.HeadStore):
 
         # calculate governance score
         df_ = self.information["region_theme"].esrm_df
-        for index, row in df_.iterrows():
-            i = row["Indicator Field Name"]
-            v = self.msci_information[i]
-            o = row["Operator"]
-            ft = row["Flag_Threshold"]
-            if pd.isna(v):
-                gov_d[i + "_Flag"] = 1
-                na_gov[i] = 1
-                counter_gov += 1
-            elif operators[o](v, ft):
-                gov_d[i + "_Flag"] = 1
-                counter_gov += 1
-            else:
-                gov_d[i + "_Flag"] = 0
+        gov_flags, na_gov, gov_counter = util_functions.check_threshold(
+            df_, self.msci_information
+        )
 
         scoring_d = self.information["region_theme"].EM_flags
         for i in range(len(scoring_d) - 1, -1, -1):
-            if counter_gov >= (scoring_d[i]):
+            if gov_counter >= (scoring_d[i]):
                 self.scores["Governance_Score_unadjusted"] = i + 1
                 self.scores["Governance_Score"] = i + 1
 
@@ -290,8 +260,8 @@ class CompanyStore(headstore.HeadStore):
                     self.scores["Review_Flag"] = "Needs Review"
                 break
 
-        self.scores["ESRM_Flags"] = flag_d
-        self.scores["Governance_Flags"] = gov_d
+        self.scores["ESRM_Flags"] = esrm_flags
+        self.scores["Governance_Flags"] = gov_flags
         self.scores["NA_Flags_ESRM"] = na_esrm
         self.scores["NA_Flags_Governance"] = na_gov
 
