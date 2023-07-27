@@ -1,5 +1,6 @@
 import pandas as pd
-from typing import Union
+from typing import Union, Tuple
+import operator
 
 
 def divide_chunks(l: list, n: int):
@@ -62,6 +63,47 @@ def replace_dictionary(new_d: dict, original_d: dict) -> dict:
                 original_d[k] = new_d[k]
             replace_dictionary(v, original_d[k])
     return original_d
+
+
+def check_threshold(df: pd.DataFrame, msci_information: dict) -> Tuple[dict, dict, int]:
+    """
+    For pre-defined indicators, check if msci information fulfill threshold.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame with indicator, operator and threshold information
+    msci_information: dict
+        msci data
+
+    Returns
+    dict
+        Dictionary with binary value for each indicator
+    dict
+        Dictionary with na values from indicators
+    int
+        number of non-cleared indicators
+    """
+    operators = {">": operator.gt, "<": operator.lt, "=": operator.eq}
+    flag_d = dict()
+    na_d = dict()
+    counter = 0
+    # count flags
+    for index, row in df.iterrows():
+        i = row["Indicator Field Name"]
+        v = msci_information[i]
+        o = row["Operator"]
+        ft = row["Flag_Threshold"]
+        if pd.isna(v):
+            flag_d[i + "_Flag"] = 1
+            na_d[i] = 1
+            counter += 1
+        elif operators[o](v, ft):
+            flag_d[i + "_Flag"] = 1
+            counter += 1
+        else:
+            flag_d[i + "_Flag"] = 0
+    return flag_d, na_d, counter
 
 
 def exclude_rule(value: str, exclusions: list, **kwargs) -> bool:
