@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 import quantkit.finance.sectors.sectors as sectors
 
 
@@ -44,3 +45,14 @@ class PortfolioStore(object):
         sector: sectors.Sector
         """
         self.Sector = sector
+
+    def add_as_of_date(self, as_of_date: datetime.date) -> None:
+        """
+        Attach As Of Date to portfolio
+
+        Parameters
+        ----------
+        as_of_date: datetime.date
+            as of date of portfolio
+        """
+        self.as_of_date = as_of_date
