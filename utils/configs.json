@@ -15,7 +15,7 @@
             "user": "",   
             "password": "",    
             "role": "APP-SNOWF-ESG_ADVANCED",
-            "database": "ESG_SANDBOX",
+            "database": "SANDBOX_ESG",
             "schema": "ESG"
             },
     
