@@ -6,24 +6,33 @@ def Header(app):
     return html.Div([get_header(app), html.Br([]), get_menu()])
 
 
+def Header_only(app):
+    return html.Div([get_header(app), html.Br([])])
+
+
 def get_header(app):
     header = html.Div(
         [
             html.Div(
                 [
                     html.Div(
-                        [html.H5("Sustainable Characteristics")],
+                        [
+                            html.H5("Sustainable Characteristics", id="overall-header"),
+                            html.H6("Portfolio:"),
+                            html.H6("Benchmark:"),
+                            html.H6("As of: 6/30/2023"),
+                        ],
                         className="seven columns main-title",
                     ),
                     html.Div(
                         [
-                            dcc.Link(
-                                "Full View",
-                                href="/dash-financial-report/full-view",
-                                className="full-view-link",
+                            html.Img(
+                                src=app.get_asset_url("tcw_logo.png"),
+                                className="tcw-logo",
                             )
                         ],
                         className="five columns",
+                        id="header-logo",
                     ),
                 ],
                 className="twelve columns",

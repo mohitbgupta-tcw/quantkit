@@ -34,12 +34,20 @@ body {
 }
 
 .sub_page {
-  padding: 1cm;
+  padding: 0cm 1cm;
   min-height: 300mm;
 }
 
 .header {
   padding-top: 2em;
+}
+
+#header-logo {
+  text-align: right;
+}
+
+#overall-header {
+  margin-bottom: -5px;
 }
 
 @page {
@@ -142,12 +150,17 @@ h5 {
   font-size: 2.6rem;
 }
 h6 {
-  font-size: 1.425rem;
+  font-size: 1.7rem;
 }
 
 .risk-reward {
   height: 150px;
   width: auto;
+}
+
+.tcw-logo {
+  height: 60px;
+  width: auto; 
 }
 
 li {
@@ -186,18 +199,18 @@ li {
   color: #3a3a3a;
   font-size: 40px !important;
   width: 80%;
-  border-left: 20px solid #007DB5;
+  border-left: 13px solid #007DB5;
   background: #ffffff;
   padding-left: 30px;
 }
 
 .subtitle {
   position: relative;
-  color: #3a3a3a;
+  color: #007DB5;
   left: 0;
   height: 20%;
   margin: 0mm;
-  border-left: 5px solid #98151b;
+  border-left: 5px solid #007DB5;
   background: #ffffff;
   padding-top: 1px;
   padding-bottom: 1px;
