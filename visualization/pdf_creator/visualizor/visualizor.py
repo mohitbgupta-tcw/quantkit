@@ -40,19 +40,20 @@ df_ci_sector = pd.DataFrame(
     data={
         "Name": [
             "Utilities",
-            "Unassigned GICS",
+            "Unassigned <br> GICS",
             "Energy",
             "Materials",
             "Industrials",
-            "Real Estate",
-            "Consumer Staples",
-            "Consumer Discretionary",
-            "Communication Services",
-            "Information Technology",
+            "Real <br> Estate",
+            "Consumer <br> Staples",
+            "Consumer <br> Discretionary",
+            "Communication <br> Services",
+            "Information <br> Technology",
         ],
         "Value": [1706, 1219, 527, 250, 224, 70, 36, 31, 27, 19],
     }
 )
+df_ci_sector = df_ci_sector.sort_values(["Value"], ascending=True)
 
 
 class Visualizor(object):
@@ -102,82 +103,41 @@ class Visualizor(object):
         )
         return header
 
-    def add_bar_chart(self) -> dcc.Graph:
+    def add_bar_chart(self, x, y) -> dcc.Graph:
         bar = dcc.Graph(
             figure={
                 "data": [
                     go.Bar(
-                        x=[
-                            "2008",
-                            "2009",
-                            "2010",
-                            "2011",
-                            "2012",
-                            "2013",
-                            "2014",
-                            "2015",
-                            "2016",
-                            "2017",
-                            "2018",
-                        ],
-                        y=[
-                            "10000",
-                            "7500",
-                            "9000",
-                            "10000",
-                            "10500",
-                            "11000",
-                            "14000",
-                            "18000",
-                            "19000",
-                            "20500",
-                            "24000",
-                        ],
+                        x=x,
+                        y=y,
+                        orientation="h",
+                        text=x,
+                        textposition="outside",
                     )
                 ],
                 "layout": go.Layout(
                     autosize=True,
                     title="",
-                    font={"family": "Raleway", "size": 10},
-                    height=200,
-                    width=400,
+                    font={"family": "Calibri", "size": 11},
+                    height=350,
+                    # width=400,
                     hovermode="closest",
-                    legend={
-                        "x": -0.0277108433735,
-                        "y": -0.142606516291,
-                        "orientation": "h",
-                    },
                     margin={
                         "r": 20,
                         "t": 20,
                         "b": 20,
                         "l": 50,
                     },
-                    showlegend=True,
-                    xaxis={
-                        "autorange": True,
-                        "linecolor": "rgb(0, 0, 0)",
-                        "linewidth": 1,
-                        "range": [2008, 2018],
-                        "showgrid": False,
-                        "showline": True,
-                        "title": "",
-                        "type": "linear",
-                    },
+                    showlegend=False,
                     yaxis={
-                        "autorange": False,
-                        "gridcolor": "rgba(127, 127, 127, 0.2)",
-                        "mirror": False,
-                        "nticks": 4,
-                        "range": [0, 30000],
+                        "automargin": True,
+                    },
+                    xaxis={
+                        "range": [0, max(x) + 200],
+                        "automargin": False,
                         "showgrid": True,
-                        "showline": True,
-                        "ticklen": 10,
-                        "ticks": "outside",
-                        "title": "$",
-                        "type": "linear",
-                        "zeroline": False,
-                        "zerolinewidth": 4,
+                        "gridcolor": "lightgrey",
+                        "griddash": "dot",
                     },
                 ),
             },
@@ -273,11 +233,10 @@ class Visualizor(object):
                     "Carbon Intensity by Sector",
                     className="subtitle padded",
                 ),
-                self.add_bar_chart(),
+                self.add_bar_chart(x=df_ci_sector["Value"], y=df_ci_sector["Name"]),
             ],
             className="row",
         )
-        print(ci_chart)
         return ci_chart
 
     def add_equity_body(self) -> html.Div:
