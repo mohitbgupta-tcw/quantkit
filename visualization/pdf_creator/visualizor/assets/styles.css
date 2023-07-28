@@ -100,15 +100,43 @@ table {
   width: 100%;
 }
 
+table.multi-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
 td {
   padding: 2px 0px;
+}
+
+tr {
+  border-bottom: 2px solid white;
 }
 
 tr:nth-child(even) {
   background-color: #f0f0f0;
 }
 tr:nth-child(odd) {
-  background-color: #fafafa;
+  background-color: #f0f0f0;
+}
+
+tr:last-child {
+  background-color: #CECCCC;
+  border-bottom: 4px double black;
+  font-weight: bold;
+}
+
+tr.table-header {
+  background-color: #FFF;
+  text-align: center;
+}
+
+td.table-element {
+  text-align: center;
+}
+
+.vertical {
+  border-left: 2px solid #000;
 }
 
 table.reversed tr:nth-child(odd) {
@@ -119,14 +147,18 @@ table.reversed tr:nth-child(even) {
 }
 
 table {
-  font-size: 1rem;
+  font-size: 1.2rem;
   border-spacing: 0;
   border-collapse: collapse;
 }
 td,
 th {
   border: 0px solid #ddd;
-  padding: 8px;
+  padding: 4px;
+}
+
+th {
+  text-align: center;
 }
 
 table.tiny-header tr:first-child {
@@ -135,6 +167,7 @@ table.tiny-header tr:first-child {
 
 .columns {
   margin-left: 0 !important;
+  padding: 0em 1em;
 }
 
 .row > .columns:not(:first-child) {
@@ -206,6 +239,7 @@ li {
 
 .subtitle {
   position: relative;
+  font-size: 1.4rem;
   color: #007DB5;
   left: 0;
   height: 20%;
@@ -216,6 +250,10 @@ li {
   padding-bottom: 1px;
   padding-left: 30px;
   padding-right: 60px;
+}
+
+.superscript {
+  font-size: 1rem;
 }
 
 .logo {
