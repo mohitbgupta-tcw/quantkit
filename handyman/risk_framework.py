@@ -30,6 +30,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
     for p in r.portfolio_datasource.portfolios:
         portfolio_isin = r.portfolio_datasource.portfolios[p].id
         portfolio_name = r.portfolio_datasource.portfolios[p].name
+        portfolio_as_of_date = r.portfolio_datasource.portfolios[p].as_of_date
         for s in r.portfolio_datasource.portfolios[p].holdings:
             sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
@@ -114,6 +115,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
 
                 data_detail.append(
                     (
+                        portfolio_as_of_date,
                         portfolio_isin,
                         portfolio_name,
                         s,
@@ -263,6 +265,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                 )
 
     columns_detailed = [
+        "As Of Date",
         "Portfolio ISIN",
         "Portfolio Name",
         "Security ISIN",

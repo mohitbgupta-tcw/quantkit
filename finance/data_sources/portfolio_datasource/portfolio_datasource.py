@@ -104,7 +104,9 @@ class PortfolioDataSource(ds.DataSources):
         - save all held securities
         """
         for index, row in (
-            self.df[["Portfolio", "Portfolio Name"]].drop_duplicates().iterrows()
+            self.df[["As Of Date", "Portfolio", "Portfolio Name"]]
+            .drop_duplicates()
+            .iterrows()
         ):
             pf = row["Portfolio"]
             pf_store = portfolios.PortfolioStore(pf=pf, name=row["Portfolio Name"])
@@ -112,6 +114,7 @@ class PortfolioDataSource(ds.DataSources):
                 ["As Of Date", "ISIN", "Portfolio_Weight", "Base Mkt Val", "OAS"]
             ]
             pf_store.add_holdings(holdings_df)
+            pf_store.add_as_of_date(row["As Of Date"])
             self.portfolios[pf] = pf_store
 
         # save all securities that occur in portfolios to filter down security database later on
