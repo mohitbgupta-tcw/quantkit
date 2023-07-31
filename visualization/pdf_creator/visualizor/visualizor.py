@@ -11,49 +11,11 @@ import pandas as pd
 PATH = pathlib.Path(__file__).parent
 DATA_PATH = PATH.joinpath("../data").resolve()
 
+data = pd.read_excel("C:\\Users\\bastit\\Documents\\quantkit\\scores_6739.xlsx")
+df_portfolio = data[data["Portfolio ISIN"] == 6739]
+df_index = data[data["Portfolio ISIN"] == "RUSSELL 1000 VALUE"]
 
 df_price_perf = pd.read_csv(DATA_PATH.joinpath("df_price_perf.csv"))
-
-df_WACI = pd.DataFrame(
-    data={"Name": ["Portfolio", "Index", "Carbon Reduction"], "Value": [50, 100, -50]}
-)
-df_risk_score_distr = pd.DataFrame(
-    data={
-        "": ["E&S", "Governance", "Transition", "Overall"],
-        "Portfolio": [2, 2, 2, 2],
-        "Index": [3, 3, 3, 3],
-    }
-)
-df_distr = pd.DataFrame(
-    data={
-        "Name": [
-            "Leading ESG Score",
-            "Average ESG Score",
-            "Poor Risk Score",
-            "Not Scored",
-            "Total",
-        ],
-        "Value": [30, 50, 10, 10, 100],
-    }
-)
-df_ci_sector = pd.DataFrame(
-    data={
-        "Name": [
-            "Utilities",
-            "Unassigned <br> GICS",
-            "Energy",
-            "Materials",
-            "Industrials",
-            "Real <br> Estate",
-            "Consumer <br> Staples",
-            "Consumer <br> Discretionary",
-            "Communication <br> Services",
-            "Information <br> Technology",
-        ],
-        "Value": [1706, 1219, 527, 250, 224, 70, 36, 31, 27, 19],
-    }
-)
-df_ci_sector = df_ci_sector.sort_values(["Value"], ascending=True)
 
 
 class Visualizor(object):
@@ -129,11 +91,9 @@ class Visualizor(object):
                         "l": 50,
                     },
                     showlegend=False,
-                    yaxis={
-                        "automargin": True,
-                    },
+                    yaxis={"automargin": True, "ticksuffix": "   "},
                     xaxis={
-                        "range": [0, max(x) + 200],
+                        "range": [0, max(x) + 250],
                         "automargin": False,
                         "showgrid": True,
                         "gridcolor": "lightgrey",
@@ -174,7 +134,57 @@ class Visualizor(object):
             table.append(html.Tr(html_row))
         return html.Table(table, className=class_table)
 
-    def add_WACI_table(self) -> html.Div:
+    def add_WACI_table(self, df_portfolio, df_index) -> html.Div:
+        df_portfolio["market_weight_carbon_intensity"] = (
+            df_portfolio["Portfolio Weight"]
+            / 100
+            * df_portfolio["CARBON_EMISSIONS_SCOPE_12_INTEN"]
+        )
+        df_index["market_weight_carbon_intensity"] = (
+            df_index["Portfolio Weight"]
+            / 100
+            * df_index["CARBON_EMISSIONS_SCOPE_12_INTEN"]
+        )
+
+        df_portfolio_n = df_portfolio[
+            df_portfolio["CARBON_EMISSIONS_SCOPE_12_INTEN"] > 0
+        ]
+        df_index_n = df_index[df_index["CARBON_EMISSIONS_SCOPE_12_INTEN"] > 0]
+
+        df_portfolio_n = df_portfolio_n[
+            df_portfolio_n["Sector Level 2"].isin(
+                ["Industrial", "Utility", "Financial Institution", "Quasi Sovereign"]
+            )
+        ]
+        df_index_n = df_index_n[
+            df_index_n["Sector Level 2"].isin(
+                ["Industrial", "Utility", "Financial Institution", "Quasi Sovereign"]
+            )
+        ]
+
+        waci_portfolio = (
+            sum(df_portfolio_n["market_weight_carbon_intensity"])
+            / sum(df_portfolio_n["Portfolio Weight"])
+            * 100
+        )
+        waci_index = (
+            sum(df_index_n["market_weight_carbon_intensity"])
+            / sum(df_index_n["Portfolio Weight"])
+            * 100
+        )
+        carbon_reduction = format(waci_portfolio / waci_index - 1, ".0%")
+
+        df_WACI = pd.DataFrame(
+            data={
+                "Name": ["Portfolio", "Index", "Carbon Reduction"],
+                "Value": [
+                    "{0:.2f}".format(waci_portfolio),
+                    "{0:.2f}".format(waci_index),
+                    carbon_reduction,
+                ],
+            }
+        )
+
         waci = html.Div(
             [
                 html.H6(
@@ -194,7 +204,114 @@ class Visualizor(object):
         )
         return waci
 
-    def add_risk_score_distribution(self) -> html.Div:
+    def add_risk_score_distribution(self, df_portfolio, df_index) -> html.Div:
+        df_portfolio["market_weight_esrm"] = (
+            df_portfolio["Portfolio Weight"] / 100 * df_portfolio["ESRM Score"]
+        )
+        df_index["market_weight_esrm"] = (
+            df_index["Portfolio Weight"] / 100 * df_index["ESRM Score"]
+        )
+        df_portfolio["market_weight_governance"] = (
+            df_portfolio["Portfolio Weight"] / 100 * df_portfolio["Governance Score"]
+        )
+        df_index["market_weight_governance"] = (
+            df_index["Portfolio Weight"] / 100 * df_index["Governance Score"]
+        )
+        df_portfolio["market_weight_transition"] = (
+            df_portfolio["Portfolio Weight"] / 100 * df_portfolio["Transition Score"]
+        )
+        df_index["market_weight_transition"] = (
+            df_index["Portfolio Weight"] / 100 * df_index["Transition Score"]
+        )
+
+        esrm_portfolio = (
+            sum(
+                df_portfolio[df_portfolio["market_weight_esrm"] > 0][
+                    "market_weight_esrm"
+                ]
+            )
+            / sum(
+                df_portfolio[df_portfolio["market_weight_esrm"] > 0]["Portfolio Weight"]
+            )
+            * 100
+        )
+        esrm_index = (
+            sum(df_index[df_index["market_weight_esrm"] > 0]["market_weight_esrm"])
+            / sum(df_index[df_index["market_weight_esrm"] > 0]["Portfolio Weight"])
+            * 100
+        )
+
+        gov_portfolio = (
+            sum(
+                df_portfolio[df_portfolio["market_weight_governance"] > 0][
+                    "market_weight_governance"
+                ]
+            )
+            / sum(
+                df_portfolio[df_portfolio["market_weight_governance"] > 0][
+                    "Portfolio Weight"
+                ]
+            )
+            * 100
+        )
+        gov_index = (
+            sum(
+                df_index[df_index["market_weight_governance"] > 0][
+                    "market_weight_governance"
+                ]
+            )
+            / sum(
+                df_index[df_index["market_weight_governance"] > 0]["Portfolio Weight"]
+            )
+            * 100
+        )
+
+        trans_portfolio = (
+            sum(
+                df_portfolio[df_portfolio["market_weight_transition"] > 0][
+                    "market_weight_transition"
+                ]
+            )
+            / sum(
+                df_portfolio[df_portfolio["market_weight_transition"] > 0][
+                    "Portfolio Weight"
+                ]
+            )
+            * 100
+        )
+        trans_index = (
+            sum(
+                df_index[df_index["market_weight_transition"] > 0][
+                    "market_weight_transition"
+                ]
+            )
+            / sum(
+                df_index[df_index["market_weight_transition"] > 0]["Portfolio Weight"]
+            )
+            * 100
+        )
+
+        total_portfolio = (esrm_portfolio + gov_portfolio + trans_portfolio) / 3
+        total_index = (esrm_index + gov_index + trans_index) / 3
+
+        df_risk_score_distr = pd.DataFrame(
+            data={
+                "": ["E&S", "Governance", "Transition", "Overall"],
+                "Portfolio": [
+                    "{0:.2f}".format(esrm_portfolio),
+                    "{0:.2f}".format(gov_portfolio),
+                    "{0:.2f}".format(trans_portfolio),
+                    "{0:.2f}".format(total_portfolio),
+                ],
+                "Index": [
+                    "{0:.2f}".format(esrm_index),
+                    "{0:.2f}".format(gov_index),
+                    "{0:.2f}".format(trans_index),
+                    "{0:.2f}".format(total_index),
+                ],
+            }
+        )
+
         distr = html.Div(
             [
                 html.H6(
@@ -210,7 +327,47 @@ class Visualizor(object):
         )
         return distr
 
-    def add_score_distribution(self) -> html.Div:
+    def add_score_distribution(self, df_portfolio) -> html.Div:
+        leading = sum(
+            df_portfolio[df_portfolio["Risk_Score_Overall"] == "Leading ESG Score"][
+                "Portfolio Weight"
+            ]
+        )
+        average = sum(
+            df_portfolio[df_portfolio["Risk_Score_Overall"] == "Average ESG Score"][
+                "Portfolio Weight"
+            ]
+        )
+        poor = sum(
+            df_portfolio[df_portfolio["Risk_Score_Overall"] == "Poor Risk Score"][
+                "Portfolio Weight"
+            ]
+        )
+        not_scored = sum(
+            df_portfolio[df_portfolio["Risk_Score_Overall"] == "Not Scored"][
+                "Portfolio Weight"
+            ]
+        )
+        total = leading + average + poor + not_scored
+
+        df_distr = pd.DataFrame(
+            data={
+                "Name": [
+                    "Leading ESG Score",
+                    "Average ESG Score",
+                    "Poor Risk Score",
+                    "Not Scored",
+                    "Total",
+                ],
+                "Value": [
+                    "{0:.2f}".format(leading),
+                    "{0:.2f}".format(average),
+                    "{0:.2f}".format(poor),
+                    "{0:.2f}".format(not_scored),
+                    "{0:.2f}".format(total),
+                ],
+            }
+        )
         distr = html.Div(
             [
                 html.H6(
@@ -226,7 +383,26 @@ class Visualizor(object):
         )
         return distr
 
-    def add_carbon_intensity_chart(self) -> html.Div:
+    def add_carbon_intensity_chart(self, df_portfolio) -> html.Div:
+        df_ci_sector = pd.DataFrame(
+            data={
+                "Name": [
+                    "Utilities",
+                    "Unassigned  <br> GICS",
+                    "Energy",
+                    "Materials",
+                    "Industrials",
+                    "Real   <br> Estate",
+                    "Consumer   <br> Staples",
+                    "Consumer   <br> Discretionary",
+                    "Communication   <br> Services",
+                    "Information   <br> Technology",
+                ],
+                "Value": [1706, 1219, 527, 250, 224, 70, 36, 31, 27, 19],
+            }
+        )
+        df_ci_sector = df_ci_sector.sort_values(["Value"], ascending=True)
+
         ci_chart = html.Div(
             [
                 html.H6(
@@ -245,9 +421,9 @@ class Visualizor(object):
                 # first columns
                 html.Div(
                     [
-                        self.add_WACI_table(),
-                        self.add_risk_score_distribution(),
-                        self.add_score_distribution(),
+                        self.add_WACI_table(df_portfolio, df_index),
+                        self.add_risk_score_distribution(df_portfolio, df_index),
+                        self.add_score_distribution(df_portfolio),
                     ],
                     className="three columns",
                 ),
@@ -350,7 +526,7 @@ class Visualizor(object):
                     className="five columns",
                 ),
                 html.Div(
-                    [self.add_carbon_intensity_chart()],
+                    [self.add_carbon_intensity_chart(df_portfolio)],
                     className="four columns",
                 ),
             ],
