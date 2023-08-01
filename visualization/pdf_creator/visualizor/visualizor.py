@@ -2,7 +2,6 @@ import dash
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
-from utils import make_dash_table
 import plotly.graph_objs as go
 import pathlib
 import pandas as pd
@@ -30,7 +29,7 @@ class Visualizor(object):
         # Describe the layout/ UI of the app
         self.app.layout = self.create_layout()
 
-    def add_header(self) -> html.Div:
+    def add_header(self, portfolio, benchmark, as_of_date) -> html.Div:
         header = html.Div(
             [
                 html.Div(
@@ -40,9 +39,9 @@ class Visualizor(object):
                                 html.H5(
                                     "Sustainable Characteristics", id="overall-header"
                                 ),
-                                html.H6("Portfolio:"),
-                                html.H6("Benchmark:"),
-                                html.H6("As of: 6/30/2023"),
+                                html.H6(f"Portfolio: {portfolio}"),
+                                html.H6(f"Benchmark: {benchmark}"),
+                                html.H6(f"As of: {as_of_date}"),
                             ],
                             className="seven columns main-title",
                         ),
@@ -64,6 +63,30 @@ class Visualizor(object):
             className="row",
         )
         return header
+
+    def add_footnote(self) -> html.Div:
+        footnote = html.Div(
+            [
+                html.P(
+                    [
+                        "Source: TCW, Bloomberg, MSCI, ISS",
+                        html.Br(),
+                        html.B("1 Weighted Average Carbon Intensity"),
+                        """ represents the MV weighted portfolio company’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales in $M. Applies to corporates and quasi-sovereigns. """,
+                        html.B("2 Every issuer or company is assigned a risk score"),
+                        """ from 1 (leader) to 5 (laggard) across Environmental & Social, Governance, and Transition risks. """,
+                        html.B("3 Risk Overall"),
+                        """ is classified as “Leading” if the average score the 3 dimensions  is less than or equal to 2, “Average” if the average score is less than or equal to 4 and greater than 2, and “Poor” if any of scores is a laggard (5). Lack of data disclosures may result in a “Poor” score. """,
+                        html.B("Not scored"),
+                        """ securities represent securities that are not evaluated for the purposes of sustainable characteristics. These include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash. """,
+                        html.B("4 Data is based on TCW analyst assessment"),
+                        """ which is informed by third party classification of product and services, fundamental analysis of companies, and engagement. """,
+                    ]
+                ),
+            ],
+            className="row",
+        )
+        return footnote
 
     def add_bar_chart(self, x, y) -> dcc.Graph:
         bar = dcc.Graph(
@@ -93,7 +116,7 @@ class Visualizor(object):
                     showlegend=False,
                     yaxis={"automargin": True, "ticksuffix": "   "},
                     xaxis={
-                        "range": [0, max(x) + 250],
+                        "range": [0, max(x) + 400],
                         "automargin": False,
                         "showgrid": True,
                         "gridcolor": "lightgrey",
@@ -384,24 +407,31 @@ class Visualizor(object):
         return distr
 
     def add_carbon_intensity_chart(self, df_portfolio) -> html.Div:
-        df_ci_sector = pd.DataFrame(
-            data={
-                "Name": [
-                    "Utilities",
-                    "Unassigned  <br> GICS",
-                    "Energy",
-                    "Materials",
-                    "Industrials",
-                    "Real   <br> Estate",
-                    "Consumer   <br> Staples",
-                    "Consumer   <br> Discretionary",
-                    "Communication   <br> Services",
-                    "Information   <br> Technology",
-                ],
-                "Value": [1706, 1219, 527, 250, 224, 70, 36, 31, 27, 19],
-            }
+        df_portfolio["market_weight_carbon_intensity"] = (
+            df_portfolio["Portfolio Weight"]
+            / 100
+            * df_portfolio["CARBON_EMISSIONS_SCOPE_12_INTEN"]
         )
-        df_ci_sector = df_ci_sector.sort_values(["Value"], ascending=True)
+        df_portfolio_n = df_portfolio[
+            df_portfolio["CARBON_EMISSIONS_SCOPE_12_INTEN"] > 0
+        ]
+
+        df_portfolio_n = df_portfolio_n[
+            df_portfolio_n["Sector Level 2"].isin(
+                ["Industrial", "Utility", "Financial Institution", "Quasi Sovereign"]
+            )
+        ]
+
+        df_grouped = df_portfolio_n.groupby("GICS_SECTOR", as_index=False).apply(
+            lambda x: x["market_weight_carbon_intensity"].sum()
+            / x["Portfolio Weight"].sum()
+            * 100
+        )
+        df_grouped.columns = ["Sector", "Carbon_Intensity"]
+        df_grouped = df_grouped.sort_values(["Carbon_Intensity"], ascending=True)
+        df_grouped["Sector"] = df_grouped["Sector"].str.replace(" ", "   <br>")
+        df_grouped["Carbon_Intensity"] = round(df_grouped["Carbon_Intensity"], 0)
+        df_grouped = df_grouped[-10:]
 
         ci_chart = html.Div(
             [
@@ -409,7 +439,9 @@ class Visualizor(object):
                     "Carbon Intensity by Sector",
                     className="subtitle padded",
                 ),
-                self.add_bar_chart(x=df_ci_sector["Value"], y=df_ci_sector["Name"]),
+                self.add_bar_chart(
+                    x=df_grouped["Carbon_Intensity"], y=df_grouped["Sector"]
+                ),
             ],
             className="row",
         )
@@ -418,7 +450,7 @@ class Visualizor(object):
     def add_equity_body(self) -> html.Div:
         body = html.Div(
             [
-                # first columns
+                # first column
                 html.Div(
                     [
                         self.add_WACI_table(df_portfolio, df_index),
@@ -427,6 +459,7 @@ class Visualizor(object):
                     ],
                     className="three columns",
                 ),
+                # second column
                 html.Div(
                     [
                         html.Div(
@@ -525,6 +558,7 @@ class Visualizor(object):
                     ],
                     className="five columns",
                 ),
+                # third column
                 html.Div(
                     [self.add_carbon_intensity_chart(df_portfolio)],
                     className="four columns",
@@ -543,11 +577,22 @@ class Visualizor(object):
                     [
                         html.Div(
                             [
+                                # header row
                                 html.Div(
-                                    [self.add_header()],
-                                    className="header",
+                                    [
+                                        self.add_header(
+                                            "TCW Relative Value Large Cap Fund",
+                                            "RUSSELL 1000 VALUE",
+                                            "6/30/2023",
+                                        )
+                                    ],
+                                    className="header row",
                                 ),
-                                html.Div([self.add_equity_body()]),
+                                # body row
+                                html.Div([self.add_equity_body()], className="row"),
+                                html.Div(
+                                    [self.add_footnote()], className="footnote row"
+                                ),
                             ],
                             className="page",
                         )

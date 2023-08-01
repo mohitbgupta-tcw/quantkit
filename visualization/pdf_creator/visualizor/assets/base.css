@@ -15,9 +15,9 @@ body {
 }
 .page {
   position: relative;
-  width: 210mm;
+  /* width: 220mm; */
   padding: 0mm;
-  margin: 10mm auto;
+  /* margin: 10mm auto; */
   /* border: 1px #D3D3D3 solid; */
   border-radius: 5px;
   background: white;
@@ -31,32 +31,10 @@ body {
 }
 
 @page {
-  size: A4;
+  size: A4 landscape;
   margin: 0;
-  size: landscape;
 }
-@media print {
-  html,
-  body {
-    width: 297mm;
-    height: 210mm;
-  }
-  .page {
-    size: landscape;
-    margin: 0;
-    border: initial;
-    border-radius: initial;
-    width: initial;
-    min-height: initial;
-    box-shadow: initial;
-    background: initial;
-    page-break-after: always;
-  }
-  .no-print,
-  .no-print * {
-    display: none !important;
-  }
-}
+
 
 p {
   margin-bottom: 1rem;
@@ -64,30 +42,6 @@ p {
 
 .iframe {
   border: none;
-}
-
-.gs-header {
-  color: white !important;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
-}
-
-.gs-text-header {
-  background: #c41230 !important;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
-}
-
-.gs-table-header {
-  background: #c41230 !important;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
-}
-
-.gs-accent-header {
-  background: #65201f !important;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
 }
 
 div.padded {
@@ -115,14 +69,10 @@ td {
 
 tr:nth-child(even) {
   background-color: #d7dbe1;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
 }
 
 table.reversed tr:nth-child(odd) {
   background-color: #d7dbe1;
-  print-color-adjust: exact;
-  -webkit-print-color-adjust: exact;
 }
 table.reversed tr:nth-child(even) {
   background-color: white;

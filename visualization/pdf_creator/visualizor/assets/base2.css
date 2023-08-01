@@ -467,12 +467,14 @@ pre,
 blockquote,
 dl,
 figure,
-table,
 p,
 ul,
 ol,
 form {
   margin-bottom: 2.5rem;
+}
+table {
+  margin-bottom: 1.5rem;
 }
 
 /* Utilities */
