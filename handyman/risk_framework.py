@@ -34,7 +34,10 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         for s in r.portfolio_datasource.portfolios[p].holdings:
             sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
+            comp_isin = comp_store.isin
             issuer_name = sec_store.information["IssuerName"]
+            issuer_ticker = comp_store.msci_information["ISSUER_TICKER"]
+            issuer_cusip = comp_store.msci_information["ISSUER_CUSIP"]
             analyst = comp_store.information["Sub-Industry"].information["Analyst"]
             iva_rating = comp_store.information["IVA_COMPANY_RATING"]
             r_flag = comp_store.scores["Review_Flag"]
@@ -119,7 +122,10 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         portfolio_isin,
                         portfolio_name,
                         s,
+                        comp_isin,
                         issuer_name,
+                        issuer_ticker,
+                        issuer_cusip,
                         analyst,
                         comp_store.information["Issuer_Country"].information["Country"],
                         portfolio_weight,
@@ -269,7 +275,10 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "Portfolio ISIN",
         "Portfolio Name",
         "Security ISIN",
+        "Issuer ISIN",
         "Issuer Name",
+        "Ticker",
+        "CUSIP",
         "Analyst",
         "Issuer Country",
         "Portfolio Weight",
