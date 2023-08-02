@@ -46,7 +46,7 @@
     "security_datasource": {
         "iss": {        
             "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230503.csv",
+            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230703.csv",
             "load": true
         },
         "msci": {
@@ -188,7 +188,9 @@
                 "PALM_TIE",
                 "ACCESS_TO_HLTHCRE_SCORE",
                 "CARBON_EMISSIONS_SCOPE_12_INTEN",
-                "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN"
+                "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",
+                "INDUSTRY_ADJUSTED_SCORE", 
+                "GOVERNMENT_ADJUSTED_ESG_SCORE"
             ]
         },
         "transformation": {
@@ -200,12 +202,12 @@
     "sdg_datasource": {
         "sdg": {        
             "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDG_Impact_Rating_Issuers_20230510.csv",
+            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDG_Impact_Rating_Issuers_20230707.csv",
             "load": true
         },
         "sdga": {
             "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDGA_Issuers_20230510.csv",
+            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDGA_Issuers_20230707.csv",
             "load": true
         }
     },
