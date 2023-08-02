@@ -35,7 +35,19 @@ class SecuritizedStore(headstore.HeadStore):
         for s in self.securities:
             sec_store = self.securities[s]
 
-            if (
+            if " TBA " in sec_store.information["IssuerName"]:
+                sec_store.scores["Securitized_Score_unadjusted"] = 3
+                sec_store.scores["Securitized_Score"] = 3
+            elif sec_store.information["Labeled_ESG_Type"] == "ESG CLO":
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
+                sec_store.scores["Securitized_Score"] = 2
+            elif (
+                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
+                == "Affordable Multifamily (min 20% aff. units)"
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 3
+                sec_store.scores["Securitized_Score"] = 3
+            elif (
                 not pd.isna(sec_store.information["Labeled_ESG_Type"])
             ) or sec_store.information["Issuer_ESG"] == "Yes":
                 if pd.isna(sec_store.information["TCW_ESG"]):
@@ -61,15 +73,6 @@ class SecuritizedStore(headstore.HeadStore):
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
-            elif (
-                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
-                == "ESG CLO"
-            ):
-                sec_store.scores["Securitized_Score_unadjusted"] = 2
-                sec_store.scores["Securitized_Score"] = 2
-            elif "TBA " in sec_store.information["IssuerName"]:
-                sec_store.scores["Securitized_Score_unadjusted"] = 3
-                sec_store.scores["Securitized_Score"] = 3
             elif (
                 (pd.isna(sec_store.information["Labeled_ESG_Type"]))
                 and pd.isna(sec_store.information["TCW_ESG"])
