@@ -35,7 +35,7 @@ class SecuritizedStore(headstore.HeadStore):
         for s in self.securities:
             sec_store = self.securities[s]
 
-            if " TBA " in sec_store.information["IssuerName"]:
+            if " TBA " in sec_store.information["Security_Name"]:
                 sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
             elif sec_store.information["Labeled_ESG_Type"] == "ESG CLO":

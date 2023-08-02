@@ -35,7 +35,8 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
             sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
             comp_isin = comp_store.isin
-            issuer_name = sec_store.information["IssuerName"]
+            security_name = sec_store.information["Security_Name"]
+            issuer_name = comp_store.msci_information["ISSUER_NAME"]
             issuer_ticker = comp_store.msci_information["ISSUER_TICKER"]
             issuer_cusip = comp_store.msci_information["ISSUER_CUSIP"]
             analyst = comp_store.information["Sub-Industry"].information["Analyst"]
@@ -43,6 +44,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
             r_flag = comp_store.scores["Review_Flag"]
             r_comments = comp_store.scores["Review_Comments"]
             s2 = comp_store.information["Sector_Level_2"]
+            esg_collat_tpe = sec_store.information["ESG_Collateral_Type"][
+                "ESG Collat Type"
+            ]
             industry = comp_store.information["Industry"].name
             bclass = comp_store.information["BCLASS_Level4"].class_name
             gics = comp_store.information["GICS_SUB_IND"].class_name
@@ -124,6 +128,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         portfolio_name,
                         s,
                         comp_isin,
+                        security_name,
                         issuer_name,
                         issuer_ticker,
                         issuer_cusip,
@@ -134,6 +139,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         comp_store.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN"],
                         labeled_esg_type,
                         s2,
+                        esg_collat_tpe,
                         industry,
                         bclass,
                         comp_store.information["BCLASS_Level4"].information[
@@ -280,6 +286,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "Portfolio Name",
         "Security ISIN",
         "Issuer ISIN",
+        "Security Name",
         "Issuer Name",
         "Ticker",
         "CUSIP",
@@ -290,6 +297,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "CARBON_EMISSIONS_SCOPE_12_INTEN",
         "Labeled ESG Type",
         "Sector Level 2",
+        "ESG Collateral Type",
         "Industry",
         "BCLASS",
         "BCLASS_SECTOR",
