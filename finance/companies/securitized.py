@@ -132,7 +132,10 @@ class SecuritizedStore(headstore.HeadStore):
                 == "Labeled Sustainable Linked"
             ):
                 self.securities[s].is_esg_labeled("Sustainability-Linked Bonds")
-
+            elif (
+                self.securities[s].information["ESG_Collateral_Type"]["G/S/S"] == "CLO"
+            ):
+                self.securities[s].is_CLO()
             elif (
                 not self.securities[s].information["ESG_Collateral_Type"][
                     "ESG Collat Type"
