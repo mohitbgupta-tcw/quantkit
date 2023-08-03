@@ -97,7 +97,9 @@ class CompanyStore(headstore.HeadStore):
                 self.msci_information["CARBON_EMISSIONS_SCOPE123"]
                 / self.msci_information["SALES_USD_RECENT"]
             )
-            self.information["Industry"].update(carbon_intensity)
+            # update industry medians
+            self.information["GICS_SUB_IND"].industry.update(carbon_intensity)
+            self.information["BCLASS_Level4"].industry.update(carbon_intensity)
         # numerator or denominator are zero
         # --> set carbon intensity to NA for now
         # --> replace with median later in reiteration (therefore set reiter to true)

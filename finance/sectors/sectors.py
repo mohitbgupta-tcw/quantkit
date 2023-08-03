@@ -116,6 +116,7 @@ class BClass(object):
     def __init__(self, class_name: str, row_information: pd.Series):
         self.class_name = class_name
         self.information = row_information.to_dict()
+        self.companies = dict()
 
     def add_sector(self, sector) -> None:
         """
@@ -173,6 +174,7 @@ class GICS(object):
     def __init__(self, class_name: str, row_information: pd.Series):
         self.class_name = class_name
         self.information = row_information.to_dict()
+        self.companies = dict()
 
     def add_sector(self, sector) -> None:
         """
