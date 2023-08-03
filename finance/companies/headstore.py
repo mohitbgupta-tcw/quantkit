@@ -196,6 +196,7 @@ class HeadStore(object):
             sectors.GICS(gics_sub, pd.Series(gics_d["Unassigned GICS"].information)),
         )
         self.information["GICS_SUB_IND"] = gics_d[gics_sub]
+        gics_d[gics_sub].companies[self.isin] = self
 
     def attach_industry(self, gics_d: dict, bclass_d: dict) -> None:
         """
