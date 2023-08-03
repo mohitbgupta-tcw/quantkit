@@ -31,7 +31,14 @@ class SecuritizedStore(headstore.HeadStore):
             "LEED (Multi Property)",
             "BREEAM Very Good",
         ]
-        collat_type_2 = ["TCW Criteria", "Small Business Loan", "FFELP Student Loan"]
+        collat_type_2 = [
+            "TCW Criteria",
+            "Small Business Loan",
+            "FFELP Student Loan",
+            "Affordable Manufactured Housing",
+            "Re-Performing Loans",
+            "Sustainable Agency Multifamily",
+        ]
         for s in self.securities:
             sec_store = self.securities[s]
 
