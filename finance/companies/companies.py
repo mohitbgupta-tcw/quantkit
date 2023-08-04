@@ -246,6 +246,14 @@ class CompanyStore(headstore.HeadStore):
                     self.scores["Review_Flag"] = "Needs Review"
                 break
 
+        if (
+            self.msci_information["UNGC_COMPLIANCE"] == "Fail"
+            or self.msci_information["OVERALL_FLAG"] == "Red"
+            or self.msci_information["IVA_COMPANY_RATING"] == "CCC"
+        ):
+            self.scores["ESRM_Score_unadjusted"] = 5
+            self.scores["ESRM_Score"] = 5
+
         # calculate governance score
         df_ = self.information["region_theme"].esrm_df
         gov_flags, na_gov, gov_counter = util_functions.check_threshold(
@@ -503,14 +511,8 @@ class CompanyStore(headstore.HeadStore):
             if governance_score == 5:
                 self.securities[s].is_score_5("Governance")
 
-            elif (
-                esrm_score == 5
-                or self.msci_information["UNGC_COMPLIANCE"] == "Fail"
-                or self.msci_information["OVERALL_FLAG"] == "Red"
-                or self.msci_information["IVA_COMPANY_RATING"] == "CCC"
-            ):
+            elif esrm_score == 5:
                 self.securities[s].is_score_5("ESRM")
-                self.scores["ESRM_Score"] = 5
 
             elif transition_score == 5:
                 self.securities[s].is_score_5("Transition")
