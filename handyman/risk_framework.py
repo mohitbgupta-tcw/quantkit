@@ -153,6 +153,26 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         level_4,
                         level_4p,
                         level_5,
+                        comp_store.information["Exclusion_d"].get("Alcohol", 0),
+                        comp_store.information["Exclusion_d"].get("Tobacco", 0),
+                        comp_store.information["Exclusion_d"].get("Oil_Gas", 0),
+                        comp_store.information["Exclusion_d"].get("Gambling", 0),
+                        comp_store.information["Exclusion_d"].get(
+                            "Weapons_Firearms", 0
+                        ),
+                        comp_store.information["Exclusion_d"].get(
+                            "Thermal_Coal_Mining", 0
+                        ),
+                        comp_store.information["Exclusion_d"].get(
+                            "Thermal_Coal_Power_Gen", 0
+                        ),
+                        comp_store.information["Exclusion_d"].get(
+                            "Controversial_Weapons", 0
+                        ),
+                        comp_store.information["Exclusion_d"].get("UN_Alignement", 0),
+                        comp_store.information["Exclusion_d"].get(
+                            "Adult_Entertainment", 0
+                        ),
                         r_flag,
                         r_comments,
                         comp_store.msci_information["INDUSTRY_ADJUSTED_SCORE"],
@@ -309,6 +329,16 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "SCLASS_Level4",
         "SCLASS_Level4-P",
         "SCLASS-Level5",
+        "Alcohol",
+        "Tobacco",
+        "Oil_Gas",
+        "Gambling",
+        "Weapons_Firearms",
+        "Thermal_Coal_Mining",
+        "Thermal_Coal_Power_Gen",
+        "Controversial_Weapons",
+        "UN_Alignement",
+        "Adult_Entertainment",
         "Review Flag",
         "Review Comments",
         "INDUSTRY_ADJUSTED_SCORE",

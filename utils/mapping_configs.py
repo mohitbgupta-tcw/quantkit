@@ -52,3 +52,20 @@ TargetAC = ["Approved SBT", "Committed SBT"]
 TargetCA = ["Committed SBT", "Ambitious Target"]
 TargetCN = ["Committed SBT", "Non-Ambitious Target"]
 TargetN = ["Non-Ambitious Target"]
+
+exclusions = {
+    "AlcProDistMaxRevPctAgg": "Alcohol",
+    "TobMaxRevPct": "Tobacco",
+    "UnconvOilGasMaxRevPct": "Oil_Gas",
+    "OgRev": "Oil_Gas",
+    "GamMaxRevPct": "Gambling",
+    "FirearmMaxRevPct": "Weapons_Firearms",
+    "WeapMaxRevPct": "Weapons_Firearms",
+    "ThermalCoalMaxRevPct": "Thermal_Coal_Mining",
+    "GeneratMaxRevThermalCoal": "Thermal_Coal_Power_Gen",
+    "CweapTie": "Controversial_Weapons",
+    "HrCompliance": "UN_Alignement",
+    "UngcCompliance": "UN_Alignement",
+    "AeMaxRevPct": "Adult_Entertainment",
+    "IVA_COMPANY_RATING": "ESG_Rating",
+}
