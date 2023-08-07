@@ -97,7 +97,9 @@ class CompanyStore(headstore.HeadStore):
                 self.msci_information["CARBON_EMISSIONS_SCOPE123"]
                 / self.msci_information["SALES_USD_RECENT"]
             )
-            self.information["Industry"].update(carbon_intensity)
+            # update industry medians
+            self.information["GICS_SUB_IND"].industry.update(carbon_intensity)
+            self.information["BCLASS_Level4"].industry.update(carbon_intensity)
         # numerator or denominator are zero
         # --> set carbon intensity to NA for now
         # --> replace with median later in reiteration (therefore set reiter to true)
@@ -243,6 +245,14 @@ class CompanyStore(headstore.HeadStore):
                 if i + 1 == 5:
                     self.scores["Review_Flag"] = "Needs Review"
                 break
+
+        if (
+            self.msci_information["UNGC_COMPLIANCE"] == "Fail"
+            or self.msci_information["OVERALL_FLAG"] == "Red"
+            or self.msci_information["IVA_COMPANY_RATING"] == "CCC"
+        ):
+            self.scores["ESRM_Score_unadjusted"] = 5
+            self.scores["ESRM_Score"] = 5
 
         # calculate governance score
         df_ = self.information["region_theme"].esrm_df
@@ -501,14 +511,8 @@ class CompanyStore(headstore.HeadStore):
             if governance_score == 5:
                 self.securities[s].is_score_5("Governance")
 
-            elif (
-                esrm_score == 5
-                or self.msci_information["UNGC_COMPLIANCE"] == "Fail"
-                or self.msci_information["OVERALL_FLAG"] == "Red"
-                or self.msci_information["IVA_COMPANY_RATING"] == "CCC"
-            ):
+            elif esrm_score == 5:
                 self.securities[s].is_score_5("ESRM")
-                self.scores["ESRM_Score"] = 5
 
             elif transition_score == 5:
                 self.securities[s].is_score_5("Transition")

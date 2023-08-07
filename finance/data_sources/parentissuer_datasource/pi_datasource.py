@@ -70,6 +70,7 @@ class ParentIssuerSource(ds.DataSources):
             sec = row["SECURITY_ISIN"]
             if parent in companies:
                 if sec in securities:
+                    securities[sec].parent_store.remove_security(isin=sec)
                     companies[parent].add_security(isin=sec, store=securities[sec])
                     securities[sec].add_parent(companies[parent])
                 if sec in companies:

@@ -134,6 +134,13 @@ class SecurityStore(object):
         self.information["SClass_Level2"] = "Sustainable Theme"
         self.information["SClass_Level1"] = "Preferred"
 
+    def is_CLO(self) -> None:
+        """
+        Set SClass Levels for CLO's to Leading
+        """
+        self.information["SClass_Level4-P"] = "Leading ESG Score"
+        self.information["SClass_Level4"] = "Leading ESG Score"
+
     def has_collat_type(self) -> None:
         """
         Set SClass Levels for securities with collat type
