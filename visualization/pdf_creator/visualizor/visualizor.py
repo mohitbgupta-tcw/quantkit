@@ -128,6 +128,92 @@ class Visualizor(object):
         )
         return bar
 
+    def add_line_chart(self) -> dcc.Graph:
+        line = dcc.Graph(
+            figure={
+                "data": [
+                    go.Scatter(
+                        x=[
+                            "2008",
+                            "2009",
+                            "2010",
+                            "2011",
+                            "2012",
+                            "2013",
+                            "2014",
+                            "2015",
+                            "2016",
+                            "2017",
+                            "2018",
+                        ],
+                        y=[
+                            "10000",
+                            "7500",
+                            "9000",
+                            "10000",
+                            "10500",
+                            "11000",
+                            "14000",
+                            "18000",
+                            "19000",
+                            "20500",
+                            "24000",
+                        ],
+                        line={"color": "#97151c"},
+                        mode="lines",
+                        name="Calibre Index Fund Inv",
+                    )
+                ],
+                "layout": go.Layout(
+                    autosize=True,
+                    title="",
+                    font={"family": "Raleway", "size": 10},
+                    height=200,
+                    width=400,
+                    hovermode="closest",
+                    legend={
+                        "x": -0.0277108433735,
+                        "y": -0.142606516291,
+                        "orientation": "h",
+                    },
+                    margin={
+                        "r": 20,
+                        "t": 20,
+                        "b": 20,
+                        "l": 50,
+                    },
+                    showlegend=True,
+                    xaxis={
+                        "autorange": True,
+                        "linecolor": "rgb(0, 0, 0)",
+                        "linewidth": 1,
+                        "range": [2008, 2018],
+                        "showgrid": False,
+                        "showline": True,
+                        "title": "",
+                        "type": "linear",
+                    },
+                    yaxis={
+                        "autorange": False,
+                        "gridcolor": "rgba(127, 127, 127, 0.2)",
+                        "mirror": False,
+                        "nticks": 4,
+                        "range": [0, 30000],
+                        "showgrid": True,
+                        "showline": True,
+                        "ticklen": 10,
+                        "ticks": "outside",
+                        "title": "$",
+                        "type": "linear",
+                        "zeroline": False,
+                        "zerolinewidth": 4,
+                    },
+                ),
+            },
+            config={"displayModeBar": False},
+        )
+        return line
+
     def add_table(self, df, multi_column=False, header=False) -> html.Table:
         """Return a dash definition of an HTML table for a Pandas dataframe"""
         table = []
@@ -406,6 +492,290 @@ class Visualizor(object):
         )
         return distr
 
+    def add_planet_table(self, df_portfolio) -> html.Div:
+        renewenergy = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "RENEWENERGY"][
+            "Portfolio Weight"
+        ].sum()
+        mobility = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "MOBILITY"][
+            "Portfolio Weight"
+        ].sum()
+        circularity = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "CIRCULARITY"][
+            "Portfolio Weight"
+        ].sum()
+        ccadapt = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "CCADAPT"][
+            "Portfolio Weight"
+        ].sum()
+        biodiversity = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "BIODIVERSITY"][
+            "Portfolio Weight"
+        ].sum()
+        smartcities = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "SMARTCITIES"][
+            "Portfolio Weight"
+        ].sum()
+        sust_total = (
+            renewenergy + mobility + circularity + ccadapt + biodiversity + smartcities
+        )
+
+        planet_table = pd.DataFrame(
+            data={
+                "Name": [
+                    "Renewable Energy, Storage, and Green Hydrogen",
+                    "Sustainable Mobility",
+                    "Circular Economy",
+                    "Climate Change Adaption & Risk Management",
+                    "Biodiversity & Sustainable Land & Water Use",
+                    "Sustainable Real Assets & Smart Cities",
+                    "Total Planet Themes",
+                ],
+                "Value": [
+                    "{0:.2f}".format(renewenergy),
+                    "{0:.2f}".format(mobility),
+                    "{0:.2f}".format(circularity),
+                    "{0:.2f}".format(ccadapt),
+                    "{0:.2f}".format(biodiversity),
+                    "{0:.2f}".format(smartcities),
+                    "{0:.2f}".format(sust_total),
+                ],
+            }
+        )
+
+        table = []
+        for index, row in planet_table.iterrows():
+            html_row = []
+            for i in range(len(row)):
+                if i == 0:
+                    html_row.append(html.Td([row[i]], className="first-column"))
+                else:
+                    html_row.append(html.Td([row[i]], className="table-element"))
+            if index == 0:
+                html_row.append(html.Td(["Planet"], rowSpan="7", className="vert-text"))
+            if index == len(planet_table) - 1:
+                row_class = "total-row"
+                table.append(html.Tr(html_row, className=row_class))
+            else:
+                table.append(html.Tr(html_row))
+        t = html.Table(
+            table,
+            className="sust-table",
+            id="planet-table",
+        )
+
+        sust_table = html.Div(
+            [
+                html.H6(
+                    ["Sustainable Themes (% MV)", html.Sup(4, className="superscript")],
+                    className="subtitle padded",
+                ),
+                t,
+            ],
+            className="row",
+        )
+        return sust_table
+
+    def add_people_table(self, df_portfolio) -> html.Div:
+        health = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "HEALTH"][
+            "Portfolio Weight"
+        ].sum()
+        sanitation = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "SANITATION"][
+            "Portfolio Weight"
+        ].sum()
+        edu = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "EDU"][
+            "Portfolio Weight"
+        ].sum()
+        inclusion = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "INCLUSION"][
+            "Portfolio Weight"
+        ].sum()
+        nutrition = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "NUTRITION"][
+            "Portfolio Weight"
+        ].sum()
+        affordable = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "AFFORDABLE"][
+            "Portfolio Weight"
+        ].sum()
+        sust_total = affordable + nutrition + inclusion + edu + sanitation + health
+
+        people_table = pd.DataFrame(
+            data={
+                "Name": [
+                    "Health",
+                    "Sanitation and Hygiene",
+                    "Education",
+                    "Financial and Digital Inclusion",
+                    "Nutrition",
+                    "Affordable and Inclusive Housing",
+                    "Total People Themes",
+                ],
+                "Value": [
+                    "{0:.2f}".format(health),
+                    "{0:.2f}".format(sanitation),
+                    "{0:.2f}".format(edu),
+                    "{0:.2f}".format(inclusion),
+                    "{0:.2f}".format(nutrition),
+                    "{0:.2f}".format(affordable),
+                    "{0:.2f}".format(sust_total),
+                ],
+            }
+        )
+
+        table = []
+        for index, row in people_table.iterrows():
+            html_row = []
+            for i in range(len(row)):
+                if i == 0:
+                    html_row.append(html.Td([row[i]], className="first-column"))
+                else:
+                    html_row.append(html.Td([row[i]], className="table-element"))
+            if index == 0:
+                html_row.append(html.Td(["People"], rowSpan="7", className="vert-text"))
+            if index == len(people_table) - 1:
+                row_class = "total-row"
+                table.append(html.Tr(html_row, className=row_class))
+            else:
+                table.append(html.Tr(html_row))
+        t = html.Table(table, className="sust-table", id="people-table")
+
+        sust_table = html.Div(
+            [t],
+            className="row",
+        )
+        return sust_table
+
+    def add_total_table(self, df_portfolio) -> html.Div:
+        sust_themes = [
+            "HEALTH",
+            "SANITATION",
+            "EDU",
+            "INCLUSION",
+            "NUTRITION",
+            "AFFORDABLE",
+            "RENEWENERGY",
+            "MOBILITY",
+            "CIRCULARITY",
+            "CCADAPT",
+            "BIODIVERSITY",
+            "SMARTCITIES",
+        ]
+        total = df_portfolio[df_portfolio["SCLASS_Level4-P"].isin(sust_themes)][
+            "Portfolio Weight"
+        ].sum()
+        people_table = pd.DataFrame(
+            data={
+                "Name": ["Total Sustainable Themes"],
+                "Value": [
+                    "{0:.2f}".format(total),
+                ],
+            }
+        )
+
+        table = []
+        for index, row in people_table.iterrows():
+            html_row = []
+            for i in range(len(row)):
+                if i == 0:
+                    html_row.append(html.Td([row[i]], className="first-column"))
+                else:
+                    html_row.append(html.Td([row[i]], className="table-element"))
+            if index == 0:
+                html_row.append(html.Td([""], className="vert-text-total"))
+            if index == len(people_table) - 1:
+                row_class = "total-row"
+                table.append(html.Tr(html_row, className=row_class))
+            else:
+                table.append(html.Tr(html_row))
+        t = html.Table(table, className="sust-table", id="total-table")
+
+        sust_table = html.Div(
+            [t],
+            className="row",
+        )
+        return sust_table
+
+    def add_transition_table(self, df_portfolio) -> html.Div:
+        lowcarbon = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "LOWCARBON"][
+            "Portfolio Weight"
+        ].sum()
+        pivottransport = df_portfolio[
+            df_portfolio["SCLASS_Level4-P"] == "PIVOTTRANSPORT"
+        ]["Portfolio Weight"].sum()
+        materials = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "MATERIALS"][
+            "Portfolio Weight"
+        ].sum()
+        carbonaccount = df_portfolio[
+            df_portfolio["SCLASS_Level4-P"] == "CARBONACCOUNT"
+        ]["Portfolio Weight"].sum()
+        agriforestry = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "AGRIFORESTRY"][
+            "Portfolio Weight"
+        ].sum()
+        realassets = df_portfolio[df_portfolio["SCLASS_Level4-P"] == "REALASSETS"][
+            "Portfolio Weight"
+        ].sum()
+        sust_total = (
+            lowcarbon
+            + pivottransport
+            + materials
+            + carbonaccount
+            + agriforestry
+            + realassets
+        )
+
+        transition_table = pd.DataFrame(
+            data={
+                "Name": [
+                    "Low Carbon Energy, Power, and Non-Green Hydrogen",
+                    "Pivoting Transport",
+                    "Materials in Transition",
+                    "Carbon Accounting, Removal, & Green Finance",
+                    "Improving Agriculture & Forestry",
+                    "Transitioning Real Assets & Infrastructure",
+                    "Total Transition Themes",
+                ],
+                "Value": [
+                    "{0:.2f}".format(lowcarbon),
+                    "{0:.2f}".format(pivottransport),
+                    "{0:.2f}".format(materials),
+                    "{0:.2f}".format(carbonaccount),
+                    "{0:.2f}".format(agriforestry),
+                    "{0:.2f}".format(realassets),
+                    "{0:.2f}".format(sust_total),
+                ],
+            }
+        )
+
+        table = []
+        for index, row in transition_table.iterrows():
+            html_row = []
+            for i in range(len(row)):
+                if i == 0:
+                    html_row.append(html.Td([row[i]], className="first-column"))
+                else:
+                    html_row.append(html.Td([row[i]], className="table-element"))
+            if index == 0:
+                html_row.append(
+                    html.Td(["Transition"], rowSpan="7", className="vert-text")
+                )
+            if index == len(transition_table) - 1:
+                row_class = "total-row-transition"
+                table.append(html.Tr(html_row, className=row_class))
+            else:
+                table.append(html.Tr(html_row))
+        t = html.Table(
+            table,
+            className="sust-table",
+            id="transition-table",
+        )
+
+        sust_table = html.Div(
+            [
+                html.H6(
+                    [
+                        "Transition Themes (% MV)",
+                    ],
+                    className="subtitle padded",
+                ),
+                t,
+            ],
+            className="row",
+        )
+        return sust_table
+
     def add_carbon_intensity_chart(self, df_portfolio) -> html.Div:
         df_portfolio["market_weight_carbon_intensity"] = (
             df_portfolio["Portfolio Weight"]
@@ -462,99 +832,10 @@ class Visualizor(object):
                 # second column
                 html.Div(
                     [
-                        html.Div(
-                            [
-                                html.H6(
-                                    "Hypothetical growth of $10,000",
-                                    className="subtitle padded",
-                                ),
-                                dcc.Graph(
-                                    id="graph-2",
-                                    figure={
-                                        "data": [
-                                            go.Scatter(
-                                                x=[
-                                                    "2008",
-                                                    "2009",
-                                                    "2010",
-                                                    "2011",
-                                                    "2012",
-                                                    "2013",
-                                                    "2014",
-                                                    "2015",
-                                                    "2016",
-                                                    "2017",
-                                                    "2018",
-                                                ],
-                                                y=[
-                                                    "10000",
-                                                    "7500",
-                                                    "9000",
-                                                    "10000",
-                                                    "10500",
-                                                    "11000",
-                                                    "14000",
-                                                    "18000",
-                                                    "19000",
-                                                    "20500",
-                                                    "24000",
-                                                ],
-                                                line={"color": "#97151c"},
-                                                mode="lines",
-                                                name="Calibre Index Fund Inv",
-                                            )
-                                        ],
-                                        "layout": go.Layout(
-                                            autosize=True,
-                                            title="",
-                                            font={"family": "Raleway", "size": 10},
-                                            height=200,
-                                            width=400,
-                                            hovermode="closest",
-                                            legend={
-                                                "x": -0.0277108433735,
-                                                "y": -0.142606516291,
-                                                "orientation": "h",
-                                            },
-                                            margin={
-                                                "r": 20,
-                                                "t": 20,
-                                                "b": 20,
-                                                "l": 50,
-                                            },
-                                            showlegend=True,
-                                            xaxis={
-                                                "autorange": True,
-                                                "linecolor": "rgb(0, 0, 0)",
-                                                "linewidth": 1,
-                                                "range": [2008, 2018],
-                                                "showgrid": False,
-                                                "showline": True,
-                                                "title": "",
-                                                "type": "linear",
-                                            },
-                                            yaxis={
-                                                "autorange": False,
-                                                "gridcolor": "rgba(127, 127, 127, 0.2)",
-                                                "mirror": False,
-                                                "nticks": 4,
-                                                "range": [0, 30000],
-                                                "showgrid": True,
-                                                "showline": True,
-                                                "ticklen": 10,
-                                                "ticks": "outside",
-                                                "title": "$",
-                                                "type": "linear",
-                                                "zeroline": False,
-                                                "zerolinewidth": 4,
-                                            },
-                                        ),
-                                    },
-                                    config={"displayModeBar": False},
-                                ),
-                            ],
-                            className="row",
-                        ),
+                        self.add_planet_table(df_portfolio),
+                        self.add_people_table(df_portfolio),
+                        self.add_total_table(df_portfolio),
+                        self.add_transition_table(df_portfolio),
                     ],
                     className="five columns",
                 ),

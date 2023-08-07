@@ -5,7 +5,7 @@ body {
   padding: 0;
   background-color: #fafafa;
   font-size: 1.1rem;
-  line-height: 1.3;
+  line-height: 1.1;
 }
 * {
   box-sizing: border-box;
@@ -44,7 +44,7 @@ body {
 .footnote p {
   margin-bottom: 0rem;
   padding: 0 1rem;
-  margin-top: 70px;
+  margin-top: 5px;
 }
 
 #header-logo {
@@ -110,13 +110,16 @@ tr:nth-child(odd) {
 
 tr:last-child {
   background-color: #CECCCC;
-  border-bottom: 4px double black;
+  border-bottom: 2px solid black;
   font-weight: bold;
 }
 
 tr.table-header {
   background-color: #FFF;
   text-align: center;
+}
+td.first-column {
+  width: 80%;
 }
 
 td.table-element {
@@ -125,6 +128,39 @@ td.table-element {
 
 .vertical {
   border-left: 2px solid #000;
+}
+
+tr.total-row{
+  background-color: #CDF0D3;
+}
+
+tr.total-row-transition{
+  background-color: #BCD0F9;
+}
+
+#planet-table {
+  margin-bottom: 2px;
+}
+
+#people-table {
+  margin-bottom: 1px;
+}
+
+.vert-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    background-color: #fff;
+    writing-mode: vertical-rl;
+    padding-top: 5rem;
+    width: 8%;
+}
+
+.vert-text-total {
+  font-size: 1.5rem;
+  font-weight: bold;
+  background-color: #fff;
+  writing-mode: vertical-rl;
+  width: 8%;
 }
 
 table.reversed tr:nth-child(odd) {
