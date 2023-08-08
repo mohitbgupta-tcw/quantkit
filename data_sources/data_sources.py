@@ -4,6 +4,7 @@ import quantkit.data_sources.snowflake as snowflake
 import quantkit.data_sources.msci as msci
 import quantkit.data_sources.quandl as quandl
 import quantkit.data_sources.json_ds as json_ds
+import quantkit.data_sources.sql_server as sql_server
 import quantkit.utils.configs as configs
 
 
@@ -61,6 +62,10 @@ class DataSources(object):
         # JSON
         elif params["source"] == 6:
             self.datasource = json_ds.JSON(json_str=params["json_str"])
+
+        # SQL Server
+        elif params["source"] == 7:
+            self.datasource = sql_server.SQL()
 
     def transform_df(self) -> None:
         """
