@@ -202,6 +202,9 @@ class HeadStore(object):
             GICS sub industry
         """
         # if we can't find GICS in store, create new one as 'Unassigned GICS'
+        if pd.isna(gics_sub):
+            gics_sub = "Unassigned GICS"
+
         gics_d[gics_sub] = gics_d.get(
             gics_sub,
             sectors.GICS(gics_sub, pd.Series(gics_d["Unassigned GICS"].information)),
