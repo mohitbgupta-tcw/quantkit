@@ -187,7 +187,11 @@ def run_msci_api(
 
 
 def run_historical_msci_api(
-    issuer_identifier_type: str, issuer_identifier_list: list
+    issuer_identifier_type: str,
+    issuer_identifier_list: list,
+    start_date: str,
+    end_date: str,
+    as_at_date: str,
 ) -> pd.DataFrame:
     """
     For a specified list of securities, load historical MSCI ESG data through API
@@ -198,6 +202,13 @@ def run_historical_msci_api(
         Issuer Identifier Type, should either be 'ISIN' or 'ISSUERID'
     issuer_identifier_list
         list of identifiers of corresponding type
+    start_date: str
+        start date in format yyyy-mm-dd
+    end_date: str
+        end range values are returned for in format yyyy-mm-dd
+        if not specified, request will return single value corresponding to start_date
+    as_at_date: str
+        point in time data should be viewed from in format yyyy-mm-dd
 
     Returns
     -------
@@ -323,14 +334,14 @@ def run_historical_msci_api(
             "CARBON_EMISSIONS_SCOPE_12_INTEN",
             "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",
         ],
-        "start_date": "2020-04-01",
-        "end_date": "2023-06-30",
-        "as_at_date": "2023-06-30",
+        "start_date": start_date,
+        "end_date": end_date,
+        "as_at_date": as_at_date,
         "data_sample_frequency": "business_month_end",
         "data_layout": "by_factor",
     }
 
-    url = "https://api.msci.com/esg/data/v1.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
+    url = "https://api2.msci.com/esg/data/v1.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
 
     msci_object = msci.MSCI(api_key, api_secret, url, filters)
     msci_object.load_historical()

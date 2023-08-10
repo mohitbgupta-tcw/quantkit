@@ -1,6 +1,5 @@
 import requests
 from base64 import b64encode
-from urllib.parse import urlencode
 import json
 from copy import deepcopy
 import pandas as pd
@@ -96,7 +95,11 @@ class MSCI(object):
         inp = json.dumps(self.filters)
 
         response = requests.request(
-            "POST", self.url, headers=headers, data=inp, verify="quantkit/certs.crt"
+            "POST",
+            self.url,
+            headers=headers,
+            data=inp,
+            verify="quantkit/certs.crt",
         )
         message = response.json()["messages"]
         if message:
@@ -109,23 +112,24 @@ class MSCI(object):
         ]
 
         for batch in range(batches):
-            url_encoded = urlencode(dict(data_request_id=data_request_id))
-            url = f"https://api.msci.com/esg/data/v1.0/issuers/history?batch_id={batch+1}&data_request_id={url_encoded}"
-            r_batch = requests.request("POST", url, verify="quantkit/certs.crt")
-            print(r_batch)
-
-        r = response.json()["result"]["data"]
-        data_list = []
-        for i, c in enumerate(r):
-            issuer = r[i]["requested_id"]
-            for j, f in enumerate(r[i]["factors"]):
-                factor_name = r[i]["factors"][j]["name"]
-                data = r[i]["factors"][j]["data_values"]
-                for k, d in enumerate(data):
-                    value = data[k]["value"]
-                    aod = data[k]["as_of_date"]
-                    data_list.append((issuer, factor_name, value, aod))
-        df = pd.DataFrame(
-            data=data_list, columns=["Client_ID", "Factor", "Value", "As_Of_Date"]
-        )
-        self.df = pd.concat([self.df, df], ignore_index=True)
+            logging.log(f"Batch: {batch+1}")
+            url = f"https://api2.msci.com/esg/data/v1.0/issuers/history"
+            js = {"batch_id": batch + 1, "data_request_id": data_request_id}
+            r_batch = requests.request(
+                "POST", url, headers=headers, json=js, verify="quantkit/certs.crt"
+            )
+            r = r_batch.json()["result"]["data"]
+            data_list = []
+            for i, c in enumerate(r):
+                issuer = r[i]["requested_id"]
+                for j, f in enumerate(r[i]["factors"]):
+                    factor_name = r[i]["factors"][j]["name"]
+                    data = r[i]["factors"][j]["data_values"]
+                    for k, d in enumerate(data):
+                        value = data[k]["value"]
+                        aod = data[k]["as_of_date"]
+                        data_list.append((issuer, factor_name, value, aod))
+            df = pd.DataFrame(
+                data=data_list, columns=["Client_ID", "Factor", "Value", "As_Of_Date"]
+            )
+            self.df = pd.concat([self.df, df], ignore_index=True)
