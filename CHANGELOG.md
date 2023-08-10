@@ -8,11 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- APIs to read data from various sources, such as excel, csv, json, MSCI, quandl, and snowflake
-- handyman functions for easy use of functionality
-- mathstats folder for mathematical calculations such as mean, median, covariance
-- logic to iter over data and calculate risk framework output
-- README, CONTRIBUTING, CHANGELOG files
+- load historical data through MSCI API
 
 ### Fixed
 
@@ -20,6 +16,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+## [1.0.0] - 2023-08-09
+
+### Added
+- APIs to read data from various sources, such as excel, csv, json, MSCI, quandl, and snowflake
+- handyman functions for easy use of functionality
+- mathstats folder for mathematical calculations such as mean, median, covariance
+- logic to iter over data and calculate risk framework output
+- README, CONTRIBUTING, CHANGELOG files
+- First push of quantkit
+
+### Fixed
+
+### Changed
+
+### Removed
+- original risk framework calculation 
 
 
 ## [0.0.1] - 2023-05-01
@@ -36,4 +48,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.0.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.0
 [0.0.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/0.0.1

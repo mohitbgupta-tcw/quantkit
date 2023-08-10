@@ -39,6 +39,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
             issuer_name = comp_store.msci_information["ISSUER_NAME"]
             issuer_ticker = comp_store.msci_information["ISSUER_TICKER"]
             issuer_cusip = comp_store.msci_information["ISSUER_CUSIP"]
+            country = sec_store.information["Country_of_Risk"]
             analyst = comp_store.information["Sub-Industry"].information["Analyst"]
             iva_rating = comp_store.information["IVA_COMPANY_RATING"]
             r_flag = comp_store.scores["Review_Flag"]
@@ -47,6 +48,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
             esg_collat_tpe = sec_store.information["ESG_Collateral_Type"][
                 "ESG Collat Type"
             ]
+            jpm_sector = sec_store.information["JPM_Sector"]
             industry = comp_store.information["Industry"].name
             bclass = comp_store.information["BCLASS_Level4"].class_name
             gics = comp_store.information["GICS_SUB_IND"].class_name
@@ -132,6 +134,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         issuer_name,
                         issuer_ticker,
                         issuer_cusip,
+                        country,
                         analyst,
                         comp_store.information["Issuer_Country"].information["Country"],
                         portfolio_weight,
@@ -140,6 +143,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         labeled_esg_type,
                         s2,
                         esg_collat_tpe,
+                        jpm_sector,
                         industry,
                         bclass,
                         comp_store.information["BCLASS_Level4"].information[
@@ -310,6 +314,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "Issuer Name",
         "Ticker",
         "CUSIP",
+        "Country of Risk",
         "Analyst",
         "Issuer Country",
         "Portfolio Weight",
@@ -318,6 +323,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "Labeled ESG Type",
         "Sector Level 2",
         "ESG Collateral Type",
+        "JPM Sector",
         "Industry",
         "BCLASS",
         "BCLASS_SECTOR",
