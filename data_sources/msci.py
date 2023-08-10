@@ -133,3 +133,7 @@ class MSCI(object):
                 data=data_list, columns=["Client_ID", "Factor", "Value", "As_Of_Date"]
             )
             self.df = pd.concat([self.df, df], ignore_index=True)
+
+        self.df = self.df.pivot(
+            index=["Client_ID", "As_Of_Date"], columns="Factor", values="Value"
+        ).reset_index()
