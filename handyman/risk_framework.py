@@ -34,12 +34,22 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         for s in r.portfolio_datasource.portfolios[p].holdings:
             sec_store = r.portfolio_datasource.portfolios[p].holdings[s]["object"]
             comp_store = sec_store.parent_store
-            issuer_name = sec_store.information["IssuerName"]
+            comp_isin = comp_store.isin
+            security_name = sec_store.information["Security_Name"]
+            issuer_name = comp_store.msci_information["ISSUER_NAME"]
+            issuer_ticker = comp_store.msci_information["ISSUER_TICKER"]
+            issuer_cusip = comp_store.msci_information["ISSUER_CUSIP"]
+            country = sec_store.information["Country_of_Risk"]
             analyst = comp_store.information["Sub-Industry"].information["Analyst"]
             iva_rating = comp_store.information["IVA_COMPANY_RATING"]
             r_flag = comp_store.scores["Review_Flag"]
             r_comments = comp_store.scores["Review_Comments"]
             s2 = comp_store.information["Sector_Level_2"]
+            esg_collat_tpe = sec_store.information["ESG_Collateral_Type"][
+                "ESG Collat Type"
+            ]
+            jpm_sector = sec_store.information["JPM_Sector"]
+            industry = comp_store.information["Industry"].name
             bclass = comp_store.information["BCLASS_Level4"].class_name
             gics = comp_store.information["GICS_SUB_IND"].class_name
             muni_score = comp_store.scores["Muni_Score"]
@@ -119,7 +129,12 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         portfolio_isin,
                         portfolio_name,
                         s,
+                        comp_isin,
+                        security_name,
                         issuer_name,
+                        issuer_ticker,
+                        issuer_cusip,
+                        country,
                         analyst,
                         comp_store.information["Issuer_Country"].information["Country"],
                         portfolio_weight,
@@ -127,6 +142,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         comp_store.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN"],
                         labeled_esg_type,
                         s2,
+                        esg_collat_tpe,
+                        jpm_sector,
+                        industry,
                         bclass,
                         comp_store.information["BCLASS_Level4"].information[
                             "INDUSTRY_BCLASS_LEVEL3"
@@ -139,8 +157,30 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         level_4,
                         level_4p,
                         level_5,
+                        comp_store.information["Exclusion_d"].get("Alcohol", 0),
+                        comp_store.information["Exclusion_d"].get("Tobacco", 0),
+                        comp_store.information["Exclusion_d"].get("Oil_Gas", 0),
+                        comp_store.information["Exclusion_d"].get("Gambling", 0),
+                        comp_store.information["Exclusion_d"].get(
+                            "Weapons_Firearms", 0
+                        ),
+                        comp_store.information["Exclusion_d"].get(
+                            "Thermal_Coal_Mining", 0
+                        ),
+                        comp_store.information["Exclusion_d"].get(
+                            "Thermal_Coal_Power_Gen", 0
+                        ),
+                        comp_store.information["Exclusion_d"].get(
+                            "Controversial_Weapons", 0
+                        ),
+                        comp_store.information["Exclusion_d"].get("UN_Alignement", 0),
+                        comp_store.information["Exclusion_d"].get(
+                            "Adult_Entertainment", 0
+                        ),
                         r_flag,
                         r_comments,
+                        comp_store.msci_information["INDUSTRY_ADJUSTED_SCORE"],
+                        comp_store.msci_information["GOVERNMENT_ADJUSTED_ESG_SCORE"],
                         muni_score,
                         sec_score,
                         sov_score,
@@ -269,7 +309,12 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "Portfolio ISIN",
         "Portfolio Name",
         "Security ISIN",
+        "Issuer ISIN",
+        "Security Name",
         "Issuer Name",
+        "Ticker",
+        "CUSIP",
+        "Country of Risk",
         "Analyst",
         "Issuer Country",
         "Portfolio Weight",
@@ -277,6 +322,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "CARBON_EMISSIONS_SCOPE_12_INTEN",
         "Labeled ESG Type",
         "Sector Level 2",
+        "ESG Collateral Type",
+        "JPM Sector",
+        "Industry",
         "BCLASS",
         "BCLASS_SECTOR",
         "GICS",
@@ -287,8 +335,20 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "SCLASS_Level4",
         "SCLASS_Level4-P",
         "SCLASS-Level5",
+        "Alcohol",
+        "Tobacco",
+        "Oil_Gas",
+        "Gambling",
+        "Weapons_Firearms",
+        "Thermal_Coal_Mining",
+        "Thermal_Coal_Power_Gen",
+        "Controversial_Weapons",
+        "UN_Alignement",
+        "Adult_Entertainment",
         "Review Flag",
         "Review Comments",
+        "INDUSTRY_ADJUSTED_SCORE",
+        "GOVERNMENT_ADJUSTED_ESG_SCORE",
         "Muni Score",
         "Securitized Score",
         "Sovereign Score",

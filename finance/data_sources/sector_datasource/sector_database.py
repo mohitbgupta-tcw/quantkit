@@ -76,7 +76,7 @@ class SectorDataSource(ds.DataSources):
         return self.datasource.df
 
 
-class SubIndustryDataSpurce(ds.DataSources):
+class SubIndustryDataSource(ds.DataSources):
     """
     Load Sub-Industry (BCLASS and GICS) data
     Assign Sub-Industry to industry, ESRM module etc.
@@ -153,7 +153,7 @@ class SubIndustryDataSpurce(ds.DataSources):
         return self.datasource.df
 
 
-class BClassDataSource(SubIndustryDataSpurce):
+class BClassDataSource(SubIndustryDataSource):
     """
     Load BClass data
     Assign Bclass to industry, ESRM module etc.
@@ -202,7 +202,7 @@ class BClassDataSource(SubIndustryDataSpurce):
         super().iter("BCLASS_Level4", self.bclass)
 
 
-class GICSDataSource(SubIndustryDataSpurce):
+class GICSDataSource(SubIndustryDataSource):
     """
     Load GICS data
     Assign GICS to industry, ESRM module etc.

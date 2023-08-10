@@ -194,6 +194,8 @@ class PortfolioDataSource(ds.DataSources):
             security_store.information["Labeled_ESG_Type"] = row["Labeled ESG Type"]
             security_store.information["TCW_ESG"] = row["TCW ESG"]
             security_store.information["Issuer_ESG"] = row["Issuer ESG"]
+            security_store.information["JPM_Sector"] = row["JPM Sector"]
+            security_store.information["Country_of_Risk"] = row["Country of Risk"]
             if not pd.isna(row["ISSUER_NAME"]):
                 security_store.information["Security_Name"] = row["ISSUER_NAME"]
 
@@ -305,13 +307,15 @@ class PortfolioDataSource(ds.DataSources):
         """
         # attach BCLASS object
         # if BCLASS is not in BCLASS store (covered industries), attach 'Unassigned BCLASS'
-        bclass_dict[bclass4] = bclass_dict.get(
-            bclass4,
-            sectors.BClass(
+        if not bclass4 in bclass_dict:
+            bclass_dict[bclass4] = sectors.BClass(
                 bclass4,
                 pd.Series(bclass_dict["Unassigned BCLASS"].information),
-            ),
-        )
+            )
+            bclass_dict[bclass4].add_industry(bclass_dict["Unassigned BCLASS"].industry)
+            bclass_dict["Unassigned BCLASS"].industry.add_sub_sector(
+                bclass_dict[bclass4]
+            )
         bclass_object = bclass_dict[bclass4]
 
         # for first initialization of BCLASS
@@ -322,6 +326,7 @@ class PortfolioDataSource(ds.DataSources):
         # --> if it was unassigned before: overwrite, else: skipp
         if not (bclass_object.class_name == "Unassigned BCLASS"):
             parent_store.information["BCLASS_Level4"] = bclass_object
+            bclass_object.companies[parent_store.isin] = parent_store
 
     def attach_msci_rating(self, parent_store, msci_rating) -> None:
         """

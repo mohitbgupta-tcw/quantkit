@@ -3,6 +3,7 @@ import numpy as np
 import quantkit.finance.securities.securities as securities
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.finance.adjustment.adjustment as adjustment
+import quantkit.utils.mapping_configs as mapping_configs
 from typing import Union
 
 
@@ -56,9 +57,10 @@ class HeadStore(object):
             columns=["Thematic Type", "Category", "Adjustment"]
         )
         self.Exclusion = pd.DataFrame()
+        self.information["Exclusion_d"] = dict()
+        self.information["Exclusion"] = []
         self.information["Sector_Level_2"] = np.nan
         self.information["IVA_COMPANY_RATING"] = np.nan
-        self.information["Exclusion"] = []
 
     def add_security(
         self,
@@ -176,6 +178,15 @@ class HeadStore(object):
         # check for exclusions
         for index, row in self.Exclusion.iterrows():
             article = row["Article"]
+            exclusion = row["Field Name"]
+            theme = mapping_configs.exclusions[exclusion]
+            value = row["Field Value"]
+            if theme in self.information["Exclusion_d"]:
+                self.information["Exclusion_d"][theme] = max(
+                    self.information["Exclusion_d"][theme], value
+                )
+            else:
+                self.information["Exclusion_d"][theme] = value
             self.information["Exclusion"].append(article)
 
     def attach_gics(self, gics_d: dict, gics_sub: str = "Unassigned GICS") -> None:
@@ -191,11 +202,15 @@ class HeadStore(object):
             GICS sub industry
         """
         # if we can't find GICS in store, create new one as 'Unassigned GICS'
+        if pd.isna(gics_sub):
+            gics_sub = "Unassigned GICS"
+
         gics_d[gics_sub] = gics_d.get(
             gics_sub,
             sectors.GICS(gics_sub, pd.Series(gics_d["Unassigned GICS"].information)),
         )
         self.information["GICS_SUB_IND"] = gics_d[gics_sub]
+        gics_d[gics_sub].companies[self.isin] = self
 
     def attach_industry(self, gics_d: dict, bclass_d: dict) -> None:
         """
