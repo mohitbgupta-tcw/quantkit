@@ -173,13 +173,15 @@ def calculate_carbon_intensity(df: pd.DataFrame, portfolio_type: str) -> pd.Data
             / x["Portfolio Weight"].sum()
             * 100
         )
+    else:
+        raise ValueError("""portfolio_type should be in ['fixed_income', 'equity']""")
     df_grouped.columns = ["Sector", "Carbon_Intensity"]
     df_grouped = df_grouped.sort_values(["Carbon_Intensity"], ascending=True)
     df_grouped = df_grouped[-10:]
     return df_grouped
 
 
-def calculate_planet_distribution(df: pd.DataFrame, portfolio_type: str) -> dict:
+def calculate_planet_distribution(df: pd.DataFrame) -> dict:
     """
     For a given portfolio, calculate score distribution of sustainable planet themes.
 
@@ -187,8 +189,6 @@ def calculate_planet_distribution(df: pd.DataFrame, portfolio_type: str) -> dict
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
-    portfolio_type: str
-        portfolio type, either "equity" or "fixed_income"
 
     Returns
     -------
@@ -207,10 +207,6 @@ def calculate_planet_distribution(df: pd.DataFrame, portfolio_type: str) -> dict
     for theme in themes:
         weight = df[df["SCLASS_Level4-P"] == theme]["Portfolio Weight"].sum()
         data[theme] = weight
-
-    if portfolio_type == "fixed_income":
-        weight = df[df["Labeled ESG Type"] == "Labeled Green"]["Portfolio Weight"].sum()
-        data["Labeled Green"] = weight
     return data
 
 
@@ -233,6 +229,33 @@ def calculate_people_distribution(df: pd.DataFrame) -> dict:
     for theme in themes:
         weight = df[df["SCLASS_Level4-P"] == theme]["Portfolio Weight"].sum()
         data[theme] = weight
+    return data
+
+
+def calculate_bond_distribution(df: pd.DataFrame) -> dict:
+    """
+    For a given portfolio, calculate score distribution of labeled Bonds.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    dict
+        dictionary with portfolio weight per bond type
+    """
+    bonds = [
+        "Labeled Green",
+        "Labeled Social",
+        "Labeled Sustainable",
+        "Labeled Sustainable Linked",
+    ]
+    data = dict()
+    for bond in bonds:
+        weight = df[df["Labeled ESG Type"] == bond]["Portfolio Weight"].sum()
+        data[bond] = weight
     return data
 
 

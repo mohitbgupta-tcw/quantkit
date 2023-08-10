@@ -301,34 +301,41 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with scores distribution table
         """
-        scores = portfolio_utils.calculate_planet_distribution(
-            self.portfolio_data, self.portfolio_type
-        )
+        scores = portfolio_utils.calculate_planet_distribution(self.portfolio_data)
         sust_total = sum(scores.values())
+
+        names = [
+            "Renewable Energy, Storage, and Green Hydrogen",
+            "Sustainable Mobility",
+            "Circular Economy",
+            "Climate Change Adaption & Risk Management",
+            "Biodiversity & Sustainable Land & Water Use",
+            "Sustainable Real Assets & Smart Cities",
+            "Total Planet Themes",
+        ]
+        values = [
+            "{0:.2f}".format(scores["RENEWENERGY"]),
+            "{0:.2f}".format(scores["MOBILITY"]),
+            "{0:.2f}".format(scores["CIRCULARITY"]),
+            "{0:.2f}".format(scores["CCADAPT"]),
+            "{0:.2f}".format(scores["BIODIVERSITY"]),
+            "{0:.2f}".format(scores["SMARTCITIES"]),
+            "{0:.2f}".format(sust_total),
+        ]
+
+        if self.portfolio_type == "fixed_income":
+            bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+            names.insert(-1, "Green - Labeled Bonds")
+            values.insert(-1, "{0:.2f}".format(bonds["Labeled Green"]))
+            sust_total += bonds["Labeled Green"]
+            values[-1] = "{0:.2f}".format(sust_total)
 
         planet_table = pd.DataFrame(
             data={
-                "Name": [
-                    "Renewable Energy, Storage, and Green Hydrogen",
-                    "Sustainable Mobility",
-                    "Circular Economy",
-                    "Climate Change Adaption & Risk Management",
-                    "Biodiversity & Sustainable Land & Water Use",
-                    "Sustainable Real Assets & Smart Cities",
-                    "Total Planet Themes",
-                ],
-                "Value": [
-                    "{0:.2f}".format(scores["RENEWENERGY"]),
-                    "{0:.2f}".format(scores["MOBILITY"]),
-                    "{0:.2f}".format(scores["CIRCULARITY"]),
-                    "{0:.2f}".format(scores["CCADAPT"]),
-                    "{0:.2f}".format(scores["BIODIVERSITY"]),
-                    "{0:.2f}".format(scores["SMARTCITIES"]),
-                    "{0:.2f}".format(sust_total),
-                ],
+                "Name": names,
+                "Value": values,
             }
         )
-
         t = self.add_table(
             planet_table, add_vertical_column="Planet", id="planet-table"
         )
@@ -358,26 +365,36 @@ class ESGCharacteristics(visualizor.PDFCreator):
         scores = portfolio_utils.calculate_people_distribution(self.portfolio_data)
         sust_total = sum(scores.values())
 
+        names = [
+            "Health",
+            "Sanitation and Hygiene",
+            "Education",
+            "Financial and Digital Inclusion",
+            "Nutrition",
+            "Affordable and Inclusive Housing",
+            "Total People Themes",
+        ]
+        values = [
+            "{0:.2f}".format(scores["HEALTH"]),
+            "{0:.2f}".format(scores["SANITATION"]),
+            "{0:.2f}".format(scores["EDU"]),
+            "{0:.2f}".format(scores["INCLUSION"]),
+            "{0:.2f}".format(scores["NUTRITION"]),
+            "{0:.2f}".format(scores["AFFORDABLE"]),
+            "{0:.2f}".format(sust_total),
+        ]
+
+        if self.portfolio_type == "fixed_income":
+            bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+            names.insert(-1, "Social - Labeled Bonds")
+            values.insert(-1, "{0:.2f}".format(bonds["Labeled Social"]))
+            sust_total += bonds["Labeled Social"]
+            values[-1] = "{0:.2f}".format(sust_total)
+
         people_table = pd.DataFrame(
             data={
-                "Name": [
-                    "Health",
-                    "Sanitation and Hygiene",
-                    "Education",
-                    "Financial and Digital Inclusion",
-                    "Nutrition",
-                    "Affordable and Inclusive Housing",
-                    "Total People Themes",
-                ],
-                "Value": [
-                    "{0:.2f}".format(scores["HEALTH"]),
-                    "{0:.2f}".format(scores["SANITATION"]),
-                    "{0:.2f}".format(scores["EDU"]),
-                    "{0:.2f}".format(scores["INCLUSION"]),
-                    "{0:.2f}".format(scores["NUTRITION"]),
-                    "{0:.2f}".format(scores["AFFORDABLE"]),
-                    "{0:.2f}".format(sust_total),
-                ],
+                "Name": names,
+                "Value": values,
             }
         )
 
@@ -405,7 +422,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             self.portfolio_data
         )
         scores_planet = portfolio_utils.calculate_planet_distribution(
-            self.portfolio_data, self.portfolio_type
+            self.portfolio_data
         )
         total = sum(scores_people.values()) + sum(scores_planet.values())
         total_table = pd.DataFrame(
