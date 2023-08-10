@@ -336,8 +336,10 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 "Value": values,
             }
         )
+
+        styles = {6: ["italic"]}
         t = self.add_table(
-            planet_table, add_vertical_column="Planet", id="planet-table"
+            planet_table, add_vertical_column="Planet", id="planet-table", styles=styles
         )
 
         sust_table = html.Div(
@@ -398,8 +400,10 @@ class ESGCharacteristics(visualizor.PDFCreator):
             }
         )
 
+        styles = {6: ["italic"]}
+
         t = self.add_table(
-            people_table, add_vertical_column="People", id="people-table"
+            people_table, add_vertical_column="People", id="people-table", styles=styles
         )
 
         sust_table = html.Div(
@@ -424,17 +428,32 @@ class ESGCharacteristics(visualizor.PDFCreator):
         scores_planet = portfolio_utils.calculate_planet_distribution(
             self.portfolio_data
         )
-        total = sum(scores_people.values()) + sum(scores_planet.values())
+        bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+        total = (
+            sum(scores_people.values())
+            + sum(scores_planet.values())
+            + sum(bonds.values())
+        )
         total_table = pd.DataFrame(
             data={
-                "Name": ["Total Sustainable Themes"],
+                "Name": [
+                    "Sustainability Bonds",
+                    "Sustainability-Linked Bonds",
+                    "Total Sustainable Themes",
+                ],
                 "Value": [
+                    "{0:.2f}".format(bonds["Labeled Sustainable"]),
+                    "{0:.2f}".format(bonds["Labeled Sustainable Linked"]),
                     "{0:.2f}".format(total),
                 ],
             }
         )
 
-        t = self.add_table(total_table, add_vertical_column=" ", id="total-table")
+        styles = {0: ["italic"], 1: ["italic"]}
+
+        t = self.add_table(
+            total_table, add_vertical_column=" ", id="total-table", styles=styles
+        )
 
         sust_table = html.Div(
             [t],

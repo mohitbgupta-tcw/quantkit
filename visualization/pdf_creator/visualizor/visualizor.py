@@ -234,6 +234,7 @@ class PDFCreator(object):
         show_vertical_lines: bool = False,
         show_header: bool = False,
         add_vertical_column: str = None,
+        styles: dict = {},
     ) -> html.Table:
         """
         Create a dash definition of an HTML table for a Pandas dataframe
@@ -250,6 +251,11 @@ class PDFCreator(object):
             show table header
         add_vertical_column: str, optional
             text of vertical column to be added in right column
+        styles: dict, optional
+            specify specific column for row in format:
+                {
+                    column_id: ["style1", "style2"]
+            }
 
         Returns
         -------
@@ -262,6 +268,7 @@ class PDFCreator(object):
             show_header=show_header,
             show_vertical_lines=show_vertical_lines,
             add_vertical_column=add_vertical_column,
+            styles=styles,
         )
         plot = t.create_table()
         return plot

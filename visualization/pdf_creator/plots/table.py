@@ -18,6 +18,11 @@ class Table(object):
         show table header
     add_vertical_column: str, optional
         text of vertical column to be added in right column
+    styles: dict, optional
+        specify specific class (style) for row in format:
+            {
+                column_id: ["style1", "style2"]
+            }
     """
 
     def __init__(
@@ -27,12 +32,14 @@ class Table(object):
         show_vertical_lines: bool = False,
         show_header: bool = False,
         add_vertical_column: str = None,
+        styles: dict = {},
     ):
         self.data = df
         self.id = id
         self.show_vertical_lines = show_vertical_lines
         self.show_header = show_header
         self.add_vertical_column = add_vertical_column
+        self.styles = styles
 
     def create_table(self) -> html.Table:
         """
@@ -73,7 +80,11 @@ class Table(object):
                             className="vert-text",
                         )
                     )
-                table.append(html.Tr(html_row))
+                if index in self.styles:
+                    class_row = " ".join(self.styles[index])
+                else:
+                    class_row = ""
+                table.append(html.Tr(html_row, className=class_row))
 
         else:
             for index, row in self.data.iterrows():

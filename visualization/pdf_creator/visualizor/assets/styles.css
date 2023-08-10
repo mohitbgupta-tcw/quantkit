@@ -11,6 +11,15 @@ body {
   box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
+
+.italic {
+  font-style: italic;
+}
+
+.bold {
+  font-weight: bold;
+}
+
 .page {
   position: relative;
   width: 297mm;
@@ -175,10 +184,6 @@ td.table-element {
     writing-mode: vertical-rl;
     padding-top: 5rem;
     width: 8%;
-}
-
-#total-table td:last-child {
-  padding-top: 0;
 }
 
 table.reversed tr:nth-child(odd) {
