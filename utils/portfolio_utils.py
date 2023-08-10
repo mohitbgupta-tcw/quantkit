@@ -133,7 +133,7 @@ def calculate_risk_distribution(df: pd.DataFrame) -> dict:
     return data
 
 
-def calculate_carbon_intensity(df: pd.DataFrame) -> pd.DataFrame:
+def calculate_carbon_intensity(df: pd.DataFrame, portfolio_type: str) -> pd.DataFrame:
     """
     For a given portfolio, calculate carbon intensity per sector and return top 10
     highest contributers
@@ -142,6 +142,8 @@ def calculate_carbon_intensity(df: pd.DataFrame) -> pd.DataFrame:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    portfolio_type: str
+        portfolio type, either "equity" or "fixed_income"
 
     Returns
     -------
@@ -159,18 +161,25 @@ def calculate_carbon_intensity(df: pd.DataFrame) -> pd.DataFrame:
         )
     ]
 
-    df_grouped = df_filtered.groupby("GICS_SECTOR", as_index=False).apply(
-        lambda x: x["market_weight_carbon_intensity"].sum()
-        / x["Portfolio Weight"].sum()
-        * 100
-    )
+    if portfolio_type == "equity":
+        df_grouped = df_filtered.groupby("GICS_SECTOR", as_index=False).apply(
+            lambda x: x["market_weight_carbon_intensity"].sum()
+            / x["Portfolio Weight"].sum()
+            * 100
+        )
+    elif portfolio_type == "fixed_income":
+        df_grouped = df_filtered.groupby("BCLASS_SECTOR", as_index=False).apply(
+            lambda x: x["market_weight_carbon_intensity"].sum()
+            / x["Portfolio Weight"].sum()
+            * 100
+        )
     df_grouped.columns = ["Sector", "Carbon_Intensity"]
     df_grouped = df_grouped.sort_values(["Carbon_Intensity"], ascending=True)
     df_grouped = df_grouped[-10:]
     return df_grouped
 
 
-def calculate_planet_distribution(df: pd.DataFrame) -> dict:
+def calculate_planet_distribution(df: pd.DataFrame, portfolio_type: str) -> dict:
     """
     For a given portfolio, calculate score distribution of sustainable planet themes.
 
@@ -178,6 +187,8 @@ def calculate_planet_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    portfolio_type: str
+        portfolio type, either "equity" or "fixed_income"
 
     Returns
     -------
@@ -196,6 +207,10 @@ def calculate_planet_distribution(df: pd.DataFrame) -> dict:
     for theme in themes:
         weight = df[df["SCLASS_Level4-P"] == theme]["Portfolio Weight"].sum()
         data[theme] = weight
+
+    if portfolio_type == "fixed_income":
+        weight = df[df["Labeled ESG Type"] == "Labeled Green"]["Portfolio Weight"].sum()
+        data["Labeled Green"] = weight
     return data
 
 

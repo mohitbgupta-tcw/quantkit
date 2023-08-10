@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import quantkit.visualization.pdf_creator.visualizor.visualizor as visualizor
 import quantkit.utils.portfolio_utils as portfolio_utils
+from typing import Union
 
 
 class ESGCharacteristics(visualizor.PDFCreator):
@@ -15,10 +16,24 @@ class ESGCharacteristics(visualizor.PDFCreator):
         title of app
     data: pd.DataFrame
         DataFrame with data to be displayed in pdf
+    portfolio_type: str
+        type of portfolio, either "equity", "fixed_income", or "em"
+    portfolio: str | int
+        portfolio ISIN
+    benchmark: str | int
+        benchmark ISIN
     """
 
-    def __init__(self, title: str, data: pd.DataFrame, portfolio: str, benchmark: str):
+    def __init__(
+        self,
+        title: str,
+        data: pd.DataFrame,
+        portfolio_type: str,
+        portfolio: Union[str, int],
+        benchmark: Union[str, int],
+    ):
         super().__init__(title, data)
+        self.portfolio_type = portfolio_type
         self.portfolio_isin = portfolio
         self.benchmark_isin = benchmark
 
@@ -286,7 +301,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with scores distribution table
         """
-        scores = portfolio_utils.calculate_planet_distribution(self.portfolio_data)
+        scores = portfolio_utils.calculate_planet_distribution(
+            self.portfolio_data, self.portfolio_type
+        )
         sust_total = sum(scores.values())
 
         planet_table = pd.DataFrame(
@@ -388,7 +405,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             self.portfolio_data
         )
         scores_planet = portfolio_utils.calculate_planet_distribution(
-            self.portfolio_data
+            self.portfolio_data, self.portfolio_type
         )
         total = sum(scores_people.values()) + sum(scores_planet.values())
         total_table = pd.DataFrame(
@@ -471,7 +488,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with bar chart and header
         """
-        df_ci = portfolio_utils.calculate_carbon_intensity(self.portfolio_data)
+        df_ci = portfolio_utils.calculate_carbon_intensity(
+            self.portfolio_data, self.portfolio_type
+        )
         df_ci["Sector"] = df_ci["Sector"].str.replace(" ", "   <br>")
         df_ci["Carbon_Intensity"] = round(df_ci["Carbon_Intensity"], 0)
 

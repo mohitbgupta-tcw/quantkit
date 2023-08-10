@@ -8,7 +8,7 @@ import quantkit.visualization.risk_framework.esg_characteristics as esg_characte
 data = pd.read_excel("C:\\Users\\bastit\\Documents\\quantkit\\scores_6739.xlsx")
 
 pdf = esg_characteristics.ESGCharacteristics(
-    "Financial Report", data, 6739, "RUSSELL 1000 VALUE"
+    "Financial Report", data, "fixed_income", 3720, "BLOOMBERG AGGREGATE INDEX"
 )
 
 if __name__ == "__main__":
