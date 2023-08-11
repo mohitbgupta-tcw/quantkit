@@ -533,6 +533,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
             self.portfolio_data, self.portfolio_type
         )
         df_ci["Sector"] = df_ci["Sector"].str.replace(" ", "   <br>")
+        df_ci["Sector"] = df_ci["Sector"].str.replace(
+            "Government   <br>Owned", "Government Owned"
+        )
+        df_ci["Sector"] = df_ci["Sector"].str.replace(
+            "No   <br>Guarantee", "No Guarantee"
+        )
         df_ci["Carbon_Intensity"] = round(df_ci["Carbon_Intensity"], 0)
 
         ci_chart = html.Div(
