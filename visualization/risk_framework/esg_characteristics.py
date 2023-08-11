@@ -53,6 +53,15 @@ class ESGCharacteristics(visualizor.PDFCreator):
         self.as_of_date = self.portfolio_data["As Of Date"].max()
         super().run()
 
+    def create_layout(self) -> html.Div:
+        """
+        Create the layout and pages of the pdf
+        """
+        page1 = self.create_page(
+            self.add_header(), self.add_body(), self.add_footnote()
+        )
+        return page1
+
     def add_header(self) -> html.Div:
         """
         Create Header including:
@@ -301,6 +310,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with scores distribution table
         """
+        styles = dict()
         scores = portfolio_utils.calculate_planet_distribution(self.portfolio_data)
         sust_total = sum(scores.values())
 
@@ -329,6 +339,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             values.insert(-1, "{0:.2f}".format(bonds["Labeled Green"]))
             sust_total += bonds["Labeled Green"]
             values[-1] = "{0:.2f}".format(sust_total)
+            styles = {6: ["italic"]}
 
         planet_table = pd.DataFrame(
             data={
@@ -337,7 +348,6 @@ class ESGCharacteristics(visualizor.PDFCreator):
             }
         )
 
-        styles = {6: ["italic"]}
         t = self.add_table(
             planet_table, add_vertical_column="Planet", id="planet-table", styles=styles
         )
@@ -364,6 +374,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with scores distribution table
         """
+        styles = dict()
         scores = portfolio_utils.calculate_people_distribution(self.portfolio_data)
         sust_total = sum(scores.values())
 
@@ -392,6 +403,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             values.insert(-1, "{0:.2f}".format(bonds["Labeled Social"]))
             sust_total += bonds["Labeled Social"]
             values[-1] = "{0:.2f}".format(sust_total)
+            styles = {6: ["italic"]}
 
         people_table = pd.DataFrame(
             data={
@@ -399,8 +411,6 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 "Value": values,
             }
         )
-
-        styles = {6: ["italic"]}
 
         t = self.add_table(
             people_table, add_vertical_column="People", id="people-table", styles=styles
@@ -422,34 +432,29 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with total score table
         """
+        styles = dict()
         scores_people = portfolio_utils.calculate_people_distribution(
             self.portfolio_data
         )
         scores_planet = portfolio_utils.calculate_planet_distribution(
             self.portfolio_data
         )
-        bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
-        total = (
-            sum(scores_people.values())
-            + sum(scores_planet.values())
-            + sum(bonds.values())
-        )
-        total_table = pd.DataFrame(
-            data={
-                "Name": [
-                    "Sustainability Bonds",
-                    "Sustainability-Linked Bonds",
-                    "Total Sustainable Themes",
-                ],
-                "Value": [
-                    "{0:.2f}".format(bonds["Labeled Sustainable"]),
-                    "{0:.2f}".format(bonds["Labeled Sustainable Linked"]),
-                    "{0:.2f}".format(total),
-                ],
-            }
-        )
+        total = sum(scores_people.values()) + sum(scores_planet.values())
 
-        styles = {0: ["italic"], 1: ["italic"]}
+        names = ["Total Sustainable Themes"]
+        values = ["{0:.2f}".format(total)]
+
+        if self.portfolio_type == "fixed_income":
+            bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+            total += sum(bonds.values())
+            values[-1] = "{0:.2f}".format(total)
+            names.insert(-1, "Sustainability Bonds")
+            names.insert(-1, "Sustainability-Linked Bonds")
+            values.insert(-1, "{0:.2f}".format(bonds["Labeled Sustainable"]))
+            values.insert(-1, "{0:.2f}".format(bonds["Labeled Sustainable Linked"]))
+            styles = {0: ["italic"], 1: ["italic"]}
+
+        total_table = pd.DataFrame(data={"Name": names, "Value": values})
 
         t = self.add_table(
             total_table, add_vertical_column=" ", id="total-table", styles=styles

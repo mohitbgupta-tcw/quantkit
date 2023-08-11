@@ -165,6 +165,10 @@ td.table-element {
   background-color: #CDF0D3;
 }
 
+#total-table tr:first-child td:last-child {
+  padding-top: 0;
+}
+
 #transition-table tr:last-child{
   background-color: #BCD0F9;
 }

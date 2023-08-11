@@ -36,6 +36,12 @@ class PDFCreator(object):
         """
         self.app.layout = self.create_layout()
 
+    def create_layout(self):
+        """
+        Create the layout and pages of the pdf
+        """
+        raise NotImplementedError()
+
     def add_header(self, header_text: list = [""]) -> html.Div:
         """
         Create the pdf header as top row including:
@@ -123,10 +129,21 @@ class PDFCreator(object):
         )
         return body
 
-    def create_layout(self) -> html.Div:
+    def create_page(
+        self, header: html.Div, body: html.Div, footnote: html.Div
+    ) -> html.Div:
         """
         Describe the layout/ UI of the app
         Add Header, Body, Footnote
+
+        Parameters
+        ----------
+        header: html.Div
+            header of page
+        body: html.Div
+            body of page
+        footnote: html.Div
+            footnote of page
 
         Returns
         -------
@@ -141,11 +158,11 @@ class PDFCreator(object):
                         html.Div(
                             [
                                 # header row
-                                self.add_header(),
+                                header,
                                 # body row
-                                self.add_body(),
+                                body,
                                 # footnote row
-                                self.add_footnote(),
+                                footnote,
                             ],
                             className="page",
                         )
