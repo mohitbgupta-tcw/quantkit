@@ -112,7 +112,7 @@ class MSCI(object):
         ]
 
         for batch in range(batches):
-            logging.log(f"Batch: {batch+1}")
+            logging.log(f"Batch: {batch+1}/{batches}")
             url = f"https://api2.msci.com/esg/data/v1.0/issuers/history"
             js = {"batch_id": batch + 1, "data_request_id": data_request_id}
             r_batch = requests.request(
