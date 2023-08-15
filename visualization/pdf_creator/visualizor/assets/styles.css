@@ -20,6 +20,27 @@ body {
   font-weight: bold;
 }
 
+.green-background{
+  background-color: #CDF0D3 !important;
+}
+
+.blue {
+  color: #007db5;
+}
+
+.size14 {
+  font-size: 1.4rem;
+}
+
+.size13 {
+  font-size: 1.3rem;
+}
+
+.mv {
+  font-size: 1.2rem;
+  color: #007db5;
+}
+
 .page {
   position: relative;
   width: 297mm;
@@ -90,7 +111,6 @@ h6.padded,
 p.padded {
   padding: 2px 5px;
   margin-top: 10px;
-  margin-bottom: 10px;
 }
 
 .blue-text {
@@ -111,23 +131,22 @@ td {
 }
 
 tr {
-  border-bottom: 1px solid white;
+  border-bottom: 1px solid #b3b4b6;
 }
 
 tr:nth-child(even) {
-  background-color: #f0f0f0;
+  background-color: #fff;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
 tr:nth-child(odd) {
-  background-color: #f0f0f0;
+  background-color: #fff;
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
 
 tr:last-child {
-  background-color: #CECCCC;
-  border-bottom: 2px solid black;
+  background-color: #d2d3d5;
   font-weight: bold;
 }
 
@@ -140,6 +159,10 @@ td:first-child {
   border-left: 0px solid #FFF;
   text-align: left !important;
   width: 80%;
+}
+
+tr td:first-child{
+  padding-left: 8px;
 }
 
 th:first-child {
@@ -179,6 +202,34 @@ td.table-element {
 
 #people-table {
   margin-bottom: 1px;
+}
+
+#country-table tr:last-child{
+  background-color: #f0f0f0;
+  border-bottom: 0px;
+  font-weight: normal;
+}
+
+#sector-table tr:last-child{
+  background-color: #007db5;
+  border-bottom: 0px;
+  font-weight: normal;
+}
+
+#bond-table tr:last-child{
+  background-color: #fff;
+  border-bottom: 1px solid #b3b4b6;
+  font-weight: normal;
+}
+#bond-table td:first-child{
+  padding-left: 15px;
+}
+
+#bond-table tr:first-child td:first-child{
+  padding-left: 8px;
+}
+#bond-table{
+  margin-top: 1.7rem;
 }
 
 .vert-text {
@@ -290,12 +341,13 @@ li {
 
 .subtitle {
   position: relative;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #007DB5;
   left: 0;
   height: 20%;
   margin: 0mm;
-  border-left: 5px solid #007DB5;
+  /* border-left: 5px solid #007DB5; */
+  border-bottom: 1px solid #b3b4b6;
   background: #ffffff;
   padding-top: 1px;
   padding-bottom: 1px;

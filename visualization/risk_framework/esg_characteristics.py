@@ -1,6 +1,7 @@
 from dash import html
 import pandas as pd
 import numpy as np
+import datetime
 import quantkit.visualization.pdf_creator.visualizor.visualizor as visualizor
 import quantkit.utils.portfolio_utils as portfolio_utils
 from typing import Union
@@ -36,6 +37,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
         self.portfolio_type = portfolio_type
         self.portfolio_isin = portfolio
         self.benchmark_isin = benchmark
+        self.waci_benchmark_isin = (
+            "JPM EM Custom Index (50/50)" if portfolio == 3750 else self.benchmark_isin
+        )
 
     def run(self) -> None:
         """
@@ -49,8 +53,13 @@ class ESGCharacteristics(visualizor.PDFCreator):
         self.benchmark_data = self.data[
             self.data["Portfolio ISIN"] == self.benchmark_isin
         ]
+        self.waci_benchmark_data = self.data[
+            self.data["Portfolio ISIN"] == self.waci_benchmark_isin
+        ]
         self.benchmark_name = self.benchmark_data["Portfolio Name"].values[0]
-        self.as_of_date = self.portfolio_data["As Of Date"].max()
+        self.as_of_date = datetime.datetime.strptime(
+            self.portfolio_data["As Of Date"].max(), "%m/%d/%Y"
+        ).date()
         super().run()
 
     def create_layout(self) -> html.Div:
@@ -75,10 +84,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
             row with header Div
         """
         header_text = [
-            html.H5("Sustainable Characteristics", id="overall-header"),
-            html.H6(f"Portfolio: {self.portfolio_name}"),
-            html.H6(f"Benchmark: {self.benchmark_name}"),
-            html.H6(f"As of: {self.as_of_date}"),
+            html.H3("Sustainable Characteristics", id="overall-header"),
+            html.H5(f"{self.portfolio_name}"),
+            html.H6(f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS"),
+            html.H6(
+                f"""AS OF {self.as_of_date.strftime("%d %B %Y")} | SHARE CLASS: IU"""
+            ),
         ]
         return super().add_header(header_text)
 
@@ -109,7 +120,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         ]
         return super().add_footnote(footnote_text)
 
-    def add_body(self) -> html.Div:
+    def add_body_equity_fi(self) -> html.Div:
         """
         Create main body with tables, charts and text
 
@@ -144,6 +155,52 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 className="four columns",
             ),
         ]
+        return body_content
+
+    def add_body_em(self) -> html.Div:
+        """
+        Create main body with tables, charts and text
+
+        Returns
+        -------
+        html.Div
+            row with body Div
+        """
+        body_content = [
+            # first column
+            html.Div(
+                [self.add_bond_table(), self.add_WACI_table()],
+                className="four columns",
+            ),
+            # second column
+            html.Div(
+                [
+                    self.add_risk_score_distribution(),
+                    self.add_sustainable_classification_donut(),
+                ],
+                className="four columns",
+            ),
+            # third column
+            html.Div(
+                [self.add_country_table(), self.add_sector_table()],
+                className="four columns",
+            ),
+        ]
+        return body_content
+
+    def add_body(self) -> html.Div:
+        """
+        Create main body with tables, charts and text
+
+        Returns
+        -------
+        html.Div
+            row with body Div
+        """
+        if self.portfolio_type == "fixed_income" or self.portfolio_type == "equity":
+            body_content = self.add_body_equity_fi()
+        elif self.portfolio_type == "em":
+            body_content = self.add_body_em()
         return super().add_body(body_content)
 
     def add_WACI_table(self) -> html.Div:
@@ -157,12 +214,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
             div with WACI table and header
         """
         waci_portfolio = portfolio_utils.calculate_portfolio_waci(self.portfolio_data)
-        waci_index = portfolio_utils.calculate_portfolio_waci(self.benchmark_data)
+        waci_index = portfolio_utils.calculate_portfolio_waci(self.waci_benchmark_data)
         carbon_reduction = waci_portfolio / waci_index - 1
 
         df_WACI = pd.DataFrame(
             data={
-                "Name": ["Portfolio", "Index", "Carbon Reduction"],
+                "Name": ["Sub-Fund2", "Index", "Carbon Reduction3"],
                 "Value": [
                     "{0:.2f}".format(waci_portfolio),
                     "{0:.2f}".format(waci_index),
@@ -175,12 +232,13 @@ class ESGCharacteristics(visualizor.PDFCreator):
             [
                 html.H6(
                     [
-                        "Weighted Average Carbon Intensity - ",
+                        "Weighted Average Carbon Intensity",
+                        html.Sup(1, className="superscript"),
+                        " - ",
                         html.Br(),
                         "Tons CO",
                         html.Sub(2),
                         "e/$M Sales",
-                        html.Sup(1, className="superscript"),
                     ],
                     className="subtitle padded",
                 ),
@@ -466,6 +524,52 @@ class ESGCharacteristics(visualizor.PDFCreator):
         )
         return sust_table
 
+    def add_bond_table(self) -> html.Div:
+        """
+        For a portfolio, calculate the total portfolio weight for sustainable themes
+        Show these values in a table.
+
+        Returns
+        -------
+        html.Div
+            div with total score table
+        """
+        styles = {0: ["bold", "size13"]}
+        bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+        total = sum(bonds.values())
+
+        names = [
+            "Labeled Bonds",
+            "Green",
+            "Social",
+            "Sustainability",
+            "Sustainability-Linked",
+            "Green/Sustainability-Linked",
+        ]
+        values = [
+            "{0:.2f}".format(total),
+            "{0:.2f}".format(bonds["Labeled Green"]),
+            "{0:.2f}".format(bonds["Labeled Social"]),
+            "{0:.2f}".format(bonds["Labeled Sustainable"]),
+            "{0:.2f}".format(bonds["Labeled Sustainable Linked"]),
+            "{0:.2f}".format(bonds["Labeled Green/Sustainable Linked"]),
+        ]
+
+        bond_table = pd.DataFrame(data={"Name": names, "Value": values})
+
+        bond_div = html.Div(
+            [
+                html.H6(
+                    ["ESG Bond by Type ", html.A("(% MV)", className="mv")],
+                    className="subtitle padded",
+                ),
+                self.add_table(bond_table, styles=styles),
+            ],
+            className="row",
+            id="bond-table",
+        )
+        return bond_div
+
     def add_transition_table(self) -> html.Div:
         """
         For a portfolio, calculate score distribution for transition themes.
@@ -519,6 +623,62 @@ class ESGCharacteristics(visualizor.PDFCreator):
         )
         return sust_table
 
+    def add_country_table(self) -> html.Div:
+        """
+        For portfolio and benchmark, calculate the WACI and carbon reduction.
+        Show these values in a table.
+
+        Returns
+        -------
+        html.Div
+            div with WACI table and header
+        """
+        country = portfolio_utils.calculate_country_distribution(self.portfolio_data)
+        country["Contribution"] = (
+            country["Contribution"].astype(float).map("{:.2%}".format)
+        )
+
+        country_div = html.Div(
+            [
+                html.H6(
+                    ["Labeled Bonds by Country (%labeled Bonds)"],
+                    className="subtitle padded",
+                ),
+                self.add_table(country),
+            ],
+            className="row",
+            id="country-table",
+        )
+        return country_div
+
+    def add_sector_table(self) -> html.Div:
+        """
+        For portfolio and benchmark, calculate the WACI and carbon reduction.
+        Show these values in a table.
+
+        Returns
+        -------
+        html.Div
+            div with WACI table and header
+        """
+        sector = portfolio_utils.calculate_sector_distribution(self.portfolio_data)
+        sector["Contribution"] = (
+            sector["Contribution"].astype(float).map("{:.2%}".format)
+        )
+
+        sector_div = html.Div(
+            [
+                html.H6(
+                    ["Labeled Bonds by Sector (%labeled Bonds)"],
+                    className="subtitle padded",
+                ),
+                self.add_table(sector),
+            ],
+            className="row",
+            id="sector-table",
+        )
+        return sector_div
+
     def add_carbon_intensity_chart(self) -> html.Div:
         """
         For a portfolio, calculate carbon intensity per sector.
@@ -552,3 +712,33 @@ class ESGCharacteristics(visualizor.PDFCreator):
             className="row carbon-intensity",
         )
         return ci_chart
+
+    def add_sustainable_classification_donut(self) -> html.Div:
+        """
+        For a portfolio, sustainable classification distribution.
+        Show these values in a bar chart.
+
+        Returns
+        -------
+        html.Div
+            div with donut chart and header
+        """
+        df = portfolio_utils.calculate_sustainable_classification(self.portfolio_data)
+
+        chart = html.Div(
+            [
+                html.H6(
+                    "TCW Sustainable Classification (%MV)",
+                    className="subtitle padded",
+                ),
+                self.add_pie_chart(
+                    labels=df["SCLASS_Level2"],
+                    values=df["Portfolio Weight"],
+                    color=df["Color"],
+                    hole=0.5,
+                    width=350,
+                ),
+            ],
+            className="row sust-pie",
+        )
+        return chart

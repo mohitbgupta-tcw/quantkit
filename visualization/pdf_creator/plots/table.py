@@ -90,8 +90,19 @@ class Table(object):
             for index, row in self.data.iterrows():
                 html_row = []
                 for i in range(len(row)):
-                    html_row.append(html.Td([row[i]], className=class_td))
-                table.append(html.Tr(html_row))
+                    if row[i][-1].isdigit() and i == 0:
+                        td = [
+                            row[i][:-1],
+                            html.Sup(row[i][-1], className="superscript"),
+                        ]
+                    else:
+                        td = [row[i]]
+                    html_row.append(html.Td(td, className=class_td))
+                if index in self.styles:
+                    class_row = " ".join(self.styles[index])
+                else:
+                    class_row = ""
+                table.append(html.Tr(html_row, className=class_row))
         return html.Table(table, className=class_table, id=self.id)
 
     def add_header_row(self, class_header: str) -> html.Tr:

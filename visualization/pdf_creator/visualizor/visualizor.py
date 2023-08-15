@@ -6,6 +6,7 @@ import numpy as np
 from typing import Union
 import quantkit.visualization.pdf_creator.plots.bar_chart as bar_chart
 import quantkit.visualization.pdf_creator.plots.line_chart as line_chart
+import quantkit.visualization.pdf_creator.plots.pie_chart as pie_chart
 import quantkit.visualization.pdf_creator.plots.table as table
 
 
@@ -241,6 +242,53 @@ class PDFCreator(object):
             line chart
         """
         line = line_chart.LineChart(x, y, title=title, height=height, width=width)
+        plot = line.create_chart()
+        return plot
+
+    def add_pie_chart(
+        self,
+        labels: Union[list, np.array, pd.Series],
+        values: Union[list, np.array, pd.Series],
+        color: Union[list, np.array, pd.Series],
+        hole: float = 0,
+        title: str = "",
+        height: int = 350,
+        width: int = None,
+    ) -> dcc.Graph:
+        """
+        Create plotly pie chart
+
+        Parameters
+        ----------
+        labels: list | np.array | pd.Series
+            data labels
+        values: list | np.array | pd.Series
+            data values
+        color: list | np.array | pd.Series
+            color array for slizes
+        hole: float, optional
+            size of hole in middle
+        title: str, optional
+            Chart title
+        height: int, optional
+            height integer of chart in range [10, inf]
+        width: int, optional
+            width integer of chart in range [10, inf]
+
+        Returns
+        -------
+        dcc.Graph
+            donut chart
+        """
+        line = pie_chart.PieChart(
+            values=values,
+            labels=labels,
+            color=color,
+            hole=hole,
+            title=title,
+            height=height,
+            width=width,
+        )
         plot = line.create_chart()
         return plot
 

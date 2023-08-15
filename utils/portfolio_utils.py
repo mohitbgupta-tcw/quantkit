@@ -251,6 +251,8 @@ def calculate_bond_distribution(df: pd.DataFrame) -> dict:
         "Labeled Social",
         "Labeled Sustainable",
         "Labeled Sustainable Linked",
+        "Labeled Green/Sustainable Linked",
+        "Labeled Sustainable/Sustainable Linked",
     ]
     data = dict()
     for bond in bonds:
@@ -286,3 +288,96 @@ def calculate_transition_distribution(df: pd.DataFrame) -> dict:
         weight = df[df["SCLASS_Level4-P"] == theme]["Portfolio Weight"].sum()
         data[theme] = weight
     return data
+
+
+def calculate_country_distribution(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    For a given portfolio, calculate country distribution of labeled bonds.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with % of total of labeled Bonds per Country
+    """
+    bonds = [
+        "Labeled Green",
+        "Labeled Social",
+        "Labeled Sustainable",
+        "Labeled Sustainable Linked",
+        "Labeled Green/Sustainable Linked",
+        "Labeled Sustainable/Sustainable Linked",
+    ]
+    df_filtered = df[df["Labeled ESG Type"].isin(bonds)]
+    df_filtered = (
+        df_filtered.groupby("Country of Risk")["Portfolio Weight"].sum().reset_index()
+    )
+    df_filtered["Contribution"] = (
+        df_filtered["Portfolio Weight"] / df_filtered["Portfolio Weight"].sum()
+    )
+    df_filtered = df_filtered.sort_values("Contribution", ascending=False)
+    df_filtered = df_filtered[["Country of Risk", "Contribution"]]
+    return df_filtered
+
+
+def calculate_sector_distribution(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    For a given portfolio, calculate sector distribution of labeled bonds.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with % of total of labeled Bonds per Sector
+    """
+    bonds = [
+        "Labeled Green",
+        "Labeled Social",
+        "Labeled Sustainable",
+        "Labeled Sustainable Linked",
+        "Labeled Green/Sustainable Linked",
+        "Labeled Sustainable/Sustainable Linked",
+    ]
+    df_filtered = df[df["Labeled ESG Type"].isin(bonds)]
+    df_filtered = (
+        df_filtered.groupby("JPM Sector")["Portfolio Weight"].sum().reset_index()
+    )
+    df_filtered["Contribution"] = (
+        df_filtered["Portfolio Weight"] / df_filtered["Portfolio Weight"].sum()
+    )
+    df_filtered = df_filtered.sort_values("Contribution", ascending=False)
+    df_filtered = df_filtered[["JPM Sector", "Contribution"]]
+    return df_filtered
+
+
+def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    For a given portfolio, calculate sustainable classification (SCLASS Level 2) distribution
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with SCLASS Level 2 weights
+    """
+    color = {
+        "ESG-Labeled Bonds": "#82b460",
+        "Transition": "#0072a0",
+        "ESG Scores": "#91bcd1",
+        "Exclusion": "#cd523a",
+    }
+    df_grouped = df.groupby("SCLASS_Level2")["Portfolio Weight"].sum().reset_index()
+    df_grouped["Color"] = df_grouped["SCLASS_Level2"].map(color)
+    return df_grouped
