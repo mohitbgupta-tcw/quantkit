@@ -63,7 +63,7 @@ The quantkit project aims to combine data operations such as data pulling throug
 ![Anaconda](img/anaconda.png)  
 - Create Environment: create a project specific environment through anaconda. Open a command line and type the following command. You can close the command line after.
 ```shell
-> conda create -n "quantkit" ipython -y
+> conda create -n "quantkit" python=3.10 ipython -y
 ```
 - git: a working version of git installed on your computer is required. Please request access to [the quantkit folder](https://gitlab.com/tcw-group/quant-research/quantkit) in gitlab, if not already provided.
 
