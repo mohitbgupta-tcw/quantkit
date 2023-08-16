@@ -53,9 +53,12 @@ class CategoryDataSource(ds.DataSources):
 
     def transform_df(self) -> None:
         """
-        None
+        Delete first 3 rows and set 4th row as header
         """
-        pass
+        self.datasource.df = self.datasource.df.iloc[2:]
+        new_header = self.datasource.df.iloc[0]
+        self.datasource.df = self.datasource.df[1:]
+        self.datasource.df.columns = new_header
 
     def iter(self) -> None:
         """

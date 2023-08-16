@@ -1,4 +1,4 @@
-from snowflake.snowpark.session import Session
+# from snowflake.snowpark.session import Session
 import pandas as pd
 
 
