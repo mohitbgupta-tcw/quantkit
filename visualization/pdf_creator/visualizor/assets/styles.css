@@ -28,6 +28,16 @@ body {
   color: #007db5;
 }
 
+.sub-header {
+  color: #231f20;
+  font-size: 1.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.superscript-padding {
+  padding-top: 0px;
+}
+
 .size14 {
   font-size: 1.4rem;
 }
@@ -36,9 +46,23 @@ body {
   font-size: 1.3rem;
 }
 
+.size11 {
+  font-size: 1.1rem;
+}
+
 .mv {
   font-size: 1.2rem;
   color: #007db5;
+}
+
+.indent {
+  margin-left: 9px;
+}
+
+.m {
+  display: block;
+  margin: 2px;
+  content: " ";
 }
 
 .page {
@@ -75,22 +99,33 @@ body {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 10rem;
+  height: 23rem;
 }
 
 
 .footnote p {
-  margin-bottom: 0rem;
-  padding: 0 1rem;
-  margin-top: 5px;
+  margin: 0 4em;
+  padding-bottom: 2px;
 }
 
-#header-logo {
-  text-align: right;
+.footnote-end {
+  margin-top: 20px;
+}
+
+.footer-textbox {
+  border-bottom: 1px solid black;
 }
 
 #overall-header {
-  margin-bottom: -5px;
+  margin-bottom: -10px;
+}
+
+.date {
+  text-align: right;
+  height: 45px;
+  padding-top: 25px !important;
+  color:#58585a;
+  padding-right: 0px !important;
 }
 
 @page {
@@ -205,14 +240,12 @@ td.table-element {
 }
 
 #country-table tr:last-child{
-  background-color: #f0f0f0;
-  border-bottom: 0px;
   font-weight: normal;
+  background-color: #fff;
 }
 
 #sector-table tr:last-child{
-  background-color: #007db5;
-  border-bottom: 0px;
+  background-color: #fff;
   font-weight: normal;
 }
 
@@ -228,8 +261,9 @@ td.table-element {
 #bond-table tr:first-child td:first-child{
   padding-left: 8px;
 }
-#bond-table{
-  margin-top: 1.7rem;
+
+#risk-score td:first-child{
+  width: 40%;
 }
 
 .vert-text {
@@ -256,11 +290,12 @@ table {
 td,
 th {
   border: 0px solid #ddd;
-  padding: 3px;
+  padding: 2px;
 }
 
 th {
   text-align: center;
+  font-weight: normal;
 }
 
 table.tiny-header tr:first-child {
@@ -269,7 +304,7 @@ table.tiny-header tr:first-child {
 
 .columns {
   margin-left: 0 !important;
-  padding: 0em 1em;
+  padding: 0em 2em;
 }
 
 .row > .columns:not(:first-child) {
@@ -294,7 +329,7 @@ h6 {
 }
 
 .tcw-logo {
-  height: 60px;
+  height: 45px;
   width: auto; 
 }
 
@@ -334,7 +369,6 @@ li {
   color: #3a3a3a;
   font-size: 40px !important;
   width: 80%;
-  border-left: 13px solid #007DB5;
   background: #ffffff;
   padding-left: 30px;
 }

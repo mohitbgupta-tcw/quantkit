@@ -86,9 +86,13 @@ class ESGCharacteristics(visualizor.PDFCreator):
         header_text = [
             html.H3("Sustainable Characteristics", id="overall-header"),
             html.H5(f"{self.portfolio_name}"),
-            html.H6(f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS"),
-            html.H6(
-                f"""AS OF {self.as_of_date.strftime("%d %B %Y")} | SHARE CLASS: IU"""
+            html.P(
+                f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS",
+                className="sub-header",
+            ),
+            html.P(
+                f"""AS OF {self.as_of_date.strftime("%d %B %Y")} | SHARE CLASS: IU""",
+                className="sub-header",
             ),
         ]
         return super().add_header(header_text)
@@ -104,20 +108,58 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             row with footer Div
         """
-        footnote_text = [
-            "Source: TCW, Bloomberg, MSCI, ISS",
-            html.Br(),
-            html.B("1 Weighted Average Carbon Intensity"),
-            """ represents the MV weighted portfolio company’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales in $M. Applies to corporates and quasi-sovereigns. """,
-            html.B("2 Every issuer or company is assigned a risk score"),
-            """ from 1 (leader) to 5 (laggard) across Environmental & Social, Governance, and Transition risks. """,
-            html.B("3 Risk Overall"),
-            """ is classified as “Leading” if the average score the 3 dimensions  is less than or equal to 2, “Average” if the average score is less than or equal to 4 and greater than 2, and “Poor” if any of scores is a laggard (5). Lack of data disclosures may result in a “Poor” score. """,
-            html.B("Not scored"),
-            """ securities represent securities that are not evaluated for the purposes of sustainable characteristics. These include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash. """,
-            html.B("4 Data is based on TCW analyst assessment"),
-            """ which is informed by third party classification of product and services, fundamental analysis of companies, and engagement. """,
-        ]
+        if self.portfolio_type == "em":
+            footnote_text = [
+                html.Span("Source: TCW, Bloomberg, MSCI, ISS", className="size11"),
+                html.Br(className="m"),
+                """1 """,
+                html.B(" Weighted Average Carbon Intensity"),
+                """ measure represents the weighted average summary of the portfoliocompany’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales""",
+                html.Br(),
+                html.Span("in million USD.", className="indent"),
+                html.Br(),
+                """ 2 With respect to the specific sustainable investment objective of reducing the carbon intensity of the corporate and quasi-sovereign holdings relative to the broader representative universe of Emerging Market corporate and quasi""",
+                html.Br(),
+                html.Span(
+                    "sovereign holdings, this Sub-Fund utilizes a custom combination of the JP Morgan CEMBI Broad Diversified Index and quasi-sovereign issuers in the JP Morgan EMBI Global Diversified Index to determine the appropriate",
+                    className="indent",
+                ),
+                html.Br(),
+                html.Span("constituents.", className="indent"),
+                html.Br(),
+                """ 3 """,
+                html.B("Carbon intensity reduction"),
+                """ relative to custom benchmark. Applies to corporates and quasi-sovereigns. """,
+                html.Br(className="m"),
+                html.Span(
+                    [
+                        html.B(
+                            "Index - JP Morgan EMBI Global Diversified (EMBI GD) from inception through 20 July 2022; JP Morgan ESG EMBI Global Diversified (JESG EMBIG) thereafter."
+                        ),
+                        """ EMBI GD is a market capitalization-weighted total return index of U.S. dollar-denominated Brady bonds, loans, and Eurobond instruments traded in emerging markets. JESG EMBIG tracks liquid, US Dollar emerging market fixed and floating-rate debt instruments issued by sovereign and quasi-sovereign entities. The index applies an ESG scoring and screening methodology to tilt toward issuers ranked higher on ESG criteria and green bond issues, and to underweight and remove issuers that rank lower. The indices are not available for direct investment; therefore performance does not reflect a reduction for fees or expenses incurred in managing a portfolio.""",
+                    ],
+                ),
+            ]
+        else:
+            footnote_text = [
+                "Source: TCW, Bloomberg, MSCI, ISS",
+                html.Br(),
+                html.B("1 Weighted Average Carbon Intensity"),
+                """ represents the MV weighted portfolio company’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales in $M. Applies to corporates and quasi-sovereigns. """,
+                html.B("2 Every issuer or company is assigned a risk score"),
+                """ from 1 (leader) to 5 (laggard) across Environmental & Social, Governance, and Transition risks. """,
+                html.B("3 Risk Overall"),
+                """ is classified as “Leading” if the average score the 3 dimensions  is less than or equal to 2, “Average” if the average score is less than or equal to 4 and greater than 2, and “Poor” if any of scores is a laggard (5). Lack of data disclosures may result in a “Poor” score. """,
+                html.B("Not scored"),
+                """ securities represent securities that are not evaluated for the purposes of sustainable characteristics. These include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash. """,
+                html.B("4 Data is based on TCW analyst assessment"),
+                """ which is informed by third party classification of product and services, fundamental analysis of companies, and engagement. """,
+                html.Br(),
+                html.B(
+                    "Index - JP Morgan EMBI Global Diversified (EMBI GD) from inception through 20 July 2022; JP Morgan ESG EMBI Global Diversified (JESG EMBIG) thereafter."
+                ),
+                """ EMBI GD is a market capitalization-weighted total return index of U.S. dollar-denominated Brady bonds, loans, and Eurobond instruments traded in emerging markets. JESG EMBIG tracks liquid, US Dollar emerging market fixed and floating-rate debt instruments issued by sovereign and quasi-sovereign entities. The index applies an ESG scoring and screening methodology to tilt toward issuers ranked higher on ESG criteria and green bond issues, and to underweight and remove issuers that rank lower. The indices are not available for direct investment; therefore performance does not reflect a reduction for fees or expenses incurred in managing a portfolio.""",
+            ]
         return super().add_footnote(footnote_text)
 
     def add_body_equity_fi(self) -> html.Div:
@@ -297,14 +339,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
             [
                 html.H6(
                     [
-                        "TCW ESG Risk Score Distribution",
-                        html.Sup(2, className="superscript"),
+                        "TCW ESG Risk Score ",
+                        html.A("(1 (leader) to 5 (laggard))", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
-                self.add_table(
-                    df_risk_score_distr, show_vertical_lines=True, show_header=True
-                ),
+                self.add_table(df_risk_score_distr, show_header=True, id="risk-score"),
             ],
             className="row",
             id="esg-scores",
@@ -634,14 +674,18 @@ class ESGCharacteristics(visualizor.PDFCreator):
             div with WACI table and header
         """
         country = portfolio_utils.calculate_country_distribution(self.portfolio_data)
+        country["Contribution"] = country["Contribution"] * 100
         country["Contribution"] = (
-            country["Contribution"].astype(float).map("{:.2%}".format)
+            country["Contribution"].astype(float).map("{:.2f}".format)
         )
 
         country_div = html.Div(
             [
                 html.H6(
-                    ["Labeled Bonds by Country (%labeled Bonds)"],
+                    [
+                        "Labeled Bonds by Country ",
+                        html.A("(%labeled Bonds)", className="mv"),
+                    ],
                     className="subtitle padded",
                 ),
                 self.add_table(country),
@@ -662,14 +706,18 @@ class ESGCharacteristics(visualizor.PDFCreator):
             div with WACI table and header
         """
         sector = portfolio_utils.calculate_sector_distribution(self.portfolio_data)
+        sector["Contribution"] = sector["Contribution"] * 100
         sector["Contribution"] = (
-            sector["Contribution"].astype(float).map("{:.2%}".format)
+            sector["Contribution"].astype(float).map("{:.2f}".format)
         )
 
         sector_div = html.Div(
             [
                 html.H6(
-                    ["Labeled Bonds by Sector (%labeled Bonds)"],
+                    [
+                        "Labeled Bonds by Sector ",
+                        html.A("(%labeled Bonds)", className="mv"),
+                    ],
                     className="subtitle padded",
                 ),
                 self.add_table(sector),
@@ -727,9 +775,16 @@ class ESGCharacteristics(visualizor.PDFCreator):
 
         chart = html.Div(
             [
-                html.H6(
-                    "TCW Sustainable Classification (%MV)",
-                    className="subtitle padded",
+                html.Div(
+                    [
+                        html.H6(
+                            [
+                                "TCW Sustainable Classification ",
+                                html.A("(%MV)", className="mv"),
+                            ],
+                            className="subtitle padded",
+                        ),
+                    ]
                 ),
                 self.add_pie_chart(
                     labels=df["SCLASS_Level2"],

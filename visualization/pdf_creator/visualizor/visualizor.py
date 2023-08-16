@@ -3,6 +3,7 @@ from dash import dcc
 from dash import html
 import pandas as pd
 import numpy as np
+from datetime import datetime
 from typing import Union
 import quantkit.visualization.pdf_creator.plots.bar_chart as bar_chart
 import quantkit.visualization.pdf_creator.plots.line_chart as line_chart
@@ -67,19 +68,8 @@ class PDFCreator(object):
                             header_text,
                             className="seven columns main-title",
                         ),
-                        html.Div(
-                            [
-                                html.Img(
-                                    src=self.app.get_asset_url("tcw_logo.png"),
-                                    className="tcw-logo",
-                                )
-                            ],
-                            className="five columns",
-                            id="header-logo",
-                        ),
                     ],
                     className="twelve columns",
-                    style={"padding-left": "0"},
                 ),
             ],
             className="row header",
@@ -104,7 +94,26 @@ class PDFCreator(object):
         """
         footnote = html.Div(
             [
-                html.P(footnote_text),
+                html.P(footnote_text, className="footer-textbox"),
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                html.Img(
+                                    src=self.app.get_asset_url("tcw_logo.png"),
+                                    className="tcw-logo",
+                                )
+                            ],
+                            className="five columns",
+                            id="header-logo",
+                        ),
+                        html.Div(
+                            datetime.today().strftime("%m/%d/%Y"),
+                            className="seven columns date",
+                        ),
+                    ],
+                    className="twelve columns footnote-end",
+                ),
             ],
             className="row footnote",
         )

@@ -95,9 +95,11 @@ class Table(object):
                             row[i][:-1],
                             html.Sup(row[i][-1], className="superscript"),
                         ]
+                        class_superscript = class_td + " superscript-padding"
+                        html_row.append(html.Td(td, className=class_superscript))
                     else:
                         td = [row[i]]
-                    html_row.append(html.Td(td, className=class_td))
+                        html_row.append(html.Td(td, className=class_td))
                 if index in self.styles:
                     class_row = " ".join(self.styles[index])
                 else:
