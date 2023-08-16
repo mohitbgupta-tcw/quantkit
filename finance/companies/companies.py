@@ -97,6 +97,9 @@ class CompanyStore(headstore.HeadStore):
                 self.msci_information["CARBON_EMISSIONS_SCOPE123"]
                 / self.msci_information["SALES_USD_RECENT"]
             )
+            # update industry medians
+            self.information["GICS_SUB_IND"].industry.update(carbon_intensity)
+            self.information["BCLASS_Level4"].industry.update(carbon_intensity)
         # numerator or denominator are zero
         # --> set carbon intensity to NA for now
         # --> replace with median later in reiteration (therefore set reiter to true)
@@ -322,14 +325,13 @@ class CompanyStore(headstore.HeadStore):
 
         # subtract target score
         industry = self.information["Industry"]
-        sub_sector = self.information["Sub-Industry"]
         transition_score = industry.initial_score + self.scores["Target_Score"]
 
         # carbon intensity quantile credit
         ci = self.information["Carbon Intensity (Scope 123)"]
-        if ci < sub_sector.information["Sub-Sector Q Low"]:
+        if ci < industry.Q_Low_score:
             transition_score -= 2
-        elif ci >= sub_sector.information["Sub-Sector Q High"]:
+        elif ci >= industry.Q_High_score:
             transition_score -= 0
         else:
             transition_score -= 1
@@ -601,8 +603,8 @@ class CompanyStore(headstore.HeadStore):
         """
         if self.information["reiter"]:
             self.information["Carbon Intensity (Scope 123)"] = self.information[
-                "Sub-Industry"
-            ].information["Sub-Sector Median"]
+                "Industry"
+            ].median
 
     def replace_unassigned_industry(
         self, high_threshold: float, industries: dict
@@ -626,11 +628,17 @@ class CompanyStore(headstore.HeadStore):
             self.information["Transition_Risk_Module"] = "High"
             industries["Unassigned BCLASS High"].companies[self.isin] = self
             self.information["Industry"] = industries["Unassigned BCLASS High"]
+            industries["Unassigned BCLASS High"].update(
+                self.information["Carbon Intensity (Scope 123)"]
+            )
         # carbon intensity smaller than threshold --> low risk
         else:
             self.information["Transition_Risk_Module"] = "Low"
             industries["Unassigned BCLASS Low"].companies[self.isin] = self
             self.information["Industry"] = industries["Unassigned BCLASS Low"]
+            industries["Unassigned BCLASS Low"].update(
+                self.information["Carbon Intensity (Scope 123)"]
+            )
 
     def iter(
         self,

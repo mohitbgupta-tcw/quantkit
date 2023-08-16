@@ -37,9 +37,10 @@
     },
 
     "category_datasource": {
-        "source": 3,
-        "table_name": "MATERIALITY_MAPPING" ,
-        "load": true 
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
+        "sheet_name": "Materiality Map_v2",
+        "load": true
     },
 
     "security_datasource": {
@@ -55,8 +56,9 @@
         }
     },
     "bloomberg_datasource": {
-        "source": 3,
-        "table_name": "BLOOMBERG_DATA",
+        "source": 1,
+        "file": "C:\\Users\\bastit\\Documents\\Risk_Score\\Input\\Portfolio_Data.xlsx",
+        "sheet_name": "Bloomberg",
         "load": true
     },
     "quandl_datasource": {
@@ -210,20 +212,24 @@
         }
     },
     "sector_datasource": {
-        "source": 3,
-        "table_name": "SECTOR_CODES",
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Portfolio_Data.xlsx",
+        "sheet_name": "Sector_Code",
         "load": true
     },
     "bclass_datasource": {
-        "source": 3,
-        "table_name": "BCLASS",
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
+        "sheet_name": "BCLASS",
         "load": true
     },
     "gics_datasource": {
-        "source": 3,
-        "table_name": "GICS",
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
+        "sheet_name": "GICS",
         "load": true
     },
+
     "exclusion_datasource": {
         "Article8": {
             "source": 1,
@@ -238,21 +244,25 @@
             "load": true
         }
     },
+
     "regions_datasource": {
-        "source": 3,
-        "table_name": "REGIONS",
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
+        "sheet_name": "Regions",
         "load": true
     },
 
     "theme_datasource": {
-        "source": 3,
-        "table_name": "THEMATIC_MAPPING",
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
+        "sheet_name": "Thematic Mapping",
         "load": true
     },
 
     "transition_datasource": {
-        "source": 3,
-        "table_name": "TRANSITION_MAPPING",
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
+        "sheet_name": "Transition Industry Mapping",
         "load": true
     },
     "adjustment_datasource": {
@@ -261,14 +271,17 @@
         "sheet_name": "Analyst Adjustment",
         "load": true
     },
+
     "securitized_datasource": {
-        "source": 3,
-        "table_name": "SECURITIZED_MAPPING",
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
+        "sheet_name": "SecuritizedMapping",
         "load": true
     },
     "parent_issuer_datasource": {
-        "source": 3,
-        "table_name": "PARENT_ISSUER_MAPPING",
+        "source": 1,
+        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
+        "sheet_name": "ApplyParentIssuer",
         "load": true
     },
     "theme_calculation": {
