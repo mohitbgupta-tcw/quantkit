@@ -153,10 +153,10 @@ To change the input data, just change the file linked to in the parameters file.
 ```shell
 > git clone copied_path_from_step_above
 ```
-- This clones the repository to your machine. Activate the ml_azure branch by typing the following commands into the terminal:
+- This clones the repository to your machine. Activate the develop branch by typing the following commands into the terminal:
 ```shell
 > cd quantkit
-> git checkout ml_azure
+> git checkout develop
 ```
 - You might be asked to add an excemption for this directory in order to run the command above. Copy and run the command provided in the error message and run the checkout again after.
 - Create a notebook inside your top folder on the same level as quantkit.
@@ -165,7 +165,7 @@ To change the input data, just change the file linked to in the parameters file.
 ```shell
 pip install -r "quantkit/requirements.txt"
 ```
-- ATTENTION: please do not make changes to the ml_azure branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
+- ATTENTION: please do not make changes to the develop branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
 
 ### Configarations
 
