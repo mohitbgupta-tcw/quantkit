@@ -52,9 +52,16 @@ def calculate_portfolio_esrm(df: pd.DataFrame) -> float:
         portfolio's ESRM score
     """
     df["market_weight_esrm"] = df["Portfolio Weight"] / 100 * df["ESRM Score"]
+    df_filtered = df[~((df["ESRM Score"] == 5) & (df["NA_Flags_ESRM"] >= 7))]
+    df_filtered = df_filtered[
+        ~(
+            (df_filtered["Governance Score"] == 5)
+            & (df_filtered["NA_Flags_Governance"] >= 7)
+        )
+    ]
     esrm = (
-        sum(df[df["market_weight_esrm"] > 0]["market_weight_esrm"])
-        / sum(df[df["market_weight_esrm"] > 0]["Portfolio Weight"])
+        sum(df_filtered[df_filtered["market_weight_esrm"] > 0]["market_weight_esrm"])
+        / sum(df_filtered[df_filtered["market_weight_esrm"] > 0]["Portfolio Weight"])
         * 100
     )
     return esrm
@@ -77,9 +84,22 @@ def calculate_portfolio_governance(df: pd.DataFrame) -> float:
     df["market_weight_governance"] = (
         df["Portfolio Weight"] / 100 * df["Governance Score"]
     )
+    df_filtered = df[~((df["ESRM Score"] == 5) & (df["NA_Flags_ESRM"] >= 7))]
+    df_filtered = df_filtered[
+        ~(
+            (df_filtered["Governance Score"] == 5)
+            & (df_filtered["NA_Flags_Governance"] >= 7)
+        )
+    ]
     gov = (
-        sum(df[df["market_weight_governance"] > 0]["market_weight_governance"])
-        / sum(df[df["market_weight_governance"] > 0]["Portfolio Weight"])
+        sum(
+            df_filtered[df_filtered["market_weight_governance"] > 0][
+                "market_weight_governance"
+            ]
+        )
+        / sum(
+            df_filtered[df_filtered["market_weight_governance"] > 0]["Portfolio Weight"]
+        )
         * 100
     )
     return gov
@@ -102,12 +122,48 @@ def calculate_portfolio_transition(df: pd.DataFrame) -> float:
     df["market_weight_transition"] = (
         df["Portfolio Weight"] / 100 * df["Transition Score"]
     )
+    df_filtered = df[~((df["ESRM Score"] == 5) & (df["NA_Flags_ESRM"] >= 7))]
+    df_filtered = df_filtered[
+        ~(
+            (df_filtered["Governance Score"] == 5)
+            & (df_filtered["NA_Flags_Governance"] >= 7)
+        )
+    ]
     trans = (
-        sum(df[df["market_weight_transition"] > 0]["market_weight_transition"])
-        / sum(df[df["market_weight_transition"] > 0]["Portfolio Weight"])
+        sum(
+            df_filtered[df_filtered["market_weight_transition"] > 0][
+                "market_weight_transition"
+            ]
+        )
+        / sum(
+            df_filtered[df_filtered["market_weight_transition"] > 0]["Portfolio Weight"]
+        )
         * 100
     )
     return trans
+
+
+def calculate_portfolio_sovereign(df: pd.DataFrame) -> float:
+    """
+    For a given portfolio, calculate the market weighted Sovereign score
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    float
+        portfolio's Sovereign score
+    """
+    df["market_weight_sovereign"] = df["Portfolio Weight"] / 100 * df["Sovereign Score"]
+    sov = (
+        sum(df[df["market_weight_sovereign"] > 0]["market_weight_sovereign"])
+        / sum(df[df["market_weight_sovereign"] > 0]["Portfolio Weight"])
+        * 100
+    )
+    return sov
 
 
 def calculate_risk_distribution(df: pd.DataFrame) -> dict:
@@ -321,6 +377,7 @@ def calculate_country_distribution(df: pd.DataFrame) -> pd.DataFrame:
     )
     df_filtered = df_filtered.sort_values("Contribution", ascending=False)
     df_filtered = df_filtered[["Country of Risk", "Contribution"]]
+    df_filtered["Country of Risk"] = df_filtered["Country of Risk"].str.title()
     return df_filtered
 
 
@@ -378,6 +435,15 @@ def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
         "ESG Scores": "#91bcd1",
         "Exclusion": "#cd523a",
     }
+    sort = {
+        "ESG-Labeled Bonds": 1,
+        "Transition": 2,
+        "ESG Scores": 3,
+        "Exclusion": 4,
+    }
     df_grouped = df.groupby("SCLASS_Level2")["Portfolio Weight"].sum().reset_index()
+    df_grouped["Sort"] = df_grouped["SCLASS_Level2"].map(sort)
+    df_grouped = df_grouped.sort_values("Sort", ignore_index=True)
+    df_grouped = df_grouped.drop("Sort", axis=1)
     df_grouped["Color"] = df_grouped["SCLASS_Level2"].map(color)
     return df_grouped

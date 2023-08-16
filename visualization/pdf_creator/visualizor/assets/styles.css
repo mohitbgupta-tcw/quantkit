@@ -128,6 +128,57 @@ body {
   padding-right: 0px !important;
 }
 
+.slicetext text {
+  font-weight: bold;
+  color: #000;
+  fill: #000 !important;
+}
+
+#donut-legend {
+  width: 90%;
+  margin-left: 17%;
+}
+
+#donut-legend tr {
+  border: none;
+}
+
+#donut-legend tr:last-child {
+  background-color: #fff;
+  font-weight: normal;
+}
+
+#donut-legend tr td:first-child {
+  width: 50%;
+}
+
+.square {
+  display: inline-block;
+  border-radius: 5px;
+  border: 1px solid white;
+  height: 13px;
+  width: 13px;
+  vertical-align: middle;
+  margin-right: 6px;
+  margin-bottom: 2px;
+}
+
+.bg-82b460 {
+  background-color: #82b460;
+}
+
+.bg-0072a0 {
+  background-color: #0072a0;
+}
+
+.bg-cd523a {
+  background-color: #cd523a;
+}
+
+.bg-91bcd1 {
+  background-color: #91bcd1;
+}
+
 @page {
   size: A4;
   margin: 0;
@@ -182,6 +233,11 @@ tr:nth-child(odd) {
 
 tr:last-child {
   background-color: #d2d3d5;
+  font-weight: bold;
+}
+
+.grey-row {
+  background-color: #d2d3d5 !important;
   font-weight: bold;
 }
 
@@ -465,6 +521,10 @@ a:active {
   padding-right: 15px;
   text-transform: none;
   margin: 25px 25px;
+}
+
+.js-plotly-plot .plotly, .js-plotly-plot .plotly div {
+  margin: auto !important;
 }
 
 /* for screens smaller than 768px */

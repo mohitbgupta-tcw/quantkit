@@ -301,6 +301,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with scores table and header
         """
+        styles = {}
         esrm_portfolio = portfolio_utils.calculate_portfolio_esrm(self.portfolio_data)
         esrm_index = portfolio_utils.calculate_portfolio_esrm(self.benchmark_data)
         gov_portfolio = portfolio_utils.calculate_portfolio_governance(
@@ -317,21 +318,39 @@ class ESGCharacteristics(visualizor.PDFCreator):
         total_portfolio = (esrm_portfolio + gov_portfolio + trans_portfolio) / 3
         total_index = (esrm_index + gov_index + trans_index) / 3
 
+        labels = ["E&S", "Governance", "Transition", "Corp/Quasis"]
+        portfolio = [
+            "{0:.2f}".format(esrm_portfolio),
+            "{0:.2f}".format(gov_portfolio),
+            "{0:.2f}".format(trans_portfolio),
+            "{0:.2f}".format(total_portfolio),
+        ]
+        ind = [
+            "{0:.2f}".format(esrm_index),
+            "{0:.2f}".format(gov_index),
+            "{0:.2f}".format(trans_index),
+            "{0:.2f}".format(total_index),
+        ]
+
+        if self.portfolio_type == "em":
+            sov_portfolio = portfolio_utils.calculate_portfolio_sovereign(
+                self.portfolio_data
+            )
+            sov_index = portfolio_utils.calculate_portfolio_sovereign(
+                self.benchmark_data
+            )
+
+            labels.append("Sovereign")
+            portfolio.append("{0:.2f}".format(sov_portfolio))
+            ind.append("{0:.2f}".format(sov_index))
+
+            styles = {3: ["grey-row"]}
+
         df_risk_score_distr = pd.DataFrame(
             data={
-                "": ["E&S", "Governance", "Transition", "Overall"],
-                "Portfolio": [
-                    "{0:.2f}".format(esrm_portfolio),
-                    "{0:.2f}".format(gov_portfolio),
-                    "{0:.2f}".format(trans_portfolio),
-                    "{0:.2f}".format(total_portfolio),
-                ],
-                "Index": [
-                    "{0:.2f}".format(esrm_index),
-                    "{0:.2f}".format(gov_index),
-                    "{0:.2f}".format(trans_index),
-                    "{0:.2f}".format(total_index),
-                ],
+                "": labels,
+                "Portfolio": portfolio,
+                "Index": ind,
             }
         )
 
@@ -344,7 +363,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     ],
                     className="subtitle padded",
                 ),
-                self.add_table(df_risk_score_distr, show_header=True, id="risk-score"),
+                self.add_table(
+                    df_risk_score_distr,
+                    show_header=True,
+                    id="risk-score",
+                    styles=styles,
+                ),
             ],
             className="row",
             id="esg-scores",
@@ -772,6 +796,26 @@ class ESGCharacteristics(visualizor.PDFCreator):
             div with donut chart and header
         """
         df = portfolio_utils.calculate_sustainable_classification(self.portfolio_data)
+        table = []
+        legend_row = []
+        for index, row in df.iterrows():
+            label = row["SCLASS_Level2"]
+            color = row["Color"][1:]
+            if index % 2 == 0:
+                legend_row.append(
+                    html.Td(
+                        [html.Div(className=f"square bg-{color}"), html.Span([label])]
+                    )
+                )
+            else:
+                legend_row.append(
+                    html.Td(
+                        [html.Div(className=f"square bg-{color}"), html.Span([label])]
+                    )
+                )
+                table.append(html.Tr(legend_row))
+                legend_row = []
+        legend = html.Table(table, id="donut-legend")
 
         chart = html.Div(
             [
@@ -791,8 +835,10 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     values=df["Portfolio Weight"],
                     color=df["Color"],
                     hole=0.5,
-                    width=350,
+                    width=230,
+                    height=230,
                 ),
+                legend,
             ],
             className="row sust-pie",
         )
