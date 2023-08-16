@@ -1,3 +1,4 @@
+import os
 import requests
 from base64 import b64encode
 import json
@@ -61,11 +62,94 @@ class MSCI(object):
             filters["issuer_identifier_list"] = batch
             inp = json.dumps(filters)
 
-            response = requests.request(
-                "POST", self.url, headers=headers, data=inp, verify="quantkit/certs.crt"
-            )
+            if os.name == "posix":
+                response = requests.request("POST", self.url, headers=headers, data=inp)
+            elif os.name == "nt":
+                response = requests.request(
+                    "POST",
+                    self.url,
+                    headers=headers,
+                    data=inp,
+                    verify="quantkit/certs.crt",
+                )
+            else:
+                response = requests.request(
+                    "POST",
+                    self.url,
+                    headers=headers,
+                    data=inp,
+                    verify="quantkit/certs.crt",
+                )
             message = response.json()["messages"]
             if message:
                 logging.log(message)
             df = pd.DataFrame(response.json()["result"]["issuers"])
             self.df = pd.concat([self.df, df], ignore_index=True)
+
+    def load_historical(self) -> None:
+        """
+        Load data from MSCI API and save as pd.DataFrame in self.df
+        """
+        b64login = b64encode(
+            bytes(
+                "%s:%s"
+                % (
+                    self.key,
+                    self.secret,
+                ),
+                encoding="utf-8",
+            )
+        ).decode("utf-8")
+
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": "Basic %s" % b64login,
+        }
+
+        self.df = pd.DataFrame()
+        inp = json.dumps(self.filters)
+
+        response = requests.request(
+            "POST",
+            self.url,
+            headers=headers,
+            data=inp,
+            verify="quantkit/certs.crt",
+        )
+        message = response.json()["messages"]
+        if message:
+            logging.log(message)
+        batches = response.json()["result"]["response_metadata"][
+            "total_number_of_batches"
+        ]
+        data_request_id = response.json()["result"]["response_metadata"][
+            "data_request_id"
+        ]
+
+        for batch in range(batches):
+            logging.log(f"Batch: {batch+1}")
+            url = f"https://api2.msci.com/esg/data/v1.0/issuers/history"
+            js = {"batch_id": batch + 1, "data_request_id": data_request_id}
+            r_batch = requests.request(
+                "POST", url, headers=headers, json=js, verify="quantkit/certs.crt"
+            )
+            r = r_batch.json()["result"]["data"]
+            data_list = []
+            for i, c in enumerate(r):
+                issuer = r[i]["requested_id"]
+                for j, f in enumerate(r[i]["factors"]):
+                    factor_name = r[i]["factors"][j]["name"]
+                    data = r[i]["factors"][j]["data_values"]
+                    for k, d in enumerate(data):
+                        value = data[k]["value"]
+                        aod = data[k]["as_of_date"]
+                        data_list.append((issuer, factor_name, value, aod))
+            df = pd.DataFrame(
+                data=data_list, columns=["Client_ID", "Factor", "Value", "As_Of_Date"]
+            )
+            self.df = pd.concat([self.df, df], ignore_index=True)
+
+        self.df = self.df.pivot(
+            index=["Client_ID", "As_Of_Date"], columns="Factor", values="Value"
+        ).reset_index()

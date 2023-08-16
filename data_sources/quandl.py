@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from copy import deepcopy
 import nasdaqdatalink
@@ -28,7 +29,8 @@ class Quandl(object):
         Load data from quandl API and save as pd.DataFrame in self.df
         """
         nasdaqdatalink.ApiConfig.api_key = self.key
-        nasdaqdatalink.ApiConfig.verify_ssl = "quantkit/certs.crt"
+        if os.name == "nt":
+            nasdaqdatalink.ApiConfig.verify_ssl = "quantkit/certs.crt"
 
         batches = list(util_functions.divide_chunks(self.filters["ticker"], 400))
         self.df = pd.DataFrame()
