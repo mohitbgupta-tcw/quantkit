@@ -34,3 +34,38 @@ class Runner(loader.Runner):
         self.iter_sovereigns()
         self.iter_securitized()
         self.iter_muni()
+
+    def calculate_portfolio_value(self) -> None:
+        """
+        Calculate PAI - Mandatory 1.1 - Scope 1 GHG Emissions
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_portfolio_value(
+                self.params["exchange_rate"]
+            )
+
+    def calculate_pai_1_1(self) -> None:
+        """
+        Calculate PAI - Mandatory 1.1 - Scope 1 GHG Emissions
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_impact(
+                "CARBON_EMISSIONS_SCOPE_1"
+            )
+
+    def calculate_pai_1_2(self) -> None:
+        """
+        Calculate PAI - Mandatory 1.1 - Scope 1 GHG Emissions
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_impact(
+                "CARBON_EMISSIONS_SCOPE_2"
+            )
+
+    def run(self) -> None:
+        """
+        run calculations
+        """
+        self.calculate_portfolio_value()
+        self.calculate_pai_1_1()
+        self.calculate_pai_1_2()
