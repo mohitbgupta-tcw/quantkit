@@ -118,7 +118,10 @@ class MSCI(object):
             r_batch = requests.request(
                 "POST", url, headers=headers, json=js, verify="quantkit/certs.crt"
             )
-            r = r_batch.json()["result"]["data"]
+            try:
+                r = r_batch.json()["result"]["data"]
+            except:
+                continue
             data_list = []
             for i, c in enumerate(r):
                 issuer = r[i]["requested_id"]
