@@ -201,6 +201,27 @@ class Runner(loader.Runner):
         for p in self.portfolio_datasource.portfolios:
             self.portfolio_datasource.portfolios[p].calculate_hazardous_waste()
 
+    def calculate_pai_10(self) -> None:
+        """
+        Calculate PAI - Mandatory 10 - Violations of UN Global Compact
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_violations_un()
+
+    def calculate_pai_11(self) -> None:
+        """
+        Calculate PAI - Mandatory 11 - Lack of Processes to Monitor of UNGC and OECD
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_lack_of_process()
+
+    def calculate_pai_12(self) -> None:
+        """
+        Calculate PAI - Mandatory 12 - Unadjusted Gender Pay Gap
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_gender_pay_gap()
+
     def run(self) -> None:
         """
         run calculations
@@ -226,3 +247,6 @@ class Runner(loader.Runner):
         self.calculate_pai_7()
         self.calculate_pai_8()
         self.calculate_pai_9()
+        self.calculate_pai_10()
+        self.calculate_pai_11()
+        self.calculate_pai_12()

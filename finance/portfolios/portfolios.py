@@ -306,7 +306,7 @@ class PortfolioStore(object):
 
     def calculate_biodiversity(self) -> None:
         """
-        Calculate Exposure to Fossil Fuels
+        Calculate Exposure to biodiversty controversies
         """
         data = list()
         total_weight = 0
@@ -429,16 +429,16 @@ class PortfolioStore(object):
             "data": data,
         }
 
-    def calculate_biodiversity(self) -> None:
+    def calculate_violations_un(self) -> None:
         """
-        Calculate Exposure to Fossil Fuels
+        Calculate Violations of UN Global Compact
         """
         data = list()
         total_weight = 0
         for s in self.holdings:
             t = self.holdings[s]["object"].parent_store.type
             value = self.holdings[s]["object"].parent_store.msci_information[
-                "OPS_PROT_BIODIV_CONTROVS"
+                "OVERALL_FLAG"
             ]
             for h in self.holdings[s]["holding_measures"]:
                 weight = h["Portfolio_Weight"]
@@ -448,7 +448,7 @@ class PortfolioStore(object):
                     data.append(
                         {
                             "ISIN": s,
-                            "OPS_PROT_BIODIV_CONTROVS": value,
+                            "OVERALL_FLAG": value,
                             "Portfolio_Weight": weight,
                         }
                     )
@@ -456,12 +456,85 @@ class PortfolioStore(object):
         impact = 0
         for s in data:
             norm_weight = s["Portfolio_Weight"] / total_weight
-            if s["OPS_PROT_BIODIV_CONTROVS"] == "Yes":
+            if s["OVERALL_FLAG"] == "Red":
                 impact += norm_weight
         coverage = total_weight / self.initial_weight_corp
 
-        self.impact_data["Biodiversity_Controv"] = {
+        self.impact_data["UN_violations"] = {
             "impact": impact * 100,
+            "coverage": coverage,
+            "data": data,
+        }
+
+    def calculate_lack_of_process(self) -> None:
+        """
+        Calculate Lack of Processes to Monitor of UNGC and OECD
+        """
+        data = list()
+        total_weight = 0
+        for s in self.holdings:
+            t = self.holdings[s]["object"].parent_store.type
+            value = self.holdings[s]["object"].parent_store.msci_information[
+                "MECH_UN_GLOBAL_COMPACT"
+            ]
+            for h in self.holdings[s]["holding_measures"]:
+                weight = h["Portfolio_Weight"]
+
+                if not (pd.isna(value) or weight == 0) and t == "company":
+                    total_weight += weight
+                    data.append(
+                        {
+                            "ISIN": s,
+                            "MECH_UN_GLOBAL_COMPACT": value,
+                            "Portfolio_Weight": weight,
+                        }
+                    )
+
+        impact = 0
+        for s in data:
+            norm_weight = s["Portfolio_Weight"] / total_weight
+            if s["MECH_UN_GLOBAL_COMPACT"] == "No evidence":
+                impact += norm_weight
+        coverage = total_weight / self.initial_weight_corp
+
+        self.impact_data["MECH_UN_GLOBAL_COMPACT"] = {
+            "impact": impact * 100,
+            "coverage": coverage,
+            "data": data,
+        }
+
+    def calculate_gender_pay_gap(self) -> None:
+        """
+        Calculate Unadjusted Gender Pay Gap
+        """
+        data = list()
+        total_weight = 0
+        for s in self.holdings:
+            t = self.holdings[s]["object"].parent_store.type
+            value = self.holdings[s]["object"].parent_store.msci_information[
+                "GENDER_PAY_GAP_RATIO"
+            ]
+            for h in self.holdings[s]["holding_measures"]:
+                weight = h["Portfolio_Weight"]
+
+                if not (pd.isna(value) or weight == 0) and t == "company":
+                    total_weight += weight
+                    data.append(
+                        {
+                            "ISIN": s,
+                            "GENDER_PAY_GAP_RATIO": value,
+                            "Portfolio_Weight": weight,
+                        }
+                    )
+
+        impact = 0
+        for s in data:
+            norm_weight = s["Portfolio_Weight"] / total_weight
+            impact += s["GENDER_PAY_GAP_RATIO"] * norm_weight
+        coverage = total_weight / self.initial_weight_corp
+
+        self.impact_data["GENDER_PAY_GAP_RATIO"] = {
+            "impact": impact,
             "coverage": coverage,
             "data": data,
         }

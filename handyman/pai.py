@@ -48,6 +48,9 @@ def principal_adverse_impact(local_configs: str = "") -> pd.DataFrame:
         "Biodiversity_Controv": "7 - Activities Neg Affecting Biodiversity",
         "WATER_EM": "8 - Emissions to Water",
         "HAZARD_WASTE": "9 - Hazardous Waste Ratio",
+        "UN_violations": "10 - Violations of UNGC and OECD",
+        "MECH_UN_GLOBAL_COMPACT": "11 - Lack of Processes to Monitor of UNGC and OECD",
+        "GENDER_PAY_GAP_RATIO": "12 - Unadjusted Gender Pay Gap",
     }
 
     data = []
