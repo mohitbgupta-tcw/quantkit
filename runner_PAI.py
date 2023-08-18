@@ -194,6 +194,13 @@ class Runner(loader.Runner):
         for p in self.portfolio_datasource.portfolios:
             self.portfolio_datasource.portfolios[p].calculate_water_emissions()
 
+    def calculate_pai_9(self) -> None:
+        """
+        Calculate PAI - Mandatory 9 - Hazardous Waste Ratio
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_hazardous_waste()
+
     def run(self) -> None:
         """
         run calculations
@@ -218,3 +225,4 @@ class Runner(loader.Runner):
         self.calculate_pai_6l()
         self.calculate_pai_7()
         self.calculate_pai_8()
+        self.calculate_pai_9()
