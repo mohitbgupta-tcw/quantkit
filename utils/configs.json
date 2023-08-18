@@ -26,6 +26,10 @@
     
         "quandl_parameters": {
             "key": "MxE6oNePp886npLJ2CGs"
+        },
+
+        "fred_parameters": {
+            "key": "eb4f46c42913c92951a8c64d545598ca"
         }
     },
     

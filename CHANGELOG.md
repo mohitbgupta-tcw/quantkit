@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - load historical data through MSCI API
 - run snowflake locally with python 3.10 environment
+- Quandl handyman functionality
+- FRED API and handyman functionality
 
 ### Fixed
 
