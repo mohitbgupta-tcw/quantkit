@@ -1,11 +1,7 @@
 import quantkit.runner_PAI as runner
-import quantkit.utils.configs as configs
-import quantkit.handyman.msci_data_loader as msci_data_loaders
-import quantkit.utils.util_functions as util_functions
+import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 import numpy as np
-import json
-import os
 
 
 def principal_adverse_impact(local_configs: str = "") -> pd.DataFrame:
@@ -27,40 +23,6 @@ def principal_adverse_impact(local_configs: str = "") -> pd.DataFrame:
     r.init(local_configs=local_configs)
     r.run()
 
-    name_mapping = {
-        "CARBON_EMISSIONS_SCOPE_1": "1.1 - Scope 1 GHG Emissions",
-        "CARBON_EMISSIONS_SCOPE_2": "1.2 - Scope 2 GHG Emissions",
-        "CARBON_EMISSIONS_SCOPE_3_TOTAL": "1.3 - Scope 3 GHG Emissions",
-        "CARBON_EMISSIONS_SCOPE123": "1.4 - Total GHG Emissions (Scope 1,2,3)",
-        "Carbon_Footprint": "2 - Carbon Footprint (Scope 1+2+3)",
-        "WACI": "3 - Weighted Average Carbon Intensity (Scope 1+2+3)",
-        "Fossil_Fuel_Exposure": "4 - Fossil Fuel Exposure",
-        "PCT_NONRENEW_CONSUMP_PROD_WEIGHTED": "5 - Non-Renewable Energy Consumption and Production",
-        "Energy_Consumption_A": "6A - Energy Consumption Intensity by NACE (Agriculture, Foresty, Fishing)",
-        "Energy_Consumption_B": "6B - Energy Consumption Intensity by NACE (Mining and Quarrying)",
-        "Energy_Consumption_C": "6C - Energy Consumption Intensity by NACE (Manufacturing)",
-        "Energy_Consumption_D": "6D - Energy Consumption Intensity by NACE (Electricity, Gas Steam and Air Conditioning Supply)",
-        "Energy_Consumption_E": "6E - Energy Consumption Intensity by NACE (Manufacturing)",
-        "Energy_Consumption_F": "6F - Energy Consumption Intensity by NACE (Contruction)",
-        "Energy_Consumption_G": "6G - Energy Consumption Intensity by NACE (Wholesale and Retail Trade)",
-        "Energy_Consumption_H": "6H - Energy Consumption Intensity by NACE (Water Transport)",
-        "Energy_Consumption_L": "6L - Energy Consumption Intensity by NACE (Real Estate Activities)",
-        "Biodiversity_Controv": "7 - Activities Neg Affecting Biodiversity",
-        "WATER_EM": "8 - Emissions to Water",
-        "HAZARD_WASTE": "9 - Hazardous Waste Ratio",
-        "UN_violations": "10 - Violations of UNGC and OECD",
-        "MECH_UN_GLOBAL_COMPACT": "11 - Lack of Processes to Monitor of UNGC and OECD",
-        "GENDER_PAY_GAP_RATIO": "12 - Unadjusted Gender Pay Gap",
-        "FEMALE_DIRECTORS_PCT": "13 - Board Gender Diversity",
-        "CONTRO_WEAP_CBLMBW_ANYTIE": "14 - Exposure to Controversial Weapons",
-        "CTRY_GHG_INTEN_GDP_EUR": "15 - GHG Intensity of Investee Countries",
-        "SANCTIONS": "16 - Investee Countries Subject to Social Violations",
-        "FOSSIL_FUELS_REAL_ESTATE": "17 - Exposure to fossil fuels through real estate assets",
-        "ENERGY_INEFFICIENT_REAL_ESTATE": "18 - Exposure to energy-inefficient real estate assets",
-        "CARBON_EMISSIONS_REDUCT_INITIATIVES": "Additional Environmental - Investment in Companies w/o Carbon Emissions Reduction Targets",
-        "WORKPLACE_ACC_PREV_POL": "Additional Social - No Workplace Accident Prevention Policy",
-    }
-
     data = []
     for p in r.portfolio_datasource.portfolios:
         p_object = r.portfolio_datasource.portfolios[p]
@@ -68,7 +30,7 @@ def principal_adverse_impact(local_configs: str = "") -> pd.DataFrame:
         for i in p_object.impact_data:
             impact = p_object.impact_data[i]["impact"]
             cov = p_object.impact_data[i]["coverage"]
-            name = name_mapping[i]
+            name = mapping_configs.pai_mapping[i]
             data.append((p, as_of_date, name, impact, cov))
     df = pd.DataFrame(
         data,

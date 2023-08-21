@@ -99,45 +99,7 @@ class PortfolioStore(object):
         impact_column: str
             column name of variable to look at
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            evic = self.holdings[s]["object"].parent_store.msci_information["EVIC_EUR"]
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                impact_column
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if (
-                    not (pd.isna(evic) or pd.isna(value) or weight == 0)
-                    and t == "company"
-                ):
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "EVIC_EUR": evic,
-                            impact_column: value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            investor_stake = (
-                norm_weight * self.total_market_value_corp / (s["EVIC_EUR"] * 1000000)
-            )
-            impact += s[impact_column] * investor_stake
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data[impact_column] = {
-            "impact": impact,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.investor_stake_multiplication(impact_column, impact_column)
 
     def calculate_carboon_footprint(self) -> None:
         """
@@ -150,118 +112,30 @@ class PortfolioStore(object):
         self.impact_data["Carbon_Footprint"] = {
             "impact": carbon_footprint,
             "coverage": self.impact_data["CARBON_EMISSIONS_SCOPE123"]["coverage"],
+            "data": [],
         }
 
     def calculate_waci(self) -> None:
         """
         Calculate WACI and Coverage
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "CARBON_EMISSIONS_SALES_EUR_SCOPE123_INTEN"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "CARBON_EMISSIONS_SALES_EUR_SCOPE123_INTEN": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            waci = norm_weight * s["CARBON_EMISSIONS_SALES_EUR_SCOPE123_INTEN"]
-            impact += waci
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["WACI"] = {
-            "impact": impact,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.weight_value_multiplication(
+            "CARBON_EMISSIONS_SALES_EUR_SCOPE123_INTEN", "WACI"
+        )
 
     def calculate_fossil_fuel(self) -> None:
         """
         Calculate Exposure to Fossil Fuels
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "ACTIVE_FF_SECTOR_EXPOSURE"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "ACTIVE_FF_SECTOR_EXPOSURE": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            if s["ACTIVE_FF_SECTOR_EXPOSURE"] == "Yes":
-                impact += norm_weight
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["Fossil_Fuel_Exposure"] = {
-            "impact": impact * 100,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.filter_word("ACTIVE_FF_SECTOR_EXPOSURE", "Yes", "Fossil_Fuel_Exposure")
 
     def calculate_non_renewable_energy(self) -> None:
         """
         Calculate Share of Non-Renewable Energy Consumption and Production
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "PCT_NONRENEW_CONSUMP_PROD"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "PCT_NONRENEW_CONSUMP_PROD": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            nonrenew = norm_weight * s["PCT_NONRENEW_CONSUMP_PROD"]
-            impact += nonrenew
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["PCT_NONRENEW_CONSUMP_PROD_WEIGHTED"] = {
-            "impact": impact,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.weight_value_multiplication(
+            "PCT_NONRENEW_CONSUMP_PROD", "PCT_NONRENEW_CONSUMP_PROD"
+        )
 
     def calculate_energy_consumption(self, nace_section_code: str) -> None:
         """
@@ -316,309 +190,55 @@ class PortfolioStore(object):
         """
         Calculate Exposure to biodiversty controversies
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "OPS_PROT_BIODIV_CONTROVS"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "OPS_PROT_BIODIV_CONTROVS": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            if s["OPS_PROT_BIODIV_CONTROVS"] == "Yes":
-                impact += norm_weight
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["Biodiversity_Controv"] = {
-            "impact": impact * 100,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.filter_word("OPS_PROT_BIODIV_CONTROVS", "Yes", "Biodiversity_Controv")
 
     def calculate_water_emissions(self) -> None:
         """
         Calculate Principal Adverse Impact and Coverage for specific column
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            evic = self.holdings[s]["object"].parent_store.msci_information["EVIC_EUR"]
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "WATER_EM_EFF_METRIC_TONS"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if (
-                    not (pd.isna(evic) or pd.isna(value) or weight == 0)
-                    and t == "company"
-                ):
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "EVIC_EUR": evic,
-                            "WATER_EM_EFF_METRIC_TONS": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            investor_stake = (
-                norm_weight * self.total_market_value_corp / (s["EVIC_EUR"] * 1000000)
-            )
-            impact += s["WATER_EM_EFF_METRIC_TONS"] * investor_stake
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["WATER_EM"] = {
-            "impact": impact / (self.total_market_value_corp / 1000000),
-            "coverage": coverage,
-            "data": data,
-        }
+        self.investor_stake_multiplication("WATER_EM_EFF_METRIC_TONS", "WATER_EM", True)
 
     def calculate_hazardous_waste(self) -> None:
         """
         Calculate Principal Adverse Impact and Coverage for specific column
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            evic = self.holdings[s]["object"].parent_store.msci_information["EVIC_EUR"]
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "HAZARD_WASTE_METRIC_TON"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if (
-                    not (pd.isna(evic) or pd.isna(value) or weight == 0)
-                    and t == "company"
-                ):
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "EVIC_EUR": evic,
-                            "HAZARD_WASTE_METRIC_TON": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            investor_stake = (
-                norm_weight * self.total_market_value_corp / (s["EVIC_EUR"] * 1000000)
-            )
-            impact += s["HAZARD_WASTE_METRIC_TON"] * investor_stake
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["HAZARD_WASTE"] = {
-            "impact": impact / (self.total_market_value_corp / 1000000),
-            "coverage": coverage,
-            "data": data,
-        }
+        self.investor_stake_multiplication(
+            "HAZARD_WASTE_METRIC_TON", "HAZARD_WASTE", True
+        )
 
     def calculate_violations_un(self) -> None:
         """
         Calculate Violations of UN Global Compact
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "OVERALL_FLAG"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "OVERALL_FLAG": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            if s["OVERALL_FLAG"] == "Red":
-                impact += norm_weight
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["UN_violations"] = {
-            "impact": impact * 100,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.filter_word("OVERALL_FLAG", "Red", "UN_violations")
 
     def calculate_lack_of_process(self) -> None:
         """
         Calculate Lack of Processes to Monitor of UNGC and OECD
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "MECH_UN_GLOBAL_COMPACT"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "MECH_UN_GLOBAL_COMPACT": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            if s["MECH_UN_GLOBAL_COMPACT"] == "No evidence":
-                impact += norm_weight
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["MECH_UN_GLOBAL_COMPACT"] = {
-            "impact": impact * 100,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.filter_word(
+            "MECH_UN_GLOBAL_COMPACT", "No evidence", "MECH_UN_GLOBAL_COMPACT"
+        )
 
     def calculate_gender_pay_gap(self) -> None:
         """
         Calculate Unadjusted Gender Pay Gap
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "GENDER_PAY_GAP_RATIO"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "GENDER_PAY_GAP_RATIO": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            impact += s["GENDER_PAY_GAP_RATIO"] * norm_weight
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["GENDER_PAY_GAP_RATIO"] = {
-            "impact": impact,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.weight_value_multiplication("GENDER_PAY_GAP_RATIO", "GENDER_PAY_GAP_RATIO")
 
     def calculate_gender_diversity(self) -> None:
         """
         Calculate Board Gender Diversity
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "FEMALE_DIRECTORS_PCT"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "FEMALE_DIRECTORS_PCT": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            impact += s["FEMALE_DIRECTORS_PCT"] * norm_weight
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["FEMALE_DIRECTORS_PCT"] = {
-            "impact": impact,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.weight_value_multiplication("FEMALE_DIRECTORS_PCT", "FEMALE_DIRECTORS_PCT")
 
     def calculate_controversial_weapons(self) -> None:
         """
         Calculate Controversial Weapons Exposure
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "CONTRO_WEAP_CBLMBW_ANYTIE"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "CONTRO_WEAP_CBLMBW_ANYTIE": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            if s["CONTRO_WEAP_CBLMBW_ANYTIE"] == "Yes":
-                impact += norm_weight
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["CONTRO_WEAP_CBLMBW_ANYTIE"] = {
-            "impact": impact * 100,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.filter_word(
+            "CONTRO_WEAP_CBLMBW_ANYTIE", "Yes", "CONTRO_WEAP_CBLMBW_ANYTIE"
+        )
 
     def calculate_ghg_intensity(self) -> None:
         """
@@ -721,59 +341,102 @@ class PortfolioStore(object):
             column name of variable to look at
         """
 
-        self.impact_data[impact_column] = {
-            "impact": "Not Applicable",
-            "coverage": "Not Applicable",
-            "data": [],
-        }
+        self.not_applicable(impact_column)
 
     def calculate_no_carbon_emission_target(self) -> None:
         """
         Calculate Investments in companies without carbon emission reduction initiatives
         """
-        data = list()
-        total_weight = 0
-        for s in self.holdings:
-            t = self.holdings[s]["object"].parent_store.type
-            value = self.holdings[s]["object"].parent_store.msci_information[
-                "CARBON_EMISSIONS_REDUCT_INITIATIVES"
-            ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
-
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "CARBON_EMISSIONS_REDUCT_INITIATIVES": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
-
-        impact = 0
-        for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
-            if s["CARBON_EMISSIONS_REDUCT_INITIATIVES"] == "Not Disclosed":
-                impact += norm_weight
-        coverage = total_weight / self.initial_weight_corp
-
-        self.impact_data["CARBON_EMISSIONS_REDUCT_INITIATIVES"] = {
-            "impact": impact * 100,
-            "coverage": coverage,
-            "data": data,
-        }
+        self.filter_word(
+            "CARBON_EMISSIONS_REDUCT_INITIATIVES",
+            "Not Disclosed",
+            "CARBON_EMISSIONS_REDUCT_INITIATIVES",
+        )
 
     def calculate_workplace_accident(self) -> None:
         """
         Calculate Workplace Accident Prevention Policy
         """
+        self.filter_word(
+            "WORKPLACE_ACC_PREV_POL", "Not Disclosed", "WORKPLACE_ACC_PREV_POL"
+        )
+
+    def investor_stake_multiplication(
+        self, impact_column: str, impact_label: str, scale: bool = False
+    ) -> None:
+        """
+        Take Impact Column and multiply with investor stake
+
+        Paramters
+        ---------
+        impact_column: str
+            column name of variable to look at
+        impact_label: str
+            label for self.impact_data
+        scale: bool, optional
+            scale factor for impact
+        """
+        data = list()
+        total_weight = 0
+        for s in self.holdings:
+            t = self.holdings[s]["object"].parent_store.type
+            evic = self.holdings[s]["object"].parent_store.msci_information["EVIC_EUR"]
+            value = self.holdings[s]["object"].parent_store.msci_information[
+                impact_column
+            ]
+            for h in self.holdings[s]["holding_measures"]:
+                weight = h["Portfolio_Weight"]
+
+                if (
+                    not (pd.isna(evic) or pd.isna(value) or weight == 0)
+                    and t == "company"
+                ):
+                    total_weight += weight
+                    data.append(
+                        {
+                            "ISIN": s,
+                            "EVIC_EUR": evic,
+                            impact_column: value,
+                            "Portfolio_Weight": weight,
+                        }
+                    )
+
+        impact = 0
+        for s in data:
+            norm_weight = s["Portfolio_Weight"] / total_weight
+            investor_stake = (
+                norm_weight * self.total_market_value_corp / (s["EVIC_EUR"] * 1000000)
+            )
+            impact += s[impact_column] * investor_stake
+        coverage = total_weight / self.initial_weight_corp
+
+        scale_factor = self.total_market_value_corp / 1000000 if scale else 1
+
+        self.impact_data[impact_label] = {
+            "impact": impact / scale_factor,
+            "coverage": coverage,
+            "data": data,
+        }
+
+    def weight_value_multiplication(
+        self, impact_column: str, impact_label: str
+    ) -> None:
+        """
+        Multiply Impact Value with normalized weight
+
+        Paramters
+        ---------
+        impact_column: str
+            column name of variable to look at
+        impact_label: str
+            label for self.impact_data
+        """
         data = list()
         total_weight = 0
         for s in self.holdings:
             t = self.holdings[s]["object"].parent_store.type
             value = self.holdings[s]["object"].parent_store.msci_information[
-                "WORKPLACE_ACC_PREV_POL"
+                impact_column
             ]
             for h in self.holdings[s]["holding_measures"]:
                 weight = h["Portfolio_Weight"]
@@ -783,7 +446,7 @@ class PortfolioStore(object):
                     data.append(
                         {
                             "ISIN": s,
-                            "WORKPLACE_ACC_PREV_POL": value,
+                            impact_column: value,
                             "Portfolio_Weight": weight,
                         }
                     )
@@ -791,12 +454,76 @@ class PortfolioStore(object):
         impact = 0
         for s in data:
             norm_weight = s["Portfolio_Weight"] / total_weight
-            if s["WORKPLACE_ACC_PREV_POL"] == "Not Disclosed":
+            waci = norm_weight * s[impact_column]
+            impact += waci
+        coverage = total_weight / self.initial_weight_corp
+
+        self.impact_data[impact_label] = {
+            "impact": impact,
+            "coverage": coverage,
+            "data": data,
+        }
+
+    def filter_word(
+        self, impact_column: str, filter_word: str, impact_label: str
+    ) -> None:
+        """
+        Filter impact column by specific word
+
+        Paramters
+        ---------
+        impact_column: str
+            column name of variable to look at
+        filter_word: str
+            word to filter impact column on
+        impact_label: str
+            label for self.impact_data
+        """
+        data = list()
+        total_weight = 0
+        for s in self.holdings:
+            t = self.holdings[s]["object"].parent_store.type
+            value = self.holdings[s]["object"].parent_store.msci_information[
+                impact_column
+            ]
+            for h in self.holdings[s]["holding_measures"]:
+                weight = h["Portfolio_Weight"]
+
+                if not (pd.isna(value) or weight == 0) and t == "company":
+                    total_weight += weight
+                    data.append(
+                        {
+                            "ISIN": s,
+                            impact_column: value,
+                            "Portfolio_Weight": weight,
+                        }
+                    )
+
+        impact = 0
+        for s in data:
+            norm_weight = s["Portfolio_Weight"] / total_weight
+            if s[impact_column] == filter_word:
                 impact += norm_weight
         coverage = total_weight / self.initial_weight_corp
 
-        self.impact_data["WORKPLACE_ACC_PREV_POL"] = {
+        self.impact_data[impact_label] = {
             "impact": impact * 100,
             "coverage": coverage,
             "data": data,
+        }
+
+    def not_applicable(self, impact_column: str) -> None:
+        """
+        Calculate Real Estate Assets
+
+        Paramters
+        ---------
+        impact_column: str
+            column name of variable to look at
+        """
+
+        self.impact_data[impact_column] = {
+            "impact": "Not Applicable",
+            "coverage": "Not Applicable",
+            "data": [],
         }
