@@ -12,11 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - run snowflake locally with python 3.10 environment
 - Quandl handyman functionality
 - FRED API and handyman functionality
+- PAI calculation
 
 ### Fixed
 
 ### Changed
 - Static Q-Low, Q-High and median values on BCLASS and GICS level in transition calculation
+- move iteration into loader
 
 ### Removed
 - ml_azure branch
