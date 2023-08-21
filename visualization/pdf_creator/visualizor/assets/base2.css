@@ -446,10 +446,10 @@ th:first-child,
 td:first-child {
   padding-left: 5px;
 }
-th:last-child,
+/* th:last-child,
 td:last-child {
   padding-right: 25px;
-}
+} */
 
 /* Spacing */
 

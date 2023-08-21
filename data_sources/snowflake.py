@@ -62,7 +62,7 @@ class Snowflake(object):
         """
         session = Session.builder.configs(self.connection_parameters).create()
 
-        from_table = f"{self.database}.{self.schema}.{self.table_name}"
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
         query = f"""
         SELECT * 
         FROM {from_table}

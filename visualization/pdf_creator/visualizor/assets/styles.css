@@ -327,8 +327,9 @@ td.table-element {
     font-weight: bold;
     background-color: #fff;
     writing-mode: vertical-rl;
-    padding-top: 5rem;
+    padding-top: 4rem;
     width: 8%;
+    padding-right: 0 !important;
 }
 
 table.reversed tr:nth-child(odd) {

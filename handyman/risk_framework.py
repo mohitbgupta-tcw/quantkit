@@ -1,11 +1,14 @@
 import quantkit.runner as runner
 import quantkit.utils.configs as configs
 import quantkit.handyman.msci_data_loader as msci_data_loaders
-import quantkit.utils.util_functions as util_functions
+import quantkit.data_sources.snowflake as snowflake
+import quantkit.visualization.risk_framework.esg_characteristics as esg_characteristics
+import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 import numpy as np
 import json
 import os
+from typing import Union
 
 
 def risk_framework(local_configs: str = "") -> pd.DataFrame:
@@ -781,3 +784,35 @@ def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     df = pd.DataFrame(data, columns=columns)
     os.remove("quantkit\\params_temp.json")
     return df
+
+
+def print_esg_characteristics_pdf(portfolio_isin: str, local_configs: str = "") -> None:
+    """
+    For a given portfolio, create ESG Sustainable Characteristics PDF template
+    Please click link in cell output to open pdf
+
+    Parameters
+    ----------
+    portfolio_isin: str
+        portfolio to be shown
+    local_configs: str, optional
+        path to a local configarations file
+    """
+    params = configs.read_configs(local_configs=local_configs)
+    snowflake_params = params["API_settings"]["snowflake_parameters"]
+    snowflake_params["schema"] = "TIM_SCHEMA"
+    table = "Sustainability_Framework_Detailed"
+    sf = snowflake.Snowflake(table_name=table, **snowflake_params)
+    sf.load()
+    benchmark = mapping_configs.portfolio_benchmark[portfolio_isin]
+    all_portfolios = [portfolio_isin, benchmark]
+    if portfolio_isin == "3750":
+        all_portfolios.append("JPM EM Custom Index (50/50)")
+    portfolio_type = mapping_configs.portfolio_type[portfolio_isin]
+    df = sf.df
+    df = df[df["Portfolio ISIN"].isin(all_portfolios)]
+    pdf = esg_characteristics.ESGCharacteristics(
+        "Financial Report", df, portfolio_type, portfolio_isin, benchmark
+    )
+    pdf.run()
+    pdf.app.run_server(debug=True, jupyter_mode="tab")
