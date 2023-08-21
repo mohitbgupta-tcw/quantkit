@@ -222,6 +222,68 @@ class Runner(loader.Runner):
         for p in self.portfolio_datasource.portfolios:
             self.portfolio_datasource.portfolios[p].calculate_gender_pay_gap()
 
+    def calculate_pai_13(self) -> None:
+        """
+        Calculate PAI - Mandatory 13 - Board Gender Diversity
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_gender_diversity()
+
+    def calculate_pai_14(self) -> None:
+        """
+        Calculate PAI - Mandatory 14 - Controversial Weapons Exposure
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_controversial_weapons()
+
+    def calculate_pai_15(self) -> None:
+        """
+        Calculate PAI - Mandatory 15 - GHG Intensity of Investee Countries
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_ghg_intensity()
+
+    def calculate_pai_16(self) -> None:
+        """
+        Calculate PAI - Mandatory 16 - Investee Countries Subject to Social Violations
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_social_violations()
+
+    def calculate_pai_17(self) -> None:
+        """
+        Calculate PAI - Mandatory 17 - Real Estate Assets
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_real_estate(
+                "FOSSIL_FUELS_REAL_ESTATE"
+            )
+
+    def calculate_pai_18(self) -> None:
+        """
+        Calculate PAI - Mandatory 18 - Real Estate Assets
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_real_estate(
+                "ENERGY_INEFFICIENT_REAL_ESTATE"
+            )
+
+    def calculate_additional_environmental(self) -> None:
+        """
+        Calculate PAI - Additional Environmental - Investments in companies without carbon emission reduction initiatives
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[
+                p
+            ].calculate_no_carbon_emission_target()
+
+    def calculate_additional_social(self) -> None:
+        """
+        Calculate PAI - Additional Social - Workplace Accident Prevention Policy
+        """
+        for p in self.portfolio_datasource.portfolios:
+            self.portfolio_datasource.portfolios[p].calculate_workplace_accident()
+
     def run(self) -> None:
         """
         run calculations
@@ -250,3 +312,11 @@ class Runner(loader.Runner):
         self.calculate_pai_10()
         self.calculate_pai_11()
         self.calculate_pai_12()
+        self.calculate_pai_13()
+        self.calculate_pai_14()
+        self.calculate_pai_15()
+        self.calculate_pai_16()
+        self.calculate_pai_17()
+        self.calculate_pai_18()
+        self.calculate_additional_environmental()
+        self.calculate_additional_social()

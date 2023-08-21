@@ -51,6 +51,14 @@ def principal_adverse_impact(local_configs: str = "") -> pd.DataFrame:
         "UN_violations": "10 - Violations of UNGC and OECD",
         "MECH_UN_GLOBAL_COMPACT": "11 - Lack of Processes to Monitor of UNGC and OECD",
         "GENDER_PAY_GAP_RATIO": "12 - Unadjusted Gender Pay Gap",
+        "FEMALE_DIRECTORS_PCT": "13 - Board Gender Diversity",
+        "CONTRO_WEAP_CBLMBW_ANYTIE": "14 - Exposure to Controversial Weapons",
+        "CTRY_GHG_INTEN_GDP_EUR": "15 - GHG Intensity of Investee Countries",
+        "SANCTIONS": "16 - Investee Countries Subject to Social Violations",
+        "FOSSIL_FUELS_REAL_ESTATE": "17 - Exposure to fossil fuels through real estate assets",
+        "ENERGY_INEFFICIENT_REAL_ESTATE": "18 - Exposure to energy-inefficient real estate assets",
+        "CARBON_EMISSIONS_REDUCT_INITIATIVES": "Additional Environmental - Investment in Companies w/o Carbon Emissions Reduction Targets",
+        "WORKPLACE_ACC_PREV_POL": "Additional Social - No Workplace Accident Prevention Policy",
     }
 
     data = []
