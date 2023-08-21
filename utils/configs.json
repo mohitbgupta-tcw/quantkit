@@ -77,6 +77,7 @@
     "msci_datasource": {
         "source": 4,
         "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "historical": false,
         "filters": {
             "issuer_identifier_type": "ISSUER_ID",
             "issuer_identifier_list": [],

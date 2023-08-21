@@ -205,10 +205,12 @@ class HeadStore(object):
         if pd.isna(gics_sub):
             gics_sub = "Unassigned GICS"
 
-        gics_d[gics_sub] = gics_d.get(
-            gics_sub,
-            sectors.GICS(gics_sub, pd.Series(gics_d["Unassigned GICS"].information)),
-        )
+        if not gics_sub in gics_d:
+            gics_d[gics_sub] = sectors.GICS(
+                gics_sub, pd.Series(gics_d["Unassigned GICS"].information)
+            )
+            gics_d[gics_sub].add_industry(gics_d["Unassigned GICS"].industry)
+            gics_d["Unassigned GICS"].industry.add_sub_sector(gics_d[gics_sub])
         self.information["GICS_SUB_IND"] = gics_d[gics_sub]
         gics_d[gics_sub].companies[self.isin] = self
 
