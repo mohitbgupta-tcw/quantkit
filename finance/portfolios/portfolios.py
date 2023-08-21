@@ -108,7 +108,11 @@ class PortfolioStore(object):
         """
 
         total_emissions = self.impact_data["CARBON_EMISSIONS_SCOPE123"]["impact"]
-        carbon_footprint = total_emissions / (self.total_market_value_corp / 1000000)
+        carbon_footprint = (
+            total_emissions / (self.total_market_value_corp / 1000000)
+            if self.total_market_value_corp != 0
+            else 0
+        )
         self.impact_data["Carbon_Footprint"] = {
             "impact": carbon_footprint,
             "coverage": self.impact_data["CARBON_EMISSIONS_SCOPE123"]["coverage"],
@@ -178,7 +182,11 @@ class PortfolioStore(object):
         for s in data:
             norm_weight = s["Portfolio_Weight"] / total_weight
             impact += s["ENERGY_CONSUMP_INTEN_EUR"] * norm_weight
-        coverage = total_weight / self.initial_weight_corp
+        coverage = (
+            total_weight / self.initial_weight_sov
+            if self.initial_weight_sov != 0
+            else 0
+        )
 
         self.impact_data[f"Energy_Consumption_{nace_section_code}"] = {
             "impact": impact,
@@ -408,9 +416,17 @@ class PortfolioStore(object):
                 norm_weight * self.total_market_value_corp / (s["EVIC_EUR"] * 1000000)
             )
             impact += s[impact_column] * investor_stake
-        coverage = total_weight / self.initial_weight_corp
+        coverage = (
+            total_weight / self.initial_weight_corp
+            if self.initial_weight_corp != 0
+            else 0
+        )
 
-        scale_factor = self.total_market_value_corp / 1000000 if scale else 1
+        scale_factor = (
+            self.total_market_value_corp / 1000000
+            if scale and self.total_market_value_corp != 0
+            else 1
+        )
 
         self.impact_data[impact_label] = {
             "impact": impact / scale_factor,
@@ -456,7 +472,12 @@ class PortfolioStore(object):
             norm_weight = s["Portfolio_Weight"] / total_weight
             waci = norm_weight * s[impact_column]
             impact += waci
-        coverage = total_weight / self.initial_weight_corp
+
+        coverage = (
+            total_weight / self.initial_weight_corp
+            if self.initial_weight_corp != 0
+            else 0
+        )
 
         self.impact_data[impact_label] = {
             "impact": impact,
@@ -504,7 +525,11 @@ class PortfolioStore(object):
             norm_weight = s["Portfolio_Weight"] / total_weight
             if s[impact_column] == filter_word:
                 impact += norm_weight
-        coverage = total_weight / self.initial_weight_corp
+        coverage = (
+            total_weight / self.initial_weight_corp
+            if self.initial_weight_corp != 0
+            else 0
+        )
 
         self.impact_data[impact_label] = {
             "impact": impact * 100,
