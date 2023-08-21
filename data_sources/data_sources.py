@@ -5,6 +5,7 @@ import quantkit.data_sources.msci as msci
 import quantkit.data_sources.quandl as quandl
 import quantkit.data_sources.json_ds as json_ds
 import quantkit.data_sources.sql_server as sql_server
+import quantkit.data_sources.fred as fred
 import quantkit.utils.configs as configs
 
 
@@ -66,6 +67,11 @@ class DataSources(object):
         # SQL Server
         elif params["source"] == 7:
             self.datasource = sql_server.SQL()
+
+        # FRED
+        elif params["source"] == 8:
+            fred_params = api_settings["fred_parameters"]
+            self.datasource = fred.FRED(**fred_params)
 
     def transform_df(self) -> None:
         """
