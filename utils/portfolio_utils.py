@@ -29,11 +29,14 @@ def calculate_portfolio_waci(df: pd.DataFrame) -> float:
         )
     ]
 
-    waci = (
-        sum(df_filtered["market_weight_carbon_intensity"])
-        / sum(df_filtered["Portfolio Weight"])
-        * 100
-    )
+    if not df_filtered.empty:
+        waci = (
+            sum(df_filtered["market_weight_carbon_intensity"])
+            / sum(df_filtered["Portfolio Weight"])
+            * 100
+        )
+    else:
+        waci = 0
     return waci
 
 
@@ -59,11 +62,18 @@ def calculate_portfolio_esrm(df: pd.DataFrame) -> float:
             & (df_filtered["NA_Flags_Governance"] >= 7)
         )
     ]
-    esrm = (
-        sum(df_filtered[df_filtered["market_weight_esrm"] > 0]["market_weight_esrm"])
-        / sum(df_filtered[df_filtered["market_weight_esrm"] > 0]["Portfolio Weight"])
-        * 100
-    )
+    if not df_filtered.empty:
+        esrm = (
+            sum(
+                df_filtered[df_filtered["market_weight_esrm"] > 0]["market_weight_esrm"]
+            )
+            / sum(
+                df_filtered[df_filtered["market_weight_esrm"] > 0]["Portfolio Weight"]
+            )
+            * 100
+        )
+    else:
+        esrm = 0
     return esrm
 
 
@@ -91,17 +101,22 @@ def calculate_portfolio_governance(df: pd.DataFrame) -> float:
             & (df_filtered["NA_Flags_Governance"] >= 7)
         )
     ]
-    gov = (
-        sum(
-            df_filtered[df_filtered["market_weight_governance"] > 0][
-                "market_weight_governance"
-            ]
+    if not df_filtered.empty:
+        gov = (
+            sum(
+                df_filtered[df_filtered["market_weight_governance"] > 0][
+                    "market_weight_governance"
+                ]
+            )
+            / sum(
+                df_filtered[df_filtered["market_weight_governance"] > 0][
+                    "Portfolio Weight"
+                ]
+            )
+            * 100
         )
-        / sum(
-            df_filtered[df_filtered["market_weight_governance"] > 0]["Portfolio Weight"]
-        )
-        * 100
-    )
+    else:
+        gov = 0
     return gov
 
 
@@ -129,17 +144,22 @@ def calculate_portfolio_transition(df: pd.DataFrame) -> float:
             & (df_filtered["NA_Flags_Governance"] >= 7)
         )
     ]
-    trans = (
-        sum(
-            df_filtered[df_filtered["market_weight_transition"] > 0][
-                "market_weight_transition"
-            ]
+    if not df_filtered.empty:
+        trans = (
+            sum(
+                df_filtered[df_filtered["market_weight_transition"] > 0][
+                    "market_weight_transition"
+                ]
+            )
+            / sum(
+                df_filtered[df_filtered["market_weight_transition"] > 0][
+                    "Portfolio Weight"
+                ]
+            )
+            * 100
         )
-        / sum(
-            df_filtered[df_filtered["market_weight_transition"] > 0]["Portfolio Weight"]
-        )
-        * 100
-    )
+    else:
+        trans = 0
     return trans
 
 

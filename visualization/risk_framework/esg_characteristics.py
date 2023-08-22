@@ -56,7 +56,11 @@ class ESGCharacteristics(visualizor.PDFCreator):
         self.waci_benchmark_data = self.data[
             self.data["Portfolio ISIN"] == self.waci_benchmark_isin
         ]
-        self.benchmark_name = self.benchmark_data["Portfolio Name"].values[0]
+        self.benchmark_name = (
+            self.benchmark_data["Portfolio Name"].values[0]
+            if len(self.benchmark_data) > 0
+            else self.benchmark_isin
+        )
         self.as_of_date = datetime.datetime.strptime(
             self.portfolio_data["As Of Date"].max(), "%m/%d/%Y"
         ).date()
@@ -155,10 +159,6 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.B("4 Data is based on TCW analyst assessment"),
                 """ which is informed by third party classification of product and services, fundamental analysis of companies, and engagement. """,
                 html.Br(),
-                html.B(
-                    "Index - JP Morgan EMBI Global Diversified (EMBI GD) from inception through 20 July 2022; JP Morgan ESG EMBI Global Diversified (JESG EMBIG) thereafter."
-                ),
-                """ EMBI GD is a market capitalization-weighted total return index of U.S. dollar-denominated Brady bonds, loans, and Eurobond instruments traded in emerging markets. JESG EMBIG tracks liquid, US Dollar emerging market fixed and floating-rate debt instruments issued by sovereign and quasi-sovereign entities. The index applies an ESG scoring and screening methodology to tilt toward issuers ranked higher on ESG criteria and green bond issues, and to underweight and remove issuers that rank lower. The indices are not available for direct investment; therefore performance does not reflect a reduction for fees or expenses incurred in managing a portfolio.""",
             ]
         return super().add_footnote(footnote_text)
 
@@ -187,7 +187,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     self.add_planet_table(),
                     self.add_people_table(),
                     self.add_total_table(),
-                    self.add_transition_table(),
+                    # self.add_transition_table(),
                 ],
                 className="five columns",
             ),
@@ -257,7 +257,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         """
         waci_portfolio = portfolio_utils.calculate_portfolio_waci(self.portfolio_data)
         waci_index = portfolio_utils.calculate_portfolio_waci(self.waci_benchmark_data)
-        carbon_reduction = waci_portfolio / waci_index - 1
+        carbon_reduction = waci_portfolio / waci_index - 1 if waci_index > 0 else 0
 
         df_WACI = pd.DataFrame(
             data={
