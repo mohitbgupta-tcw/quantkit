@@ -128,13 +128,16 @@ class MSCI(object):
         ]
 
         for batch in range(batches):
-            logging.log(f"Batch: {batch+1}")
+            logging.log(f"Batch: {batch+1}/{batches}")
             url = f"https://api2.msci.com/esg/data/v1.0/issuers/history"
             js = {"batch_id": batch + 1, "data_request_id": data_request_id}
             r_batch = requests.request(
                 "POST", url, headers=headers, json=js, verify="quantkit/certs.crt"
             )
-            r = r_batch.json()["result"]["data"]
+            try:
+                r = r_batch.json()["result"]["data"]
+            except:
+                continue
             data_list = []
             for i, c in enumerate(r):
                 issuer = r[i]["requested_id"]

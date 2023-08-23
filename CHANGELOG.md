@@ -13,11 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quandl handyman functionality
 - FRED API and handyman functionality
 - PDF creator visualization tool
+- PAI calculation
 
 ### Fixed
 
 ### Changed
 - Static Q-Low, Q-High and median values on BCLASS and GICS level in transition calculation
+- move iteration into loader
 
 ### Removed
 - ml_azure branch

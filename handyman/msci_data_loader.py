@@ -192,6 +192,7 @@ def run_historical_msci_api(
     start_date: str,
     end_date: str,
     as_at_date: str,
+    factor_name_list: list = None,
 ) -> pd.DataFrame:
     """
     For a specified list of securities, load historical MSCI ESG data through API
@@ -209,6 +210,8 @@ def run_historical_msci_api(
         if not specified, request will return single value corresponding to start_date
     as_at_date: str
         point in time data should be viewed from in format yyyy-mm-dd
+    factor_name_list: list, optional
+        factors to pull from MSCI, if not specified pull pre-defined data
 
     Returns
     -------
@@ -219,11 +222,8 @@ def run_historical_msci_api(
     api_key = "b769e9c4-16c4-45f8-89a5-6f555587a640"
     api_secret = "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
 
-    filters = {
-        "issuer_identifier_type": issuer_identifier_type,
-        "issuer_identifier_list": issuer_identifier_list,
-        "inherit_missing_values": True,
-        "factor_name_list": [
+    if not factor_name_list:
+        factor_name_list = [
             "ISSUER_NAME",
             "ISSUER_TICKER",
             "ISSUER_CUSIP",
@@ -333,7 +333,13 @@ def run_historical_msci_api(
             "ACCESS_TO_HLTHCRE_SCORE",
             "CARBON_EMISSIONS_SCOPE_12_INTEN",
             "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",
-        ],
+        ]
+
+    filters = {
+        "issuer_identifier_type": issuer_identifier_type,
+        "issuer_identifier_list": issuer_identifier_list,
+        "inherit_missing_values": True,
+        "factor_name_list": factor_name_list,
         "start_date": start_date,
         "end_date": end_date,
         "as_at_date": as_at_date,
