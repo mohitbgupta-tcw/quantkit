@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - run snowflake locally with python 3.10 environment
 - Quandl handyman functionality
 - FRED API and handyman functionality
+- PDF creator visualization tool
 - PAI calculation
 
 ### Fixed
