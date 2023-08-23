@@ -178,11 +178,15 @@ def calculate_portfolio_sovereign(df: pd.DataFrame) -> float:
         portfolio's Sovereign score
     """
     df["market_weight_sovereign"] = df["Portfolio Weight"] / 100 * df["Sovereign Score"]
-    sov = (
-        sum(df[df["market_weight_sovereign"] > 0]["market_weight_sovereign"])
-        / sum(df[df["market_weight_sovereign"] > 0]["Portfolio Weight"])
-        * 100
-    )
+    df_filtered = df[df["market_weight_sovereign"] > 0]
+    if not df_filtered.empty:
+        sov = (
+            sum(df_filtered["market_weight_sovereign"])
+            / sum(df_filtered["Portfolio Weight"])
+            * 100
+        )
+    else:
+        sov = 0
     return sov
 
 

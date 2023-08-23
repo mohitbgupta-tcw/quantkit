@@ -53,17 +53,6 @@ class ESGCharacteristics(visualizor.PDFCreator):
         Run and create the app showing benchmark and portfolio data
         benchmark and portfolio should be included in data column "Portfolio ISIN"
         """
-        if self.filtered:
-            self.data = self.data[
-                self.data["Sector Level 2"].isin(
-                    [
-                        "Financial Institution",
-                        "Industrial",
-                        "Quasi Sovereign",
-                        "Utility",
-                    ]
-                )
-            ]
         self.portfolio_data = self.data[
             self.data["Portfolio ISIN"] == self.portfolio_isin
         ]
@@ -94,6 +83,18 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 self.add_header(), self.add_body(), self.add_footnote(), page_no=0
             )
         )
+
+        if self.filtered:
+            self.portfolio_data = self.portfolio_data[
+                self.data["Sector Level 2"].isin(
+                    [
+                        "Financial Institution",
+                        "Industrial",
+                        "Quasi Sovereign",
+                        "Utility",
+                    ]
+                )
+            ]
 
         for i in range(math.ceil(len(self.portfolio_data) / 20)):
             all_pages.append(
