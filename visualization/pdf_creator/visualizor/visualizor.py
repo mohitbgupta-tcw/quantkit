@@ -66,7 +66,7 @@ class PDFCreator(object):
                     [
                         html.Div(
                             header_text,
-                            className="seven columns main-title",
+                            className="twelve columns main-title",
                         ),
                     ],
                     className="twelve columns",
@@ -140,7 +140,7 @@ class PDFCreator(object):
         return body
 
     def create_page(
-        self, header: html.Div, body: html.Div, footnote: html.Div
+        self, header: html.Div, body: html.Div, footnote: html.Div, page_no: int
     ) -> html.Div:
         """
         Describe the layout/ UI of the app
@@ -154,6 +154,8 @@ class PDFCreator(object):
             body of page
         footnote: html.Div
             footnote of page
+        page_no: int
+            page number
 
         Returns
         -------
@@ -162,7 +164,6 @@ class PDFCreator(object):
         """
         layout = html.Div(
             [
-                dcc.Location(id="url", refresh=False),
                 html.Div(
                     [
                         html.Div(
@@ -175,9 +176,9 @@ class PDFCreator(object):
                                 footnote,
                             ],
                             className="page",
+                            id=f"page-{page_no}",
                         )
                     ],
-                    id="page-content",
                 ),
             ]
         )
@@ -308,6 +309,7 @@ class PDFCreator(object):
         show_vertical_lines: bool = False,
         show_header: bool = False,
         add_vertical_column: str = None,
+        superscript: bool = True,
         styles: dict = {},
     ) -> html.Table:
         """
@@ -325,6 +327,8 @@ class PDFCreator(object):
             show table header
         add_vertical_column: str, optional
             text of vertical column to be added in right column
+        superscript: bool
+            add superscript to first column
         styles: dict, optional
             specify specific column for row in format:
                 {
@@ -342,6 +346,7 @@ class PDFCreator(object):
             show_header=show_header,
             show_vertical_lines=show_vertical_lines,
             add_vertical_column=add_vertical_column,
+            superscript=superscript,
             styles=styles,
         )
         plot = t.create_table()

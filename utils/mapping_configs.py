@@ -157,3 +157,32 @@ portfolio_type = {
     "NETZ US Equity": "equity",
     "6283": "equity",
 }
+
+
+sclass_4_mapping = {
+    "RENEWENERGY": "Renewable Energy, Storage, and Green Hydrogen",
+    "MOBILITY": "Sustainable Mobility",
+    "CIRCULARITY": "Circular Economy",
+    "CCADAPT": "Climate Change Adaptation and Risk Management",
+    "BIODIVERSITY": "Biodiversity & Sustainable Land & Water Use",
+    "SMARTCITIES": "Sustainable Real Assets & Smart Cities",
+    "EDU": "Education",
+    "HEALTH": "Health",
+    "SANITATION": "Sanitation & Hygiene",
+    "INCLUSION": "Financial & Digital Inclusion",
+    "NUTRITION": "Nutrition",
+    "AFFORDABLE": "Affordable & Inclusive Housing",
+    "LOWCARBON": "Low-Carbon Energy, Power, and Non-Green Hydrogen",
+    "PIVOTTRANSPORT": "Pivoting Transportation",
+    "MATERIALS": "Materials in Transition",
+    "CARBONACCOUNT": "Carbon Accounting, Removal, & Green Finance",
+    "AGRIFORESTRY": "Improving Agriculture & Forestry",
+    "REALASSETS": "Transitioning Real Assets & Infrastructure",
+}
+
+risk_score_overall_mapping = {
+    "Not Scored": "Not Scored",
+    "Average ESG Score": "Average",
+    "Leading ESG Score": "Leading",
+    "Poor Risk Score": "Poor",
+}

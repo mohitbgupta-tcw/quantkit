@@ -4,7 +4,10 @@ import numpy as np
 import datetime
 import quantkit.visualization.pdf_creator.visualizor.visualizor as visualizor
 import quantkit.utils.portfolio_utils as portfolio_utils
+import quantkit.utils.mapping_configs as mapping_utils
 from typing import Union
+from copy import deepcopy
+import math
 
 
 class ESGCharacteristics(visualizor.PDFCreator):
@@ -23,6 +26,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
         portfolio ISIN
     benchmark: str | int
         benchmark ISIN
+    filtered: bool, optional
+        filter portfolio holdings for corporates and quasi-sovereigns
     """
 
     def __init__(
@@ -32,6 +37,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         portfolio_type: str,
         portfolio: Union[str, int],
         benchmark: Union[str, int],
+        filtered: bool = False,
     ):
         super().__init__(title, data)
         self.portfolio_type = portfolio_type
@@ -40,12 +46,24 @@ class ESGCharacteristics(visualizor.PDFCreator):
         self.waci_benchmark_isin = (
             "JPM EM Custom Index (50/50)" if portfolio == 3750 else self.benchmark_isin
         )
+        self.filtered = filtered
 
     def run(self) -> None:
         """
         Run and create the app showing benchmark and portfolio data
         benchmark and portfolio should be included in data column "Portfolio ISIN"
         """
+        if self.filtered:
+            self.data = self.data[
+                self.data["Sector Level 2"].isin(
+                    [
+                        "Financial Institution",
+                        "Industrial",
+                        "Quasi Sovereign",
+                        "Utility",
+                    ]
+                )
+            ]
         self.portfolio_data = self.data[
             self.data["Portfolio ISIN"] == self.portfolio_isin
         ]
@@ -70,10 +88,25 @@ class ESGCharacteristics(visualizor.PDFCreator):
         """
         Create the layout and pages of the pdf
         """
-        page1 = self.create_page(
-            self.add_header(), self.add_body(), self.add_footnote()
+        all_pages = list()
+        all_pages.append(
+            self.create_page(
+                self.add_header(), self.add_body(), self.add_footnote(), page_no=0
+            )
         )
-        return page1
+
+        for i in range(math.ceil(len(self.portfolio_data) / 20)):
+            all_pages.append(
+                self.create_page(
+                    self.add_header_holdings(),
+                    self.add_body_portfolio_holdings(page_no=i),
+                    html.Div(),
+                    page_no=i + 1,
+                )
+            )
+
+        pages_div = html.Div(all_pages)
+        return pages_div
 
     def add_header(self) -> html.Div:
         """
@@ -88,7 +121,37 @@ class ESGCharacteristics(visualizor.PDFCreator):
             row with header Div
         """
         header_text = [
-            html.H3("Sustainable Characteristics", id="overall-header"),
+            html.H3("Sustainable Characteristics", className="overall-header"),
+            html.H5(f"{self.portfolio_name}"),
+            html.P(
+                f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS",
+                className="sub-header",
+            ),
+            html.P(
+                f"""AS OF {self.as_of_date.strftime("%d %B %Y")} | SHARE CLASS: IU""",
+                className="sub-header",
+            ),
+        ]
+        return super().add_header(header_text)
+
+    def add_header_holdings(self) -> html.Div:
+        """
+        Create Header for Holdings page including:
+            - portfolio name
+            - benchmark name
+            - as of date of portfolio
+
+        Returns
+        -------
+        html.Div
+            row with header Div
+        """
+        if not self.filtered:
+            header = "Portfolio Holdings"
+        else:
+            header = "Portfolio Holdings (Corporates and Quasi-Sovereigns only)"
+        header_text = [
+            html.H3(header, className="overall-header"),
             html.H5(f"{self.portfolio_name}"),
             html.P(
                 f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS",
@@ -230,6 +293,27 @@ class ESGCharacteristics(visualizor.PDFCreator):
         ]
         return body_content
 
+    def add_body_portfolio_holdings(self, page_no: int) -> html.Div:
+        """
+        Create main body with tables, charts and text
+
+        Parameters
+        ----------
+        page_no: int
+            page number
+
+        Returns
+        -------
+        html.Div
+            row with body Div
+        """
+        body_content = [
+            html.Div(
+                self.add_portfolio_table(page_no=page_no), className="twelve columns"
+            )
+        ]
+        return super().add_body(body_content)
+
     def add_body(self) -> html.Div:
         """
         Create main body with tables, charts and text
@@ -245,6 +329,90 @@ class ESGCharacteristics(visualizor.PDFCreator):
             body_content = self.add_body_em()
         return super().add_body(body_content)
 
+    def add_portfolio_table(self, page_no: int) -> html.Div:
+        """
+        Table with Portfolio holdings
+
+        Parameters
+        ----------
+        page_no: int
+            page number
+
+        Returns
+        -------
+        html.Div
+            div with holdings table
+        """
+        df = deepcopy(self.portfolio_data)
+        df["Risk Score"] = (
+            df["ESRM Score"] + df["Governance Score"] + df["Transition Score"]
+        ) / 3
+        df["Theme"] = df["SCLASS_Level4-P"].map(mapping_utils.sclass_4_mapping)
+        df["Risk Score Overall"] = df["Risk_Score_Overall"].map(
+            mapping_utils.risk_score_overall_mapping
+        )
+        df["style"] = np.where(
+            df["SCLASS_Level1"] == "Preferred",
+            "preferred-bg",
+            np.where(
+                df["SCLASS_Level1"] == "Excluded",
+                "excluded-bg",
+                np.where(df["SCLASS_Level3"] == "Transition", "transition-bg", np.nan),
+            ),
+        )
+        styles = df[df["style"] != "nan"]["style"].squeeze().to_dict()
+        styles = {k: [v] for k, v in styles.items()}
+
+        df = df[
+            [
+                "Security ISIN",
+                "Issuer Name",
+                "Portfolio Weight",
+                "SCLASS_Level1",
+                "SCLASS_Level3",
+                "SCLASS_Level4-P",
+                "Theme",
+                "ESRM Score",
+                "Governance Score",
+                "Transition Score",
+                "Risk Score",
+                "Securitized Score",
+                "Sovereign Score",
+                "Muni Score",
+                "Risk Score Overall",
+                "CARBON_EMISSIONS_SCOPE_12_INTEN",
+                "Analyst",
+            ]
+        ]
+        df["Portfolio Weight"] = df["Portfolio Weight"].apply(
+            lambda x: "{:,.2f}".format(x)
+        )
+        df["Risk Score"] = df["Risk Score"].apply(lambda x: "{:,.2f}".format(x))
+        df = df.rename(
+            columns={
+                "CARBON_EMISSIONS_SCOPE_12_INTEN": "Carbon Intensity Scope 12",
+                "SCLASS_Level1": "SCLASS Level1",
+                "SCLASS_Level3": "SCLASS Level3",
+                "SCLASS_Level4-P": "SCLASS Level4",
+                "ESRM Score": "E&S Score",
+            }
+        )
+        df = df[page_no * 20 : (page_no + 1) * 20]
+
+        holdings_div = html.Div(
+            [
+                self.add_table(
+                    df,
+                    show_header=True,
+                    id=f"portfolio-table-{page_no}",
+                    superscript=False,
+                    styles=styles,
+                ),
+            ],
+            className="row portfolio-table",
+        )
+        return holdings_div
+
     def add_WACI_table(self) -> html.Div:
         """
         For portfolio and benchmark, calculate the WACI and carbon reduction.
@@ -259,14 +427,23 @@ class ESGCharacteristics(visualizor.PDFCreator):
         waci_index = portfolio_utils.calculate_portfolio_waci(self.waci_benchmark_data)
         carbon_reduction = waci_portfolio / waci_index - 1 if waci_index > 0 else 0
 
+        if not self.benchmark_data.empty:
+            data = [
+                "{0:.2f}".format(waci_portfolio),
+                "{0:.2f}".format(waci_index),
+                format(carbon_reduction, ".0%"),
+            ]
+        else:
+            data = [
+                "{0:.2f}".format(waci_portfolio),
+                "-",
+                "-",
+            ]
+
         df_WACI = pd.DataFrame(
             data={
                 "Name": ["Sub-Fund2", "Index", "Carbon Reduction3"],
-                "Value": [
-                    "{0:.2f}".format(waci_portfolio),
-                    "{0:.2f}".format(waci_index),
-                    format(carbon_reduction, ".0%"),
-                ],
+                "Value": data,
             }
         )
 
@@ -276,9 +453,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     [
                         "Weighted Average Carbon Intensity",
                         html.Sup(1, className="superscript"),
-                        " - ",
                         html.Br(),
-                        "Tons CO",
+                        "- Tons CO",
                         html.Sub(2),
                         "e/$M Sales",
                     ],
@@ -325,12 +501,15 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "{0:.2f}".format(trans_portfolio),
             "{0:.2f}".format(total_portfolio),
         ]
-        ind = [
-            "{0:.2f}".format(esrm_index),
-            "{0:.2f}".format(gov_index),
-            "{0:.2f}".format(trans_index),
-            "{0:.2f}".format(total_index),
-        ]
+        if not self.benchmark_data.empty:
+            ind = [
+                "{0:.2f}".format(esrm_index),
+                "{0:.2f}".format(gov_index),
+                "{0:.2f}".format(trans_index),
+                "{0:.2f}".format(total_index),
+            ]
+        else:
+            ind = ["-"] * 4
 
         if self.portfolio_type == "em":
             sov_portfolio = portfolio_utils.calculate_portfolio_sovereign(

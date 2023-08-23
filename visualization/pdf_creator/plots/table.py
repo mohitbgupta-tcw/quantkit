@@ -18,6 +18,8 @@ class Table(object):
         show table header
     add_vertical_column: str, optional
         text of vertical column to be added in right column
+    superscript: bool
+        add superscript to first column
     styles: dict, optional
         specify specific class (style) for row in format:
             {
@@ -32,6 +34,7 @@ class Table(object):
         show_vertical_lines: bool = False,
         show_header: bool = False,
         add_vertical_column: str = None,
+        superscript: bool = True,
         styles: dict = {},
     ):
         self.data = df
@@ -39,6 +42,7 @@ class Table(object):
         self.show_vertical_lines = show_vertical_lines
         self.show_header = show_header
         self.add_vertical_column = add_vertical_column
+        self.superscript = superscript
         self.styles = styles
 
     def create_table(self) -> html.Table:
@@ -59,7 +63,7 @@ class Table(object):
             class_header = "vertical"
         else:
             class_td = "table-element"
-            class_table = ""
+            class_table = "norm-table"
             class_header = ""
 
         # add header row
@@ -90,7 +94,7 @@ class Table(object):
             for index, row in self.data.iterrows():
                 html_row = []
                 for i in range(len(row)):
-                    if row[i][-1].isdigit() and i == 0:
+                    if self.superscript and row[i][-1].isdigit() and i == 0:
                         td = [
                             row[i][:-1],
                             html.Sup(row[i][-1], className="superscript"),

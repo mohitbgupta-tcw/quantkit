@@ -28,6 +28,18 @@ body {
   color: #007db5;
 }
 
+.preferred-bg {
+  background-color: #E3FFDE !important;
+}
+
+.excluded-bg {
+  background-color: #F9E3C0 !important;
+}
+
+.transition-bg {
+  background-color: #DDF4FF !important;
+}
+
 .sub-header {
   color: #231f20;
   font-size: 1.6rem;
@@ -68,7 +80,7 @@ body {
 .page {
   position: relative;
   width: 297mm;
-  height: 230mm;
+  height: 229.5mm;
   padding: 0mm;
   border-radius: 5px;
   background: white;
@@ -90,6 +102,101 @@ body {
   padding: 0cm 1cm;
   height: 100%;
 }
+
+#page-1 .header .main-title{
+  margin-top: -110px;
+}
+
+#page-2 .header .main-title{
+  margin-top: -117px;
+}
+
+#page-3 .header .main-title{
+  margin-top: -117px;
+}
+
+#page-4 .header .main-title{
+  margin-top: -117px;
+}
+#page-5 .header .main-title{
+  margin-top: -117px;
+}
+#page-6 .header .main-title{
+  margin-top: -117px;
+}
+#page-7 .header .main-title{
+  margin-top: -117px;
+}
+#page-8 .header .main-title{
+  margin-top: -117px;
+}
+#page-9 .header .main-title{
+  margin-top: -117px;
+}
+#page-10 .header .main-title{
+  margin-top: -117px;
+}
+#page-11 .header .main-title{
+  margin-top: -117px;
+}
+#page-12 .header .main-title{
+  margin-top: -117px;
+}
+#page-13 .header .main-title{
+  margin-top: -117px;
+}
+#page-14 .header .main-title{
+  margin-top: -117px;
+}
+#page-15 .header .main-title{
+  margin-top: -117px;
+}
+#page-16 .header .main-title{
+  margin-top: -117px;
+}
+#page-17 .header .main-title{
+  margin-top: -117px;
+}
+#page-18 .header .main-title{
+  margin-top: -117px;
+}
+#page-19 .header .main-title{
+  margin-top: -117px;
+}
+#page-20 .header .main-title{
+  margin-top: -117px;
+}
+#page-21 .header .main-title{
+  margin-top: -117px;
+}
+#page-22 .header .main-title{
+  margin-top: -117px;
+}
+#page-23 .header .main-title{
+  margin-top: -117px;
+}
+#page-24 .header .main-title{
+  margin-top: -117px;
+}
+#page-25 .header .main-title{
+  margin-top: -117px;
+}
+#page-26 .header .main-title{
+  margin-top: -117px;
+}
+#page-27 .header .main-title{
+  margin-top: -117px;
+}
+#page-28 .header .main-title{
+  margin-top: -117px;
+}
+#page-29 .header .main-title{
+  margin-top: -117px;
+}
+#page-30 .header .main-title{
+  margin-top: -117px;
+}
+
 
 .header {
   padding-top: 2em;
@@ -116,7 +223,7 @@ body {
   border-bottom: 1px solid black;
 }
 
-#overall-header {
+.overall-header {
   margin-bottom: -10px;
 }
 
@@ -337,6 +444,44 @@ table.reversed tr:nth-child(odd) {
 }
 table.reversed tr:nth-child(even) {
   background-color: #f0f0f0;
+}
+
+
+.portfolio-table .norm-table td:first-child {
+  width: auto;
+}
+
+.portfolio-table .norm-table tr td:nth-child(2) {
+  text-align: left !important;
+}
+
+.portfolio-table .norm-table tr td:first-child {
+  text-align: center !important;
+}
+
+.portfolio-table .norm-table th:nth-child(2) {
+  text-align: left !important;
+}
+
+.portfolio-table .norm-table th:first-child {
+  text-align: center !important;
+}
+
+.portfolio-table .norm-table th{
+  font-weight: bold;
+}
+
+.portfolio-table .norm-table tr:last-child {
+  background-color: white;
+  font-weight: normal;
+}
+
+.portfolio-table .norm-table td {
+  font-size: 1rem;
+}
+
+.portfolio-table .norm-table th {
+  font-size: 1.1rem;
 }
 
 table {
