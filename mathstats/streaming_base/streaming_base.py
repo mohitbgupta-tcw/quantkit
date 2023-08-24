@@ -11,6 +11,7 @@ class StreamingBase(object):
     def __init__(self):
         self._values = []
         self.total_iterations = 0
+        self._results = dict()
 
     def add_value(self, value: float) -> None:
         """
@@ -24,5 +25,9 @@ class StreamingBase(object):
         self._values.append(value)
 
     @property
-    def values(self) -> dict:
+    def values(self) -> list:
         return self._values
+
+    @property
+    def results(self) -> dict:
+        return self._results

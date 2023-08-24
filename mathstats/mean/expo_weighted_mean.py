@@ -4,7 +4,22 @@ import quantkit.mathstats.mean.simple_mean as simple_mean
 
 
 class ExponentialWeightedMean(simple_mean.SimpleMean):
-    def __init__(self, num_variables: int, geo_base: int = 0, adjust=True, **kwargs):
+    """
+    Exponential Weighted Mean Calculation (EWA)
+
+    Parameters
+    ----------
+    num_variables : int
+        Number of variables
+    geo_base: int, optional
+        geo base for geometric mean calculation
+    adjust: bool, optional
+        calculate on adjusted or unadjusted version
+    """
+
+    def __init__(
+        self, num_variables: int, geo_base: int = 0, adjust=True, **kwargs
+    ) -> None:
         super().__init__(num_variables, geo_base, **kwargs)
         self.weight_sum = 0
         self._n_effective_ratio = 0
@@ -24,7 +39,7 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
         )
 
     @property
-    def n_effective_ratio(self):
+    def n_effective_ratio(self) -> np.array:
         return 1 - (self._n_effective_ratio / self.weight_sum**2)
 
     def calculate_adjusted(
@@ -33,7 +48,24 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
         incoming_variables: np.ndarray,
         batch_weight: int = 1,
         **kwargs,
-    ):
+    ) -> np.array:
+        """
+        Calculate average on adjusted version.
+
+        Parameters
+        ----------
+        prev_average : np.array
+            Previous Average
+        incoming_variables : np.array
+            Incoming variables
+        batch_weight : int, optional
+            batch weight
+
+        Returns
+        -------
+        np.array
+            Newly calculated average
+        """
         new_average = prev_average * batch_weight + incoming_variables
         return new_average
 
@@ -43,7 +75,24 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
         incoming_variables: np.ndarray,
         batch_weight: int = 1,
         **kwargs,
-    ):
+    ) -> np.array:
+        """
+        Calculate average on unadjusted version.
+
+        Parameters
+        ----------
+        prev_average : np.array
+            Previous Average
+        incoming_variables : np.array
+            Incoming variables
+        batch_weight : int, optional
+            batch weight
+
+        Returns
+        -------
+        np.array
+            Newly calculated average
+        """
         if self.total_iterations == 0:
             new_average = incoming_variables
             return new_average
@@ -52,7 +101,9 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
         ) * incoming_variables + batch_weight * prev_average
         return new_average
 
-    def update(self, incoming_variables: np.ndarray, batch_weight: int = 1, **kwargs):
+    def update(
+        self, incoming_variables: np.ndarray, batch_weight: int = 1, **kwargs
+    ) -> None:
         """
         Update the current mean array with newly streamed in data.
 
@@ -111,4 +162,3 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
             batch_weight=batch_weight,
             **kwargs,
         )
-        return
