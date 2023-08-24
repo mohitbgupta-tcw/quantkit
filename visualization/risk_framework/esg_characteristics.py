@@ -47,6 +47,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "JPM EM Custom Index (50/50)" if portfolio == 3750 else self.benchmark_isin
         )
         self.filtered = filtered
+        self.portfolio_divider = 28 if self.filtered else 24
 
     def run(self) -> None:
         """
@@ -96,7 +97,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 )
             ]
 
-        for i in range(math.ceil(len(self.portfolio_data) / 20)):
+        for i in range(math.ceil(len(self.portfolio_data) / self.portfolio_divider)):
             all_pages.append(
                 self.create_page(
                     self.add_header_holdings(),
@@ -416,7 +417,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 "ESRM Score": "E&S Score",
             }
         )
-        df = df[page_no * 20 : (page_no + 1) * 20]
+        df = df[page_no * self.portfolio_divider : (page_no + 1) * self.portfolio_divider]
 
         holdings_div = html.Div(
             [
