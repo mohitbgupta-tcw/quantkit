@@ -1,10 +1,16 @@
+import numpy as np
+from collections import deque
+from typing import Tuple
+
+
 class StreamingBase(object):
     """
-    Class for saving values
+    Base Class for stracking matrices over time
     """
 
     def __init__(self):
-        self.values = []
+        self._values = []
+        self.total_iterations = 0
 
     def add_value(self, value: float) -> None:
         """
@@ -15,4 +21,8 @@ class StreamingBase(object):
         value: float
             new data point
         """
-        self.values.append(value)
+        self._values.append(value)
+
+    @property
+    def values(self) -> dict:
+        return self._values
