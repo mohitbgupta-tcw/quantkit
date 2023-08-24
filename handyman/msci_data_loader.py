@@ -1,8 +1,9 @@
 import pandas as pd
 import quantkit.data_sources.msci as msci
+import quantkit.utils.configs as configs
 
 
-def create_msci_mapping(isin_list: list, params: dict) -> pd.DataFrame:
+def create_msci_mapping(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     """
     Create MSCI mapping DataFrame
 
@@ -10,14 +11,15 @@ def create_msci_mapping(isin_list: list, params: dict) -> pd.DataFrame:
     ----------
     isin_list: list
         list of isins
-    params: dict
-        parameters with msci information
+    local_configs: str, optional
+        path to a local configarations file
 
     Returns
     -------
     pd.DataFrame
     """
-    msci_params = params["msci_parameters"]
+    params = configs.read_configs(local_configs=local_configs)
+    msci_params = params["API_settings"]["msci_parameters"]
     filters = {
         "issuer_identifier_type": "ISIN",
         "issuer_identifier_list": isin_list,
