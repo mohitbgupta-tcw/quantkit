@@ -364,8 +364,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
         styles = df[df["style"] != "nan"]["style"].squeeze().to_dict()
         styles = {k: [v] for k, v in styles.items()}
 
-        df = df[
-            [
+        if not self.filtered:
+            cols = [
                 "Security ISIN",
                 "Issuer Name",
                 "Portfolio Weight",
@@ -384,7 +384,25 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 "CARBON_EMISSIONS_SCOPE_12_INTEN",
                 "Analyst",
             ]
-        ]
+        else:
+            cols = [
+                "Security ISIN",
+                "Issuer Name",
+                "Portfolio Weight",
+                "SCLASS_Level1",
+                "SCLASS_Level3",
+                "SCLASS_Level4-P",
+                "Theme",
+                "ESRM Score",
+                "Governance Score",
+                "Transition Score",
+                "Risk Score",
+                "Risk Score Overall",
+                "CARBON_EMISSIONS_SCOPE_12_INTEN",
+                "Analyst",
+            ]
+
+        df = df[cols]
         df["Portfolio Weight"] = df["Portfolio Weight"].apply(
             lambda x: "{:,.2f}".format(x)
         )
