@@ -241,13 +241,13 @@ def calculate_carbon_intensity(df: pd.DataFrame, portfolio_type: str) -> pd.Data
         )
     ]
 
-    if portfolio_type == "equity":
+    if portfolio_type in ["equity", "equity_a9"]:
         df_grouped = df_filtered.groupby("GICS_SECTOR", as_index=False).apply(
             lambda x: x["market_weight_carbon_intensity"].sum()
             / x["Portfolio Weight"].sum()
             * 100
         )
-    elif portfolio_type == "fixed_income":
+    elif portfolio_type in ["fixed_income", "fixed_income_a9", "fixed_income_a8"]:
         df_grouped = df_filtered.groupby("BCLASS_SECTOR", as_index=False).apply(
             lambda x: x["market_weight_carbon_intensity"].sum()
             / x["Portfolio Weight"].sum()
@@ -471,3 +471,40 @@ def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
     df_grouped = df_grouped.drop("Sort", axis=1)
     df_grouped["Color"] = df_grouped["SCLASS_Level2"].map(color)
     return df_grouped
+
+
+def calculate_portfolio_summary(df: pd.DataFrame, portfolio_type: str) -> dict:
+    """
+    For a given portfolio, calculate the portfolio summary
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+    portfolio_type: str
+        portfolio type, either "equity" or "fixed_income"
+
+    Returns
+    -------
+    dict
+        portfolio's summary
+    """
+    summary = dict()
+    scores_people = calculate_people_distribution(df)
+    scores_planet = calculate_planet_distribution(df)
+    total = sum(scores_people.values()) + sum(scores_planet.values())
+
+    if portfolio_type in ["fixed_income", "fixed_income_a9", "fixed_income_a8", "em"]:
+        bonds = calculate_bond_distribution(df)
+        total += sum(bonds.values())
+
+    excluded = df[df["SCLASS_Level3"] == "Exclusion"]["Portfolio Weight"].sum()
+
+    scores = calculate_risk_distribution(df)
+    other = scores["Not Scored"]
+
+    summary["sustainable_theme"] = total
+    summary["exclusion"] = excluded
+    summary["other"] = other
+    summary["sustainable_managed"] = 100 - total - other - excluded
+    return summary
