@@ -819,4 +819,4 @@ def print_esg_characteristics_pdf(
         "Financial Report", df, portfolio_type, portfolio_isin, benchmark, filtered
     )
     pdf.run()
-    pdf.app.run_server(debug=True, jupyter_mode="tab")
+    pdf.app.run_server(debug=False, jupyter_mode="tab")

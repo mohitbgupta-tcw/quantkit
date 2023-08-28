@@ -216,7 +216,7 @@ body {
 }
 
 .footnote-end {
-  margin-top: 20px;
+  margin-top: 18px;
 }
 
 .footer-textbox {
@@ -286,6 +286,19 @@ body {
   background-color: #91bcd1;
 }
 
+.bg-bebcbb {
+  background-color: #bebcbb;
+}
+
+.normal-row {
+  background-color: #fff !important;
+  font-weight: normal !important;
+}
+
+.padding-15 {
+  padding-left: 15px
+}
+
 @page {
   size: A4;
   margin: 0;
@@ -309,6 +322,60 @@ p.padded {
 .blue-text {
   color: #8496b8;
 }
+
+#planet-table td:first-child {
+  width: 10%;
+  max-width: 40px;
+}
+#planet-table td:nth-child(2) {
+  width: 80%;
+  text-align: left;
+  padding-left: 8px;
+}
+#planet-table td:last-child {
+  text-align: left;
+  padding-left: 8px;
+}
+#people-table td:first-child {
+  width: 10%;
+  max-width: 40px;
+}
+#people-table td:nth-child(2) {
+  width: 80%;
+  text-align: left;
+  padding-left: 8px;
+}
+#people-table td:last-child {
+  text-align: left;
+  padding-left: 8px;
+}
+#total-table td:first-child {
+  width: 10%;
+  max-width: 40px;
+}
+#total-table td:nth-child(2) {
+  width: 80%;
+  text-align: left;
+  padding-left: 8px;
+}
+#total-table td:last-child {
+  text-align: left;
+  padding-left: 8px;
+}
+#transition-table td:first-child {
+  width: 10%;
+  max-width: 40px;
+}
+#transition-table td:nth-child(2) {
+  width: 80%;
+  text-align: left;
+  padding-left: 8px;
+}
+#transition-table td:last-child {
+  text-align: left;
+  padding-left: 8px;
+}
+
 
 table {
   width: 100%;
@@ -383,6 +450,12 @@ td.table-element {
   background-color: #CDF0D3;
 }
 #total-table tr:last-child{
+  background-color: white;
+}
+#total-table tr:last-child td:nth-last-child(2) {
+  background-color: #CDF0D3;
+}
+#total-table tr:last-child td:last-child{
   background-color: #CDF0D3;
 }
 
@@ -429,14 +502,24 @@ td.table-element {
   width: 40%;
 }
 
+#risk-score tr:nth-last-child(1) td:first-child{
+  padding-left:15px
+}
+
+#risk-score tr:nth-last-child(2) td:first-child{
+  padding-left:15px
+}
+
+#risk-score tr:nth-last-child(3) td:first-child{
+  padding-left:15px
+}
+
 .vert-text {
     font-size: 1.5rem;
     font-weight: bold;
-    background-color: #fff;
-    writing-mode: vertical-rl;
-    padding-top: 4rem;
-    width: 8%;
     padding-right: 0 !important;
+    background: none;
+    rotate: 270deg;
 }
 
 table.reversed tr:nth-child(odd) {

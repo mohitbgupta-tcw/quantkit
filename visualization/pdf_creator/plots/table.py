@@ -74,8 +74,6 @@ class Table(object):
         if self.add_vertical_column:
             for index, row in self.data.iterrows():
                 html_row = []
-                for i in range(len(row)):
-                    html_row.append(html.Td([row[i]], className=class_td))
                 if index == 0:
                     html_row.append(
                         html.Td(
@@ -84,6 +82,8 @@ class Table(object):
                             className="vert-text",
                         )
                     )
+                for i in range(len(row)):
+                    html_row.append(html.Td([row[i]], className=class_td))
                 if index in self.styles:
                     class_row = " ".join(self.styles[index])
                 else:

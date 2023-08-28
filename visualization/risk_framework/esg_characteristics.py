@@ -44,9 +44,10 @@ class ESGCharacteristics(visualizor.PDFCreator):
         self.portfolio_isin = portfolio
         self.benchmark_isin = benchmark
         self.waci_benchmark_isin = (
-            "JPM EM Custom Index (50/50)" if portfolio == 3750 else self.benchmark_isin
+            "JPM EM Custom Index (50/50)" if portfolio == "3750" else self.benchmark_isin
         )
         self.filtered = filtered
+        self.portfolio_divider = 28 if self.filtered else 24
 
     def run(self) -> None:
         """
@@ -84,27 +85,27 @@ class ESGCharacteristics(visualizor.PDFCreator):
             )
         )
 
-        if self.filtered:
-            self.portfolio_data = self.portfolio_data[
-                self.data["Sector Level 2"].isin(
-                    [
-                        "Financial Institution",
-                        "Industrial",
-                        "Quasi Sovereign",
-                        "Utility",
-                    ]
-                )
-            ]
+        # if self.filtered:
+        #     self.portfolio_data = self.portfolio_data[
+        #         self.data["Sector Level 2"].isin(
+        #             [
+        #                 "Financial Institution",
+        #                 "Industrial",
+        #                 "Quasi Sovereign",
+        #                 "Utility",
+        #             ]
+        #         )
+        #     ]
 
-        for i in range(math.ceil(len(self.portfolio_data) / 20)):
-            all_pages.append(
-                self.create_page(
-                    self.add_header_holdings(),
-                    self.add_body_portfolio_holdings(page_no=i),
-                    html.Div(),
-                    page_no=i + 1,
-                )
-            )
+        # for i in range(math.ceil(len(self.portfolio_data) / self.portfolio_divider)):
+        #     all_pages.append(
+        #         self.create_page(
+        #             self.add_header_holdings(),
+        #             self.add_body_portfolio_holdings(page_no=i),
+        #             html.Div(),
+        #             page_no=i + 1,
+        #         )
+        #     )
 
         pages_div = html.Div(all_pages)
         return pages_div
@@ -177,34 +178,77 @@ class ESGCharacteristics(visualizor.PDFCreator):
             row with footer Div
         """
         if self.portfolio_type == "em":
+            index_text = mapping_utils.benchmark_text[self.benchmark_isin].split(":", 1)
             footnote_text = [
-                html.Span("Source: TCW, Bloomberg, MSCI, ISS", className="size11"),
-                html.Br(className="m"),
-                """1 """,
-                html.B(" Weighted Average Carbon Intensity"),
-                """ measure represents the weighted average summary of the portfoliocompany’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales""",
+                "Source: TCW, Bloomberg, MSCI, ISS",
                 html.Br(),
-                html.Span("in million USD.", className="indent"),
-                html.Br(),
-                """ 2 With respect to the specific sustainable investment objective of reducing the carbon intensity of the corporate and quasi-sovereign holdings relative to the broader representative universe of Emerging Market corporate and quasi""",
-                html.Br(),
-                html.Span(
-                    "sovereign holdings, this Sub-Fund utilizes a custom combination of the JP Morgan CEMBI Broad Diversified Index and quasi-sovereign issuers in the JP Morgan EMBI Global Diversified Index to determine the appropriate",
-                    className="indent",
+                html.B("1 Sustainable Investments:"),
+                """ TCW utilizes proprietary tools and research to identify holdings that can be considered sustainable, either because these assets align with our classification of a sustainably managed entity or because the products, services, or representative collateral aligns with the sustainable themes outlined above. """,
+                html.B("2 Other securities"),
+                """ represent securities that are not evaluated for the purposes of sustainable characteristics. These securities are allowed up to 20% of the portfolio and include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash. """,
+                html.B("3 Weighted Average Carbon Intensity measure"),
+                """ represents the weighted average summary of the portfolio company’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales in million USD. """,
+                html.B(
+                    "4 With respect to the specific sustainable investment objective"
                 ),
-                html.Br(),
-                html.Span("constituents.", className="indent"),
-                html.Br(),
-                """ 3 """,
-                html.B("Carbon intensity reduction"),
-                """ relative to custom benchmark. Applies to corporates and quasi-sovereigns. """,
+                """ of reducing the carbon intensity of the corporate and quasi-sovereign holdings relative to the broader representative universe of Emerging Market corporate and quasi sovereign holdings, this Sub-Fund utilizes a custom combination of the JP Morgan CEMBI Broad Diversified Index and quasi-sovereign issuers in the JP Morgan EMBI Global Diversified Index to determine the appropriate constituents.""",
+                html.B("5 Carbon intensity reduction"),
+                """ relative to custom benchmark. """,
                 html.Br(className="m"),
                 html.Span(
                     [
-                        html.B(
-                            "Index - JP Morgan EMBI Global Diversified (EMBI GD) from inception through 20 July 2022; JP Morgan ESG EMBI Global Diversified (JESG EMBIG) thereafter."
-                        ),
-                        """ EMBI GD is a market capitalization-weighted total return index of U.S. dollar-denominated Brady bonds, loans, and Eurobond instruments traded in emerging markets. JESG EMBIG tracks liquid, US Dollar emerging market fixed and floating-rate debt instruments issued by sovereign and quasi-sovereign entities. The index applies an ESG scoring and screening methodology to tilt toward issuers ranked higher on ESG criteria and green bond issues, and to underweight and remove issuers that rank lower. The indices are not available for direct investment; therefore performance does not reflect a reduction for fees or expenses incurred in managing a portfolio.""",
+                        html.B(index_text[0] + ":"),
+                        index_text[1],
+                    ],
+                ),
+            ]
+        elif self.portfolio_type == "fixed_income_a8":
+            index_text = mapping_utils.benchmark_text[self.benchmark_isin].split(":", 1)
+            footnote_text = [
+                "Source: TCW, Bloomberg, MSCI, ISS",
+                html.Br(),
+                html.B("1 Sustainable Investments:"),
+                """ TCW utilizes proprietary tools and research to identify holdings that can be considered sustainable, either because these assets align with our classification of a sustainably managed entity or because the products, services, or representative collateral aligns with the sustainable themes outlined above. """,
+                html.B("2 Other securities"),
+                """ represent securities that are not evaluated for the purposes of sustainable characteristics. These securities are allowed up to 20% of the portfolio and include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash. """,
+                html.B("3 Weighted Average Carbon Intensity measure"),
+                """ represents the weighted average summary of the portfolio company’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales in million USD. """,
+                html.B("4 Carbon intensity reduction"),
+                """ relative to benchmark and/or universe. Applies to equity securities. """,
+                html.B("5 TCW has developed a scoring methodology"),
+                """ to assess the ESG risk or characteristics of companies and/or issuers. All securities are assessed according to this methodology. """,
+                html.B("6 Not scored securities"),
+                """ represent securities that are not evaluated for the purposes of sustainable characteristics. These include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash.""",
+                html.Br(className="m"),
+                html.Span(
+                    [
+                        html.B(index_text[0] + ":"),
+                        index_text[1],
+                    ],
+                ),
+            ]
+        elif self.portfolio_type in ["equity_a9", "fixed_income_a9"]:
+            index_text = mapping_utils.benchmark_text[self.benchmark_isin].split(":", 1)
+            footnote_text = [
+                "Source: TCW, Bloomberg, MSCI, ISS",
+                html.Br(),
+                html.B("1 Sustainable Investments:"),
+                """ TCW utilizes proprietary tools and research to identify holdings that can be considered sustainable, either because these assets align with our classification of a sustainably managed entity or because the products, services, or representative collateral aligns with the sustainable themes outlined above. """,
+                html.B("2 Other securities"),
+                """ represent securities that are not evaluated for the purposes of sustainable characteristics. These securities are allowed up to 20% of the portfolio and include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash. """,
+                html.B("3 Weighted Average Carbon Intensity measure"),
+                """ represents the weighted average summary of the portfolio company’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales in million USD. """,
+                html.B("4 Carbon intensity reduction"),
+                """ relative to benchmark and/or universe. Applies to equity securities. """,
+                html.B("5 TCW has developed a scoring methodology"),
+                """ to assess the ESG risk or characteristics of companies and/or issuers. All securities are assessed according to this methodology. """,
+                html.B("6 Not scored securities"),
+                """ represent securities that are not evaluated for the purposes of sustainable characteristics. These include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash.""",
+                html.Br(className="m"),
+                html.Span(
+                    [
+                        html.B(index_text[0] + ":"),
+                        index_text[1],
                     ],
                 ),
             ]
@@ -263,6 +307,80 @@ class ESGCharacteristics(visualizor.PDFCreator):
         ]
         return body_content
 
+    def add_body_equity_a9(self) -> html.Div:
+        """
+        Create main body with tables, charts and text
+
+        Returns
+        -------
+        html.Div
+            row with body Div
+        """
+        body_content = [
+            # first column
+            html.Div(
+                [
+                    self.add_summary_table(),
+                    self.add_WACI_table(),
+                    self.add_score_distribution(),
+                ],
+                className="three columns",
+            ),
+            # second column
+            html.Div(
+                [
+                    self.add_planet_table(),
+                    self.add_people_table(),
+                    self.add_total_table(),
+                    # self.add_transition_table(),
+                ],
+                className="five columns",
+            ),
+            # third column
+            html.Div(
+                [self.add_carbon_intensity_chart()],
+                className="four columns",
+            ),
+        ]
+        return body_content
+
+    def add_body_fi_a9(self) -> html.Div:
+        """
+        Create main body with tables, charts and text
+
+        Returns
+        -------
+        html.Div
+            row with body Div
+        """
+        body_content = [
+            # first column
+            html.Div(
+                [
+                    self.add_summary_table(),
+                    self.add_WACI_table(),
+                    self.add_score_distribution(),
+                ],
+                className="three columns",
+            ),
+            # second column
+            html.Div(
+                [
+                    self.add_planet_table(),
+                    self.add_people_table(),
+                    self.add_total_table(),
+                    # self.add_transition_table(),
+                ],
+                className="five columns",
+            ),
+            # third column
+            html.Div(
+                [self.add_carbon_intensity_chart()],
+                className="four columns",
+            ),
+        ]
+        return body_content
+
     def add_body_em(self) -> html.Div:
         """
         Create main body with tables, charts and text
@@ -275,7 +393,11 @@ class ESGCharacteristics(visualizor.PDFCreator):
         body_content = [
             # first column
             html.Div(
-                [self.add_bond_table(), self.add_WACI_table()],
+                [
+                    self.add_summary_table(),
+                    self.add_bond_table(),
+                    self.add_WACI_table(),
+                ],
                 className="four columns",
             ),
             # second column
@@ -324,8 +446,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             row with body Div
         """
-        if self.portfolio_type == "fixed_income" or self.portfolio_type == "equity":
+        if self.portfolio_type in ["fixed_income", "equity"]:
             body_content = self.add_body_equity_fi()
+        elif self.portfolio_type in ["equity_a9"]:
+            body_content = self.add_body_equity_a9()
+        elif self.portfolio_type in ["fixed_income_a9", "fixed_income_a8"]:
+            body_content = self.add_body_fi_a9()
         elif self.portfolio_type == "em":
             body_content = self.add_body_em()
         return super().add_body(body_content)
@@ -364,8 +490,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
         styles = df[df["style"] != "nan"]["style"].squeeze().to_dict()
         styles = {k: [v] for k, v in styles.items()}
 
-        df = df[
-            [
+        if not self.filtered:
+            cols = [
                 "Security ISIN",
                 "Issuer Name",
                 "Portfolio Weight",
@@ -384,7 +510,25 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 "CARBON_EMISSIONS_SCOPE_12_INTEN",
                 "Analyst",
             ]
-        ]
+        else:
+            cols = [
+                "Security ISIN",
+                "Issuer Name",
+                "Portfolio Weight",
+                "SCLASS_Level1",
+                "SCLASS_Level3",
+                "SCLASS_Level4-P",
+                "Theme",
+                "ESRM Score",
+                "Governance Score",
+                "Transition Score",
+                "Risk Score",
+                "Risk Score Overall",
+                "CARBON_EMISSIONS_SCOPE_12_INTEN",
+                "Analyst",
+            ]
+
+        df = df[cols]
         df["Portfolio Weight"] = df["Portfolio Weight"].apply(
             lambda x: "{:,.2f}".format(x)
         )
@@ -398,7 +542,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 "ESRM Score": "E&S Score",
             }
         )
-        df = df[page_no * 20 : (page_no + 1) * 20]
+        df = df[
+            page_no * self.portfolio_divider : (page_no + 1) * self.portfolio_divider
+        ]
 
         holdings_div = html.Div(
             [
@@ -413,6 +559,70 @@ class ESGCharacteristics(visualizor.PDFCreator):
             className="row portfolio-table",
         )
         return holdings_div
+
+    def add_summary_table(self) -> html.Div:
+        """
+        For portfolio, calculate summary measures.
+        Show these values in a table.
+
+        Returns
+        -------
+        html.Div
+            div with WACI table and header
+        """
+        scores = portfolio_utils.calculate_portfolio_summary(
+            self.portfolio_data, self.portfolio_type
+        )
+        total = sum(scores.values())
+
+        sm = (
+            "E & S Characteristics"
+            if self.portfolio_type == "fixed_income_a8"
+            else "Sustainable Managed"
+        )
+        names = [
+            sm,
+            "Sustainable Themes",
+            "Other2",
+            "Total",
+        ]
+
+        values = [
+            "{0:.2f}".format(scores["sustainable_managed"]),
+            "{0:.2f}".format(scores["sustainable_theme"]),
+            "{0:.2f}".format(scores["other"]),
+            "{0:.2f}".format(total),
+        ]
+        styles = {2: ["italic"]}
+
+        if scores["exclusion"] > 0:
+            names.insert(2, "Exclusion")
+            values.insert(2, "{0:.2f}".format(scores["exclusion"]))
+            styles = {3: ["italic"]}
+
+        df_summary = pd.DataFrame(
+            data={
+                "Name": names,
+                "Value": values,
+            }
+        )
+
+        summary_div = html.Div(
+            [
+                html.H6(
+                    [
+                        "Summary Characteristics",
+                        html.Sup(1, className="superscript"),
+                        html.A(" (%MV)", className="mv"),
+                    ],
+                    className="subtitle padded",
+                ),
+                self.add_table(df_summary, styles=styles),
+            ],
+            className="row",
+            id="summary-table",
+        )
+        return summary_div
 
     def add_WACI_table(self) -> html.Div:
         """
@@ -441,19 +651,30 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 "-",
             ]
 
+        sub_fund = "Sub-Fund4" if self.portfolio_type == "em" else "Sub-Fund"
+        cr_label = (
+            "Carbon Reduction5" if self.portfolio_type == "em" else "Carbon Reduction4"
+        )
+
         df_WACI = pd.DataFrame(
             data={
-                "Name": ["Sub-Fund2", "Index", "Carbon Reduction3"],
+                "Name": [sub_fund, "Index", cr_label],
                 "Value": data,
             }
         )
 
+        sup = (
+            3
+            if self.portfolio_type
+            in ["equity_a9", "fixed_income_a9", "em", "fixed_income_a8"]
+            else 1
+        )
         waci_div = html.Div(
             [
                 html.H6(
                     [
                         "Weighted Average Carbon Intensity",
-                        html.Sup(1, className="superscript"),
+                        html.Sup(sup, className="superscript"),
                         html.Br(),
                         "- Tons CO",
                         html.Sub(2),
@@ -495,19 +716,19 @@ class ESGCharacteristics(visualizor.PDFCreator):
         total_portfolio = (esrm_portfolio + gov_portfolio + trans_portfolio) / 3
         total_index = (esrm_index + gov_index + trans_index) / 3
 
-        labels = ["E&S", "Governance", "Transition", "Corp/Quasis"]
+        labels = ["Corp/Quasis", "E&S", "Governance", "Transition"]
         portfolio = [
+            "{0:.2f}".format(total_portfolio),
             "{0:.2f}".format(esrm_portfolio),
             "{0:.2f}".format(gov_portfolio),
             "{0:.2f}".format(trans_portfolio),
-            "{0:.2f}".format(total_portfolio),
         ]
         if not self.benchmark_data.empty:
             ind = [
+                "{0:.2f}".format(total_index),
                 "{0:.2f}".format(esrm_index),
                 "{0:.2f}".format(gov_index),
                 "{0:.2f}".format(trans_index),
-                "{0:.2f}".format(total_index),
             ]
         else:
             ind = ["-"] * 4
@@ -520,11 +741,13 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 self.benchmark_data
             )
 
-            labels.append("Sovereign")
-            portfolio.append("{0:.2f}".format(sov_portfolio))
-            ind.append("{0:.2f}".format(sov_index))
+            labels.insert(0, "Sovereign")
+            portfolio.insert(0, "{0:.2f}".format(sov_portfolio))
+            ind.insert(0, "{0:.2f}".format(sov_index))
 
-            styles = {3: ["grey-row"]}
+            styles = {0: ["grey-row"], 1: ["grey-row"], 4: ["normal-row"]}
+        else:
+            styles = {0: ["grey-row"], 3: ["normal-row"]}
 
         df_risk_score_distr = pd.DataFrame(
             data={
@@ -574,7 +797,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     "Leading ESG Score",
                     "Average ESG Score",
                     "Poor Risk Score",
-                    "Not Scored",
+                    "Not Scored6",
                     "Total",
                 ],
                 "Value": [
@@ -586,16 +809,20 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 ],
             }
         )
+
+        styles = {3: ["italic"]}
+
         distr = html.Div(
             [
                 html.H6(
                     [
-                        "TCW Score Distribution (% MV)",
-                        html.Sup(3, className="superscript"),
+                        "ESG Risk Score Distribution",
+                        html.Sup(5, className="superscript"),
+                        html.A(" (%MV)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
-                self.add_table(df_distr),
+                self.add_table(df_distr, styles=styles),
             ],
             className="row",
             id="score-distribution",
@@ -635,7 +862,11 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "{0:.2f}".format(sust_total),
         ]
 
-        if self.portfolio_type == "fixed_income":
+        if self.portfolio_type in [
+            "fixed_income",
+            "fixed_income_a9",
+            "fixed_income_a8",
+        ]:
             bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
             names.insert(-1, "Green - Labeled Bonds")
             values.insert(-1, "{0:.2f}".format(bonds["Labeled Green"]))
@@ -657,7 +888,10 @@ class ESGCharacteristics(visualizor.PDFCreator):
         sust_table = html.Div(
             [
                 html.H6(
-                    ["Sustainable Themes (% MV)", html.Sup(4, className="superscript")],
+                    [
+                        "Detailed Highlights - Sustainable Themes ",
+                        html.A("(%MV)", className="mv"),
+                    ],
                     className="subtitle padded",
                 ),
                 t,
@@ -699,7 +933,11 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "{0:.2f}".format(sust_total),
         ]
 
-        if self.portfolio_type == "fixed_income":
+        if self.portfolio_type in [
+            "fixed_income",
+            "fixed_income_a9",
+            "fixed_income_a8",
+        ]:
             bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
             names.insert(-1, "Social - Labeled Bonds")
             values.insert(-1, "{0:.2f}".format(bonds["Labeled Social"]))
@@ -746,7 +984,11 @@ class ESGCharacteristics(visualizor.PDFCreator):
         names = ["Total Sustainable Themes"]
         values = ["{0:.2f}".format(total)]
 
-        if self.portfolio_type == "fixed_income":
+        if self.portfolio_type in [
+            "fixed_income",
+            "fixed_income_a9",
+            "fixed_income_a8",
+        ]:
             bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
             total += sum(bonds.values())
             values[-1] = "{0:.2f}".format(total)
@@ -987,6 +1229,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
                         [html.Div(className=f"square bg-{color}"), html.Span([label])]
                     )
                 )
+                if index == len(df) - 1:
+                    table.append(html.Tr(legend_row))
             else:
                 legend_row.append(
                     html.Td(
