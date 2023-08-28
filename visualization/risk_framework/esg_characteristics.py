@@ -44,7 +44,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         self.portfolio_isin = portfolio
         self.benchmark_isin = benchmark
         self.waci_benchmark_isin = (
-            "JPM EM Custom Index (50/50)" if portfolio == 3750 else self.benchmark_isin
+            "JPM EM Custom Index (50/50)" if portfolio == "3750" else self.benchmark_isin
         )
         self.filtered = filtered
         self.portfolio_divider = 28 if self.filtered else 24
