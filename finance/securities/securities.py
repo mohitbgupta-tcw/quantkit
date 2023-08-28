@@ -123,6 +123,8 @@ class SecurityStore(object):
         """
         self.information["SClass_Level4"] = "Not Scored"
         self.information["SClass_Level4-P"] = "Not Scored"
+        self.information["SClass_Level3"] = "Not Scored"
+        self.information["SClass_Level2"] = "Not Scored"
 
     def is_TBA(self) -> None:
         """

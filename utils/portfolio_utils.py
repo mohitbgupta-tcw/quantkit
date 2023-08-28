@@ -458,12 +458,14 @@ def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
         "Transition": "#0072a0",
         "ESG Scores": "#91bcd1",
         "Exclusion": "#cd523a",
+        "Not Scored": "#bebcbb",
     }
     sort = {
         "ESG-Labeled Bonds": 1,
         "Transition": 2,
         "ESG Scores": 3,
         "Exclusion": 4,
+        "Not Scored": 5,
     }
     df_grouped = df.groupby("SCLASS_Level2")["Portfolio Weight"].sum().reset_index()
     df_grouped["Sort"] = df_grouped["SCLASS_Level2"].map(sort)

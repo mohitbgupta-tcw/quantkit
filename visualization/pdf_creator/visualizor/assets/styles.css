@@ -286,6 +286,19 @@ body {
   background-color: #91bcd1;
 }
 
+.bg-bebcbb {
+  background-color: #bebcbb;
+}
+
+.normal-row {
+  background-color: #fff !important;
+  font-weight: normal !important;
+}
+
+.padding-15 {
+  padding-left: 15px
+}
+
 @page {
   size: A4;
   margin: 0;
@@ -487,6 +500,18 @@ td.table-element {
 
 #risk-score td:first-child{
   width: 40%;
+}
+
+#risk-score tr:nth-last-child(1) td:first-child{
+  padding-left:15px
+}
+
+#risk-score tr:nth-last-child(2) td:first-child{
+  padding-left:15px
+}
+
+#risk-score tr:nth-last-child(3) td:first-child{
+  padding-left:15px
 }
 
 .vert-text {

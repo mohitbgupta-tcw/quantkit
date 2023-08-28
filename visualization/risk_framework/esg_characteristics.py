@@ -716,19 +716,19 @@ class ESGCharacteristics(visualizor.PDFCreator):
         total_portfolio = (esrm_portfolio + gov_portfolio + trans_portfolio) / 3
         total_index = (esrm_index + gov_index + trans_index) / 3
 
-        labels = ["E&S", "Governance", "Transition", "Corp/Quasis"]
+        labels = ["Corp/Quasis", "E&S", "Governance", "Transition"]
         portfolio = [
+            "{0:.2f}".format(total_portfolio),
             "{0:.2f}".format(esrm_portfolio),
             "{0:.2f}".format(gov_portfolio),
             "{0:.2f}".format(trans_portfolio),
-            "{0:.2f}".format(total_portfolio),
         ]
         if not self.benchmark_data.empty:
             ind = [
+                "{0:.2f}".format(total_index),
                 "{0:.2f}".format(esrm_index),
                 "{0:.2f}".format(gov_index),
                 "{0:.2f}".format(trans_index),
-                "{0:.2f}".format(total_index),
             ]
         else:
             ind = ["-"] * 4
@@ -741,11 +741,13 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 self.benchmark_data
             )
 
-            labels.append("Sovereign")
-            portfolio.append("{0:.2f}".format(sov_portfolio))
-            ind.append("{0:.2f}".format(sov_index))
+            labels.insert(0, "Sovereign")
+            portfolio.insert(0, "{0:.2f}".format(sov_portfolio))
+            ind.insert(0, "{0:.2f}".format(sov_index))
 
-            styles = {3: ["grey-row"]}
+            styles = {0: ["grey-row"], 1: ["grey-row"], 4: ["normal-row"]}
+        else:
+            styles = {0: ["grey-row"], 3: ["normal-row"]}
 
         df_risk_score_distr = pd.DataFrame(
             data={
@@ -1227,6 +1229,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
                         [html.Div(className=f"square bg-{color}"), html.Span([label])]
                     )
                 )
+                if index == len(df) - 1:
+                    table.append(html.Tr(legend_row))
             else:
                 legend_row.append(
                     html.Td(
