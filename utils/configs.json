@@ -74,6 +74,16 @@
         },
         "load": false
     },
+    "quandl_datasource_prices": {
+        "source": 5,
+        "table": "SHARADAR/SEP",
+        "filters": {
+            "ticker": [],
+            "paginate": true,
+            "date": {"gte": "2023-01-01"}
+        },
+        "load": false
+    },
     "msci_datasource": {
         "source": 4,
         "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
