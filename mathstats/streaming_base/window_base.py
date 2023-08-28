@@ -78,8 +78,6 @@ class WindowStream(WindowBase):
         super().__init__(window_shape=window_shape, window_size=window_size)
         self.curr_vector = np.zeros(curr_shape) * np.nan
 
-        return
-
     def is_positive(self, adjustment=0) -> bool:
         return np.all(self.matrix + adjustment > 0, axis=0)
 
@@ -100,5 +98,3 @@ class WindowStream(WindowBase):
             [self.curr_vector, vector_one, -1 * vector_three], axis=0
         )
         super().update(vector_one=vector_one, **kwargs)
-
-        return

@@ -5,13 +5,19 @@ from typing import Tuple
 
 class StreamingBase(object):
     """
-    Base Class for stracking matrices over time
+    Base Class for tracking matrices over time
+
+    Parameters
+    ----------
+    num_ind_variables : int
+        Number of independent variables
     """
 
-    def __init__(self):
+    def __init__(self, num_ind_variables: int) -> None:
         self._values = []
         self.total_iterations = 0
         self._results = dict()
+        self.number_of_ind_variables = num_ind_variables
 
     def add_value(self, value: float) -> None:
         """
