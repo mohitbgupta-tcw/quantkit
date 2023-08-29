@@ -66,15 +66,20 @@ class QuandlDataSource(ds.DataSources):
         """
 
         # --> not every company has these information, so create empty df with NA's for those
-        empty_quandl = pd.Series(np.nan, index=self.df.columns).to_dict()
+        empty_quandl = pd.Series(np.nan, index=self.df.columns)
 
         for c in companies:
-            t = companies[c].msci_information["ISSUER_TICKER"]
-            quandl_information = self.df[self.df["ticker"] == t]
-            if not quandl_information.empty:
-                companies[c].quandl_information = quandl_information.squeeze().to_dict()
-            else:
-                companies[c].quandl_information = deepcopy(empty_quandl)
+            quandl_information = self.df[self.df["ticker"] == c]
+            if self.params["type"] == "fundamental":
+                if not quandl_information.empty:
+                    companies[c].quandl_information = quandl_information
+                else:
+                    companies[c].quandl_information = deepcopy(empty_quandl)
+            elif self.params["type"] == "price":
+                if not quandl_information.empty:
+                    companies[c].quandl_information_price = quandl_information
+                else:
+                    companies[c].quandl_information_price = deepcopy(empty_quandl)
 
     @property
     def df(self) -> pd.DataFrame:

@@ -8,7 +8,7 @@ import numpy as np
 class StaticReturn(return_metrics.ReturnMetrics):
     """Return Calculation Assuming User Input Returns"""
 
-    def __init__(self, factors, frequency=None, **kwargs):
+    def __init__(self, universe, frequency=None, **kwargs):
         """
         Parameter
         ---------
@@ -17,7 +17,7 @@ class StaticReturn(return_metrics.ReturnMetrics):
         frequency: str, optional
             frequency of index return data
         """
-        super().__init__(factors)
+        super().__init__(universe)
         self.frequency = frequency
         self.annualize_factor = mapping_utils.annualize_factor_d.get(frequency, 252)
         self.current_returns = None
@@ -119,8 +119,6 @@ class StaticReturn(return_metrics.ReturnMetrics):
         self,
         date,
         price_return,
-        market_weights=None,
-        risk_free_rate=None,
         annualize_factor=1.0,
     ):
         """
@@ -131,10 +129,6 @@ class StaticReturn(return_metrics.ReturnMetrics):
             date of snapshot
         price_return: np.array
             zero base price return of universe
-        market_weights: np.array, optional
-            market weights for each asset
-        risk_free_rate: float, optional
-            risk free rate
         annualize_factor: int, optional
             factor depending on data frequency
 

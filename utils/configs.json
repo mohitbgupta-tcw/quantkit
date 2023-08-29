@@ -78,6 +78,7 @@
     "quandl_datasource_prices": {
         "type": "price",
         "source": 5,
+        "frequency": "DAY",
         "table": "SHARADAR/SEP",
         "filters": {
             "ticker": [],
@@ -352,6 +353,4 @@
             "sales_threshold": 18
         }
     }
-
-
 }

@@ -13,9 +13,9 @@ class ReturnMetrics(object):
         factors to run return calculation on
     """
 
-    def __init__(self, factors):
-        self.factors = factors
-        self.universe_size = len(factors)
+    def __init__(self, universe):
+        self.universe = universe
+        self.universe_size = len(universe)
 
     @property
     def return_metrics_optimizer(self):
@@ -73,8 +73,6 @@ class ReturnMetrics(object):
         self,
         date,
         price_return,
-        market_weights=None,
-        risk_free_rate=None,
         annualize_factor=None,
         **kwargs,
     ):
@@ -86,10 +84,6 @@ class ReturnMetrics(object):
             date of snapshot
         price_return: np.array
             zero base price return of universe
-        market_weights: np.array, optional
-            market weights for each asset
-        risk_free_rate: float, optional
-            risk free rate
         annualize_factor: int, optional
             factor depending on data frequency
 

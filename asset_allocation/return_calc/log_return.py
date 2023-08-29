@@ -7,7 +7,7 @@ import numpy as np
 class LogReturn(return_metrics.ReturnMetrics):
     """Return Calculation Assuming Log Normal Distribution using Rolling Historical"""
 
-    def __init__(self, factors, frequency=None, **kwargs):
+    def __init__(self, universe, frequency=None, **kwargs):
         """
         Parameter
         ---------
@@ -16,7 +16,7 @@ class LogReturn(return_metrics.ReturnMetrics):
         frequency: str, optional
             frequency of index return data
         """
-        super().__init__(factors)
+        super().__init__(universe)
         self.frequency = frequency
         self.return_calculator = rolling_mean.RollingMean(
             num_variables=self.universe_size, **kwargs
@@ -52,22 +52,6 @@ class LogReturn(return_metrics.ReturnMetrics):
         """
         return self.return_metrics_optimizer
 
-    @property
-    def is_valid(self):
-        """
-        check if inputs are valid
-
-        Parameter
-        ---------
-
-        Return
-        ------
-        bool
-            True if inputs are valid, false otherwise
-
-        """
-        return self.return_calculator.is_valid()
-
     def get_portfolio_return(self, allocation, **kwargs):
         """
         Calculate 0 basis portfolio return
@@ -94,8 +78,6 @@ class LogReturn(return_metrics.ReturnMetrics):
         self,
         date,
         price_return,
-        market_weights=None,
-        risk_free_rate=None,
         annualize_factor=1.0,
     ):
         """
@@ -106,10 +88,6 @@ class LogReturn(return_metrics.ReturnMetrics):
             date of snapshot
         price_return: np.array
             zero base price return of universe
-        market_weights: np.array, optional
-            market weights for each asset
-        risk_free_rate: float, optional
-            risk free rate
         annualize_factor: int, optional
             factor depending on data frequency
 

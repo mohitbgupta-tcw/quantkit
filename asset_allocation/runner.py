@@ -3,6 +3,8 @@ import quantkit.loader.runner as loader
 import quantkit.utils.logging as logging
 import quantkit.data_sources.snowflake as snowflake
 import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
+import quantkit.utils.mapping_configs as mapping_configs
+import quantkit.asset_allocation.strategies.momentum as momentum
 
 
 class Runner(loader.Runner):
@@ -26,9 +28,28 @@ class Runner(loader.Runner):
         )
         self.universe = dict()
 
+        self.annualize_factor = mapping_configs.annualize_factor_d.get(
+            self.params["quandl_datasource_prices"]["frequency"], 252
+        )
+        self.rebalance_window = mapping_configs.rebalance_window_d.get(
+            self.params["rebalance"]
+        )
+
+        self.strategies = dict()
+
         # iterate over dataframes and create objects
         logging.log("Start Iterating")
         self.iter()
+
+    def init_strategies(self) -> None:
+        for strategy in self.params["strategies"]:
+            strat_params = self.params["strategies"][strategy]
+            strat_params["frequency"] = self.params["quandl_datasource_prices"][
+                "frequency"
+            ]
+            strat_params["universe"] = self.universe
+            if strat_params["type"] == "momentum":
+                self.strategies[strategy] = momentum.Momentum(strat_params)
 
     def iter(self) -> None:
         """
@@ -45,6 +66,7 @@ class Runner(loader.Runner):
         self.iter_sovereigns()
         self.iter_securitized()
         self.iter_muni()
+        self.init_strategies()
 
     def iter_quandl(self) -> None:
         """
@@ -55,6 +77,8 @@ class Runner(loader.Runner):
         # load quandl data
         self.quandl_datasource_prices.load(self.universe_tickers)
         self.quandl_datasource.load(self.universe_tickers)
+        self.quandl_datasource.iter(self.universe)
+        self.quandl_datasource_prices.iter(self.universe)
 
     def create_universe(self) -> None:
         """
@@ -79,11 +103,13 @@ class Runner(loader.Runner):
             ]["Ticker"].unique()
         )
         for c in self.portfolio_datasource.companies:
-            if (
-                self.portfolio_datasource.companies[c].msci_information["ISSUER_TICKER"]
-                in self.universe_tickers
-            ):
-                self.universe[c] = self.portfolio_datasource.companies[c]
+            ticker = self.portfolio_datasource.companies[c].msci_information[
+                "ISSUER_TICKER"
+            ]
+            if ticker in self.universe_tickers:
+                self.universe[ticker] = self.portfolio_datasource.companies[c]
+
+        self.num_assets = len(self.universe)
 
     def run(self) -> None:
         """

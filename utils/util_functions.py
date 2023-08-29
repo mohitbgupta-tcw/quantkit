@@ -61,7 +61,10 @@ def replace_dictionary(new_d: dict, original_d: dict) -> dict:
         for k, v in new_d.items():
             if isinstance(new_d[k], (list, int, str, float)):
                 original_d[k] = new_d[k]
-            replace_dictionary(v, original_d[k])
+            if k in original_d:
+                replace_dictionary(v, original_d[k])
+            else:
+                original_d[k] = new_d[k]
     return original_d
 
 

@@ -4,10 +4,11 @@ import quantkit.mathstats.mean.rolling_mean as rolling_mean
 import quantkit.utils.annualize_adjustments as annualize_adjustments
 import numpy as np
 
+
 class SimpleExp(return_metrics.ReturnMetrics):
     """
     Simple Historical Return Calculation
-    
+
     Parameters
     ----------
     factors: list
@@ -16,8 +17,8 @@ class SimpleExp(return_metrics.ReturnMetrics):
         frequency of index return data
     """
 
-    def __init__(self, factors, frequency=None, **kwargs):
-        super().__init__(factors)
+    def __init__(self, universe, frequency=None, **kwargs):
+        super().__init__(universe)
         self.frequency = frequency
         self.return_calculator = simple_mean.SimpleMean(
             num_variables=self.universe_size, **kwargs

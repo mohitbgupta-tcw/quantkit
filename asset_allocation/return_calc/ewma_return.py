@@ -10,7 +10,7 @@ class LogEWMA(log_return.LogReturn):
     ** Assuming assets are log normal distribution
     """
 
-    def __init__(self, factors, frequency=None, half_life=12, **kwargs):
+    def __init__(self, universe, frequency=None, half_life=12, **kwargs):
         """
         Parameter
         ---------
@@ -21,7 +21,7 @@ class LogEWMA(log_return.LogReturn):
         half_life: int, optional
             length of time it takes to decrease to half of original amount
         """
-        super().__init__(factors, frequency, **kwargs)
+        super().__init__(universe, frequency, **kwargs)
         self.return_calculator = expo_weighted_mean.ExponentialWeightedMean(
             num_variables=self.universe_size, **kwargs
         )
@@ -31,8 +31,6 @@ class LogEWMA(log_return.LogReturn):
         self,
         date,
         price_return,
-        market_weights=None,
-        risk_free_rate=None,
         annualize_factor=1.0,
     ):
         """
@@ -43,10 +41,6 @@ class LogEWMA(log_return.LogReturn):
             date of snapshot
         price_return: np.array
             zero base price return of universe
-        market_weights: np.array, optional
-            market weights for each asset
-        risk_free_rate: float, optional
-            risk free rate
         annualize_factor: int, optional
             factor depending on data frequency
 
