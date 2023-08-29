@@ -24,6 +24,7 @@ class Runner(loader.Runner):
             params=self.params["quandl_datasource_prices"],
             api_settings=self.params["API_settings"],
         )
+        self.universe = dict()
 
         # iterate over dataframes and create objects
         logging.log("Start Iterating")
@@ -33,8 +34,17 @@ class Runner(loader.Runner):
         """
         iterate over DataFrames and create connected objects
         """
+        self.iter_regions()
+        self.iter_sectors()
+        self.iter_securitized_mapping()
+        self.iter_portfolios()
+        self.iter_securities()
+        self.iter_holdings()
         self.create_universe()
-        self.iter_quandl()
+        self.iter_companies()
+        self.iter_sovereigns()
+        self.iter_securitized()
+        self.iter_muni()
 
     def iter_quandl(self) -> None:
         """
@@ -43,8 +53,8 @@ class Runner(loader.Runner):
         - if company doesn't have data, attach all nan's
         """
         # load quandl data
-        self.quandl_datasource_prices.load(self.universe)
-        self.quandl_datasource.load(self.universe)
+        self.quandl_datasource_prices.load(self.universe_tickers)
+        self.quandl_datasource.load(self.universe_tickers)
 
     def create_universe(self) -> None:
         """
@@ -58,7 +68,7 @@ class Runner(loader.Runner):
         sf.load()
         self.sust_data = sf.df
         self.sust_data = self.sust_data
-        self.universe = list(
+        self.universe_tickers = list(
             self.sust_data[
                 (self.sust_data["Portfolio ISIN"].isin(self.params["universe"]))
                 & (
@@ -68,6 +78,12 @@ class Runner(loader.Runner):
                 )
             ]["Ticker"].unique()
         )
+        for c in self.portfolio_datasource.companies:
+            if (
+                self.portfolio_datasource.companies[c].msci_information["ISSUER_TICKER"]
+                in self.universe_tickers
+            ):
+                self.universe[c] = self.portfolio_datasource.companies[c]
 
     def run(self) -> None:
         """

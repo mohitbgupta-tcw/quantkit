@@ -31,7 +31,11 @@ class QuandlDataSource(ds.DataSources):
         ticker: list
             list of all tickers in portfolios
         """
-        logging.log("Loading Quandl Data")
+        if self.params["type"] == "fundamental":
+            t = "FUNDAMENTAL"
+        else:
+            t = "PRICE"
+        logging.log(f"Loading Quandl {t} Data")
 
         self.params["filters"]["ticker"] = list(set(ticker))
 
@@ -40,9 +44,16 @@ class QuandlDataSource(ds.DataSources):
 
     def transform_df(self) -> None:
         """
-        None
+        order by ticker and date
         """
-        pass
+        if "calendardate" in self.datasource.df.columns:
+            self.datasource.df = self.datasource.df.rename(
+                columns={"calendardate": "date"}
+            )
+        self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
+        self.datasource.df = self.datasource.df.sort_values(
+            by=["ticker", "date"], ascending=True, ignore_index=True
+        )
 
     def iter(self, companies: dict) -> None:
         """

@@ -64,6 +64,7 @@
         "load": true
     },
     "quandl_datasource": {
+        "type": "fundamental",
         "source": 5,
         "table": "SHARADAR/SF1",
         "filters": {
@@ -75,6 +76,7 @@
         "load": false
     },
     "quandl_datasource_prices": {
+        "type": "price",
         "source": 5,
         "table": "SHARADAR/SEP",
         "filters": {
