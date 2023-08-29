@@ -112,6 +112,7 @@ portfolio_benchmark = {
     "3660": "BLOOMBERG AGGREGATE INDEX",
     "NETZ US Equity": "RUSSELL 1000",
     "6283": "S&P 500 INDEX",
+    "3798": "BB INTERMEDIATE CORP",
 }
 
 benchmark_text = {
@@ -123,6 +124,7 @@ benchmark_text = {
     "JESG EMBI Global Diversified Index": "Index – JP Morgan EMBI Global Diversified (EMBI GD) from inception through 20 July 2022; JP Morgan ESG EMBI Global Diversified (JESG EMBIG) thereafter: EMBI GD is a market capitalization-weighted total return index of U.S. dollar-denominated Brady bonds, loans, and Eurobond instruments traded in emerging markets. JESG EMBIG tracks liquid, US Dollar emerging market fixed and floating-rate debt instruments issued by sovereign and quasi-sovereign entities. The index applies an ESG scoring and screening methodology to tilt toward issuers ranked higher on ESG criteria and green bond issues, and to underweight and remove issuers that rank lower. The indices are not available for direct investment; therefore performance does not reflect a reduction for fees or expenses incurred in managing a portfolio.",
     "BLOOMBERG AGGREGATE INDEX": "Index - Bloomberg U.S. Aggregate Bond Index: A market capitalization-weighted index of investment-grade, fixed-rate debt issues, including government, corporate, asset-backed and mortgage-backed securities, with maturities of at least one year.",
     "Libor 3M": "Index – ICE BofA U.S. Dollar 3-Month Deposit Offered Rate Average: Tracks the performance of a basket of synthetic assets paying Libor to a stated maturity. The index is not available for direct investment.",
+    "BB INTERMEDIATE CORP": "Index - Bloomberg Intermediate Corp: An index that measures the performance of investment grade, U.S. dollar-denominated, fixed-rate, taxable corporate and government-related debt with less than ten years to maturity. It is composed of a corporate and a non-corporate component that includes non-U.S. agencies, sovereigns, supranationals, and local authorities.",
 }
 
 portfolio_type = {
@@ -167,6 +169,7 @@ portfolio_type = {
     "3660": "fixed_income",
     "NETZ US Equity": "equity",
     "6283": "equity",
+    "3798": "fixed_income_a8",
 }
 
 
