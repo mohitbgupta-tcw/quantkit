@@ -1,6 +1,7 @@
 import quantkit.asset_allocation.return_calc.log_return as log_return
 import quantkit.asset_allocation.return_calc.ewma_return as ewma_return
 import quantkit.asset_allocation.return_calc.simple_return as simple_return
+import quantkit.asset_allocation.return_calc.cumprod_return as cumprod_return
 import quantkit.asset_allocation.risk_calc.log_vol as log_vol
 import quantkit.asset_allocation.risk_calc.ewma_vol as ewma_vol
 import quantkit.asset_allocation.risk_calc.simple_vol as simple_vol
@@ -27,6 +28,14 @@ class Strategy(object):
             )
         elif return_engine == "simple":
             self.return_engine = simple_return.SimpleExp(
+                universe=universe, **risk_return_engine_kwargs, **kwargs
+            )
+        elif return_engine == "simple":
+            self.return_engine = simple_return.SimpleExp(
+                universe=universe, **risk_return_engine_kwargs, **kwargs
+            )
+        elif return_engine == "cumprod":
+            self.return_engine = cumprod_return.CumProdReturn(
                 universe=universe, **risk_return_engine_kwargs, **kwargs
             )
         else:
@@ -78,3 +87,18 @@ class Strategy(object):
         self.risk_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
         )
+
+    @property
+    def return_metrics_intuitive(self):
+        """
+        Forecaseted returns from return engine
+
+        Parameter
+        ---------
+
+        Return
+        ------
+        <np.array>
+            returns
+        """
+        return self.return_engine.return_metrics_optimizer

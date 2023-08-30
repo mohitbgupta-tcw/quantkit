@@ -1,4 +1,6 @@
 import quantkit.asset_allocation.strategies.strategy as strategy
+import quantkit.utils.annualize_adjustments as annualize_adjustments
+import numpy as np
 
 
 class Momentum(strategy.Strategy):
@@ -9,6 +11,7 @@ class Momentum(strategy.Strategy):
     def __init__(self, params):
         super().__init__(**params)
         self.window_size = params["window_size"]
+        self.top_n = params["top_n"]
 
     def assign(
         self,
@@ -33,3 +36,36 @@ class Momentum(strategy.Strategy):
         self.return_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
         )
+
+    @property
+    def selected_securities(self) -> np.array:
+        """
+        Index of top n momentum returns
+
+        Parameter
+        ---------
+
+        Return
+        ------
+        <np.array>
+            index
+        """
+        return np.argpartition(self.return_metrics_intuitive, -self.top_n)[
+            -self.top_n :
+        ]
+
+    @property
+    def return_metrics_optimizer(self):
+        """
+        Forecaseted DAILY returns from return engine of top n momentum returns
+
+        Parameter
+        ---------
+
+        Return
+        ------
+        <np.array>
+            returns
+        """
+        returns_topn = self.return_metrics_intuitive[self.selected_securities]
+        return annualize_adjustments.compound_annualize(returns_topn, 1 / self.top_n)

@@ -42,20 +42,6 @@ class Runner(loader.Runner):
         logging.log("Start Iterating")
         self.iter()
 
-    def init_strategies(self) -> None:
-        for strategy in self.params["strategies"]:
-            strat_params = self.params["strategies"][strategy]
-            strat_params["frequency"] = self.params["quandl_datasource_prices"][
-                "frequency"
-            ]
-            strat_params["universe"] = {
-                ticker: self.universe[ticker]
-                for ticker in list(self.return_data.columns)
-                if ticker in self.universe
-            }
-            if strat_params["type"] == "momentum":
-                self.strategies[strategy] = momentum.Momentum(strat_params)
-
     def iter(self) -> None:
         """
         iterate over DataFrames and create connected objects
@@ -72,6 +58,16 @@ class Runner(loader.Runner):
         self.iter_securitized()
         self.iter_muni()
         self.init_strategies()
+
+    def init_strategies(self) -> None:
+        for strategy in self.params["strategies"]:
+            strat_params = self.params["strategies"][strategy]
+            strat_params["frequency"] = self.params["quandl_datasource_prices"][
+                "frequency"
+            ]
+            strat_params["universe"] = self.universe
+            if strat_params["type"] == "momentum":
+                self.strategies[strategy] = momentum.Momentum(strat_params)
 
     def iter_quandl(self) -> None:
         """
@@ -91,6 +87,15 @@ class Runner(loader.Runner):
             index="date", columns="ticker", values="close"
         )
         self.return_data = self.price_data.pct_change(1)
+        self.universe_tickers = list(
+            set(self.universe.keys()) & set(self.return_data.columns)
+        )
+        self.return_data = self.return_data[self.universe_tickers]
+        self.universe = {
+            ticker: self.universe[ticker]
+            for ticker in self.universe
+            if ticker in self.universe_tickers
+        }
 
     def create_universe(self) -> None:
         """
@@ -118,8 +123,6 @@ class Runner(loader.Runner):
             ticker = self.portfolio_datasource.companies[c].msci_information[
                 "ISSUER_TICKER"
             ]
-            if ticker == "ARNC1*":
-                ticker = "ARNC"
             if ticker in self.universe_tickers:
                 self.universe[ticker] = self.portfolio_datasource.companies[c]
 

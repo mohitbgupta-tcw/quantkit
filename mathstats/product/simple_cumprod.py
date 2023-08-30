@@ -22,7 +22,7 @@ class SimpleCumProd(object):
 
     @property
     def cumprod(self) -> np.array:
-        return self._cumprod
+        return self._cumprod - 1
 
     def calculate_cumprod(
         self,
@@ -30,8 +30,8 @@ class SimpleCumProd(object):
         incoming_variables: np.array,
         outgoing_variables: np.array,
     ) -> np.array:
-        outgoing_variables = np.squeeze(
-            np.nanmax([outgoing_variables, np.ones(outgoing_variables.shape)], axis=0)
+        outgoing_variables = np.where(
+            np.isnan(outgoing_variables), 1, outgoing_variables
         )
 
         new_cumprod = np.divide(
