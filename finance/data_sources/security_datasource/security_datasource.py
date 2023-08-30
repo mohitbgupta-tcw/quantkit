@@ -293,7 +293,12 @@ class SecurityDataSource(object):
             if not pd.isna(issuer_isin):
                 security_information["ISIN"] = issuer_isin
                 security_information["IssuerName"] = msci_row["ISSUER_NAME"].values[0]
+            else:
+                msci_row["ISSUER_ISIN"] = security_information["ISIN"]
+            if not pd.isna(msci_row["ISSUER_TICKER"].values[0]):
                 security_information["Ticker"] = msci_row["ISSUER_TICKER"].values[0]
+            else:
+                msci_row["ISSUER_TICKER"] = security_information["Ticker"]
             msci_information = msci_row.squeeze().to_dict()
         else:
             msci_information = msci_row.reindex(list(range(1))).squeeze().to_dict()

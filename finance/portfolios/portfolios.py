@@ -183,8 +183,8 @@ class PortfolioStore(object):
             norm_weight = s["Portfolio_Weight"] / total_weight
             impact += s["ENERGY_CONSUMP_INTEN_EUR"] * norm_weight
         coverage = (
-            total_weight / self.initial_weight_sov
-            if self.initial_weight_sov != 0
+            total_weight / self.initial_weight_corp
+            if self.initial_weight_corp != 0
             else 0
         )
 
@@ -225,7 +225,7 @@ class PortfolioStore(object):
         Calculate Lack of Processes to Monitor of UNGC and OECD
         """
         self.filter_word(
-            "MECH_UN_GLOBAL_COMPACT", "No evidence", "MECH_UN_GLOBAL_COMPACT"
+            "MECH_UN_GLOBAL_COMPACT", "No Evidence", "MECH_UN_GLOBAL_COMPACT"
         )
 
     def calculate_gender_pay_gap(self) -> None:

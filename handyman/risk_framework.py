@@ -148,6 +148,8 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         esg_collat_tpe,
                         jpm_sector,
                         industry,
+                        sec_store.information["BCLASS_Level2"],
+                        sec_store.information["BCLASS_Level3"],
                         bclass,
                         comp_store.information["BCLASS_Level4"].information[
                             "INDUSTRY_BCLASS_LEVEL3"
@@ -328,6 +330,8 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
         "ESG Collateral Type",
         "JPM Sector",
         "Industry",
+        "BCLASS_Level2",
+        "BCLASS_Level3",
         "BCLASS",
         "BCLASS_SECTOR",
         "GICS",

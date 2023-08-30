@@ -510,3 +510,75 @@ def calculate_portfolio_summary(df: pd.DataFrame, portfolio_type: str) -> dict:
     summary["other"] = other
     summary["sustainable_managed"] = 100 - total - other - excluded
     return summary
+
+
+def calculate_bclass2_distribution(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    For a given portfolio, calculate BCLASS Level 2 distribution
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with distribution
+    """
+
+    bonds = [
+        "Labeled Green",
+        "Labeled Social",
+        "Labeled Sustainable",
+        "Labeled Sustainable Linked",
+        "Labeled Green/Sustainable Linked",
+        "Labeled Sustainable/Sustainable Linked",
+    ]
+    df_filtered = df[df["Labeled ESG Type"].isin(bonds)]
+
+    df_filtered = (
+        df_filtered.groupby("BCLASS_Level2")["Portfolio Weight"].sum().reset_index()
+    )
+    df_filtered["Contribution"] = (
+        df_filtered["Portfolio Weight"] / df_filtered["Portfolio Weight"].sum()
+    )
+    df_filtered = df_filtered.sort_values("Contribution", ascending=False)
+    df_filtered = df_filtered[["BCLASS_Level2", "Contribution"]]
+    return df_filtered
+
+
+def calculate_bclass3_distribution(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    For a given portfolio, calculate BCLASS Level 3 distribution
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with distribution
+    """
+
+    bonds = [
+        "Labeled Green",
+        "Labeled Social",
+        "Labeled Sustainable",
+        "Labeled Sustainable Linked",
+        "Labeled Green/Sustainable Linked",
+        "Labeled Sustainable/Sustainable Linked",
+    ]
+    df_filtered = df[df["Labeled ESG Type"].isin(bonds)]
+
+    df_filtered = (
+        df_filtered.groupby("BCLASS_Level3")["Portfolio Weight"].sum().reset_index()
+    )
+    df_filtered["Contribution"] = (
+        df_filtered["Portfolio Weight"] / df_filtered["Portfolio Weight"].sum()
+    )
+    df_filtered = df_filtered.sort_values("Contribution", ascending=False)
+    df_filtered = df_filtered[["BCLASS_Level3", "Contribution"]]
+    return df_filtered

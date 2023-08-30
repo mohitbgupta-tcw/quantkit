@@ -44,7 +44,7 @@ def group_mode(
     return df
 
 
-def nanprodwrapper(a, **kwargs):
+def nanprodwrapper(a, **kwargs) -> float:
     if np.isnan(a).all():
         return np.nan
     else:
