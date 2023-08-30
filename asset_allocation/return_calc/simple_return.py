@@ -142,6 +142,7 @@ class SimpleExp(return_metrics.ReturnMetrics):
         annualized_return = annualize_adjustments.compound_annualize(
             price_return, annualize_factor
         )
+        annualized_return = np.squeeze(annualized_return)
         self.return_calculator.update(annualized_return, index=date)
 
         outgoing_row = np.squeeze(self.return_calculator_window.windowed_outgoing_row)

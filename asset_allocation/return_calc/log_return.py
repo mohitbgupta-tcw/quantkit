@@ -98,6 +98,8 @@ class LogReturn(return_metrics.ReturnMetrics):
             price_return, annualize_factor
         )
 
+        annualized_return = np.squeeze(annualized_return)
+
         outgoing_row = np.squeeze(self.return_calculator.windowed_outgoing_row)
         self.return_calculator.update(
             np.log(annualized_return + 1), outgoing_row, index=date

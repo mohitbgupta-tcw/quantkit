@@ -48,6 +48,7 @@ class LogNormalEWMA(log_vol.LogNormalVol):
         annualized_return = annualize_adjustments.compound_annualize(
             price_return, annualize_factor
         )
+        annualized_return = np.squeeze(annualized_return)
         self.cov_calculator.update(
             np.log(annualized_return + 1), batch_weight=self.decay_factor, index=date
         )

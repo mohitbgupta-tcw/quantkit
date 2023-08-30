@@ -5,6 +5,7 @@ import quantkit.data_sources.snowflake as snowflake
 import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
+import numpy as np
 
 
 class Runner(loader.Runner):
@@ -47,7 +48,11 @@ class Runner(loader.Runner):
             strat_params["frequency"] = self.params["quandl_datasource_prices"][
                 "frequency"
             ]
-            strat_params["universe"] = self.universe
+            strat_params["universe"] = {
+                ticker: self.universe[ticker]
+                for ticker in list(self.return_data.columns)
+                if ticker in self.universe
+            }
             if strat_params["type"] == "momentum":
                 self.strategies[strategy] = momentum.Momentum(strat_params)
 
@@ -79,6 +84,13 @@ class Runner(loader.Runner):
         self.quandl_datasource.load(self.universe_tickers)
         self.quandl_datasource.iter(self.universe)
         self.quandl_datasource_prices.iter(self.universe)
+        self.dates = list(
+            self.quandl_datasource_prices.df["date"].sort_values().unique()
+        )
+        self.price_data = self.quandl_datasource_prices.df.pivot(
+            index="date", columns="ticker", values="close"
+        )
+        self.return_data = self.price_data.pct_change(1)
 
     def create_universe(self) -> None:
         """
@@ -106,13 +118,25 @@ class Runner(loader.Runner):
             ticker = self.portfolio_datasource.companies[c].msci_information[
                 "ISSUER_TICKER"
             ]
+            if ticker == "ARNC1*":
+                ticker = "ARNC"
             if ticker in self.universe_tickers:
                 self.universe[ticker] = self.portfolio_datasource.companies[c]
 
         self.num_assets = len(self.universe)
+
+    def run_strategies(self) -> None:
+        for date in self.dates:
+            returns = self.return_data[self.return_data.index == date]
+            r_array = np.array(returns)
+
+            for strat in self.strategies:
+                self.strategies[strat].assign(date, r_array)
+        return
 
     def run(self) -> None:
         """
         run calculations
         """
         logging.log("Start Calculations")
+        self.run_strategies()

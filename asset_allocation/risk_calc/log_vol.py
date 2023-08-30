@@ -122,6 +122,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         annualized_return = annualize_adjustments.compound_annualize(
             price_return, annualize_factor
         )
+        annualized_return = np.squeeze(annualized_return)
         self.cov_calculator.update(np.log(annualized_return + 1), index=date)
         self.cov_calculator_intuitive.update(annualized_return, index=date)
         return

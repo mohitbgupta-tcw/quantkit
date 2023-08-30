@@ -181,6 +181,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         annualized_return = annualize_adjustments.compound_annualize(
             price_return, annualize_factor
         )
+        annualized_return = np.squeeze(annualized_return)
 
         self.cov_calculator.update(annualized_return, index=date)
         self.window_cov_calculator.update(annualized_return, index=date)
