@@ -346,6 +346,43 @@ class ESGCharacteristics(visualizor.PDFCreator):
         ]
         return body_content
 
+    def add_body_fi_a8(self) -> html.Div:
+        """
+        Create main body with tables, charts and text
+
+        Returns
+        -------
+        html.Div
+            row with body Div
+        """
+        body_content = [
+            # first column
+            html.Div(
+                [
+                    self.add_summary_table(),
+                    self.add_WACI_table(),
+                    self.add_score_distribution(),
+                ],
+                className="three columns",
+            ),
+            # second column
+            html.Div(
+                [
+                    self.add_planet_table(),
+                    self.add_people_table(),
+                    self.add_total_table(),
+                    # self.add_transition_table(),
+                ],
+                className="five columns",
+            ),
+            # third column
+            html.Div(
+                [self.add_bclass2_table(), self.add_carbon_intensity_chart()],
+                className="four columns",
+            ),
+        ]
+        return body_content
+
     def add_body_fi_a9(self) -> html.Div:
         """
         Create main body with tables, charts and text
@@ -377,7 +414,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             ),
             # third column
             html.Div(
-                [self.add_carbon_intensity_chart()],
+                [self.add_bclass3_table(), self.add_carbon_intensity_chart()],
                 className="four columns",
             ),
         ]
@@ -452,7 +489,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
             body_content = self.add_body_equity_fi()
         elif self.portfolio_type in ["equity_a9"]:
             body_content = self.add_body_equity_a9()
-        elif self.portfolio_type in ["fixed_income_a9", "fixed_income_a8"]:
+        elif self.portfolio_type in ["fixed_income_a8"]:
+            body_content = self.add_body_fi_a8()
+        elif self.portfolio_type in ["fixed_income_a9"]:
             body_content = self.add_body_fi_a9()
         elif self.portfolio_type == "em":
             body_content = self.add_body_em()
@@ -1197,13 +1236,20 @@ class ESGCharacteristics(visualizor.PDFCreator):
         )
         df_ci["Carbon_Intensity"] = round(df_ci["Carbon_Intensity"], 0)
 
+        if self.portfolio_type in ["fixed_income_a8", "fixed_income_a9"]:
+            height = 280
+        else:
+            height = 350
+
         ci_chart = html.Div(
             [
                 html.H6(
                     "Carbon Intensity by Sector",
                     className="subtitle padded",
                 ),
-                self.add_bar_chart(x=df_ci["Carbon_Intensity"], y=df_ci["Sector"]),
+                self.add_bar_chart(
+                    x=df_ci["Carbon_Intensity"], y=df_ci["Sector"], height=height
+                ),
             ],
             className="row carbon-intensity",
         )
@@ -1269,3 +1315,67 @@ class ESGCharacteristics(visualizor.PDFCreator):
             className="row sust-pie",
         )
         return chart
+
+    def add_bclass2_table(self) -> html.Div:
+        """
+        For a portfolio, calculate the BCLASS Level 2 distribution.
+        Show these values in a table.
+
+        Returns
+        -------
+        html.Div
+            div with BCLASS2 table and header
+        """
+        bclass = portfolio_utils.calculate_bclass2_distribution(self.portfolio_data)
+        bclass["Contribution"] = bclass["Contribution"] * 100
+        bclass["Contribution"] = (
+            bclass["Contribution"].astype(float).map("{:.2f}".format)
+        )
+
+        bclass_div = html.Div(
+            [
+                html.H6(
+                    [
+                        "Labeled Bond Detail by Industry ",
+                        html.A("(%labeled Bonds)", className="mv"),
+                    ],
+                    className="subtitle padded",
+                ),
+                self.add_table(bclass),
+            ],
+            className="row",
+            id="bclass2-table",
+        )
+        return bclass_div
+
+    def add_bclass3_table(self) -> html.Div:
+        """
+        For a portfolio, calculate the BCLASS Level 2 distribution.
+        Show these values in a table.
+
+        Returns
+        -------
+        html.Div
+            div with BCLASS2 table and header
+        """
+        bclass = portfolio_utils.calculate_bclass3_distribution(self.portfolio_data)
+        bclass["Contribution"] = bclass["Contribution"] * 100
+        bclass["Contribution"] = (
+            bclass["Contribution"].astype(float).map("{:.2f}".format)
+        )
+
+        bclass_div = html.Div(
+            [
+                html.H6(
+                    [
+                        "Labeled Bond Detail by Industry ",
+                        html.A("(%labeled Bonds)", className="mv"),
+                    ],
+                    className="subtitle padded",
+                ),
+                self.add_table(bclass),
+            ],
+            className="row",
+            id="bclass3-table",
+        )
+        return bclass_div

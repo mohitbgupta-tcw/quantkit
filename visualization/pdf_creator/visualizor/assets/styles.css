@@ -376,6 +376,15 @@ p.padded {
   padding-left: 8px;
 }
 
+#bclass3-table tr:last-child {
+  font-weight: normal;
+  background-color: #fff;
+}
+
+#bclass2-table tr:last-child {
+  font-weight: normal;
+  background-color: #fff;
+}
 
 table {
   width: 100%;

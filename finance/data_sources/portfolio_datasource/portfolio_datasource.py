@@ -196,6 +196,8 @@ class PortfolioDataSource(ds.DataSources):
             security_store.information["Issuer_ESG"] = row["Issuer ESG"]
             security_store.information["JPM_Sector"] = row["JPM Sector"]
             security_store.information["Country_of_Risk"] = row["Country of Risk"]
+            security_store.information["BCLASS_Level2"] = row["BCLASS_Level2"]
+            security_store.information["BCLASS_Level3"] = row["BCLASS_Level3"]
             if not pd.isna(row["ISSUER_NAME"]):
                 security_store.information["Security_Name"] = row["ISSUER_NAME"]
 
