@@ -5,6 +5,7 @@ import quantkit.data_sources.snowflake as snowflake
 import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
+import quantkit.utils.mapping_configs as mapping_configs
 import numpy as np
 
 
@@ -65,7 +66,12 @@ class Runner(loader.Runner):
             strat_params["frequency"] = self.params["quandl_datasource_prices"][
                 "frequency"
             ]
-            strat_params["universe"] = self.universe
+            strat_params["universe"] = self.universe_tickers
+            strat_params["rebalance_dates"] = self.rebalance_dates
+            strat_params["trans_cost"] = self.params["trans_cost"]
+            strat_params["weight_constraint"] = self.params[
+                "default_weights_constraint"
+            ]
             if strat_params["type"] == "momentum":
                 self.strategies[strategy] = momentum.Momentum(strat_params)
 
@@ -91,6 +97,15 @@ class Runner(loader.Runner):
             set(self.universe.keys()) & set(self.return_data.columns)
         )
         self.return_data = self.return_data[self.universe_tickers]
+        self.rebalance_dates = list(
+            self.return_data.groupby(
+                pd.Grouper(
+                    freq=mapping_configs.pandas_translation[self.params["rebalance"]]
+                )
+            )
+            .tail(1)
+            .index
+        )
         self.universe = {
             ticker: self.universe[ticker]
             for ticker in self.universe
@@ -135,6 +150,7 @@ class Runner(loader.Runner):
 
             for strat in self.strategies:
                 self.strategies[strat].assign(date, r_array)
+                self.strategies[strat].calculate_allocations(date)
         return
 
     def run(self) -> None:

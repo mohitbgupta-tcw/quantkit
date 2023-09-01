@@ -36,6 +36,10 @@ class Momentum(strategy.Strategy):
         self.return_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
         )
+        if date in self.rebalance_dates:
+            self.risk_engine.assign(
+                date=date, price_return=price_return, annualize_factor=annualize_factor
+            )
 
     @property
     def selected_securities(self) -> np.array:
@@ -50,9 +54,7 @@ class Momentum(strategy.Strategy):
         <np.array>
             index
         """
-        return np.argpartition(self.return_metrics_intuitive, -self.top_n)[
-            -self.top_n :
-        ]
+        return (-self.return_metrics_intuitive).argsort()[: self.top_n]
 
     @property
     def return_metrics_optimizer(self):

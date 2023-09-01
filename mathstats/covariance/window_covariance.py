@@ -57,8 +57,6 @@ class WindowCovariance(streaming_base.StreamingBase):
             variance: variance
             gmean: gmean
         """
-        if self.total_iterations < self.window_size:
-            return
 
         mean_vec = np.expand_dims(np.array(self.rolling_mean.mean), axis=0)
         sample_mean_vec = np.expand_dims(np.array(self._mean_sample.mean), axis=0)

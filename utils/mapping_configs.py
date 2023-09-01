@@ -239,3 +239,4 @@ frequencies = ("DAY", "WEEK", "MONTH", "QUARTER", "YEAR")
 annualize_factor_d = {"DAY": 252, "WEEK": 52, "MONTH": 12, "QUARTER": 4, "YEAR": 1}
 rebalance_window_d = {"MONTH": 1, "QUARTER": 3, "YEAR": 12}
 trading_days = {"DAY": 1, "MONTH": 21, "QUARTER": 63, "YEAR": 252}
+pandas_translation = {"DAY": "D", "MONTH": "M", "QUARTER": "Q", "YEAR": "Y"}
