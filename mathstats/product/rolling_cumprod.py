@@ -34,7 +34,7 @@ class RollingCumProd(simple_cumprod.SimpleCumProd):
 
         self.window_size = window_size
 
-        self.data_stream = window_base.WindowStream(
+        self.data_stream = window_base.WindowBase(
             window_shape=(window_size, 1, num_variables),
             curr_shape=(1, num_variables),
             window_size=window_size,

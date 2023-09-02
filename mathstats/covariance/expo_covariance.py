@@ -37,11 +37,11 @@ class ExponentialWeightedCovariance(simple_covariance.Covariance):
                 self.mean_calculator.previous_weight_sum, 1
             )
             self.demean_squared.update(
-                vector_one=vector_calc, batch_weight=1, adjustment=adjustment, **kwargs
+                new_vector=vector_calc, batch_weight=1, adjustment=adjustment, **kwargs
             )
         else:
             self.demean_squared.update(
-                vector_one=vector_calc,
+                new_vector=vector_calc,
                 batch_weight=(1 - batch_weight),
                 adjustment=batch_weight,
                 **kwargs

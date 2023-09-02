@@ -117,7 +117,7 @@ class SimpleMean(object):
         )
 
         self.data_stream.update(
-            vector_one=np.expand_dims(incoming_variables, axis=0),
+            new_vector=np.expand_dims(incoming_variables, axis=0),
             batch_weight=batch_weight,
             **kwargs,
         )

@@ -34,9 +34,9 @@ def iter_list(input_list: Union[list, set]) -> list:
         unique values of input list which are not nan's
     """
     output_list = []
-    for iss in input_list:
-        if not (pd.isna(iss) or iss in output_list):
-            output_list.append(iss)
+    for i in input_list:
+        if not (pd.isna(i) or i in output_list):
+            output_list.append(i)
     return output_list
 
 

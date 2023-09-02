@@ -25,7 +25,7 @@ class LogEWMA(log_return.LogReturn):
         self.return_calculator = expo_weighted_mean.ExponentialWeightedMean(
             num_variables=self.universe_size, **kwargs
         )
-        self.decay_factor = decay.decay_factor(half_life)
+        self.decay_factor = decay.decay_factor(half_life)[0]
 
     def assign(
         self,

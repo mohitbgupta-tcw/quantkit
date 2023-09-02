@@ -5,11 +5,11 @@ from typing import Tuple
 
 class StreamingBase(object):
     """
-    Base Class for tracking matrices over time
+    Base Class for tracking matrix values over time
 
     Parameters
     ----------
-    num_ind_variables : int
+    num_ind_variables: int
         Number of independent variables
     """
 
@@ -17,7 +17,7 @@ class StreamingBase(object):
         self._values = []
         self.total_iterations = 0
         self._results = dict()
-        self.number_of_ind_variables = num_ind_variables
+        self.num_ind_variables = num_ind_variables
 
     def add_value(self, value: float) -> None:
         """
@@ -32,8 +32,20 @@ class StreamingBase(object):
 
     @property
     def values(self) -> list:
+        """
+        Returns
+        -------
+        list
+            list of all saved values
+        """
         return self._values
 
     @property
     def results(self) -> dict:
+        """
+        Returns
+        -------
+        dict
+            dict of saved results
+        """
         return self._results

@@ -57,7 +57,7 @@ class Covariance(streaming_base.StreamingBase):
         self, vector_calc: np.ndarray, batch_weight: int = 1, **kwargs
     ) -> None:
         self.demean_squared.update(
-            vector_one=vector_calc, batch_weight=batch_weight, **kwargs
+            new_vector=vector_calc, batch_weight=batch_weight, **kwargs
         )
 
     def update(self, batch_ind: np.ndarray, batch_weight: float = 1, **kwargs) -> None:

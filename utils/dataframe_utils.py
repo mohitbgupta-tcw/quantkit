@@ -45,6 +45,20 @@ def group_mode(
 
 
 def nanprodwrapper(a, **kwargs) -> float:
+    """
+    Calculate nanprod of an array.
+    If all values are nan, return nan.
+
+    Parameters
+    ----------
+    a: np.array
+        array
+
+    Returns
+    -------
+    float
+        nanprod of array
+    """
     if np.isnan(a).all():
         return np.nan
     else:

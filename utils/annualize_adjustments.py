@@ -1,75 +1,129 @@
 import numpy as np
+import pandas as pd
+from typing import Union
 
 
-def simple_annualize(return_series, annualize_factor):
+def simple_annualization(
+    return_series: Union[pd.Series, np.array, float], annualization_factor: int
+) -> np.array:
     """
-    Simple multiplication
+    Approximated annualization of returns by simple multiplication of return series with annualization factor
 
-    Parameter
-    ---------
-    return_series: np.array or float
-        zero base return series or number
+    Calculation
+    -----------
+    return series * annualization factor
+
+    Parameters
+    ----------
+    return_series: pd.Series | np.array | float
+        zero based returns
     annualize_factor: int
-        factor depending on frequency
+        annualization factor depending on frequency
 
-    Return
-    ------
+    Returns
+    -------
+    np.array
+        zero based annualized returns
+    """
+    return return_series * annualization_factor
+
+
+def compound_annualization(
+    return_series: Union[pd.Series, np.array, float], annualization_factor: int
+) -> np.array:
+    """
+    Exact annualization of returns by compounding
+
+    Calculation
+    -----------
+    ((return series + 1) ** annualization factor) - 1
+
+    Parameters
+    ----------
+    return_series: pd.Series | np.array | float
+        zero based returns
+    annualize_factor: int
+        annualization factor depending on frequency
+
+    Returns
+    -------
     np.array
         zero base annualized return series or number
     """
-    if annualize_factor == 1.0:
-        return return_series
-
-    return return_series * annualize_factor
+    return (return_series + 1) ** annualization_factor - 1
 
 
-def compound_annualize(return_series, annualize_factor):
+def volatility_annualize(
+    volatility_series: Union[pd.Series, np.array, float], annualization_factor: int
+) -> np.array:
     """
-    Compound Annualization
+    Exact annualization of volatility by compounding
 
-    Parameter
-    ---------
-    return_series: np.array or float
-        zero base return series or number
+    Calculation
+    -----------
+    volatility series * sqrt(annualization factor)
+
+    Parameters
+    ----------
+    volatility_series: pd.Series | np.array | float
+        volatility
     annualize_factor: int
-        factor depending on frequency
+        annualization factor depending on frequency
 
-    Return
-    ------
+    Returns
+    -------
     np.array
-        zero base annualized return series or number
+        annualized volatility
     """
-    if annualize_factor == 1.0:
-        return return_series
-
-    return (return_series + 1) ** annualize_factor - 1
+    return volatility_series * np.sqrt(annualization_factor)
 
 
-def volatility_annualize(volatility_series, annualize_factor):
+def volatility_de_annualize(
+    volatility_series: Union[pd.Series, np.array, float], annualization_factor: int
+) -> np.array:
     """
-    Volatility Annualization
+    Exact de-annualization of volatility by compounding,
+    i.e. from annual returns to monthly returns
+
+    Calculation
+    -----------
+    volatility series / sqrt(annualization factor)
+
+    Parameters
+    ----------
+    volatility_series: pd.Series | np.array | float
+        volatility
+    annualize_factor: int
+        annualization factor depending on frequency
+
+    Returns
+    -------
+    np.array
+        de-annualized volatility
     """
-    if annualize_factor == 1.0:
-        return volatility_series
-
-    return volatility_series * np.sqrt(annualize_factor)
+    return volatility_series / np.sqrt(annualization_factor)
 
 
-def volatility_de_annualize(volatility_series, annualize_factor):
+def covariance_annualize(
+    cov_matrix: Union[pd.DataFrame, np.array], annualization_factor: int
+) -> np.array:
     """
-    Convert volatility to monthly
+    Exact annualization of covariance matrix by compounding
+
+    Calculation
+    -----------
+    cov matrix * annualization factor
+
+    Parameters
+    ----------
+    cov_matrix: pd.DataFrame | np.array
+        covariance matrix
+    annualize_factor: int
+        annualization factor depending on frequency
+
+    Returns
+    -------
+    np.array
+        annualized covariance matrix
     """
-    if annualize_factor == 1.0:
-        return volatility_series
-
-    return volatility_series / np.sqrt(annualize_factor)
-
-
-def covariance_annualize(cov_matrix, annualize_factor):
-    """
-    Covariance Annualization
-    """
-    if annualize_factor == 1.0:
-        return cov_matrix
-
-    return cov_matrix * annualize_factor
+    return cov_matrix * annualization_factor

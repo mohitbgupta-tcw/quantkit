@@ -158,7 +158,7 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
         self.iterations = self.iterations + np.where(np.isnan(incoming_variables), 0, 1)
 
         self.data_stream.update(
-            vector_one=np.expand_dims(incoming_variables, axis=0),
+            new_vector=np.expand_dims(incoming_variables, axis=0),
             batch_weight=batch_weight,
             **kwargs,
         )
