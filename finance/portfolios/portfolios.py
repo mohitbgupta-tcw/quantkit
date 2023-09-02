@@ -19,7 +19,7 @@ class PortfolioStore(object):
         portfolio name
     """
 
-    def __init__(self, pf: str, name: str = None):
+    def __init__(self, pf: str, name: str = None) -> None:
         self.id = pf
         self.name = name
         self.holdings = dict()
@@ -33,7 +33,7 @@ class PortfolioStore(object):
         Parameters
         ----------
         holdings_df: pd.DataFrame
-
+            all holdings for this portfolio
         """
         self.holdings_df = holdings_df
 
@@ -44,6 +44,7 @@ class PortfolioStore(object):
         Parameters
         ----------
         sector: sectors.Sector
+            sector object of portfolio
         """
         self.Sector = sector
 
@@ -60,7 +61,7 @@ class PortfolioStore(object):
 
     def calculate_portfolio_value(self, exchange_rate: float) -> None:
         """
-        Calculate portfolio value by adding Base Mkt Val
+        Calculate portfolio value for corps and sovereigns by adding Base Mkt Val
 
         Parameters
         ----------
@@ -143,7 +144,7 @@ class PortfolioStore(object):
 
     def calculate_energy_consumption(self, nace_section_code: str) -> None:
         """
-        Calculate Principal Adverse Impact and Coverage for specific column
+        Calculate Energy Consumption and Coverage for specific NACE code
 
         Paramters
         ---------
@@ -202,13 +203,13 @@ class PortfolioStore(object):
 
     def calculate_water_emissions(self) -> None:
         """
-        Calculate Principal Adverse Impact and Coverage for specific column
+        Calculate Water Emissions and Coverage
         """
         self.investor_stake_multiplication("WATER_EM_EFF_METRIC_TONS", "WATER_EM", True)
 
     def calculate_hazardous_waste(self) -> None:
         """
-        Calculate Principal Adverse Impact and Coverage for specific column
+        Calculate exposure to hazardous waste and Coverage
         """
         self.investor_stake_multiplication(
             "HAZARD_WASTE_METRIC_TON", "HAZARD_WASTE", True
@@ -539,7 +540,7 @@ class PortfolioStore(object):
 
     def not_applicable(self, impact_column: str) -> None:
         """
-        Calculate Real Estate Assets
+        Label for not applicable calculation
 
         Paramters
         ---------

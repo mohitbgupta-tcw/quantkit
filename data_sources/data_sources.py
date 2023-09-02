@@ -22,7 +22,7 @@ class DataSources(object):
             dictionary of api settings
     """
 
-    def __init__(self, params: dict, api_settings: dict = None, **kwargs):
+    def __init__(self, params: dict, api_settings: dict = None, **kwargs) -> None:
         self.params = params
 
         # ignore datasource if load is False

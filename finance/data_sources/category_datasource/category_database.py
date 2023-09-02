@@ -39,7 +39,7 @@ class CategoryDataSource(ds.DataSources):
             Flag thresholds for Sector
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.categories = dict()
 

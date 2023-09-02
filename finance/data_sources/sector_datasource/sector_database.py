@@ -24,7 +24,7 @@ class SectorDataSource(ds.DataSources):
             sector
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.sectors = dict()
 
@@ -89,7 +89,7 @@ class SubIndustryDataSource(ds.DataSources):
         transition paramaters
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs):
+    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.transition_params = transition_params
         self.industries = dict()
@@ -182,7 +182,7 @@ class BClassDataSource(SubIndustryDataSource):
             transition risk of industry
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs):
+    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
         super().__init__(params, transition_params, **kwargs)
         self.bclass = dict()
 
@@ -233,7 +233,7 @@ class GICSDataSource(SubIndustryDataSource):
             transition risk of industry
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs):
+    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
         super().__init__(params, transition_params, **kwargs)
         self.gics = dict()
 

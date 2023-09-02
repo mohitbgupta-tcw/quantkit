@@ -16,7 +16,7 @@ class FRED(object):
         list of ticker names from FRED
     """
 
-    def __init__(self, key: str, tickers: list):
+    def __init__(self, key: str, tickers: list) -> None:
         self.key = key
         self.tickers = tickers
 

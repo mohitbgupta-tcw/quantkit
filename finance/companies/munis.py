@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import quantkit.finance.companies.headstore as headstore
 
 
@@ -15,28 +14,32 @@ class MuniStore(headstore.HeadStore):
         muni's isin. NoISIN if no isin is available
     """
 
-    def __init__(self, isin: str, **kwargs):
+    def __init__(self, isin: str, **kwargs) -> None:
         super().__init__(isin, **kwargs)
         self.type = "muni"
 
     def calculate_risk_overall_score(self) -> None:
         """
-        Calculate risk overall score on security level:
+        Calculate risk overall score on security level
+
+        Rules
+        -----
             - if muni score between 1 and 2: Leading
             - if muni score between 2 and 4: Average
             - if muni score above 4: Poor
             - if muni score 0: not scored
         """
         score = self.scores["Muni_Score"]
-        for s in self.securities:
-            self.securities[s].set_risk_overall_score(score)
+        for sec, sec_store in self.securities.items():
+            sec_store.set_risk_overall_score(score)
 
     def update_sclass(self) -> None:
         """
         Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
         and SClass_Level5 for each security rule based
 
-        Order:
+        Order
+        -----
         1) Muni Score is 5
         2) Is Labeled Bond
         3) Analyst Adjustments
@@ -48,48 +51,40 @@ class MuniStore(headstore.HeadStore):
         score = self.scores["Muni_Score"]
         transition_tag = self.scores["Transition_Tag"]
         sustainability_tag = self.scores["Sustainability_Tag"]
-        for s in self.securities:
-            self.securities[s].level_5()
+        for sec, sec_store in self.securities.items():
+            labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
+            sec_store.level_5()
 
             if score == 5:
-                self.securities[s].is_score_5("Muni")
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Green/Sustainable Linked"
-            ):
-                self.securities[s].is_esg_labeled("Green/Sustainable Linked")
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].is_esg_labeled("Green")
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].is_esg_labeled("Social")
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable"
-            ):
-                self.securities[s].is_esg_labeled("Sustainable")
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable Linked"
-            ):
-                self.securities[s].is_esg_labeled("Sustainability-Linked Bonds")
+                sec_store.is_score_5("Muni")
+            elif labeled_bond_tag == "Labeled Green/Sustainable Linked":
+                sec_store.is_esg_labeled("Green/Sustainable Linked")
+            elif labeled_bond_tag == "Labeled Green":
+                sec_store.is_esg_labeled("Green")
+            elif labeled_bond_tag == "Labeled Social":
+                sec_store.is_esg_labeled("Social")
+            elif labeled_bond_tag == "Labeled Sustainable":
+                sec_store.is_esg_labeled("Sustainable")
+            elif labeled_bond_tag == "Labeled Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainability-Linked Bonds")
 
             elif sustainability_tag == "Y*":
-                self.securities[s].is_sustainable()
+                sec_store.is_sustainable()
 
             elif transition_tag == "Y*":
-                self.securities[s].is_transition()
+                sec_store.is_transition()
 
             elif sustainability_tag == "Y":
-                self.securities[s].is_sustainable()
+                sec_store.is_sustainable()
 
             elif transition_tag == "Y":
-                self.securities[s].is_transition()
+                sec_store.is_transition()
 
             elif score <= 2 and score > 0:
-                self.securities[s].is_leading()
+                sec_store.is_leading()
 
             elif score == 0:
-                self.securities[s].is_not_scored()
+                sec_store.is_not_scored()
 
     def iter(
         self, regions_df: pd.DataFrame, regions: dict, gics_d: dict, bclass_d: dict

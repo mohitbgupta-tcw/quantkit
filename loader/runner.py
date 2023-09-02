@@ -18,9 +18,9 @@ import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pi
 
 
 class Runner(object):
-    def init(self, local_configs: str = ""):
+    def init(self, local_configs: str = "") -> None:
         """
-        - initialize datsources
+        initialize datsources
 
         Parameters
         ----------

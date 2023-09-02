@@ -7,7 +7,7 @@ import plotly.graph_objs as go
 
 class LineChart(object):
     """
-    Class to create plotly bar chart
+    Class to create plotly line chart
 
     Parameters
     ----------
@@ -30,7 +30,7 @@ class LineChart(object):
         title: str = "",
         height: int = 350,
         width: int = None,
-    ):
+    ) -> None:
         self.x = x
         self.y = y
         self.title = title

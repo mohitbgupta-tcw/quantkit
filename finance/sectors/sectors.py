@@ -30,7 +30,7 @@ class Industry(object):
 
     def __init__(
         self, name: str, transition_risk: str, Q_Low: float, Q_High: float, **kwargs
-    ):
+    ) -> None:
         self.name = name
         self.transition_risk = transition_risk
         self.sub_sectors = dict()
@@ -75,7 +75,7 @@ class BClass(object):
         information about sub sector
     """
 
-    def __init__(self, class_name: str, row_information: pd.Series):
+    def __init__(self, class_name: str, row_information: pd.Series) -> None:
         self.class_name = class_name
         self.information = row_information.to_dict()
         self.companies = dict()
@@ -133,7 +133,7 @@ class GICS(object):
         information about sub sector
     """
 
-    def __init__(self, class_name: str, row_information: pd.Series):
+    def __init__(self, class_name: str, row_information: pd.Series) -> None:
         self.class_name = class_name
         self.information = row_information.to_dict()
         self.companies = dict()
@@ -186,7 +186,7 @@ class Sector(object):
         Sector name (either GICS or BCLASS)
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
         self.sub_sectors = dict()
 

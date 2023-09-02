@@ -51,7 +51,7 @@ class SecurityDataSource(object):
 
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         self.params = params
         self.iss = SecurityData(params["iss"], **kwargs)
         self.msci = SecurityData(params["msci"], **kwargs)
@@ -358,7 +358,7 @@ class SecurityData(ds.DataSources):
         datasource specific parameters including datasource
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
 
     def transform_df(self) -> None:

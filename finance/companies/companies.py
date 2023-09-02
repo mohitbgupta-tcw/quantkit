@@ -18,11 +18,11 @@ class CompanyStore(headstore.HeadStore):
     ----------
     isin: str
         company's isin. NoISIN if no isin is available
-    row_data: dict
+    row_data: pd.Series
         company information derived from MSCI
     """
 
-    def __init__(self, isin: str, row_data: pd.Series, **kwargs):
+    def __init__(self, isin: str, row_data: pd.Series, **kwargs) -> None:
         super().__init__(isin, **kwargs)
         self.msci_information = row_data
         self.type = "company"
@@ -47,7 +47,8 @@ class CompanyStore(headstore.HeadStore):
         Calculate the green CapEx of a company
         save capex in information[CapEx]
 
-        Calculation:
+        Calculation
+        -----------
             max(
                 GreenExpTotalCapExSharePercent,
                 RENEW_ENERGY_CAPEX_VS_TOTAL_CAPEX_PCT
@@ -66,7 +67,8 @@ class CompanyStore(headstore.HeadStore):
         Calculate the green climate revenue of a company
         save climate revenue in information[Climate_Revenue]
 
-        Calculation:
+        Calculation
+        -----------
             max(
                 CT_CC_TOTAL_MAX_REV,
                 SDGSolClimatePercentCombCont
@@ -85,10 +87,10 @@ class CompanyStore(headstore.HeadStore):
         Calculate the carbon intensity of a company
         save carbon intensity in information[Carbon Intensity (Scope 123)]
 
-        Calculation:
+        Calculation
+        -----------
             CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT
         """
-        self.information["reiter"] = False
         if (
             self.msci_information["SALES_USD_RECENT"] > 0
             and self.msci_information["CARBON_EMISSIONS_SCOPE123"] > 0
@@ -98,15 +100,15 @@ class CompanyStore(headstore.HeadStore):
                 / self.msci_information["SALES_USD_RECENT"]
             )
         # numerator or denominator are zero
-        # --> set carbon intensity to NA for now
-        # --> replace with median later in reiteration (therefore set reiter to true)
+        # --> replace with median of sub industry
         else:
-            carbon_intensity = np.nan
-            self.information["reiter"] = True
+            carbon_intensity = self.information["Sub-Industry"].information[
+                "Sub-Sector Median"
+            ]
 
         self.information["Carbon Intensity (Scope 123)"] = carbon_intensity
 
-    def check_theme_requirements(self, themes) -> None:
+    def check_theme_requirements(self, themes: dict) -> None:
         """
         Iterate over themes and
             - assign theme_ISSKeyAdd in sdg_information
@@ -130,23 +132,23 @@ class CompanyStore(headstore.HeadStore):
 
         current_max = 0
         current_sec = 0
-        for theme in themes:
+        for theme, theme_obj in themes.items():
             msci_sum = 0
             iss_max = 0
             self.information[theme + "_ISSKeyAdd"] = False
             # sum up MSCI theme specific column to calculate msci revenue
-            for sub in themes[theme].msci_sub:
+            for sub in theme_obj.msci_sub:
                 msci_sum = np.nansum([self.msci_information[sub], msci_sum])
             self.information[theme + "_MSCI"] = msci_sum
 
             # max over ISS theme specific columns to calculate iss revenue
-            for iss in themes[theme].iss_cols:
+            for iss in theme_obj.iss_cols:
                 iss_max = np.nanmax([iss_max, float(self.sdg_information[iss])])
                 # go to Prod column and check for theme specific keywords
                 iss_prod = iss.replace("Percent", "Prod")
                 description = self.sdg_information[iss_prod]
                 if not pd.isna(description):
-                    for product_key in themes[theme].product_key_add:
+                    for product_key in theme_obj.product_key_add:
                         if product_key in description:
                             self.information[theme + "_ISSKeyAdd"] = True
             # multiply with 100 to make comparable to MSCI
@@ -154,7 +156,7 @@ class CompanyStore(headstore.HeadStore):
             self.information[theme + "_ISS"] = iss_max
 
             # check if company fulfills theme specific requirements
-            func_ = getattr(themes[theme], theme)
+            func_ = getattr(theme_obj, theme)
             theme_score = func_(
                 industry=self.information["Sub-Industry"].class_name,
                 iss_key=self.information[theme + "_ISSKeyAdd"],
@@ -174,32 +176,35 @@ class CompanyStore(headstore.HeadStore):
 
             # if requirement fulfilled, assign theme to company and vice versa
             if theme_score:
-                themes[theme].companies[self.isin] = self
-                self.scores["Themes_unadjusted"][theme] = themes[theme]
-                self.scores["Themes"][theme] = themes[theme]
+                theme_obj.companies[self.isin] = self
+                self.scores["Themes_unadjusted"][theme] = theme_obj
+                self.scores["Themes"][theme] = theme_obj
                 self.scores["Sustainability_Tag"] = "Y"
 
                 # calculate primary sustainable revenue source
                 if msci_sum > current_max:
-                    self.information["Primary_Rev_Sustainable"] = themes[theme]
+                    self.information["Primary_Rev_Sustainable"] = theme_obj
                     current_max = msci_sum
                     current_sec = iss_max
                 elif msci_sum == current_max and iss_max > current_sec:
-                    self.information["Primary_Rev_Sustainable"] = themes[theme]
+                    self.information["Primary_Rev_Sustainable"] = theme_obj
                     current_max = msci_sum
                     current_sec = iss_max
                 if iss_max > current_max:
-                    self.information["Primary_Rev_Sustainable"] = themes[theme]
+                    self.information["Primary_Rev_Sustainable"] = theme_obj
                     current_max = iss_max
                     current_sec = msci_sum
                 elif iss_max == current_max and msci_sum > current_sec:
-                    self.information["Primary_Rev_Sustainable"] = themes[theme]
+                    self.information["Primary_Rev_Sustainable"] = theme_obj
                     current_max = iss_max
                     current_sec = msci_sum
 
     def calculate_esrm_score(self) -> None:
         """
-        Calculuate esrm score for each company:
+        Calculuate esrm score for each company
+
+        Rules
+        -----
         1) For each category save indicator fields and EM and DM flag scorings
         2) For each company:
             2.1) Get ESRM Module (category)
@@ -276,7 +281,8 @@ class CompanyStore(headstore.HeadStore):
         """
         For non-applicable securities, apply a score of 0 accross all risk scores
 
-        Rules:
+        Rules
+        -----
             - Sector Level 2 in excemption list
             - BCLASS is Treasury
             - ISIN is NoISIN
@@ -302,7 +308,10 @@ class CompanyStore(headstore.HeadStore):
 
     def calculate_transition_score(self) -> None:
         """
-        Calculate transition score (Transition_Score) for each company:
+        Calculate transition score (Transition_Score) for each company
+
+        Rules
+        -----
         0) Check if company is excempted --> set score to 0
         1) Create transition tags
         2) Calculate target score
@@ -349,7 +358,8 @@ class CompanyStore(headstore.HeadStore):
         if company fulfills one of the rules below, transition score will be reduced by one
         save target score in company_information[Target_Score]
 
-        Rules:
+        Rules
+        -----
             - ClimateGHGReductionTargets is 'Ambitious Target', 'Approved SBT', or 'Committed SBT'
             - CapEx >= 30
             - HAS_COMMITTED_TO_SBTI_TARGET is True
@@ -373,7 +383,10 @@ class CompanyStore(headstore.HeadStore):
 
     def create_transition_tag(self) -> None:
         """
-        create transition tags by:
+        create transition tags
+
+        Rules
+        -----
         1) If company's sub industry is in removal list and already is sustainable, skipp
         2) check if company fulfills sub-sectors transition target
         3) check if company fulfills sub-sectors transition revenue target
@@ -453,8 +466,9 @@ class CompanyStore(headstore.HeadStore):
     def calculate_corporate_score(self) -> None:
         """
         Calculate corporate score for a company based on other scores.
-        Calculation:
 
+        Calculation
+        -----------
             (Governance Score + ESRM Score + Transition Score) / 3
         """
         self.scores["Corporate_Score"] = np.mean(
@@ -467,7 +481,11 @@ class CompanyStore(headstore.HeadStore):
 
     def calculate_risk_overall_score(self) -> None:
         """
-        Calculate risk overall score on security level:
+        Calculate risk overall score on security level
+
+        Rules
+        -----
+            - if one of esrm, governance or transition score is 5: Poor
             - if corporate score between 1 and 2: Leading
             - if corporate score between 2 and 4: Average
             - if corporate score above 4: Poor
@@ -477,18 +495,19 @@ class CompanyStore(headstore.HeadStore):
         esrm_score = self.scores["ESRM_Score"]
         gov_score = self.scores["Governance_Score"]
         trans_score = self.scores["Transition_Score"]
-        for s in self.securities:
+        for sec, sec_store in self.securities.items():
             if esrm_score == 5 or gov_score == 5 or trans_score == 5:
-                self.securities[s].scores["Risk_Score_Overall"] = "Poor Risk Score"
+                sec_store.scores["Risk_Score_Overall"] = "Poor Risk Score"
             else:
-                self.securities[s].set_risk_overall_score(score)
+                sec_store.set_risk_overall_score(score)
 
     def update_sclass(self) -> None:
         """
         Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
         and SClass_Level5 for each security rule based
 
-        Order:
+        Order
+        -----
         1) Poor Transition, Governance or ESRM Score
         2) Is Labeled Bond
         3) Analyst Adjustment
@@ -503,54 +522,46 @@ class CompanyStore(headstore.HeadStore):
         score_sum = governance_score + transition_score + esrm_score
         transition_tag = self.scores["Transition_Tag"]
         sustainability_tag = self.scores["Sustainability_Tag"]
-        for s in self.securities:
-            self.securities[s].level_5()
+        for sec, sec_store in self.securities.items():
+            labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
+            sec_store.level_5()
 
             if governance_score == 5:
-                self.securities[s].is_score_5("Governance")
+                sec_store.is_score_5("Governance")
 
             elif esrm_score == 5:
-                self.securities[s].is_score_5("ESRM")
+                sec_store.is_score_5("ESRM")
 
             elif transition_score == 5:
-                self.securities[s].is_score_5("Transition")
-
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Green/Sustainable Linked"
-            ):
-                self.securities[s].is_esg_labeled("Green/Sustainable Linked")
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].is_esg_labeled("Green")
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].is_esg_labeled("Social")
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable"
-            ):
-                self.securities[s].is_esg_labeled("Sustainable")
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable Linked"
-            ):
-                self.securities[s].is_esg_labeled("Sustainability-Linked Bonds")
+                sec_store.is_score_5("Transition")
+            elif labeled_bond_tag == "Labeled Green/Sustainable Linked":
+                sec_store.is_esg_labeled("Green/Sustainable Linked")
+            elif labeled_bond_tag == "Labeled Green":
+                sec_store.is_esg_labeled("Green")
+            elif labeled_bond_tag == "Labeled Social":
+                sec_store.is_esg_labeled("Social")
+            elif labeled_bond_tag == "Labeled Sustainable":
+                sec_store.is_esg_labeled("Sustainable")
+            elif labeled_bond_tag == "Labeled Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainability-Linked Bonds")
 
             elif sustainability_tag == "Y*":
-                self.securities[s].is_sustainable()
+                sec_store.is_sustainable()
 
             elif transition_tag == "Y*":
-                self.securities[s].is_transition()
+                sec_store.is_transition()
 
             elif sustainability_tag == "Y":
-                self.securities[s].is_sustainable()
+                sec_store.is_sustainable()
 
             elif transition_tag == "Y":
-                self.securities[s].is_transition()
+                sec_store.is_transition()
 
             elif score_sum <= 6 and score_sum > 0:
-                self.securities[s].is_leading()
+                sec_store.is_leading()
+
             elif score_sum == 0:
-                self.securities[s].is_not_scored()
+                sec_store.is_not_scored()
 
     def get_parent_issuer_data(self, companies: dict) -> None:
         """
@@ -570,8 +581,8 @@ class CompanyStore(headstore.HeadStore):
 
         # find parent store
         parent = "NoISIN"
-        for c in companies:
-            if companies[c].msci_information["ISSUERID"] == parent_id:
+        for c, comp_store in companies.items():
+            if comp_store.msci_information["ISSUERID"] == parent_id:
                 parent = c
                 break
 
@@ -592,17 +603,6 @@ class CompanyStore(headstore.HeadStore):
             if pd.isna(self.bloomberg_information[val]):
                 new_val = companies[parent].bloomberg_information[val]
                 self.bloomberg_information[val] = new_val
-
-    def replace_carbon_median(self) -> None:
-        """
-        For companies without 'Carbon Intensity (Scope 123)'
-        --> (CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT) couldnt be calculuated
-        --> replace NA with company's industry median
-        """
-        if self.information["reiter"]:
-            self.information["Carbon Intensity (Scope 123)"] = self.information[
-                "Sub-Industry"
-            ].information["Sub-Sector Median"]
 
     def replace_unassigned_industry(
         self, high_threshold: float, industries: dict
@@ -711,7 +711,7 @@ class CompanyStore(headstore.HeadStore):
         # calculate climate revenue
         self.calculate_climate_revenue()
 
-        # calculate carbon intensite --> if na, reiter and assign industry median
+        # calculate carbon intensite --> if na, assign industry median
         self.calculate_carbon_intensity()
 
         # assign theme and Sustainability_Tag

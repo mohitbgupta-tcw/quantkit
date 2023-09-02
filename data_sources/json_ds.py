@@ -13,7 +13,7 @@ class JSON(object):
         Indication of expected JSON string format
     """
 
-    def __init__(self, json_str: str, orient: str = "index"):
+    def __init__(self, json_str: str, orient: str = "index") -> None:
         self.json_str = json_str
         self.orient = orient
 

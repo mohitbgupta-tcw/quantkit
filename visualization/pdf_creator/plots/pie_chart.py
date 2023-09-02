@@ -49,12 +49,12 @@ class PieChart(object):
         self,
     ) -> dcc.Graph:
         """
-        Create bar chart from provided data
+        Create pie chart from provided data
 
         Returns
         -------
         dcc.Graph
-            bar chart
+            pie chart
         """
         pie = dcc.Graph(
             figure={

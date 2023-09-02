@@ -4,14 +4,18 @@ import pyodbc
 
 class SQL(object):
     """
-    Main class to load JSON related files
+    Main class to load data from SQL database
 
     Parameters
     ----------
-    file: str
-        file path with file extension
-    orient: str, optional
-        Indication of expected JSON string format
+    server: str
+        database server name
+    database: str
+        database name
+    driver: str, optional
+        database driver
+    trusted_connection: str, optional
+        connection to database
     """
 
     def __init__(
@@ -20,7 +24,7 @@ class SQL(object):
         database: str,
         driver: str = "SQL Server",
         trusted_connection: str = "yes",
-    ):
+    ) -> None:
         self.driver = "{" + driver + "}"
         self.server = server
         self.database = database

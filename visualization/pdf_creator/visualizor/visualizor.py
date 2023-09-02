@@ -23,7 +23,7 @@ class PDFCreator(object):
         DataFrame with data to be displayed in pdf
     """
 
-    def __init__(self, title: str, data: pd.DataFrame):
+    def __init__(self, title: str, data: pd.DataFrame) -> None:
         self.app = dash.Dash(
             __name__,
             meta_tags=[{"name": "viewport", "content": "width=device-width"}],
@@ -38,7 +38,7 @@ class PDFCreator(object):
         """
         self.app.layout = self.create_layout()
 
-    def create_layout(self):
+    def create_layout(self) -> html.Div:
         """
         Create the layout and pages of the pdf
         """
@@ -48,7 +48,6 @@ class PDFCreator(object):
         """
         Create the pdf header as top row including:
             - overall header
-            - TCW logo in right top corner
 
         Parameters
         ----------
@@ -81,6 +80,8 @@ class PDFCreator(object):
         Create the pdf footer as bottom row including:
         - sources
         - disclosure information
+        - tcw logo
+        - date
 
         Parameters
         ----------
@@ -204,7 +205,7 @@ class PDFCreator(object):
             labels for y-axis
         title: str, optional
             Chart title
-        orientation: str
+        orientation: str, optional
             either "h" (horizontal) or "v" (vertically)
         height: int, optional
             height integer of chart in range [10, inf]

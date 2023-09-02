@@ -5,7 +5,7 @@ def planet_people(store, adjustment: str, themes: dict, theme: str) -> None:
 
     Parameters
     ----------
-    store: comp.CompanyStore | comp.MuniStore | comp. SecuritizedStore | comp.SovereignScore
+    store: companies.CompanyStore | munis.MuniStore | securitized. SecuritizedStore | sovereigns.SovereignScore
         company store of company to be adjusted
     adjustment: str
         either 'Deletion' or 'Addition'
@@ -32,7 +32,7 @@ def Planet(store, adjustment: str, themes: dict, theme: str, **kwargs) -> None:
 
     Parameters
     ----------
-    store: comp.CompanyStore | comp.MuniStore | comp. SecuritizedStore | comp.SovereignScore
+    store: companies.CompanyStore | munis.MuniStore | securitized. SecuritizedStore | sovereigns.SovereignScore
         company store of company to be adjusted
     adjustment: str
         either 'Deletion' or 'Addition'
@@ -51,7 +51,7 @@ def People(store, adjustment: str, themes: dict, theme: str, **kwargs) -> None:
 
     Parameters
     ----------
-    store: comp.CompanyStore | comp.MuniStore | comp. SecuritizedStore | comp.SovereignScore
+    store: companies.CompanyStore | munis.MuniStore | securitized. SecuritizedStore | sovereigns.SovereignScore
         company store of company to be adjusted
     adjustment: str
         either 'Deletion' or 'Addition'
@@ -70,7 +70,7 @@ def Risk(store, adjustment: str, theme: str, comment: str, **kwargs) -> None:
 
     Parameters
     ----------
-    store: comp.CompanyStore | comp.MuniStore | comp. SecuritizedStore | comp.SovereignScore
+    store: companies.CompanyStore | munis.MuniStore | securitized. SecuritizedStore | sovereigns.SovereignScore
         company store of company to be adjusted
     adjustment: str
         either 'Score_X' or 'No Change'
@@ -102,7 +102,7 @@ def Transition(store, adjustment: str, theme: str, **kwargs) -> None:
 
     Parameters
     ----------
-    store: comp.CompanyStore | comp.MuniStore | comp. SecuritizedStore | comp.SovereignScore
+    store: companies.CompanyStore | munis.MuniStore | securitized. SecuritizedStore | sovereigns.SovereignScore
         company store of company to be adjusted
     adjustment: str
         either 'Addition' or 'Deletion'

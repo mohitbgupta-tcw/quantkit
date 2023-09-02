@@ -6,9 +6,14 @@ class Category(object):
     Category object.
     Saves Relevant Factor and thresholds
     as well as Flagging thresholds for Emerging and Developed Markets
+
+    Parameters
+    ----------
+    name: str
+        name of category
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
     def add_esrm_df(self, esrm_df: pd.DataFrame) -> None:

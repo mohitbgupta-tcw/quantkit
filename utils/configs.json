@@ -53,8 +53,9 @@
             "load": true
         },
         "msci": {
-            "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/msci_security_mapping.csv",
+            "source": 1,
+            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Portfolio_Data.xlsx",
+            "sheet_name": "Mapping",
             "load": true
         }
     },

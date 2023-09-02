@@ -18,7 +18,7 @@ class MSCIDataSource(ds.DataSources):
     DataFrame
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
 
     def load(self) -> None:

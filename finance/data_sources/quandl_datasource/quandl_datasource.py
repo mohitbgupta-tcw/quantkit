@@ -19,7 +19,7 @@ class QuandlDataSource(ds.DataSources):
     DataFrame
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
 
     def load(self, ticker: list) -> None:
@@ -57,13 +57,13 @@ class QuandlDataSource(ds.DataSources):
         # --> not every company has these information, so create empty df with NA's for those
         empty_quandl = pd.Series(np.nan, index=self.df.columns).to_dict()
 
-        for c in companies:
-            t = companies[c].msci_information["ISSUER_TICKER"]
+        for c, comp_store in companies.items():
+            t = comp_store.msci_information["ISSUER_TICKER"]
             quandl_information = self.df[self.df["ticker"] == t]
             if not quandl_information.empty:
-                companies[c].quandl_information = quandl_information.squeeze().to_dict()
+                comp_store.quandl_information = quandl_information.squeeze().to_dict()
             else:
-                companies[c].quandl_information = deepcopy(empty_quandl)
+                comp_store.quandl_information = deepcopy(empty_quandl)
 
     @property
     def df(self) -> pd.DataFrame:

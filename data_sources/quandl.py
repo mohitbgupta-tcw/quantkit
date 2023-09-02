@@ -19,7 +19,7 @@ class Quandl(object):
         dictionary of parameters for function call
     """
 
-    def __init__(self, key: str, table: str, filters: dict):
+    def __init__(self, key: str, table: str, filters: dict) -> None:
         self.key = key
         self.table = table
         self.filters = filters

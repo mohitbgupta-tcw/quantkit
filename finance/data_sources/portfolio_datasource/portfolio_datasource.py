@@ -35,6 +35,8 @@ class PortfolioDataSource(ds.DataSources):
             is issuer ESG?
         Labeled ESG Type: str
             security esg type
+        Loan Category: str
+            loan category
         ISSUER_Name: str
             name of issuer
         TCW ESG: str
@@ -45,8 +47,18 @@ class PortfolioDataSource(ds.DataSources):
             sector 1 of issuer
         Sector Level 2: str
             sector 2 of issuer
+        JPM Sector: str
+            JP Morgan sector
+        BCLASS_Level2: str
+            BClass Level 2 of issuer
+        BCLASS_Level3: str
+            BClass Level 3 of issuer
         BCLASS_level4: str
-            BClass of issuer
+            BClass Level 4 of issuer
+        Market Region: str
+            market region (DM, EM)
+        Country of Risk: str
+            issuer country
         Portfolio_Weight: float
             weight of security in portfolio
         Base Mkt Value: float
@@ -57,7 +69,7 @@ class PortfolioDataSource(ds.DataSources):
             OAS
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.portfolios = dict()
         self.companies = dict()
@@ -330,7 +342,7 @@ class PortfolioDataSource(ds.DataSources):
             parent_store.information["BCLASS_Level4"] = bclass_object
             bclass_object.companies[parent_store.isin] = parent_store
 
-    def attach_msci_rating(self, parent_store, msci_rating) -> None:
+    def attach_msci_rating(self, parent_store, msci_rating: str) -> None:
         """
         Attach MSCI Rating to security parent
 
@@ -338,6 +350,8 @@ class PortfolioDataSource(ds.DataSources):
         ----------
         parent_store: CompanyStore | MuniStore | SovereignStore | SecuritizedStore
             store object of parent
+        msci_rating: str
+            MSCI Rating (AAA to CCC)
         """
         # for first initialization of MSCI Rating
         parent_store.information["Rating_Raw_MSCI"] = parent_store.information.get(
