@@ -44,18 +44,7 @@ class Runner(loader.Runner):
         logging.log("Iterate Companies")
 
         super().iter_companies()
-
-        self.replace_carbon_median()
         self.replace_transition_risk()
-
-    def replace_carbon_median(self) -> None:
-        """
-        For companies without 'Carbon Intensity (Scope 123)'
-        --> (CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT) couldnt be calculuated
-        --> replace NA with company's industry median
-        """
-        for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].replace_carbon_median()
 
     def replace_transition_risk(self) -> None:
         """

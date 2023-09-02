@@ -6,7 +6,7 @@ class Blank(object):
     Main class in case data should not be loaded
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def load(self) -> None:

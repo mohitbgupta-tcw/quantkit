@@ -22,7 +22,7 @@ class HeadStore(object):
         company's isin. NoISIN if no isin is available
     """
 
-    def __init__(self, isin: str, **kwargs):
+    def __init__(self, isin: str, **kwargs) -> None:
         self.isin = isin
         self.securities = dict()
         self.scores = dict()

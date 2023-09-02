@@ -17,9 +17,13 @@ class BloombergDataSource(ds.DataSources):
     Returns
     -------
     DataFrame
+        Client_ID: str
+            Security ISIN
+        TRAILING_12M_R&D_%_SALES: float
+            trailing 12 month Research and Development %
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
 
     def load(self) -> None:
@@ -57,9 +61,9 @@ class BloombergDataSource(ds.DataSources):
         # --> not every company has these information, so create empty df with NA's for those
         empty_bloomberg = pd.Series(np.nan, index=self.df.columns).to_dict()
 
-        for c in companies:
-            if not hasattr(companies[c], "bloomberg_information"):
-                companies[c].bloomberg_information = deepcopy(empty_bloomberg)
+        for c, comp_store in companies.items():
+            if not hasattr(comp_store, "bloomberg_information"):
+                comp_store.bloomberg_information = deepcopy(empty_bloomberg)
 
     @property
     def df(self) -> pd.DataFrame:

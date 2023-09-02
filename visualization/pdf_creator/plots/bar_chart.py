@@ -33,7 +33,7 @@ class BarChart(object):
         orientation: str = "h",
         height: int = 350,
         width: int = None,
-    ):
+    ) -> None:
         self.x = x
         self.y = y
         self.title = title

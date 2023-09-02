@@ -21,7 +21,7 @@ class SecurityStore(object):
 
     """
 
-    def __init__(self, isin: str, information: dict, **kwargs):
+    def __init__(self, isin: str, information: dict, **kwargs) -> None:
         self.isin = isin
         self.information = information
         self.portfolio_store = dict()
@@ -228,10 +228,9 @@ class EquityStore(SecurityStore):
         Equity's isin
     information: dict
         dictionary of security specific information
-
     """
 
-    def __init__(self, isin: str, information: dict, **kwargs):
+    def __init__(self, isin: str, information: dict, **kwargs) -> None:
         super().__init__(isin, information)
 
 
@@ -254,5 +253,5 @@ class FixedIncomeStore(SecurityStore):
 
     """
 
-    def __init__(self, isin: str, information: dict, **kwargs):
+    def __init__(self, isin: str, information: dict, **kwargs) -> None:
         super().__init__(isin, information)

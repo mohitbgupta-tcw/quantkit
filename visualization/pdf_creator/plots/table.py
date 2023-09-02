@@ -36,7 +36,7 @@ class Table(object):
         add_vertical_column: str = None,
         superscript: bool = True,
         styles: dict = {},
-    ):
+    ) -> None:
         self.data = df
         self.id = id
         self.show_vertical_lines = show_vertical_lines

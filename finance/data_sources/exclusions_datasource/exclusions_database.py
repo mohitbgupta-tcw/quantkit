@@ -35,7 +35,7 @@ class ExclusionsDataSource(object):
             value over threshold
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         self.params = params
         self.article8 = ExclusionData(params["Article8"], **kwargs)
         self.article9 = ExclusionData(params["Article9"], **kwargs)
@@ -85,7 +85,7 @@ class ExclusionData(ds.DataSources):
         datasource specific parameters including datasource
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
 
     def transform_df(self) -> None:

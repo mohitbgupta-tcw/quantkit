@@ -25,7 +25,7 @@ class MSCI(object):
         dictionary of parameters for API call
     """
 
-    def __init__(self, key: str, secret: str, url: str, filters: dict):
+    def __init__(self, key: str, secret: str, url: str, filters: dict) -> None:
         self.key = key
         self.secret = secret
         self.url = url
@@ -88,7 +88,7 @@ class MSCI(object):
 
     def load_historical(self) -> None:
         """
-        Load data from MSCI API and save as pd.DataFrame in self.df
+        Load historical data from MSCI API and save as pd.DataFrame in self.df
         """
         b64login = b64encode(
             bytes(

@@ -37,7 +37,7 @@ class Snowflake(object):
         table_name: str,
         account: str = "tcw",
         host: str = "tcw.west-us-2.azure.snowflakecomputing.com",
-    ):
+    ) -> None:
         self.account = account
         self.user = user
         self.host = host

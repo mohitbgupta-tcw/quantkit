@@ -24,7 +24,7 @@ class SDGDataSource(object):
             several ESG measures
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         self.sdg = SDGData(params["sdg"], **kwargs)
         self.sdga = SDGData(params["sdga"], **kwargs)
 
@@ -85,10 +85,10 @@ class SDGDataSource(object):
         parents = [companies, munis, sovereigns, securitized]
 
         for p in parents:
-            for security in p:
+            for s, sec_store in p.items():
                 # assign empty sdg information to companies that dont have these information
-                if not hasattr(p[security], "sdg_information"):
-                    p[security].sdg_information = deepcopy(empty_sdg)
+                if not hasattr(sec_store, "sdg_information"):
+                    sec_store.sdg_information = deepcopy(empty_sdg)
 
     @property
     def df(self) -> pd.DataFrame:
@@ -111,7 +111,7 @@ class SDGData(ds.DataSources):
         datasource specific parameters including datasource
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
 
     def transform_df(self) -> None:

@@ -19,7 +19,7 @@ class QuandlDataSource(ds.DataSources):
     DataFrame
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
 
     def load(self, ticker: list) -> None:
@@ -75,6 +75,13 @@ class QuandlDataSource(ds.DataSources):
                     companies[c].quandl_information = quandl_information
                 elif self.params["type"] == "price":
                     companies[c].quandl_information_price = quandl_information
+
+        for c, comp_store in companies.items():
+            if self.params["type"] == "fundamental":
+                if not hasattr(comp_store, "quandl_information"):
+                    comp_store.quandl_information = deepcopy(empty_quandl)
+                elif self.params["type"] == "price":
+                    comp_store.quandl_information_price = deepcopy(empty_quandl)
 
     @property
     def df(self) -> pd.DataFrame:

@@ -33,7 +33,7 @@ class RegionsDataSource(ds.DataSources):
             sovereign score
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.regions = dict()
 

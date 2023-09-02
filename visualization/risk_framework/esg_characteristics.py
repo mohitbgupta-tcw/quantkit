@@ -26,6 +26,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
         portfolio ISIN
     benchmark: str | int
         benchmark ISIN
+    show_holdings: bool, optional
+        show holdings of portfolio
     filtered: bool, optional
         filter portfolio holdings for corporates and quasi-sovereigns
     """
@@ -37,8 +39,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
         portfolio_type: str,
         portfolio: Union[str, int],
         benchmark: Union[str, int],
+        show_holdings: bool = False,
         filtered: bool = False,
-    ):
+    ) -> None:
         super().__init__(title, data)
         self.portfolio_type = portfolio_type
         self.portfolio_isin = portfolio
@@ -48,6 +51,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             if portfolio == "3750"
             else self.benchmark_isin
         )
+        self.show_holdings = show_holdings
         self.filtered = filtered
         self.portfolio_divider = 28 if self.filtered else 24
 
@@ -86,28 +90,30 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 self.add_header(), self.add_body(), self.add_footnote(), page_no=0
             )
         )
+        if self.show_holdings:
+            if self.filtered:
+                self.portfolio_data = self.portfolio_data[
+                    self.data["Sector Level 2"].isin(
+                        [
+                            "Financial Institution",
+                            "Industrial",
+                            "Quasi Sovereign",
+                            "Utility",
+                        ]
+                    )
+                ]
 
-        # if self.filtered:
-        #     self.portfolio_data = self.portfolio_data[
-        #         self.data["Sector Level 2"].isin(
-        #             [
-        #                 "Financial Institution",
-        #                 "Industrial",
-        #                 "Quasi Sovereign",
-        #                 "Utility",
-        #             ]
-        #         )
-        #     ]
-
-        # for i in range(math.ceil(len(self.portfolio_data) / self.portfolio_divider)):
-        #     all_pages.append(
-        #         self.create_page(
-        #             self.add_header_holdings(),
-        #             self.add_body_portfolio_holdings(page_no=i),
-        #             html.Div(),
-        #             page_no=i + 1,
-        #         )
-        #     )
+            for i in range(
+                math.ceil(len(self.portfolio_data) / self.portfolio_divider)
+            ):
+                all_pages.append(
+                    self.create_page(
+                        self.add_header_holdings(),
+                        self.add_body_portfolio_holdings(page_no=i),
+                        html.Div(),
+                        page_no=i + 1,
+                    )
+                )
 
         pages_div = html.Div(all_pages)
         return pages_div

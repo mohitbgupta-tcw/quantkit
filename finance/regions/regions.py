@@ -20,7 +20,7 @@ class Region(object):
         Series of information for the region. Safed in self.information
     """
 
-    def __init__(self, name: str, row_data: pd.Series):
+    def __init__(self, name: str, row_data: pd.Series) -> None:
         self.region = name
         self.information = row_data.to_dict()
         self.companies = dict()

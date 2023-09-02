@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import quantkit.finance.companies.headstore as headstore
 
 
@@ -15,7 +14,7 @@ class SecuritizedStore(headstore.HeadStore):
         securitized's isin. NoISIN if no isin is available
     """
 
-    def __init__(self, isin: str, **kwargs):
+    def __init__(self, isin: str, **kwargs) -> None:
         super().__init__(isin, **kwargs)
         self.type = "securitized"
 
@@ -45,9 +44,7 @@ class SecuritizedStore(headstore.HeadStore):
             "Exclusionary Language, 5-9",
             "Exclusionary Language, 10+",
         ]
-        for s in self.securities:
-            sec_store = self.securities[s]
-
+        for sec, sec_store in self.securities.items():
             if (
                 not pd.isna(sec_store.information["Labeled_ESG_Type"])
             ) or sec_store.information["Issuer_ESG"] == "Yes":
@@ -99,74 +96,67 @@ class SecuritizedStore(headstore.HeadStore):
 
     def calculate_risk_overall_score(self) -> None:
         """
-        Calculate risk overall score on security level:
+        Calculate risk overall score on security level
+
+        Rules
+        -----
             - if securitized score between 1 and 2: Leading
             - if securitized score between 2 and 4: Average
             - if securitized score above 4: Poor
             - if securitized score 0: not scored
         """
-        for s in self.securities:
-            score = self.securities[s].scores["Securitized_Score"]
-            self.securities[s].set_risk_overall_score(score)
+        for sec, sec_store in self.securities.items():
+            score = sec_store.scores["Securitized_Score"]
+            sec_store.set_risk_overall_score(score)
 
     def update_sclass(self) -> None:
         """
         Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
         and SClass_Level5 for each security rule based
 
-        Order:
+        Order
+        -----
         1) Securitized Score is 5
         2) Is Labeled Bond
-        3) Has ESG Collat Type
-        4) Is TBA
-        5) Is Leading
-        6) Is not scored
+        3) Is CLO
+        4) Has ESG Collat Type
+        5) Is TBA
+        6) Is Leading
+        7) Is not scored
         """
-        for s in self.securities:
-            score = self.securities[s].scores["Securitized_Score"]
-            self.securities[s].level_5()
+        for sec, sec_store in self.securities.items():
+            labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
+            score = sec_store.scores["Securitized_Score"]
+            sec_store.level_5()
 
             if score == 5:
-                self.securities[s].is_score_5("Securitized")
+                sec_store.is_score_5("Securitized")
 
+            elif labeled_bond_tag == "Labeled Green/Sustainable Linked":
+                sec_store.is_esg_labeled("Green/Sustainable Linked")
+            elif labeled_bond_tag == "Labeled Green":
+                sec_store.is_esg_labeled("Green")
+            elif labeled_bond_tag == "Labeled Social":
+                sec_store.is_esg_labeled("Social")
+            elif labeled_bond_tag == "Labeled Sustainable":
+                sec_store.is_esg_labeled("Sustainable")
+            elif labeled_bond_tag == "Labeled Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainability-Linked Bonds")
+            elif sec_store.information["ESG_Collateral_Type"]["G/S/S"] == "CLO":
+                sec_store.is_CLO()
             elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Green/Sustainable Linked"
-            ):
-                self.securities[s].is_esg_labeled("Green/Sustainable Linked")
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Green":
-                self.securities[s].is_esg_labeled("Green")
-            elif self.securities[s].information["Labeled_ESG_Type"] == "Labeled Social":
-                self.securities[s].is_esg_labeled("Social")
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable"
-            ):
-                self.securities[s].is_esg_labeled("Sustainable")
-            elif (
-                self.securities[s].information["Labeled_ESG_Type"]
-                == "Labeled Sustainable Linked"
-            ):
-                self.securities[s].is_esg_labeled("Sustainability-Linked Bonds")
-            elif (
-                self.securities[s].information["ESG_Collateral_Type"]["G/S/S"] == "CLO"
-            ):
-                self.securities[s].is_CLO()
-            elif (
-                not self.securities[s].information["ESG_Collateral_Type"][
-                    "ESG Collat Type"
-                ]
+                not sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
                 == "Unknown"
             ):
-                self.securities[s].has_collat_type()
+                sec_store.has_collat_type()
 
-            elif " TBA " in self.securities[s].information["Security_Name"]:
-                self.securities[s].is_TBA()
+            elif " TBA " in sec_store.information["Security_Name"]:
+                sec_store.is_TBA()
 
             elif score <= 2 and score > 0:
-                self.securities[s].is_leading()
+                sec_store.is_leading()
             elif score == 0:
-                self.securities[s].is_not_scored()
+                sec_store.is_not_scored()
 
     def iter(
         self, regions_df: pd.DataFrame, regions: dict, gics_d: dict, bclass_d: dict
