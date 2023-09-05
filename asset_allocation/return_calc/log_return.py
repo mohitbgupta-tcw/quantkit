@@ -19,7 +19,7 @@ class LogReturn(return_metrics.ReturnMetrics):
         super().__init__(universe)
         self.frequency = frequency
         self.return_calculator = rolling_mean.RollingMean(
-            num_variables=self.universe_size, **kwargs
+            num_ind_variables=self.universe_size, **kwargs
         )
 
     @property
@@ -94,7 +94,7 @@ class LogReturn(return_metrics.ReturnMetrics):
         Return
         ------
         """
-        annualized_return = annualize_adjustments.compound_annualize(
+        annualized_return = annualize_adjustments.compound_annualization(
             price_return, annualize_factor
         )
 

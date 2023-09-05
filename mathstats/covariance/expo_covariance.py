@@ -6,6 +6,7 @@ import quantkit.mathstats.mean.expo_weighted_mean as expo_weighted_mean
 class ExponentialWeightedCovariance(simple_covariance.Covariance):
     """
     Exponential Weighted Covariance Matrix Calculation
+    see https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf chapter 9
 
     Parameters
     ----------
@@ -26,12 +27,24 @@ class ExponentialWeightedCovariance(simple_covariance.Covariance):
         self.adjust = adjust
 
         self.mean_calculator = expo_weighted_mean.ExponentialWeightedMean(
-            num_variables=num_ind_variables, adjust=adjust, **kwargs
+            num_ind_variables=num_ind_variables, adjust=adjust, **kwargs
         )
 
     def update_demeaned(
         self, vector_calc: np.ndarray, batch_weight: int = 1, **kwargs
     ) -> None:
+        """
+        Update covariance calculation
+        See https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf chapter 9
+        Formula 141
+
+        Parameters
+        ----------
+        vector_calc : np.array
+            vector of second summand of above calculation
+        batch_weight: float
+            Weight
+        """
         if self.adjust:
             adjustment = (self.mean_calculator.weight_sum - 1) / np.maximum(
                 self.mean_calculator.previous_weight_sum, 1

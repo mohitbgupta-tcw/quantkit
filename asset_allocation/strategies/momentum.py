@@ -70,4 +70,6 @@ class Momentum(strategy.Strategy):
             returns
         """
         returns_topn = self.return_metrics_intuitive[self.selected_securities]
-        return annualize_adjustments.compound_annualize(returns_topn, 1 / self.top_n)
+        return annualize_adjustments.compound_annualization(
+            returns_topn, 1 / self.top_n
+        )

@@ -9,10 +9,13 @@ class RollingMean(simple_mean.SimpleMean):
     """
     Rolling Mean Calculation
     Calculates the rolling mean of an np.array
+    Calculation in Incremental way:
+
+        previous average + (incoming variables - outgoing variables) / number of variables
 
     Parameters
     ----------
-    num_variables : int
+    num_ind_variables : int
         Number of variables
     window_size: int
         lookback window
@@ -24,27 +27,32 @@ class RollingMean(simple_mean.SimpleMean):
 
     def __init__(
         self,
-        num_variables: int,
+        num_ind_variables: int,
         window_size: int,
         ddof: int = None,
         geo_base: int = 0,
         **kwargs,
     ) -> None:
         self.geo_base = geo_base
-        self._mean = np.zeros(shape=num_variables)
-        self._gmean = np.ones(shape=num_variables) * np.nan
+        self._mean = np.zeros(shape=num_ind_variables)
+        self._gmean = np.ones(shape=num_ind_variables) * np.nan
         self.total_iterations = 0
 
         self.window_size = window_size if ddof is None else (window_size - ddof)
 
         self.data_stream = window_base.WindowBase(
-            window_shape=(window_size, 1, num_variables),
-            curr_shape=(1, num_variables),
+            window_shape=(window_size, 1, num_ind_variables),
             window_size=window_size,
         )
 
     @property
     def gmean(self) -> np.array:
+        """
+        Returns
+        -------
+        np.array
+            geometric mean of current array
+        """
         if self.total_iterations < self.window_size:
             return np.zeros(self._gmean.shape) * np.nan
         return (
@@ -61,6 +69,15 @@ class RollingMean(simple_mean.SimpleMean):
 
     @property
     def windowed_outgoing_row(self) -> np.array:
+        """
+        Return the outgoing row (FIFO - first in first out)
+        of the rolling window
+
+        Returns
+        -------
+        np.array
+            outgoing row
+        """
         return self.data_stream.matrix[self.data_stream.current_loc, :, :]
 
     def update(
@@ -70,14 +87,13 @@ class RollingMean(simple_mean.SimpleMean):
         **kwargs,
     ) -> None:
         """
-        Update the current mean array with newly streamed in data.
-        New Mean = Previous Mean + (Incoming Data - Outgoing Data) / N number of variables
+        Update the current mean array with newly streamed in data
 
         Parameters
         ----------
         incoming_variables : np.array
             Incoming stream of data
-        outgoing_variables : np.array, default None
+        outgoing_variables : np.array
             Outgoing stream of data
         """
         if self._mean.shape != incoming_variables.shape:

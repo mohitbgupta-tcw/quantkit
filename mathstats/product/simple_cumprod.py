@@ -7,21 +7,32 @@ class SimpleCumProd(object):
     """
     Simple Cumulative Product Calculation
     Calculates the cumprod of an np.array
+    Calculation in Incremental way:
+
+        (previous product * incoming variables) / (outgoing variables)
 
     Parameters
     ----------
-    num_variables : int
+    num_ind_variables : int
         Number of variables
     """
 
-    def __init__(self, num_variables: int, **kwargs):
-        self._cumprod = np.ones(shape=num_variables) * np.nan
-        self.data_stream = weighted_base.WeightedBase(matrix_shape=(1, num_variables))
-        self.iterations = np.zeros(shape=num_variables)
+    def __init__(self, num_ind_variables: int, **kwargs) -> None:
+        self._cumprod = np.ones(shape=num_ind_variables) * np.nan
+        self.data_stream = weighted_base.WeightedBase(
+            matrix_shape=(1, num_ind_variables)
+        )
+        self.iterations = np.zeros(shape=num_ind_variables)
         self.total_iterations = 0
 
     @property
     def cumprod(self) -> np.array:
+        """
+        Returns
+        -------
+        np.array
+            Cumulative Product of current array
+        """
         return self._cumprod - 1
 
     def calculate_cumprod(
@@ -30,6 +41,27 @@ class SimpleCumProd(object):
         incoming_variables: np.array,
         outgoing_variables: np.array,
     ) -> np.array:
+        """
+        Calculate the cumulative product
+
+        Calculation
+        -----------
+        (previous product * incoming variables) / (outgoing variables)
+
+        Parameters
+        ----------
+        prev_prod: np.array
+            previous product
+        incoming_variables: np.array
+            new set of values
+        outgoing variables: np.array
+            old set of values falling out of window size
+
+        Returns
+        -------
+        np.array
+            cumulative return
+        """
         outgoing_variables = np.where(
             np.isnan(outgoing_variables), 1, outgoing_variables
         )
@@ -42,18 +74,14 @@ class SimpleCumProd(object):
         )
         return new_cumprod
 
-    def update(
-        self, incoming_variables: np.ndarray, batch_weight: int = 1, **kwargs
-    ) -> None:
+    def update(self, incoming_variables: np.ndarray, **kwargs) -> None:
         """
-        Update the current mean array with newly streamed in data.
+        Update the current cumprod array with newly streamed in data.
 
         Parameters
         ----------
         incoming_variables : np.array
             Incoming stream of data
-        batch_weight : int, default 1
-            Weight for the incoming stream of data
         """
         if self._cumprod.shape != incoming_variables.shape:
             raise RuntimeError(
@@ -71,6 +99,6 @@ class SimpleCumProd(object):
 
         self.data_stream.update(
             new_vector=np.expand_dims(incoming_variables, axis=0),
-            batch_weight=batch_weight,
+            batch_weight=1,
             **kwargs,
         )

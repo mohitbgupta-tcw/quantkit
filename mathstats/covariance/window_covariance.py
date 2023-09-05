@@ -6,7 +6,7 @@ import numpy as np
 
 class WindowCovariance(streaming_base.StreamingBase):
     """
-    Rolling window covariance matrix calculation.
+    Rolling window covariance matrix calculation
     Implementation of pd.DataFrame.rolling().cov()
 
     Parameters
@@ -26,17 +26,20 @@ class WindowCovariance(streaming_base.StreamingBase):
         self.window_size = window_size
 
         self.rolling_mean = rolling_mean.RollingMean(
-            num_variables=num_ind_variables, window_size=window_size, ddof=0, **kwargs
+            num_ind_variables=num_ind_variables,
+            window_size=window_size,
+            ddof=0,
+            **kwargs
         )
         self._mean_sample = rolling_mean.RollingMean(
-            num_variables=num_ind_variables,
+            num_ind_variables=num_ind_variables,
             window_size=window_size,
             ddof=ddof,
             **kwargs
         )
         self._pair_mean = [
             rolling_mean.RollingMean(
-                num_variables=num_ind_variables,
+                num_ind_variables=num_ind_variables,
                 window_size=window_size,
                 ddof=ddof,
                 **kwargs
@@ -54,10 +57,8 @@ class WindowCovariance(streaming_base.StreamingBase):
         dict
             cov: covariance matrix
             mean: mean
-            variance: variance
             gmean: gmean
         """
-
         mean_vec = np.expand_dims(np.array(self.rolling_mean.mean), axis=0)
         sample_mean_vec = np.expand_dims(np.array(self._mean_sample.mean), axis=0)
         pair_mean_matrix = np.stack(
@@ -73,13 +74,13 @@ class WindowCovariance(streaming_base.StreamingBase):
         self._results["gmean"] = self.rolling_mean.gmean
         return self._results
 
-    def update(self, batch_ind: np.ndarray, **kwargs) -> None:
+    def update(self, batch_ind: np.array, **kwargs) -> None:
         """
         Updates the window covariance matrix with new streamed data
 
         Parameters
         ----------
-        batch_ind : np.ndarray
+        batch_ind : np.array
             Independent variable data
         """
         self.total_iterations += 1
@@ -100,6 +101,3 @@ class WindowCovariance(streaming_base.StreamingBase):
         self.rolling_mean.update(
             incoming_variables=batch_ind, outgoing_variables=outgoing_row, **kwargs
         )
-
-    def is_valid(self):
-        return self.total_iterations >= self.window_size

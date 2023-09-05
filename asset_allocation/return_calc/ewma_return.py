@@ -23,7 +23,7 @@ class LogEWMA(log_return.LogReturn):
         """
         super().__init__(universe, frequency, **kwargs)
         self.return_calculator = expo_weighted_mean.ExponentialWeightedMean(
-            num_variables=self.universe_size, **kwargs
+            num_ind_variables=self.universe_size, **kwargs
         )
         self.decay_factor = decay.decay_factor(half_life)[0]
 
@@ -47,7 +47,7 @@ class LogEWMA(log_return.LogReturn):
         Return
         ------
         """
-        annualized_return = annualize_adjustments.compound_annualize(
+        annualized_return = annualize_adjustments.compound_annualization(
             price_return, annualize_factor
         )
         annualized_return = np.squeeze(annualized_return)

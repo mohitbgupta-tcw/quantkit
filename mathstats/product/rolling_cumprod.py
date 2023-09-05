@@ -9,39 +9,47 @@ class RollingCumProd(simple_cumprod.SimpleCumProd):
     """
     Rolling Cumulative Product Calculation
     Calculates the rolling cumprod of an np.array
+    Calculation in Incremental way:
+
+        (previous product * incoming variables) / (outgoing variables)
+
 
     Parameters
     ----------
-    num_variables : int
+    num_ind_variables : int
         Number of variables
     window_size: int
         lookback window
-    ddof: int, optional
-        degrees of freedom
-    geo_base: int, optional
-        geo base for geometric mean calculation
     """
 
     def __init__(
         self,
-        num_variables: int,
+        num_ind_variables: int,
         window_size: int,
         **kwargs,
     ) -> None:
-        self._cumprod = np.ones(shape=num_variables) * np.nan
+        self._cumprod = np.ones(shape=num_ind_variables) * np.nan
         self.total_iterations = 0
-        self.iterations = np.zeros(shape=num_variables)
+        self.iterations = np.zeros(shape=num_ind_variables)
 
         self.window_size = window_size
 
         self.data_stream = window_base.WindowBase(
-            window_shape=(window_size, 1, num_variables),
-            curr_shape=(1, num_variables),
+            window_shape=(window_size, 1, num_ind_variables),
             window_size=window_size,
         )
 
     @property
     def windowed_outgoing_row(self) -> np.array:
+        """
+        Return the outgoing row (FIFO - first in first out)
+        of the rolling window
+
+        Returns
+        -------
+        np.array
+            outgoing row
+        """
         return self.data_stream.matrix[self.data_stream.current_loc, :, :]
 
     def update(
@@ -51,14 +59,13 @@ class RollingCumProd(simple_cumprod.SimpleCumProd):
         **kwargs,
     ) -> None:
         """
-        Update the current mean array with newly streamed in data.
-        New Mean = Previous Mean + (Incoming Data - Outgoing Data) / N number of variables
+        Update the current cumprod array with newly streamed in data.
 
         Parameters
         ----------
         incoming_variables : np.array
             Incoming stream of data
-        outgoing_variables : np.array, default None
+        outgoing_variables : np.array
             Outgoing stream of data
         """
         if self._cumprod.shape != incoming_variables.shape:

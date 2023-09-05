@@ -45,7 +45,7 @@ class LogNormalEWMA(log_vol.LogNormalVol):
         Return
         ------
         """
-        annualized_return = annualize_adjustments.compound_annualize(
+        annualized_return = annualize_adjustments.compound_annualization(
             price_return, annualize_factor
         )
         annualized_return = np.squeeze(annualized_return)

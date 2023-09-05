@@ -9,11 +9,17 @@ class Covariance(streaming_base.StreamingBase):
     Covariance Matrix Calculation
     Implementation of pd.DataFrame.cov()
 
+    Calculation in Incremental way:
+
+        previous covariance + (incoming variables - previous average) * (incoming variables - average)
+
+    see https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf chapter 3
+
     Parameters
     ----------
     num_ind_variables : int
         Number of of independent variables
-    min_observations : int, doptional
+    min_observations : int, optional
         Number of observed data inputs before output is generated
     """
 
@@ -24,7 +30,7 @@ class Covariance(streaming_base.StreamingBase):
         self.min_observations = min_observations
 
         self.mean_calculator = simple_mean.SimpleMean(
-            num_variables=num_ind_variables, **kwargs
+            num_ind_variables=num_ind_variables, **kwargs
         )
         self.demean_squared = weighted_base.WeightedBase(
             matrix_shape=(num_ind_variables, num_ind_variables)
@@ -37,9 +43,10 @@ class Covariance(streaming_base.StreamingBase):
 
         Returns
         -------
-        _results : dict(str: np.ndarray)
+        dict
             cov: covariance matrix
             mean: mean
+            gmean: gmean
         """
         if self.total_iterations < self.min_observations:
             return
@@ -54,19 +61,35 @@ class Covariance(streaming_base.StreamingBase):
         return self._results
 
     def update_demeaned(
-        self, vector_calc: np.ndarray, batch_weight: int = 1, **kwargs
+        self, vector_calc: np.array, batch_weight: int = 1, **kwargs
     ) -> None:
+        """
+        Update covariance calculation
+        See https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf chapter 3
+        Formula 24
+
+        Calculation
+        -----------
+        previous covariance + (incoming variables - previous average) * (incoming variables - average)
+
+        Parameters
+        ----------
+        vector_calc : np.array
+            vector of second summand of above calculation
+        batch_weight: float
+            Weight
+        """
         self.demean_squared.update(
             new_vector=vector_calc, batch_weight=batch_weight, **kwargs
         )
 
-    def update(self, batch_ind: np.ndarray, batch_weight: float = 1, **kwargs) -> None:
+    def update(self, batch_ind: np.array, batch_weight: float = 1, **kwargs) -> None:
         """
         Update the covariance matrix with new data streamed in
 
         Parameters
         ----------
-        batch_ind : np.ndarray
+        batch_ind : np.array
             Independent variable data
         batch_weight: float
             Weight

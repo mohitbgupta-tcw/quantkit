@@ -1,6 +1,7 @@
 import cvxpy as cvx
 from .base import BaseOptimizer
 import quantkit.utils.logging as logging
+import numpy as np
 
 
 class CVXPYOptimizer(BaseOptimizer):
@@ -9,70 +10,184 @@ class CVXPYOptimizer(BaseOptimizer):
 
     Parameters
     ----------
-    universe: optional
-    optimize_attr: optional
-    verbose: optional
+    universe: list, optional
+        list of available universe
+    verbose: bool, optional
+        verbose flag for solver
     """
 
-    def __init__(self, universe=None, optimize_attr=None, verbose=False):
+    def __init__(self, universe: list = None, verbose: bool = False) -> None:
         super().__init__(verbose)
         self.universe = universe
-        self.optimize_attr = optimize_attr
         self._problem = None
         self._solver_options = dict()
         self._solvers = ["ECOS", "SCS", "OSQP", "CVXOPT"]
-        # Parameters for Solver
-        # 'ECOS': {"max_iters": 500, "abstol": 1e-8},
-        # 'SCS': {"max_iters": 2500, "eps": 1e-5},
-        # 'OSQP': {"max_iter": 10000, "eps_abs": 1e-8},
-        # 'CVXOPT': {"max_iters": 500, "abstol": 1e-8},
 
     @staticmethod
-    def _get_variable(shape=(), **kwargs):
+    def _get_variable(shape=(), **kwargs) -> cvx.Variable:
+        """
+        Create cvxpy variable
+
+        Parameters
+        ----------
+        shape: optional
+            shape of variable
+
+        Returns
+        -------
+        cvx.Variable
+            cvxpy variable
+        """
         return cvx.Variable(shape=shape, **kwargs)
 
     @staticmethod
-    def _get_parameter(shape=(), **kwargs):
+    def _get_parameter(shape=(), **kwargs) -> cvx.Parameter:
+        """
+        Create cvxpy parameter
+
+        Parameters
+        ----------
+        shape: optional
+            shape of variable
+
+        Returns
+        -------
+        cvx.Parameter
+            cvxpy parameter
+        """
         return cvx.Parameter(shape=shape, **kwargs)
 
     @staticmethod
     def _minimize(objective):
+        """
+        Add minimize objective to optimization
+
+        Parameters
+        ----------
+        objective: function
+            objective function
+
+        Returns
+        -------
+        cvx.Minimize
+            cvxpy minimize objective
+        """
         return cvx.Minimize(objective)
 
     @staticmethod
     def _maximize(objective):
+        """
+        Add maximize objective to optimization
+
+        Parameters
+        ----------
+        objective: function
+            objective function
+
+        Returns
+        -------
+        cvx.Maximize
+            cvxpy maximize objective
+        """
         return cvx.Maximize(objective)
 
     @staticmethod
-    def _sum(x):
+    def _sum(x: np.array) -> np.array:
+        """
+        Parameters
+        ----------
+        x: np.array
+            array of values
+
+        Returns
+        -------
+        np.array
+            sum of array
+        """
         return cvx.sum(x)
 
     @staticmethod
-    def _sqrt(x):
+    def _sqrt(x: np.array) -> np.array:
+        """
+        Parameters
+        ----------
+        x: np.array
+            array of values
+
+        Returns
+        -------
+        np.array
+            element wise square root of array
+        """
         return cvx.sqrt(x)
 
     @staticmethod
-    def _multiply(x, y):
+    def _multiply(x: np.array, y: np.array) -> np.array:
+        """
+        Parameters
+        ----------
+        x: np.array
+            array of values
+        y: np.array
+            array of values
+
+        Returns
+        -------
+        np.array
+            element wise product of arrays
+        """
         return cvx.multiply(x, y)
 
     @staticmethod
-    def _quad_form(w, X):
+    def _quad_form(w: np.array, X: np.array) -> np.array:
+        """
+        Parameters
+        ----------
+        w: np.array
+            array of values (weights)
+        X: np.array
+            matrix
+
+        Returns
+        -------
+        np.array
+            quadratic form of w and X
+        """
         return cvx.quad_form(w, X)
 
     @staticmethod
-    def _norm(X):
+    def _norm(X: np.array) -> np.array:
+        """
+        Parameters
+        ----------
+        X: np.array
+            matrix
+
+        Returns
+        -------
+        float
+            norm of X
+        """
         return cvx.norm(X)
 
     @staticmethod
-    def _log(x):
-        return cvx.log(x)
+    def _log(x: np.array) -> np.array:
+        """
+        Parameters
+        ----------
+        x: np.array
+            array of values
 
-    def add_variables(self, start_params):
-        self.paramters = self._get_variable(start_params.shape)
+        Returns
+        -------
+        np.array
+            element wise logarithm of array
+        """
+        return cvx.log(x)
 
     def solve_problem(self):
         """
-        Forming and solving problem
+        Forming and solving the optimization problem
         """
         self._problem = cvx.Problem(self._objective, self._constraints)
         self._solve()

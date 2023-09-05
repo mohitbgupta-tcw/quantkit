@@ -13,7 +13,6 @@ class MinVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
     def __init__(
         self,
         universe,
-        optimize_attr,
         cov_matrix,
         min_weights=0.0,
         max_weights=1.0,
@@ -23,14 +22,12 @@ class MinVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
         ----------
         universe: list
             investment universe
-        optimize_attr: list
-            attribute to run optimization on
         min_weights: float | np.array
             lower bound for weights
         max_weights: float | list, np.array
             upper bound for weights
         """
-        super().__init__(universe, optimize_attr)
+        super().__init__(universe)
         # PSD: positive semi-definite
         self.cov_matrix = cvxpy.atoms.affine.wraps.psd_wrap(cov_matrix)
         self.min_weights = min_weights
@@ -98,7 +95,6 @@ class MinimumVariance(allocation_base.Allocation):
         self.risk_metrics = self.risk_metrics[np.ix_(selected_assets, selected_assets)]
         self.optimizer = MinVarianceOptimizer(
             universe=selected_assets,
-            optimize_attr=selected_assets,
             cov_matrix=self.risk_metrics,
             min_weights=self.min_weights[selected_assets],
             max_weights=self.max_weights[selected_assets],

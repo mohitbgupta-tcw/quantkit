@@ -5,11 +5,13 @@ import quantkit.mathstats.mean.simple_mean as simple_mean
 
 class ExponentialWeightedMean(simple_mean.SimpleMean):
     """
-    Exponential Weighted Mean Calculation (EWA)
+    Exponential Weighted Mean Calculation (EWA) in adjusted and unadjusted version
+    see https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf chapter 9
+    and https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.ewm.html
 
     Parameters
     ----------
-    num_variables : int
+    num_ind_variables : int
         Number of variables
     geo_base: int, optional
         geo base for geometric mean calculation
@@ -18,29 +20,36 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
     """
 
     def __init__(
-        self, num_variables: int, geo_base: int = 0, adjust=True, **kwargs
+        self, num_ind_variables: int, geo_base: int = 0, adjust=True, **kwargs
     ) -> None:
-        super().__init__(num_variables, geo_base, **kwargs)
+        super().__init__(num_ind_variables, geo_base, **kwargs)
         self.weight_sum = 0
-        self._n_effective_ratio = 0
         self.adjust = adjust
 
     @property
     def mean(self) -> np.array:
+        """
+        Returns
+        -------
+        np.array
+            mean of current array
+        """
         if self.adjust:
             return self._mean / np.max([self.weight_sum, 1])
         return self._mean
 
     @property
     def gmean(self) -> np.array:
+        """
+        Returns
+        -------
+        np.array
+            geometric mean of current array
+        """
         adjusted_gmean = self._gmean / self.weight_sum
         return (
             np.where(self._gmean == 0, np.nan, np.exp(adjusted_gmean)) - self.geo_base
         )
-
-    @property
-    def n_effective_ratio(self) -> np.array:
-        return 1 - (self._n_effective_ratio / self.weight_sum**2)
 
     def calculate_adjusted(
         self,
@@ -51,6 +60,10 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
     ) -> np.array:
         """
         Calculate average on adjusted version.
+
+        Calculation
+        -----------
+        previous average * batch weight + incoming variables
 
         Parameters
         ----------
@@ -77,7 +90,11 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
         **kwargs,
     ) -> np.array:
         """
-        Calculate average on unadjusted version.
+        Calculate average on unadjusted version
+
+        Calculation
+        -----------
+        previous average * batch weight + (1 - batch weight) * incoming variables
 
         Parameters
         ----------
@@ -152,7 +169,6 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
 
         self.previous_weight_sum = deepcopy(self.weight_sum)
         self.weight_sum += batch_weight**self.total_iterations
-        self._n_effective_ratio += batch_weight ** (2 * self.total_iterations)
 
         self.total_iterations += 1
         self.iterations = self.iterations + np.where(np.isnan(incoming_variables), 0, 1)

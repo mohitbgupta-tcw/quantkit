@@ -7,30 +7,49 @@ class SimpleMean(object):
     """
     Simple Mean Calculation
     Calculates the mean of an np.array
+    Calculation in Incremental way:
+
+        previous average + (incoming variables - previous average) / number of variables
+
+    see https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf chapter 1
 
     Parameters
     ----------
-    num_variables : int
+    num_ind_variables : int
         Number of variables
     geo_base: int, optional
         geo base for geometric mean calculation
     """
 
-    def __init__(self, num_variables: int, geo_base: int = 0, **kwargs):
+    def __init__(self, num_ind_variables: int, geo_base: int = 0, **kwargs) -> None:
         self.geo_base = geo_base
-        self._mean = np.zeros(shape=num_variables)
-        self._gmean = np.zeros(shape=num_variables)
+        self._mean = np.zeros(shape=num_ind_variables)
+        self._gmean = np.zeros(shape=num_ind_variables)
 
-        self.data_stream = weighted_base.WeightedBase(matrix_shape=(1, num_variables))
-        self.iterations = np.zeros(shape=num_variables)
+        self.data_stream = weighted_base.WeightedBase(
+            matrix_shape=(1, num_ind_variables)
+        )
+        self.iterations = np.zeros(shape=num_ind_variables)
         self.total_iterations = 0
 
     @property
     def mean(self) -> np.array:
+        """
+        Returns
+        -------
+        np.array
+            mean of current array
+        """
         return self._mean
 
     @property
     def gmean(self) -> np.array:
+        """
+        Returns
+        -------
+        np.array
+            geometric mean of current array
+        """
         return np.where(self._gmean == 0, np.nan, np.exp(self._gmean)) - self.geo_base
 
     def calculate_average(
@@ -41,8 +60,11 @@ class SimpleMean(object):
         num_variables: Union[np.array, int],
     ) -> np.array:
         """
-        Calculate average.
-        New Average = Previous Average + (Incoming Variables - Outgoing Variables) / N number of variables
+        Calculate average
+
+        Calculation
+        -----------
+        previous average + (incoming variables - outgoing variables) / number of variables
 
         Parameters
         ----------
@@ -53,7 +75,7 @@ class SimpleMean(object):
         outgoing_variables : np.array
             Outgoing variables
         num_variables : np.array | int
-            N number of variables
+            number of variables
 
         Returns
         -------
@@ -82,7 +104,7 @@ class SimpleMean(object):
         ----------
         incoming_variables : np.array
             Incoming stream of data
-        batch_weight : int, default 1
+        batch_weight : int, optional
             Weight for the incoming stream of data
         """
         if self._mean.shape != incoming_variables.shape:

@@ -155,7 +155,7 @@ class StaticVol(risk_metrics.RiskMetrics):
                 np.array(exp_std_devs), self.annualize_factor
             )
 
-        annualized_return = annualize_adjustments.compound_annualize(
+        annualized_return = annualize_adjustments.compound_annualization(
             price_return, annualize_factor
         )
         annualized_return_np = annualized_return

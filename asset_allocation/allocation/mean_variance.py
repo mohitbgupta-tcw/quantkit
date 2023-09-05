@@ -13,7 +13,6 @@ class MeanVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
     def __init__(
         self,
         universe,
-        optimize_attr,
         risk_averse_lambda=1.0,
         min_weights=0.0,
         max_weights=1.0,
@@ -23,8 +22,6 @@ class MeanVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
         ----------
         universe: list
             investment universe
-        optimize_attr: list
-            attribute to run optimization on
         risk_averse_lambda: float, optional
             lambda determining weighting between return and risk
         min_weights: float | np.array
@@ -32,7 +29,7 @@ class MeanVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
         max_weights: float | list, np.array
             upper bound for weights
         """
-        super().__init__(universe, optimize_attr)
+        super().__init__(universe)
         # PSD: positive semi-definite
         self.cov_matrix = self._get_parameter(
             shape=(self.asset_count, self.asset_count), PSD=True
@@ -99,7 +96,6 @@ class MeanVariance(allocation_base.Allocation):
         min_weights, max_weights = self.get_weights_constraints(weights_constraint)
         self.optimizer = MeanVarianceOptimizer(
             universe=asset_list,
-            optimize_attr=asset_list,
             min_weights=min_weights,
             max_weights=max_weights,
         )

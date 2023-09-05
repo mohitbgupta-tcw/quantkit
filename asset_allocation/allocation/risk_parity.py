@@ -14,7 +14,6 @@ class TraditionalRPOptimizer(portfolio_optimizer.PortfolioOptimizer):
     def __init__(
         self,
         universe,
-        optimize_attr,
         risk_budgets,
         long_only=True,
         leverage=None,
@@ -25,8 +24,6 @@ class TraditionalRPOptimizer(portfolio_optimizer.PortfolioOptimizer):
         ----------
         universe: list
             investment universe
-        optimize_attr: list
-            attribute to run optimization on
         risk_budgets, np.array
             amount of total risk each asset can take in final portfolio
         long_only: bool, optional
@@ -36,7 +33,7 @@ class TraditionalRPOptimizer(portfolio_optimizer.PortfolioOptimizer):
         verbose: bool, optional
             verbose flag for solver
         """
-        super().__init__(universe, optimize_attr, long_only, leverage, verbose=verbose)
+        super().__init__(universe, long_only, leverage, verbose=verbose)
         self.risk_budgets = risk_budgets
         # PSD: positive semi-definite
         self.cov_matrix = self._get_parameter(
@@ -105,7 +102,6 @@ class RiskParity(allocation_base.Allocation):
         self.c_scalar = 1.0
         self.optimizer = TraditionalRPOptimizer(
             universe=asset_list,
-            optimize_attr=asset_list,
             risk_budgets=self.risk_budgets,
             leverage=portfolio_leverage,
             verbose=verbose,

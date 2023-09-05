@@ -3,16 +3,12 @@ import numpy as np
 
 
 class PortfolioOptimizer(convex_optimizer.CVXPYOptimizer):
-    def __init__(
-        self, universe, optimize_attr, long_only=True, leverage=None, verbose=False
-    ):
+    def __init__(self, universe, long_only=True, leverage=None, verbose=False):
         """
         Parameters
         ----------
         universe: list
             investment universe
-        optimize_attr: list
-            attribute to run optimization on
         long_only: bool, optional
             allow long only portfolio or add short positions
         leverage: float, optional
@@ -20,7 +16,7 @@ class PortfolioOptimizer(convex_optimizer.CVXPYOptimizer):
         verbose: bool, optional
             verbose flag for solver
         """
-        super().__init__(universe, optimize_attr, verbose=verbose)
+        super().__init__(universe, verbose=verbose)
         self.asset_count = len(universe)
         self.weights = self._get_variable(shape=self.asset_count)
         self.long_only = long_only

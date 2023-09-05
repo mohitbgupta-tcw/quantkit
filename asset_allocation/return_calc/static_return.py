@@ -42,7 +42,7 @@ class StaticReturn(return_metrics.ReturnMetrics):
                 this_return = returns_d.get(this_factor)
                 exp_returns.append(this_return)
 
-            self.current_returns = annualize_adjustments.compound_annualize(
+            self.current_returns = annualize_adjustments.compound_annualization(
                 np.array(exp_returns), 1 / self.annualize_factor
             )
             return
@@ -139,7 +139,7 @@ class StaticReturn(return_metrics.ReturnMetrics):
             return
 
         exp_returns = self._returns_df.loc[date].tolist()
-        self.current_returns = annualize_adjustments.compound_annualize(
+        self.current_returns = annualize_adjustments.compound_annualization(
             np.array(exp_returns), 1 / self.annualize_factor
         )
 
