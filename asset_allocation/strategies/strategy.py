@@ -93,6 +93,7 @@ class Strategy(object):
         )
         self.allocation_engines_d = dict()
 
+        wc = self.get_weights_constraints_d(weight_constraint)
         for allocation_model in allocation_models:
             if allocation_model == "mean_variance":
                 this_allocation_engine = mean_variance.MeanVariance(
@@ -100,15 +101,8 @@ class Strategy(object):
                 )
 
             elif allocation_model == "constrained_mean_variance":
-                allocation_engine_kwargs.update(
-                    dict(
-                        weights_constraint=self.get_weights_constraints_d(
-                            weight_constraint
-                        )
-                    )
-                )
                 this_allocation_engine = mean_variance.MeanVariance(
-                    **allocation_engine_kwargs
+                    weights_constraint=wc, **allocation_engine_kwargs
                 )
 
             elif allocation_model == "min_variance":
@@ -116,11 +110,8 @@ class Strategy(object):
                     **allocation_engine_kwargs
                 )
             elif allocation_model == "constrained_min_variance":
-                wc = self.get_weights_constraints_d(weight_constraint)
-                print(wc)
-                print(weight_constraint)
                 this_allocation_engine = min_variance.MinimumVariance(
-                    weight_constraint=wc, **allocation_engine_kwargs
+                    weights_constraint=wc, **allocation_engine_kwargs
                 )
             elif allocation_model == "risk_parity":
                 this_allocation_engine = risk_parity.RiskParity(
@@ -193,7 +184,7 @@ class Strategy(object):
     def calculate_allocations(self, date):
         if not date in self.rebalance_dates:
             return
-        if date < self.rebalance_dates[40]:
+        if date < self.rebalance_dates[10]:
             return
 
         risk_budgets = self.get_risk_budgets(date)

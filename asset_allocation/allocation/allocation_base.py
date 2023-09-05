@@ -1,22 +1,22 @@
 import numpy as np
+from typing import Union
 
 
 class Allocation(object):
     """
     Base module for running allocation workflow
+
+    Parameters
+    ----------
+    asset_list: list
+        all assets to run optimization on
+    risk_engine: mstar_asset_allocation.risk_calc.risk_metrics, optional
+        risk engine used to forecast cov matrix
+    return_engine: mstar_asset_allocation.return_calc.return_metrics, optional
+        return engine used to forecast returns
     """
 
-    def __init__(self, asset_list, risk_engine=None, return_engine=None):
-        """
-        Parameters
-        ----------
-        asset_list: list
-            all assets to run optimization on
-        risk_engine: mstar_asset_allocation.risk_calc.risk_metrics, optional
-            risk engine used to forecast cov matrix
-        return_engine: mstar_asset_allocation.return_calc.return_metrics, optional
-            return engine used to forecast returns
-        """
+    def __init__(self, asset_list: list, risk_engine=None, return_engine=None) -> None:
         self.asset_list = asset_list
         self.num_total_assets = len(asset_list)
         self.risk_engine = risk_engine
@@ -24,14 +24,20 @@ class Allocation(object):
         self.allocations = None
         self.allocations_history = []
 
-    def update(self):
+    def update(self, selected_assets: Union[list, np.array]) -> None:
         """
-        Assign new forecasted cov matrix from risk engine
-        and returns from return engine to optimizer
+        - initialize optimizer
+        - assign new forecasted cov matrix from risk engine to optimizer
+        - assign forecasted returns from return engine to optimizer
+
+        Parameters
+        ----------
+        selected_assets: list | np.array
+            list of selected assets (their location in universe as integer)
         """
         raise NotImplementedError
 
-    def allocate(self, date):
+    def allocate(self, date, selected_assets: Union[list, np.array]) -> None:
         """
         Solve for optimal portfolio and save allocation
 
@@ -39,12 +45,16 @@ class Allocation(object):
         ----------
         date : datetime.date
             date of snapshot
+        selected_assets: list | np.array
+            list of selected assets (their location in universe as integer)
         """
         raise NotImplementedError
 
-    def get_weights_constraints(self, w_consts_d):
+    def get_weights_constraints(self, w_consts_d: dict):
         """
-        convert to list of weight constraints
+        Create weight constraints:
+        - if no weight constraints is passed -> min 0%, max 100%
+        - if weight constraint dict is passed -> add constraint for each asset in dict
 
         Parameter
         ---------
@@ -53,9 +63,9 @@ class Allocation(object):
 
         Return
         ------
-        min_weights: np.array
+        np.array
             list of minimum weights
-        max_weights: np.array
+        np.array
             list of maximum weights
         """
 

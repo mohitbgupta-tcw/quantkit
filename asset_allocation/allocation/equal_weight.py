@@ -1,29 +1,36 @@
 import quantkit.asset_allocation.allocation.allocation_base as allocation_base
 import numpy as np
+from typing import Union
 
 
 class EqualWeight(allocation_base.Allocation):
-    def __init__(self, asset_list, risk_engine, return_engine, **kwargs):
-        """
-        Parameters
-        ----------
-        asset_list: list
-            assets to run optimization on
-        risk_engine: mstar_asset_allocation.risk_calc.risk_metrics
-            risk engine used to forecast cov matrix
-        return_engine: mstar_asset_allocation.return_calc.return_metrics
-            return engine used to forecast returns
-        """
+    """
+    Base class to calculate Equal Weight weighting scheme
+
+    Calculation
+    -----------
+    asset weight = 1 / number of assets
+
+    Parameters
+    ----------
+    asset_list: list
+        all assets to run optimization on
+    risk_engine: mstar_asset_allocation.risk_calc.risk_metrics
+        risk engine used to forecast cov matrix
+    return_engine: mstar_asset_allocation.return_calc.return_metrics
+        return engine used to forecast returns
+    """
+
+    def __init__(self, asset_list: list, risk_engine, return_engine, **kwargs) -> None:
         super().__init__(asset_list, risk_engine, return_engine)
 
-    def update(self, **kwargs):
+    def update(self, **kwargs) -> None:
         """
-        Assign new forecasted cov matrix from risk engine
-        and return from return engine to optimizer
+        None
         """
         return
 
-    def allocate(self, date, selected_assets):
+    def allocate(self, date, selected_assets: Union[list, np.array]) -> None:
         """
         Solve for optimal portfolio and save allocation
 
@@ -31,6 +38,8 @@ class EqualWeight(allocation_base.Allocation):
         ----------
         date : datetime.date
             date of snapshot
+        selected_assets: list | np.array
+            list of selected assets (their location in universe as integer)
         """
         asset_count = len(selected_assets)
         allocation = np.zeros(shape=self.num_total_assets)
@@ -39,4 +48,3 @@ class EqualWeight(allocation_base.Allocation):
 
         self.allocations = ((date,), allocation)
         self.allocations_history.append(self.allocations)
-        return
