@@ -1,6 +1,7 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import pandas as pd
+from pandas.tseries.offsets import MonthEnd
 import numpy as np
 from copy import deepcopy
 
@@ -54,6 +55,14 @@ class QuandlDataSource(ds.DataSources):
         self.datasource.df = self.datasource.df.sort_values(
             by=["ticker", "date"], ascending=True, ignore_index=True
         )
+        if self.params["type"] == "fundamental":
+            self.datasource.df["release_date"] = (
+                self.datasource.df["date"] + pd.DateOffset(months=3) + MonthEnd(0)
+            )
+            self.datasource.df["release_date"] = pd.to_datetime(
+                self.datasource.df["release_date"]
+            )
+        self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
 
     def iter(self, companies: dict) -> None:
         """

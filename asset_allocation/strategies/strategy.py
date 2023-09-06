@@ -9,6 +9,7 @@ import quantkit.asset_allocation.allocation.mean_variance as mean_variance
 import quantkit.asset_allocation.allocation.min_variance as min_variance
 import quantkit.asset_allocation.allocation.risk_parity as risk_parity
 import quantkit.asset_allocation.allocation.equal_weight as equal_weight
+import quantkit.asset_allocation.allocation.market_weight as market_weight
 import pandas as pd
 import numpy as np
 import datetime
@@ -122,7 +123,10 @@ class Strategy(object):
                 this_allocation_engine = equal_weight.EqualWeight(
                     **allocation_engine_kwargs
                 )
-
+            elif allocation_model == "market_weight":
+                this_allocation_engine = market_weight.MarketWeight(
+                    **allocation_engine_kwargs
+                )
             else:
                 raise RuntimeError(
                     f"allocation_model { allocation_model } is not defined.."
@@ -181,7 +185,7 @@ class Strategy(object):
         )
         return budgets
 
-    def calculate_allocations(self, date):
+    def calculate_allocations(self, date, market_caps):
         if not date in self.rebalance_dates:
             return
         if date < self.rebalance_dates[10]:
@@ -191,7 +195,9 @@ class Strategy(object):
         for allocation_name, allocation_engine in self.allocation_engines_d.items():
             this_risk_budget = risk_budgets.get(allocation_name)
             allocation_engine.update(
-                risk_budgets=this_risk_budget, selected_assets=self.selected_securities
+                selected_assets=self.selected_securities,
+                risk_budgets=this_risk_budget,
+                market_caps=market_caps,
             )
             allocation_engine.allocate(date, self.selected_securities)
         return
