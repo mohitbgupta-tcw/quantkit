@@ -212,7 +212,6 @@ class CVXPYOptimizer(BaseOptimizer):
                 if this_solver_ix == len(self._solvers):
                     raise RuntimeError(e)
 
-                logging.log(f"Solver FAILED {e}")
                 this_solver_ix += 1
 
         if self._problem.status not in {"optimal", "optimal_inaccurate"}:

@@ -1,6 +1,8 @@
 import quantkit.asset_allocation.allocation.allocation_base as allocation_base
 import numpy as np
+import pandas as pd
 from typing import Union
+import datetime
 
 
 class EqualWeight(allocation_base.Allocation):
@@ -30,7 +32,9 @@ class EqualWeight(allocation_base.Allocation):
         """
         return
 
-    def allocate(self, date, selected_assets: Union[list, np.array]) -> None:
+    def allocate(
+        self, date: datetime.date, selected_assets: Union[list, np.array]
+    ) -> None:
         """
         Solve for optimal portfolio and save allocation
 
@@ -46,5 +50,5 @@ class EqualWeight(allocation_base.Allocation):
         opt_allocation = tuple(np.array([1 / asset_count] * asset_count))
         allocation[selected_assets] = opt_allocation
 
-        self.allocations = ((date,), allocation)
-        self.allocations_history.append(self.allocations)
+        self.allocations = (date, allocation)
+        self.allocations_history[date] = allocation

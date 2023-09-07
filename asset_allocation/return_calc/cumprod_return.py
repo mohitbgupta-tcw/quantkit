@@ -5,17 +5,20 @@ import numpy as np
 
 
 class CumProdReturn(return_metrics.ReturnMetrics):
-    """Cumulative Return Calculation Assuming Log Normal Distribution using Rolling Historical"""
+    """
+    Cumulative Return Calculation assuming:
+        - Log Normal Distribution of returns
+        - Rolling Historical Window
 
-    def __init__(self, universe, frequency=None, **kwargs):
-        """
-        Parameter
-        ---------
-        factors: list
-            factors to run return calculation on
-        frequency: str, optional
-            frequency of index return data
-        """
+    Parameters
+    ----------
+    universe: list
+        investment universe
+    frequency: str, optional
+        frequency of index return data
+    """
+
+    def __init__(self, universe: list, frequency: str = None, **kwargs) -> None:
         super().__init__(universe)
         self.frequency = frequency
         self.return_calculator = rolling_cumprod.RollingCumProd(
@@ -23,31 +26,25 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         )
 
     @property
-    def return_metrics_optimizer(self):
+    def return_metrics_optimizer(self) -> np.array:
         """
         Forecaseted returns from return engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         return self.return_calculator.cumprod
 
     @property
-    def return_metrics_intuitive(self):
+    def return_metrics_intuitive(self) -> np.array:
         """
         Forecaseted returns from return engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         return self.return_metrics_optimizer
@@ -79,7 +76,7 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         date,
         price_return,
         annualize_factor=1.0,
-    ):
+    ) -> None:
         """
         Transform and assign returns to the actual calculator
         Parameter
@@ -104,4 +101,3 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         self.return_calculator.update(
             (np.log(annualized_return + 1) + 1), outgoing_row, index=date
         )
-        return

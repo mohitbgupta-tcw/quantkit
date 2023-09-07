@@ -1,6 +1,7 @@
 import quantkit.asset_allocation.allocation.allocation_base as allocation_base
 import numpy as np
 from typing import Union
+import datetime
 
 
 class MarketWeight(allocation_base.Allocation):
@@ -35,7 +36,9 @@ class MarketWeight(allocation_base.Allocation):
         """
         self.market_caps = market_caps.squeeze()
 
-    def allocate(self, date, selected_assets: Union[list, np.array]) -> None:
+    def allocate(
+        self, date: datetime.date, selected_assets: Union[list, np.array]
+    ) -> None:
         """
         Solve for optimal portfolio and save allocation
 
@@ -48,8 +51,8 @@ class MarketWeight(allocation_base.Allocation):
         """
         allocation = np.zeros(shape=self.num_total_assets)
         mc = self.market_caps[selected_assets]
-        opt_allocation = mc / mc.sum()
+        opt_allocation = mc / np.nansum(mc)
         allocation[selected_assets] = opt_allocation
 
-        self.allocations = ((date,), allocation)
-        self.allocations_history.append(self.allocations)
+        self.allocations = (date, allocation)
+        self.allocations_history[date] = allocation

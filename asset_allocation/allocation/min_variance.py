@@ -4,6 +4,7 @@ import numpy as np
 import scipy as sp
 import cvxpy as cvx
 from typing import Union
+import datetime
 
 
 class MinVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
@@ -150,7 +151,9 @@ class MinimumVariance(allocation_base.Allocation):
         inv_cov = sp.linalg.inv(risk_metrics)
         return np.sum(inv_cov, axis=0) / np.sum(inv_cov)
 
-    def allocate(self, date, selected_assets: Union[list, np.array]) -> None:
+    def allocate(
+        self, date: datetime.date, selected_assets: Union[list, np.array]
+    ) -> None:
         """
         Solve for optimal portfolio and save allocation
 
@@ -166,5 +169,5 @@ class MinimumVariance(allocation_base.Allocation):
         opt_allocation = self.optimizer.allocations
         allocation[selected_assets] = opt_allocation
 
-        self.allocations = ((date,), allocation)
-        self.allocations_history.append(self.allocations)
+        self.allocations = (date, allocation)
+        self.allocations_history[date] = allocation

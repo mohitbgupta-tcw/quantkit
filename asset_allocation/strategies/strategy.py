@@ -10,25 +10,48 @@ import quantkit.asset_allocation.allocation.min_variance as min_variance
 import quantkit.asset_allocation.allocation.risk_parity as risk_parity
 import quantkit.asset_allocation.allocation.equal_weight as equal_weight
 import quantkit.asset_allocation.allocation.market_weight as market_weight
+import quantkit.utils.annualize_adjustments as annualize_adjustments
 import pandas as pd
 import numpy as np
 import datetime
-from typing import Tuple, Dict, Union, List
 
 
 class Strategy(object):
+    """
+    Base class for trading strategies
+
+    Parameters
+    ----------
+    universe: list
+        investment universe
+    return_engine: mstar_asset_allocation.return_calc.return_metrics
+        return engine used to forecast returns
+    risk_engine: mstar_asset_allocation.risk_calc.risk_metrics
+        risk engine used to forecast cov matrix
+    frequency: str
+        frequency of return data
+    rebalance_dates: list
+        list of rebalancing dates
+    trans_cost: float
+        transaction cost
+    allocation_models: list
+        list of weighting strategies
+    weight_constraint: list
+        list of lower and upper bound for weight constraints
+    """
+
     def __init__(
         self,
-        universe,
+        universe: list,
         return_engine,
         risk_engine,
-        frequency,
-        rebalance_dates,
-        trans_cost,
-        allocation_models,
-        weight_constraint,
+        frequency: str,
+        rebalance_dates: list,
+        trans_cost: float,
+        allocation_models: list,
+        weight_constraint: list,
         **kwargs,
-    ):
+    ) -> None:
         risk_return_engine_kwargs = dict(
             frequency=frequency, ddof=1, geo_base=1, adjust=True, half_life=12, span=36
         )
@@ -37,6 +60,7 @@ class Strategy(object):
         self.universe = universe
         self.num_total_assets = len(universe)
         self.trans_cost = np.ones(self.num_total_assets) * trans_cost
+        self.kwargs = kwargs
 
         # return engine
         if return_engine == "log_normal":
@@ -134,34 +158,56 @@ class Strategy(object):
 
             self.allocation_engines_d[allocation_model] = this_allocation_engine
 
+        # portfolio engine
+        self.portfolio_risk_return_engine_kwargs = dict(
+            frequency=frequency,
+            ddof=1,
+            geo_base=1,
+        )
+        # portfolio engine
+        self.portfolio_risk_engine = simple_vol.SimpleVol(
+            universe=self.universe,
+            **self.portfolio_risk_return_engine_kwargs,
+            **self.kwargs,
+        )
+        self.portfolio_return_engine = simple_return.SimpleExp(
+            universe=self.universe,
+            **self.portfolio_risk_return_engine_kwargs,
+            **self.kwargs,
+        )
+
     def assign(
         self,
-        date,
-        price_return,
-        annualize_factor=1.0,
+        date: datetime.date,
+        price_return: np.array,
+        annualize_factor: int = 1.0,
     ) -> None:
         """
         Transform and assign returns to the actual calculator
-        Parameter
-        ---------
+
+        Parameters
+        ----------
         date: datetime.date
             date of snapshot
         price_return: np.array
             zero base price return of universe
         annualize_factor: int, optional
             factor depending on data frequency
-
-        Return
-        ------
         """
         self.return_engine.assign(
+            date=date, price_return=price_return, annualize_factor=annualize_factor
+        )
+        self.portfolio_return_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
         )
         self.risk_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
         )
+        self.portfolio_risk_engine.assign(
+            date=date, price_return=price_return, annualize_factor=annualize_factor
+        )
 
-    def get_risk_budgets(self, date: datetime.date):
+    def get_risk_budgets(self, date: datetime.date) -> dict:
         """
         get risk budgets for each allocation in allocation_engines_d
         allocation_engines_d contains each allocation defined in allocation_models in the config file
@@ -174,7 +220,7 @@ class Strategy(object):
 
         Returns
         -------
-        dict[allocation: budgets]
+        dict
             dictionary which maps risk budgets per asset as np.array to allocations
         """
         budgets = dict(
@@ -185,7 +231,72 @@ class Strategy(object):
         )
         return budgets
 
-    def calculate_allocations(self, date, market_caps):
+    def get_portfolio_stats(
+        self,
+        allocation: np.array,
+        next_allocation: np.array,
+    ) -> pd.DataFrame:
+        """
+        Portfolio level stats
+
+        Parameters
+        ----------
+        allocation: np.array
+            weight allocation in the order of universe_tickers
+        next_allocation: np.array
+            weight allocation of next period in the order of universe_tickers
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with risk and returns set in frequency over last rebalance period
+        """
+        portfolio_return = self.portfolio_return_engine.get_portfolio_return(
+            allocation,
+            next_allocation=next_allocation,
+            trans_cost=self.trans_cost,
+            is_window=True,
+        )
+        return portfolio_return
+
+    def get_allocation(self, date: datetime.date, allocation_model: str):
+        """
+        Get allocation and next for allocation model by accessing allocation history
+
+        Parameters
+        ----------
+        date : datetime.date
+            date of snapshot
+        allocation_model: str
+            name of allocation model as set in allocation_engines_d
+
+        Returns
+        -------
+        np.array
+            last allocation in the order of universe_tickers
+        np.array
+            allocation for snapshot date in the order of universe_tickers
+        """
+
+        allocations = self.allocation_engines_d.get(
+            allocation_model
+        ).allocations_history
+        allocation_pd = pd.DataFrame.from_dict(allocations, orient="index")
+        portfolio_allocation = allocation_pd.shift(1).loc[date].values
+        next_portfolio_allocation = allocation_pd.loc[date].values
+        return portfolio_allocation, next_portfolio_allocation
+
+    def backtest(self, date: datetime.date, market_caps: np.array) -> None:
+        """
+        - Calculate optimal allocation for each weighting strategy
+        - Calculate allocation returns
+
+        Parameters
+        ----------
+        date: datetime.date
+            snapshot date
+        market_caps: np.array
+        """
         if not date in self.rebalance_dates:
             return
         if date < self.rebalance_dates[10]:
@@ -200,22 +311,48 @@ class Strategy(object):
                 market_caps=market_caps,
             )
             allocation_engine.allocate(date, self.selected_securities)
-        return
 
-    def get_weights_constraints_d(self, weight_constraint) -> Dict[str, List[float]]:
+        for allocation_model in self.allocation_engines_d:
+            ex_ante_allocation, ex_post_allocation = self.get_allocation(
+                date, allocation_model
+            )
+            # ex_ante_portfolio_return = self.get_portfolio_stats(
+            #     ex_ante_allocation, ex_post_allocation
+            # )
+            # ex_ante_portfolio_return["portfolio_name"] = f"ex_ante_{allocation_model}"
+            # self.all_portfolios = pd.concat(
+            #     [self.all_portfolios, ex_ante_portfolio_return], axis=0
+            # )
+
+        print("--------------")
+        print(date)
+        print(self.portfolio_return_engine.return_calculator.data_stream.values.shape)
+
+        # portfolio engine
+        self.portfolio_risk_engine = simple_vol.SimpleVol(
+            universe=self.universe,
+            **self.portfolio_risk_return_engine_kwargs,
+            **self.kwargs,
+        )
+        self.portfolio_return_engine = simple_return.SimpleExp(
+            universe=self.universe,
+            **self.portfolio_risk_return_engine_kwargs,
+            **self.kwargs,
+        )
+
+    def get_weights_constraints_d(self, weight_constraint: list) -> dict:
         """
-        Initialize weight constraints for constrained_mean_variance:
-        first checks for constraint on asset level, if not provided defaults to default weight constraint
-        weights are set in asset_weights_constraint and default_weights_constraint in config file
+        Initialize weight constraints for constrained strategies
+        weights are set in default_weights_constraint in config file
 
         Parameters
         ----------
-        params : dict
-            Configuration file of constrained mean variance setting as dictionary
+        weight_constraint : list
+            list of lower and upper bound for weight constraints
 
         Returns
         -------
-        Dict[str, List[float]]
+        dict
             Dictionary which indicates weight range for each asset provided
         """
         w_consts_d = dict()
@@ -224,16 +361,13 @@ class Strategy(object):
         return w_consts_d
 
     @property
-    def return_metrics_intuitive(self):
+    def return_metrics_intuitive(self) -> np.array:
         """
-        Forecaseted returns from return engine
+        All forecaseted returns from return engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         return self.return_engine.return_metrics_optimizer
@@ -241,14 +375,12 @@ class Strategy(object):
     @property
     def selected_securities(self) -> np.array:
         """
-        Index of top n momentum returns
+        Index (position in universe_tickers as integer) of all selected securities by that strategy
 
-        Parameter
-        ---------
 
-        Return
-        ------
-        <np.array>
-            index
+        Returns
+        -------
+        np.array
+            array of indexes
         """
         raise NotImplementedError()

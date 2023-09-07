@@ -166,7 +166,7 @@ class Runner(loader.Runner):
 
             for strat in self.strategies:
                 self.strategies[strat].assign(date, r_array)
-                self.strategies[strat].calculate_allocations(date, market_caps)
+                self.strategies[strat].backtest(date, market_caps)
         return
 
     def run(self) -> None:

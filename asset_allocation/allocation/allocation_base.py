@@ -1,5 +1,7 @@
 import numpy as np
+import pandas as pd
 from typing import Union
+import datetime
 
 
 class Allocation(object):
@@ -22,7 +24,7 @@ class Allocation(object):
         self.risk_engine = risk_engine
         self.return_engine = return_engine
         self.allocations = None
-        self.allocations_history = []
+        self.allocations_history = dict()
 
     def update(self, selected_assets: Union[list, np.array]) -> None:
         """
@@ -37,7 +39,9 @@ class Allocation(object):
         """
         raise NotImplementedError
 
-    def allocate(self, date, selected_assets: Union[list, np.array]) -> None:
+    def allocate(
+        self, date: datetime.date, selected_assets: Union[list, np.array]
+    ) -> None:
         """
         Solve for optimal portfolio and save allocation
 

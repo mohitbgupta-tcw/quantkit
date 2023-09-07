@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import cvxpy as cvx
 from typing import Union
+import datetime
 
 
 class MeanVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
@@ -153,7 +154,9 @@ class MeanVariance(allocation_base.Allocation):
 
         self.optimizer.exp_returns.value = return_metrics
 
-    def allocate(self, date, selected_assets: Union[list, np.array]) -> None:
+    def allocate(
+        self, date: datetime.date, selected_assets: Union[list, np.array]
+    ) -> None:
         """
         Solve for optimal portfolio and save allocation
 
@@ -169,5 +172,5 @@ class MeanVariance(allocation_base.Allocation):
         opt_allocation = self.optimizer.allocations
         allocation[selected_assets] = opt_allocation
 
-        self.allocations = ((date,), allocation)
-        self.allocations_history.append(self.allocations)
+        self.allocations = (date, allocation)
+        self.allocations_history[date] = allocation
