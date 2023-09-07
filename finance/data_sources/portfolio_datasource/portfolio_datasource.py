@@ -90,6 +90,7 @@ class PortfolioDataSource(ds.DataSources):
         - replace NA's in ISIN with 'NoISIN'
         - replace NA's in BCLASS_Level4 with 'Unassigned BCLASS'
         - change first letter of each word to upper, else lower case
+        - put 3750 to the end
         """
         self.datasource.df["ISIN"].fillna("NoISIN", inplace=True)
         self.datasource.df["ISIN"].replace("--", "NoISIN", inplace=True)
@@ -105,6 +106,11 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["BCLASS_Level4"].replace(
             "Unassigned Bclass", "Unassigned BCLASS", inplace=True
         )
+
+        ordered_list = [3750]
+        df1 = self.datasource.df[~self.datasource.df["Portfolio"].isin(ordered_list)]
+        df2 = pd.DataFrame({"Portfolio": ordered_list}).merge(self.datasource.df)
+        self.datasource.df = pd.concat([df1, df2], ignore_index=True)
 
     def iter(self) -> None:
         """
