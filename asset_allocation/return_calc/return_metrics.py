@@ -127,9 +127,17 @@ class ReturnMetrics(object):
         """
         n_obs = len(this_returns)
         cumulative_returns = np.cumprod(this_returns + 1, axis=0)
+        cumulative_returns = np.where(
+            np.isnan(cumulative_returns), 0, cumulative_returns
+        )
         ending_allocation = allocation * cumulative_returns
         # Normalize ending allocation
-        ending_allocation = (ending_allocation.T / np.sum(ending_allocation, axis=1)).T
+        ending_allocation = (
+            ending_allocation.T / np.nansum(ending_allocation, axis=1)
+        ).T
+
+        # import ipdb
+        # ipdb.set_trace()
 
         actual_returns = allocation @ cumulative_returns.T
         actual_returns = np.insert(actual_returns, 0, 1)

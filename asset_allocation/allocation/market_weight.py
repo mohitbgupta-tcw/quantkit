@@ -34,6 +34,7 @@ class MarketWeight(allocation_base.Allocation):
         market_caps: np.array
             array of market caps of all companies in universe
         """
+        market_caps = np.where(np.isnan(market_caps), 0, market_caps)
         self.market_caps = market_caps.squeeze()
 
     def allocate(

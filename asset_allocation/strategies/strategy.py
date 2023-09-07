@@ -255,7 +255,6 @@ class Strategy(object):
             allocation,
             next_allocation=next_allocation,
             trans_cost=self.trans_cost,
-            is_window=True,
         )
         return portfolio_return
 
@@ -307,6 +306,16 @@ class Strategy(object):
 
         # need enough data points for cov to be calculated
         if date < self.rebalance_dates[waiting_period]:
+            self.portfolio_risk_engine = simple_vol.SimpleVol(
+                universe=self.universe,
+                **self.portfolio_risk_return_engine_kwargs,
+                **self.kwargs,
+            )
+            self.portfolio_return_engine = simple_return.SimpleExp(
+                universe=self.universe,
+                **self.portfolio_risk_return_engine_kwargs,
+                **self.kwargs,
+            )
             return
 
         risk_budgets = self.get_risk_budgets(date)
@@ -323,19 +332,14 @@ class Strategy(object):
             ex_ante_allocation, ex_post_allocation = self.get_allocation(
                 date, allocation_model
             )
-            # ex_ante_portfolio_return = self.get_portfolio_stats(
-            #     ex_ante_allocation, ex_post_allocation
-            # )
-            # ex_ante_portfolio_return["portfolio_name"] = f"ex_ante_{allocation_model}"
-            # self.all_portfolios = pd.concat(
-            #     [self.all_portfolios, ex_ante_portfolio_return], axis=0
-            # )
 
-        # print("--------------")
-        # print(date)
-        # ret = self.portfolio_return_engine.return_calculator.data_stream.values.squeeze()
-        # ind = self.portfolio_return_engine.return_calculator.data_stream.indexes
-        # print(pd.DataFrame(ret, index=ind))
+            ex_ante_portfolio_return = self.get_portfolio_stats(
+                ex_ante_allocation, ex_post_allocation
+            )
+            ex_ante_portfolio_return["portfolio_name"] = f"ex_ante_{allocation_model}"
+            self.all_portfolios = pd.concat(
+                [self.all_portfolios, ex_ante_portfolio_return], axis=0
+            )
 
         # portfolio engine
         self.portfolio_risk_engine = simple_vol.SimpleVol(
