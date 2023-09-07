@@ -625,7 +625,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         sm = (
             "E & S Characteristics"
             if self.portfolio_type == "fixed_income_a8"
-            else "Sustainable Managed"
+            else "Sustainably Managed"
         )
         names = [
             sm,
@@ -681,6 +681,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with WACI table and header
         """
+        styles = {}
         waci_portfolio = portfolio_utils.calculate_portfolio_waci(self.portfolio_data)
         waci_index = portfolio_utils.calculate_portfolio_waci(self.waci_benchmark_data)
         carbon_reduction = waci_portfolio / waci_index - 1 if waci_index > 0 else 0
@@ -703,9 +704,16 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "Carbon Reduction5" if self.portfolio_type == "em" else "Carbon Reduction4"
         )
 
+        name = [sub_fund, "Index", cr_label]
+
+        if self.portfolio_type == "fixed_income_a8":
+            styles = {0: ["normal-row"]}
+            data = data[0:1]
+            name = name[0:1]
+
         df_WACI = pd.DataFrame(
             data={
-                "Name": [sub_fund, "Index", cr_label],
+                "Name": name,
                 "Value": data,
             }
         )
@@ -729,7 +737,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     ],
                     className="subtitle padded",
                 ),
-                self.add_table(df_WACI),
+                self.add_table(df_WACI, styles=styles),
             ],
             className="row",
             id="waci-table",

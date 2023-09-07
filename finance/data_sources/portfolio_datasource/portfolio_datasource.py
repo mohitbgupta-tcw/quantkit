@@ -107,10 +107,10 @@ class PortfolioDataSource(ds.DataSources):
             "Unassigned Bclass", "Unassigned BCLASS", inplace=True
         )
 
-        ordered_list = [3750]
-        df1 = self.datasource.df[~self.datasource.df["Portfolio"].isin(ordered_list)]
-        df2 = pd.DataFrame({"Portfolio": ordered_list}).merge(self.datasource.df)
-        self.datasource.df = pd.concat([df1, df2], ignore_index=True)
+        self.datasource.df["Portfolio"] = self.datasource.df["Portfolio"].astype(str)
+        self.datasource.df = self.datasource.df.sort_values(
+            "Portfolio", ascending=False
+        )
 
     def iter(self) -> None:
         """
