@@ -10,7 +10,7 @@ import quantkit.asset_allocation.allocation.min_variance as min_variance
 import quantkit.asset_allocation.allocation.risk_parity as risk_parity
 import quantkit.asset_allocation.allocation.equal_weight as equal_weight
 import quantkit.asset_allocation.allocation.market_weight as market_weight
-import quantkit.utils.annualize_adjustments as annualize_adjustments
+import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 import numpy as np
 import datetime
@@ -286,7 +286,9 @@ class Strategy(object):
         next_portfolio_allocation = allocation_pd.loc[date].values
         return portfolio_allocation, next_portfolio_allocation
 
-    def backtest(self, date: datetime.date, market_caps: np.array) -> None:
+    def backtest(
+        self, date: datetime.date, market_caps: np.array, waiting_period: int = 12
+    ) -> None:
         """
         - Calculate optimal allocation for each weighting strategy
         - Calculate allocation returns
@@ -296,10 +298,15 @@ class Strategy(object):
         date: datetime.date
             snapshot date
         market_caps: np.array
+            market caps of assets in universe
+        waiting_period: int, optional
+            waiting period before first covariance gets calculated
         """
         if not date in self.rebalance_dates:
             return
-        if date < self.rebalance_dates[10]:
+
+        # need enough data points for cov to be calculated
+        if date < self.rebalance_dates[waiting_period]:
             return
 
         risk_budgets = self.get_risk_budgets(date)
@@ -324,9 +331,11 @@ class Strategy(object):
             #     [self.all_portfolios, ex_ante_portfolio_return], axis=0
             # )
 
-        print("--------------")
-        print(date)
-        print(self.portfolio_return_engine.return_calculator.data_stream.values.shape)
+        # print("--------------")
+        # print(date)
+        # ret = self.portfolio_return_engine.return_calculator.data_stream.values.squeeze()
+        # ind = self.portfolio_return_engine.return_calculator.data_stream.indexes
+        # print(pd.DataFrame(ret, index=ind))
 
         # portfolio engine
         self.portfolio_risk_engine = simple_vol.SimpleVol(

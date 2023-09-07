@@ -108,6 +108,10 @@ class Runner(loader.Runner):
             .tail(1)
             .index
         )
+        self.fundamental_dates = list(
+            self.quandl_datasource.df["release_date"].sort_values().unique()
+        )
+        self.market_caps = np.ones(shape=len(self.universe_tickers))
         self.universe = {
             ticker: self.universe[ticker]
             for ticker in self.universe
@@ -150,23 +154,22 @@ class Runner(loader.Runner):
             returns = self.return_data[self.return_data.index == date]
             r_array = np.array(returns)
 
-            max_date = self.quandl_datasource.df[
-                self.quandl_datasource.df["release_date"] <= date
-            ]["release_date"].max()
-            df = self.quandl_datasource.df.pivot(
-                index="release_date", columns="ticker", values="marketcap"
-            )
-            df = df[df.index == max_date]
+            if date in self.fundamental_dates:
+                df = self.quandl_datasource.df.pivot(
+                    index="release_date", columns="ticker", values="marketcap"
+                )
+                df = df[df.index == date]
 
-            if df.empty:
-                continue
-
-            df = df[self.universe_tickers]
-            market_caps = np.array(df)
+                df = df[self.universe_tickers]
+                self.market_caps = np.array(df)
 
             for strat in self.strategies:
                 self.strategies[strat].assign(date, r_array)
-                self.strategies[strat].backtest(date, market_caps)
+                self.strategies[strat].backtest(
+                    date,
+                    self.market_caps,
+                    mapping_configs.annualize_factor_d[self.params["rebalance"]],
+                )
         return
 
     def run(self) -> None:
