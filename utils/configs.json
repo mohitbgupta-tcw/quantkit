@@ -65,6 +65,7 @@
         "load": true
     },
     "quandl_datasource": {
+        "type": "fundamental",
         "source": 5,
         "table": "SHARADAR/SF1",
         "filters": {
@@ -72,6 +73,18 @@
             "dimension": "MRT",
             "calendardate": {"gte": "2023-01-01"},
             "paginate": true
+        },
+        "load": false
+    },
+    "quandl_datasource_prices": {
+        "type": "price",
+        "source": 5,
+        "frequency": "DAY",
+        "table": "SHARADAR/SEP",
+        "filters": {
+            "ticker": [],
+            "paginate": true,
+            "date": {"gte": "2023-01-01"}
         },
         "load": false
     },
@@ -341,6 +354,4 @@
             "sales_threshold": 18
         }
     }
-
-
 }

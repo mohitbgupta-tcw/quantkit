@@ -1,4 +1,4 @@
-import quantkit.runner_PAI as runner
+import quantkit.runners.runner_PAI as runner
 import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 import numpy as np

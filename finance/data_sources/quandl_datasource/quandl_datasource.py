@@ -1,6 +1,7 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import pandas as pd
+from pandas.tseries.offsets import MonthEnd
 import numpy as np
 from copy import deepcopy
 
@@ -31,7 +32,11 @@ class QuandlDataSource(ds.DataSources):
         ticker: list
             list of all tickers in portfolios
         """
-        logging.log("Loading Quandl Data")
+        if self.params["type"] == "fundamental":
+            t = "FUNDAMENTAL"
+        else:
+            t = "PRICE"
+        logging.log(f"Loading Quandl {t} Data")
 
         self.params["filters"]["ticker"] = list(set(ticker))
 
@@ -40,9 +45,24 @@ class QuandlDataSource(ds.DataSources):
 
     def transform_df(self) -> None:
         """
-        None
+        order by ticker and date
         """
-        pass
+        if "calendardate" in self.datasource.df.columns:
+            self.datasource.df = self.datasource.df.rename(
+                columns={"calendardate": "date"}
+            )
+        self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
+        self.datasource.df = self.datasource.df.sort_values(
+            by=["ticker", "date"], ascending=True, ignore_index=True
+        )
+        if self.params["type"] == "fundamental":
+            self.datasource.df["release_date"] = (
+                self.datasource.df["date"] + pd.DateOffset(months=3) + MonthEnd(0)
+            )
+            self.datasource.df["release_date"] = pd.to_datetime(
+                self.datasource.df["release_date"]
+            )
+        self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
 
     def iter(self, companies: dict) -> None:
         """
@@ -55,15 +75,22 @@ class QuandlDataSource(ds.DataSources):
         """
 
         # --> not every company has these information, so create empty df with NA's for those
-        empty_quandl = pd.Series(np.nan, index=self.df.columns).to_dict()
+        empty_quandl = pd.Series(np.nan, index=self.df.columns)
+
+        grouped = self.df.groupby("ticker")
+        for c, quandl_information in grouped:
+            if c in companies:
+                if self.params["type"] == "fundamental":
+                    companies[c].quandl_information = quandl_information
+                elif self.params["type"] == "price":
+                    companies[c].quandl_information_price = quandl_information
 
         for c, comp_store in companies.items():
-            t = comp_store.msci_information["ISSUER_TICKER"]
-            quandl_information = self.df[self.df["ticker"] == t]
-            if not quandl_information.empty:
-                comp_store.quandl_information = quandl_information.squeeze().to_dict()
-            else:
-                comp_store.quandl_information = deepcopy(empty_quandl)
+            if self.params["type"] == "fundamental":
+                if not hasattr(comp_store, "quandl_information"):
+                    comp_store.quandl_information = deepcopy(empty_quandl)
+                elif self.params["type"] == "price":
+                    comp_store.quandl_information_price = deepcopy(empty_quandl)
 
     @property
     def df(self) -> pd.DataFrame:

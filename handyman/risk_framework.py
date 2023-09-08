@@ -1,4 +1,4 @@
-import quantkit.runner as runner
+import quantkit.runners.runner_risk_framework as runner_risk_framework
 import quantkit.utils.configs as configs
 import quantkit.handyman.msci_data_loader as msci_data_loaders
 import quantkit.data_sources.snowflake as snowflake
@@ -25,7 +25,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
     pd.DataFrame
         Detailed DataFrame
     """
-    r = runner.Runner()
+    r = runner_risk_framework.Runner()
     r.init(local_configs=local_configs)
     r.run()
     data_detail = []

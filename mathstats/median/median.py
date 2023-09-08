@@ -8,7 +8,7 @@ class Quantiles(object):
     Class for calculating quantiles and median of datapoints
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.streaming_base = sb.StreamingBase()
 
     def add_value(self, value: float) -> None:

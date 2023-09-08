@@ -13,4 +13,4 @@ class Blank(object):
         """
         Load csv file and save data as pd.DataFrame in self.df
         """
-        self.df = pd.DataFrame(columns=["ticker", "ISIN"])
+        self.df = pd.DataFrame(columns=["date", "ticker", "ISIN"])

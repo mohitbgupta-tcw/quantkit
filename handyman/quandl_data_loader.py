@@ -76,7 +76,7 @@ def get_quandl_price_data(
     api_key = "MxE6oNePp886npLJ2CGs"
     table = "SHARADAR/SEP"
     filters = dict()
-    filters["ticker"] = ticker
+    # filters["ticker"] = ticker
     filters["paginate"] = True
     if start_date and end_date:
         filters["date"] = {"gte": start_date, "lte": end_date}
