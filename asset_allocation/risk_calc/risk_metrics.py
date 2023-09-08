@@ -1,76 +1,58 @@
-class RiskMetrics(object):
-    """Base class for building risk metrics"""
+import numpy as np
+import datetime
 
-    def __init__(self, universe):
-        """
-        Parameter
-        ---------
-        factors: list
-            factors to run risk calculation on
-        """
+
+class RiskMetrics(object):
+    """
+    Base class for building risk metrics
+
+    Parameters
+    ----------
+    universe: list
+        investment universe
+    """
+
+    def __init__(self, universe: list) -> None:
         self.universe = universe
         self.universe_size = len(universe)
 
     @property
-    def risk_metrics_optimizer(self):
+    def risk_metrics_optimizer(self) -> np.array:
         """
         Forecaseted covariance matrix from risk engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        2-D <np.array>
+        Returns
+        -------
+        np.array
             covariance matrix
         """
         raise NotImplementedError
 
     @property
-    def risk_metrics_intuitive(self):
+    def risk_metrics_intuitive(self) -> np.array:
         """
         risk metrics for plotting needs to be human interpretable
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        2-D <np.array>
+        Returns
+        -------
+        np.array
             covariance matrix
         """
         raise NotImplementedError
 
-    def get_portfolio_risk(self, allocation):
-        """
-        calculate 0 basis portfolio risk
-
-        Parameter
-        ---------
-        allocation: np.array
-            allocation factor at the order of factors
-
-        Return
-        ------
-        float
-            portfolio risk
-
-        """
-        raise NotImplementedError
-
-    def assign(self, date, price_return, annualize_factor=None):
+    def assign(
+        self, date: datetime.date, price_return: np.array, annualize_factor: int = None
+    ) -> None:
         """
         Transform and assign returns to the actual calculator
-        Parameter
-        ---------
+
+        Parameters
+        ----------
         date: datetime.date
             date of snapshot
         price_return: np.array
             zero base price return of universe
         annualize_factor: int, optional
             factor depending on data frequency
-
-        Return
-        ------
         """
         raise NotImplementedError

@@ -3,6 +3,8 @@ import quantkit.mathstats.mean.simple_mean as simple_mean
 import quantkit.mathstats.mean.rolling_mean as rolling_mean
 import quantkit.utils.annualize_adjustments as annualize_adjustments
 import numpy as np
+import pandas as pd
+import datetime
 
 
 class SimpleExp(return_metrics.ReturnMetrics):
@@ -11,13 +13,13 @@ class SimpleExp(return_metrics.ReturnMetrics):
 
     Parameters
     ----------
-    factors: list
-        factors to run return calculation on
+    universe: list
+        investment universe
     frequency: str, optional
         frequency of index return data
     """
 
-    def __init__(self, universe, frequency=None, **kwargs):
+    def __init__(self, universe: list, frequency: str = None, **kwargs) -> None:
         super().__init__(universe)
         self.frequency = frequency
         self.return_calculator = simple_mean.SimpleMean(
@@ -28,82 +30,71 @@ class SimpleExp(return_metrics.ReturnMetrics):
         )
 
     @property
-    def return_metrics_optimizer(self):
+    def return_metrics_optimizer(self) -> np.array:
         """
         Forecaseted returns from return engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         return self.return_calculator.gmean
 
     @property
-    def return_metrics_intuitive(self):
+    def return_metrics_intuitive(self) -> np.array:
         """
         Forecaseted returns from return engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         return self.return_metrics_optimizer
 
     @property
-    def return_metrics_optimizer_window(self):
+    def return_metrics_optimizer_window(self) -> np.array:
         """
         Forecaseted rolling historical return from return engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         return self.return_calculator_window.gmean
 
     @property
-    def return_metrics_intuitive_window(self):
+    def return_metrics_intuitive_window(self) -> None:
         """
         Forecaseted rolling historical return from return engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         return self.return_metrics_optimizer_window
 
-    def get_portfolio_return(self, allocation, is_window=False, **kwargs):
+    def get_portfolio_return(
+        self, allocation: np.array, is_window: bool = False, **kwargs
+    ) -> pd.DataFrame:
         """
         Calculate 0 basis portfolio return
         Return a DataFrame with returns in frequency for each date in rebalance window
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         allocation: np.array
             current allocation
         is_window: bool, optional
             calculate portfolio return based on simple or windowed returns
 
-        Return
-        ------
+        Returns
+        -------
         pd.DataFrame
             return: float
-
         """
         if is_window:
             this_returns = self.return_calculator_window.data_stream.values
@@ -121,23 +112,21 @@ class SimpleExp(return_metrics.ReturnMetrics):
 
     def assign(
         self,
-        date,
-        price_return,
-        annualize_factor=1.0,
-    ):
+        date: datetime.date,
+        price_return: np.array,
+        annualize_factor: int = 1.0,
+    ) -> None:
         """
         Transform and assign returns to the actual calculator
-        Parameter
-        ---------
+
+        Parameters
+        ----------
         date: datetime.date
             date of snapshot
         price_return: np.array
             zero base price return of universe
         annualize_factor: int, optional
             factor depending on data frequency
-
-        Return
-        ------
         """
         annualized_return = annualize_adjustments.compound_annualization(
             price_return, annualize_factor
@@ -149,4 +138,3 @@ class SimpleExp(return_metrics.ReturnMetrics):
         self.return_calculator_window.update(
             annualized_return, outgoing_row, index=date
         )
-        return

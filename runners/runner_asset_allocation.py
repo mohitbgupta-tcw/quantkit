@@ -61,6 +61,18 @@ class Runner(loader.Runner):
         self.init_strategies()
 
     def init_strategies(self) -> None:
+        """
+        Initialize all strategies defined in params file
+        Each strategy should have at least the following parameters:
+            - type: str
+                strategy name
+            - return_engine: str
+                return calculator
+            - risk_engine: str
+                risk calculator
+            - allocation_models: list
+                list of all weighting strategies
+        """
         for strategy in self.params["strategies"]:
             strat_params = self.params["strategies"][strategy]
             strat_params["frequency"] = self.params["quandl_datasource_prices"][
@@ -77,28 +89,36 @@ class Runner(loader.Runner):
 
     def iter_quandl(self) -> None:
         """
-        iterate over quandl data
-        - attach quandl information to company in self.quandl_information
-        - if company doesn't have data, attach all nan's
+        - iterate over quandl data
+            - attach quandl information to company in self.quandl_information
+        - create price DataFrame
+        - create return DataFrame with sorted universe in columns
         """
         # load quandl data
         self.quandl_datasource_prices.load(self.universe_tickers)
         self.quandl_datasource.load(self.universe_tickers)
         self.quandl_datasource.iter(self.universe)
         self.quandl_datasource_prices.iter(self.universe)
-        self.dates = list(
-            self.quandl_datasource_prices.df["date"].sort_values().unique()
-        )
+
+        # price data
         self.price_data = self.quandl_datasource_prices.df.pivot(
-            index="date", columns="ticker", values="close"
+            index="date", columns="ticker", values="closeadj"
         )
+
+        # return data
         self.return_data = self.price_data.pct_change(1)
+
+        # filter universe for companies that have quandl and msci data
         self.universe_tickers = list(
             set(self.universe.keys())
             & set(self.return_data.columns)
             & set(self.quandl_datasource.df["ticker"])
         )
+
+        # order return data
         self.return_data = self.return_data[self.universe_tickers]
+
+        # rebalance dates -> last trading day of month
         self.rebalance_dates = list(
             self.return_data.groupby(
                 pd.Grouper(
@@ -108,69 +128,67 @@ class Runner(loader.Runner):
             .tail(1)
             .index
         )
+
+        # fundamental dates -> date + 3 months
         self.fundamental_dates = list(
             self.quandl_datasource.df["release_date"].sort_values().unique()
         )
+        self.next_fundamental_date = 0
+
+        # initialize market caps
         self.market_caps = np.ones(shape=len(self.universe_tickers))
-        self.universe = {
-            ticker: self.universe[ticker]
-            for ticker in self.universe
-            if ticker in self.universe_tickers
-        }
 
     def create_universe(self) -> None:
         """
-        Load Portfolio Data from snowflake and create universe
-        based on indexes from params file.
+        - Load Portfolio Data from snowflake
+        - create universe based on indexes from params file
         """
         snowflake_params = self.params["API_settings"]["snowflake_parameters"]
         snowflake_params["schema"] = "TIM_SCHEMA"
-        table = "Sustainability_Framework_Detailed"
-        sf = snowflake.Snowflake(table_name=table, **snowflake_params)
+        sf = snowflake.Snowflake(
+            table_name="Sustainability_Framework_Detailed", **snowflake_params
+        )
         sf.load()
-        self.sust_data = sf.df
-        self.sust_data = self.sust_data
+
+        # all tickers in index which are labeled green or blue
         self.universe_tickers = list(
-            self.sust_data[
-                (self.sust_data["Portfolio ISIN"].isin(self.params["universe"]))
-                & (
-                    self.sust_data["SCLASS_Level2"].isin(
-                        ["Transition", "Sustainable Theme"]
-                    )
-                )
+            sf.df[
+                (sf.df["Portfolio ISIN"].isin(self.params["universe"]))
+                & (sf.df["SCLASS_Level2"].isin(["Transition", "Sustainable Theme"]))
             ]["Ticker"].unique()
         )
-        for c in self.portfolio_datasource.companies:
-            ticker = self.portfolio_datasource.companies[c].msci_information[
-                "ISSUER_TICKER"
-            ]
+        # filter for securities that match msci ticker
+        for c, comp_store in self.portfolio_datasource.companies.items():
+            ticker = comp_store.msci_information["ISSUER_TICKER"]
             if ticker in self.universe_tickers:
                 self.universe[ticker] = self.portfolio_datasource.companies[c]
 
-        self.num_assets = len(self.universe)
-
     def run_strategies(self) -> None:
-        for date in self.dates:
-            returns = self.return_data[self.return_data.index == date]
-            r_array = np.array(returns)
+        """
+        Run and backtest all strategies
+        """
+        for date, row in self.return_data.iterrows():
+            r_array = np.array(row)
 
-            if date in self.fundamental_dates:
+            # assign new market weights each quarter
+            if date >= self.fundamental_dates[self.next_fundamental_date]:
                 df = self.quandl_datasource.df.pivot(
                     index="release_date", columns="ticker", values="marketcap"
                 )
-                df = df[df.index == date]
+                df = df.loc[self.fundamental_dates[self.next_fundamental_date]]
 
                 df = df[self.universe_tickers]
                 self.market_caps = np.array(df)
+                self.next_fundamental_date += 1
 
-            for strat in self.strategies:
-                self.strategies[strat].assign(date, r_array)
-                self.strategies[strat].backtest(
+            # assign returns to strategies and backtest
+            for strat, strat_obj in self.strategies.items():
+                strat_obj.assign(date, r_array)
+                strat_obj.backtest(
                     date,
                     self.market_caps,
                     mapping_configs.annualize_factor_d[self.params["rebalance"]],
                 )
-        return
 
     def run(self) -> None:
         """

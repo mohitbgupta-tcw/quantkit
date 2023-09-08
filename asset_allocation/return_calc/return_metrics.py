@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import copy
+import datetime
 
 
 class ReturnMetrics(object):
@@ -9,76 +10,49 @@ class ReturnMetrics(object):
 
     Parameters
     ----------
-    factors: list
-        factors to run return calculation on
+    universe: list
+        investment universe
     """
 
-    def __init__(self, universe):
+    def __init__(self, universe: list) -> None:
         self.universe = universe
         self.universe_size = len(universe)
 
     @property
-    def return_metrics_optimizer(self):
+    def return_metrics_optimizer(self) -> np.array:
         """
         Forecaseted returns from return engine
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         raise NotImplementedError
 
     @property
-    def return_metrics_intuitive(self):
+    def return_metrics_intuitive(self) -> np.array:
         """
         return metrics for plotting needs to be human interpretable
 
-        Parameter
-        ---------
-
-        Return
-        ------
-        <np.array>
+        Returns
+        -------
+        np.array
             returns
         """
         raise NotImplementedError
 
-    def get_max_return(self):
-        """
-        Get 0 basis max return
-
-        Return
-        ------
-        float
-            max return in return array
-        """
-        return np.max(self.return_metrics_optimizer)
-
-    def get_min_return(self):
-        """
-        Get 0 basis min return but setting lower bound to be zero
-
-        Return
-        ------
-        float
-            min return in return array
-        """
-        return max(np.min(self.return_metrics_optimizer), 0.0)
-
     def assign(
         self,
-        date,
-        price_return,
-        annualize_factor=None,
+        date: datetime.date,
+        price_return: np.array,
+        annualize_factor: int = None,
         **kwargs,
-    ):
+    ) -> None:
         """
         Transform and assign returns to the actual calculator
-        Parameter
+
+        Parameters
         ---------
         date: datetime.date
             date of snapshot
@@ -86,27 +60,24 @@ class ReturnMetrics(object):
             zero base price return of universe
         annualize_factor: int, optional
             factor depending on data frequency
-
-        Return
-        ------
         """
         raise NotImplementedError
 
     def get_portfolio_return(
         self,
-        allocation,
-        this_returns,
-        indexes,
-        next_allocation=None,
-        trans_cost=0.0,
+        allocation: np.array,
+        this_returns: np.array,
+        indexes: np.array,
+        next_allocation: np.array = None,
+        trans_cost: float = 0.0,
         **kwargs,
-    ):
+    ) -> pd.DataFrame:
         """
         Calculate 0 basis portfolio return
         Return a DataFrame with returns in frequency for each date in rebalance window
 
-        Parameter
-        ---------
+        Parameters
+        ----------
         allocation: np.array
             current allocation
         this_returns: np.array
@@ -119,11 +90,10 @@ class ReturnMetrics(object):
         trans_cost: float, optional
             transaction cost in %
 
-        Return
-        ------
+        Returns
+        -------
         pd.DataFrame
             return: float
-
         """
         n_obs = len(this_returns)
         cumulative_returns = np.cumprod(this_returns + 1, axis=0)
@@ -135,9 +105,6 @@ class ReturnMetrics(object):
         ending_allocation = (
             ending_allocation.T / np.nansum(ending_allocation, axis=1)
         ).T
-
-        # import ipdb
-        # ipdb.set_trace()
 
         actual_returns = allocation @ cumulative_returns.T
         actual_returns = np.insert(actual_returns, 0, 1)

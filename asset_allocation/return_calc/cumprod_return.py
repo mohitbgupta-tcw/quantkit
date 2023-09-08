@@ -2,13 +2,14 @@ import quantkit.asset_allocation.return_calc.return_metrics as return_metrics
 import quantkit.mathstats.product.rolling_cumprod as rolling_cumprod
 import quantkit.utils.annualize_adjustments as annualize_adjustments
 import numpy as np
+import datetime
 
 
 class CumProdReturn(return_metrics.ReturnMetrics):
     """
-    Cumulative Return Calculation assuming:
-        - Log Normal Distribution of returns
-        - Rolling Historical Window
+    Cumulative Return Calculation assuming
+        - returns are log normal distributed
+        - rolling historical window
 
     Parameters
     ----------
@@ -49,47 +50,23 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         """
         return self.return_metrics_optimizer
 
-    def get_portfolio_return(self, allocation, **kwargs):
-        """
-        Calculate 0 basis portfolio return
-        Return a DataFrame with returns in frequency for each date in rebalance window
-
-        Parameter
-        ---------
-        allocation: np.array
-            current allocation
-
-        Return
-        ------
-        pd.DataFrame
-            return: float
-
-        """
-        this_returns = np.exp(self.return_calculator.data_stream.values)
-        this_dates = self.return_calculator.data_stream.indexes
-        return super().get_portfolio_return(
-            allocation, this_returns, this_dates, **kwargs
-        )
-
     def assign(
         self,
-        date,
-        price_return,
+        date: datetime.date,
+        price_return: np.array,
         annualize_factor=1.0,
     ) -> None:
         """
         Transform and assign returns to the actual calculator
-        Parameter
-        ---------
+
+        Parameters
+        ----------
         date: datetime.date
             date of snapshot
         price_return: np.array
             zero base price return of universe
         annualize_factor: int, optional
             factor depending on data frequency
-
-        Return
-        ------
         """
         annualized_return = annualize_adjustments.compound_annualization(
             price_return, annualize_factor
