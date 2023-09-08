@@ -451,7 +451,10 @@ def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
 
 
 def print_esg_characteristics_pdf(
-    portfolio_isin: str, local_configs: str = "", filtered: bool = False
+    portfolio_isin: str,
+    local_configs: str = "",
+    filtered: bool = False,
+    show_holdings: bool = False,
 ) -> None:
     """
     For a given portfolio, create ESG Sustainable Characteristics PDF template
@@ -465,6 +468,8 @@ def print_esg_characteristics_pdf(
         path to a local configarations file
     filtered: bool, optional
         filter portfolio holdings for corporates and quasi-sovereigns
+    show_holdings: bool, optional
+        show holdings of portfolio
     """
     params = configs.read_configs(local_configs=local_configs)
     snowflake_params = params["API_settings"]["snowflake_parameters"]
@@ -480,7 +485,13 @@ def print_esg_characteristics_pdf(
     df = sf.df
     df = df[df["Portfolio ISIN"].isin(all_portfolios)]
     pdf = esg_characteristics.ESGCharacteristics(
-        "Financial Report", df, portfolio_type, portfolio_isin, benchmark, filtered
+        title="Financial Report",
+        data=df,
+        portfolio_type=portfolio_type,
+        portfolio=portfolio_isin,
+        benchmark=benchmark,
+        show_holdings=show_holdings,
+        filtered=filtered,
     )
     pdf.run()
     pdf.app.run_server(debug=False, jupyter_mode="tab")

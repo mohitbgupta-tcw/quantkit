@@ -53,11 +53,14 @@ class SovereignStore(headstore.HeadStore):
 
         Order:
         1) Is Labeled Bond
-        2) Is Leading
-        3) Is not Scored
-        4) Sovereign Score is 5
+        2) Analyst Adjustment
+        3) Is Leading
+        4) Is not Scored
+        5) Sovereign Score is 5
         """
         score = self.scores["Sovereign_Score"]
+        transition_tag = self.scores["Transition_Tag"]
+        sustainability_tag = self.scores["Sustainability_Tag"]
         for sec, sec_store in self.securities.items():
             labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
             sec_store.level_5()
@@ -72,6 +75,12 @@ class SovereignStore(headstore.HeadStore):
                 sec_store.is_esg_labeled("Sustainable")
             elif labeled_bond_tag == "Labeled Sustainable Linked":
                 sec_store.is_esg_labeled("Sustainability-Linked Bonds")
+
+            elif sustainability_tag == "Y*":
+                sec_store.is_sustainable()
+
+            elif transition_tag == "Y*":
+                sec_store.is_transition()
 
             elif score <= 2 and score > 0:
                 sec_store.is_leading()

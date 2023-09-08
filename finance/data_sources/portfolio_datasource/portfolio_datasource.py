@@ -90,6 +90,7 @@ class PortfolioDataSource(ds.DataSources):
         - replace NA's in ISIN with 'NoISIN'
         - replace NA's in BCLASS_Level4 with 'Unassigned BCLASS'
         - change first letter of each word to upper, else lower case
+        - put 3750 to the end
         """
         self.datasource.df["ISIN"].fillna("NoISIN", inplace=True)
         self.datasource.df["ISIN"].replace("--", "NoISIN", inplace=True)
@@ -104,6 +105,11 @@ class PortfolioDataSource(ds.DataSources):
         ].str.title()
         self.datasource.df["BCLASS_Level4"].replace(
             "Unassigned Bclass", "Unassigned BCLASS", inplace=True
+        )
+
+        self.datasource.df["Portfolio"] = self.datasource.df["Portfolio"].astype(str)
+        self.datasource.df = self.datasource.df.sort_values(
+            "Portfolio", ascending=False
         )
 
     def iter(self) -> None:
