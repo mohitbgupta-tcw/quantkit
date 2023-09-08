@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - bugs in pdf creator
 - bugs in PAI
+- fill na's by row of same security
 
 ### Changed
 - all runners into seperate runner folder
