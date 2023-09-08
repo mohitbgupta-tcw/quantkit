@@ -7,10 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- asset allocation folder including:
+    - weighting scheme calculators (equal weight, market weight, MVO, min variance, risk parity)
+    - return and risk calculator (cumprod, EWMA, simple, log)
+    - strategies (simple momentum)
+- mathstats folder including:
+    - mean and covariance calcutor (simple, rolling, exponential)
+    - optimizer
+    - portfolio stats
+    - cumprod
+    - streaming base
+    - time series calculation
+- visualization function for asset allocation
+- asset allocation runner
 
 ### Fixed
+- bugs in pdf creator
+- bugs in PAI
 
 ### Changed
+- all runners into seperate runner folder
+- adding analyst adjustment for sovereigns
+
 
 ### Removed
 
