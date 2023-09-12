@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-## [1.0.2] - 2023-09-12
+## [1.1.0] - 2023-09-12
 ### Added
 - asset allocation folder including:
     - weighting scheme calculators (equal weight, market weight, MVO, min variance, risk parity)
@@ -95,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
-[1.0.2]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.2
+[1.1.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.2
 [1.0.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.1
 [1.0.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.0
 [0.0.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/0.0.1
