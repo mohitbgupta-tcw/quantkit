@@ -25,13 +25,15 @@ class MSCI(object):
         dictionary of parameters for API call
     """
 
-    def __init__(self, key: str, secret: str, url: str, filters: dict) -> None:
+    def __init__(
+        self, key: str, secret: str, url: str, filters: dict, **kwargs
+    ) -> None:
         self.key = key
         self.secret = secret
         self.url = url
         self.filters = filters
 
-    def load(self) -> None:
+    def load(self, **kwargs) -> None:
         """
         Load data from MSCI API and save as pd.DataFrame in self.df
         """
@@ -86,7 +88,7 @@ class MSCI(object):
             df = pd.DataFrame(response.json()["result"]["issuers"])
             self.df = pd.concat([self.df, df], ignore_index=True)
 
-    def load_historical(self) -> None:
+    def load_historical(self, **kwargs) -> None:
         """
         Load historical data from MSCI API and save as pd.DataFrame in self.df
         """

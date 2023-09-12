@@ -20,12 +20,12 @@ class Quandl(object):
         dictionary of parameters for function call
     """
 
-    def __init__(self, key: str, table: str, filters: dict) -> None:
+    def __init__(self, key: str, table: str, filters: dict, **kwargs) -> None:
         self.key = key
         self.table = table
         self.filters = filters
 
-    def load(self) -> None:
+    def load(self, **kwargs) -> None:
         """
         Load data from quandl API and save as pd.DataFrame in self.df
         """

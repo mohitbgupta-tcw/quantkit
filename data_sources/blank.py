@@ -9,7 +9,7 @@ class Blank(object):
     def __init__(self) -> None:
         pass
 
-    def load(self) -> None:
+    def load(self, **kwargs) -> None:
         """
         Load csv file and save data as pd.DataFrame in self.df
         """

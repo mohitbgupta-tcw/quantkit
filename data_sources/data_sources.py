@@ -24,6 +24,9 @@ class DataSources(object):
 
     def __init__(self, params: dict, api_settings: dict = None, **kwargs) -> None:
         self.params = params
+        self.table_name = params["table_name"] if "table_name" in params else ""
+        self.database = params["database"] if "database" in params else ""
+        self.schema = params["schema"] if "schema" in params else ""
 
         # ignore datasource if load is False
         if not params["load"]:
@@ -31,38 +34,30 @@ class DataSources(object):
 
         # Excel
         elif params["source"] == 1:
-            self.file = params["file"]
-            self.datasource = ds_excel.Excel(self.file, sheet_name=params["sheet_name"])
+            self.datasource = ds_excel.Excel(**params)
 
         # CSV
         elif params["source"] == 2:
-            self.file = params["file"]
-            self.datasource = ds_excel.CSV(self.file)
+            self.datasource = ds_excel.CSV(**params)
 
         # Snowflake
         elif params["source"] == 3:
             snowflake_params = api_settings["snowflake_parameters"]
-            self.datasource = snowflake.Snowflake(
-                table_name=params["table_name"], **snowflake_params
-            )
+            self.datasource = snowflake.Snowflake(**params, **snowflake_params)
 
         # MSCI API
         elif params["source"] == 4:
             msci_params = api_settings["msci_parameters"]
-            self.datasource = msci.MSCI(
-                url=params["url"], filters=params["filters"], **msci_params
-            )
+            self.datasource = msci.MSCI(**params, **msci_params)
 
         # Quandl API
         elif params["source"] == 5:
             quandl_params = api_settings["quandl_parameters"]
-            self.datasource = quandl.Quandl(
-                table=params["table"], filters=params["filters"], **quandl_params
-            )
+            self.datasource = quandl.Quandl(**params, **quandl_params)
 
         # JSON
         elif params["source"] == 6:
-            self.datasource = json_ds.JSON(json_str=params["json_str"])
+            self.datasource = json_ds.JSON(**params)
 
         # SQL Server
         elif params["source"] == 7:

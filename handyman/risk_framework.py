@@ -4,6 +4,7 @@ import quantkit.handyman.msci_data_loader as msci_data_loaders
 import quantkit.data_sources.snowflake as snowflake
 import quantkit.visualization.risk_framework.esg_characteristics as esg_characteristics
 import quantkit.utils.mapping_configs as mapping_configs
+import quantkit.utils.snowflake_utils as snowflake_utils
 import pandas as pd
 import numpy as np
 import json
@@ -471,18 +472,18 @@ def print_esg_characteristics_pdf(
     show_holdings: bool, optional
         show holdings of portfolio
     """
-    params = configs.read_configs(local_configs=local_configs)
-    snowflake_params = params["API_settings"]["snowflake_parameters"]
-    snowflake_params["schema"] = "TIM_SCHEMA"
-    table = "Sustainability_Framework_Detailed"
-    sf = snowflake.Snowflake(table_name=table, **snowflake_params)
-    sf.load()
+    df = snowflake_utils.load_from_snowflake(
+        database="SANDBOX_ESG",
+        schema="TIM_SCHEMA",
+        table_name="Sustainability_Framework_Detailed",
+        local_configs=local_configs,
+    )
+
     benchmark = mapping_configs.portfolio_benchmark[portfolio_isin]
     all_portfolios = [portfolio_isin, benchmark]
     if portfolio_isin == "3750":
         all_portfolios.append("JPM EM Custom Index (50/50)")
     portfolio_type = mapping_configs.portfolio_type[portfolio_isin]
-    df = sf.df
     df = df[df["Portfolio ISIN"].isin(all_portfolios)]
     pdf = esg_characteristics.ESGCharacteristics(
         title="Financial Report",

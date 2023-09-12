@@ -32,15 +32,20 @@ class QuandlDataSource(ds.DataSources):
         ticker: list
             list of all tickers in portfolios
         """
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
         if self.params["type"] == "fundamental":
             t = "FUNDAMENTAL"
         else:
             t = "PRICE"
-        logging.log(f"Loading Quandl {t} Data")
 
+        logging.log(f"Loading Quandl {t} Data")
         self.params["filters"]["ticker"] = list(set(ticker))
 
-        self.datasource.load()
+        self.datasource.load(query=query)
         self.transform_df()
 
     def transform_df(self) -> None:

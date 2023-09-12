@@ -16,11 +16,11 @@ class FRED(object):
         list of ticker names from FRED
     """
 
-    def __init__(self, key: str, tickers: list) -> None:
+    def __init__(self, key: str, tickers: list, **kwargs) -> None:
         self.key = key
         self.tickers = tickers
 
-    def load(self) -> None:
+    def load(self, **kwargs) -> None:
         """
         Load data from FRED API and save as pd.DataFrame in self.df
         """

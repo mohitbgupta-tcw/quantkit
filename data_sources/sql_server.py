@@ -24,6 +24,7 @@ class SQL(object):
         database: str,
         driver: str = "SQL Server",
         trusted_connection: str = "yes",
+        **kwargs,
     ) -> None:
         self.driver = "{" + driver + "}"
         self.server = server
@@ -36,9 +37,14 @@ class SQL(object):
             + f"TRUSTED_CONNECTION={self.trusted_connection}"
         )
 
-    def load(self) -> None:
+    def load(self, query: str) -> None:
         """
         Load file and save data as pd.DataFrame in self.df
+
+        Parameters
+        ----------
+        query: str
+            SQL query for data
         """
         conn = pyodbc.connect(self.connection_parameters)
         query = """

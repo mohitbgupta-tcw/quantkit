@@ -11,10 +11,10 @@ class Microsoft(object):
         file path with file extension
     """
 
-    def __init__(self, file: str) -> None:
+    def __init__(self, file: str, **kwargs) -> None:
         self.file = file
 
-    def load(self) -> None:
+    def load(self, **kwargs) -> None:
         """
         Load file and save data as pd.DataFrame in self.df
         """
@@ -31,10 +31,10 @@ class CSV(Microsoft):
         file path with file extension
     """
 
-    def __init__(self, file) -> None:
+    def __init__(self, file, **kwargs) -> None:
         super().__init__(file)
 
-    def load(self) -> None:
+    def load(self, **kwargs) -> None:
         """
         Load csv file and save data as pd.DataFrame in self.df
         """
@@ -55,12 +55,14 @@ class Excel(Microsoft):
         engine to load Excel file with, default: openpyxl
     """
 
-    def __init__(self, file: str, sheet_name: str, engine: str = "openpyxl") -> None:
+    def __init__(
+        self, file: str, sheet_name: str, engine: str = "openpyxl", **kwargs
+    ) -> None:
         self.sheet_name = sheet_name
         self.engine = engine
         super().__init__(file)
 
-    def load(self) -> None:
+    def load(self, **kwargs) -> None:
         """
         Load Excel file and save data as pd.DataFrame in self.df
         """

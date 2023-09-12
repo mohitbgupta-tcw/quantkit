@@ -33,7 +33,12 @@ class ParentIssuerSource(ds.DataSources):
         load data and transform dataframe
         """
         logging.log("Loading Parent Issuer Data")
-        self.datasource.load()
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query=query)
         self.transform_df()
 
     def transform_df(self) -> None:

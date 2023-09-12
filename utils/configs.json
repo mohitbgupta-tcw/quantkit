@@ -14,9 +14,7 @@
         "snowflake_parameters": {
             "user": "",   
             "password": "",    
-            "role": "APP-SNOWF-ESG_ADVANCED",
-            "database": "SANDBOX_ESG",
-            "schema": "ESG"
+            "role": "APP-SNOWF-ESG_ADVANCED"
             },
     
         "msci_parameters": {
@@ -43,6 +41,8 @@
     "category_datasource": {
         "source": 3,
         "table_name": "MATERIALITY_MAPPING" ,
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true 
     },
 
@@ -62,6 +62,8 @@
     "bloomberg_datasource": {
         "source": 3,
         "table_name": "BLOOMBERG_DATA",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "quandl_datasource": {
@@ -231,16 +233,22 @@
     "sector_datasource": {
         "source": 3,
         "table_name": "SECTOR_CODES",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "bclass_datasource": {
         "source": 3,
         "table_name": "BCLASS",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "gics_datasource": {
         "source": 3,
         "table_name": "GICS",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "exclusion_datasource": {
@@ -260,18 +268,24 @@
     "regions_datasource": {
         "source": 3,
         "table_name": "REGIONS",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
 
     "theme_datasource": {
         "source": 3,
         "table_name": "THEMATIC_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
 
     "transition_datasource": {
         "source": 3,
         "table_name": "TRANSITION_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "adjustment_datasource": {
@@ -283,11 +297,15 @@
     "securitized_datasource": {
         "source": 3,
         "table_name": "SECURITIZED_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "parent_issuer_datasource": {
         "source": 3,
         "table_name": "PARENT_ISSUER_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "theme_calculation": {
