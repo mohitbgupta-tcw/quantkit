@@ -45,10 +45,8 @@ class ExclusionsDataSource(object):
         load data and transform dataframe
         """
         logging.log("Loading Exclusions Data")
-        self.article8.datasource.load()
-        self.article8.transform_df()
-        self.article9.datasource.load()
-        self.article9.transform_df()
+        self.article8.load()
+        self.article9.load()
         self.transform_df()
 
     def transform_df(self) -> None:
@@ -87,6 +85,19 @@ class ExclusionData(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.table_name = params["table_name"] if "table_name" in params else ""
+
+    def load(self) -> None:
+        """
+        load data and transform dataframe
+        """
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query=query)
+        self.transform_df()
 
     def transform_df(self) -> None:
         """

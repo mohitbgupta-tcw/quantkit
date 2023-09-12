@@ -67,10 +67,8 @@ class SecurityDataSource(object):
         load data and transform dataframe
         """
         logging.log("Loading Security Data")
-        self.msci.datasource.load()
-        self.msci.transform_df()
-        self.iss.datasource.load()
-        self.iss.transform_df()
+        self.msci.load()
+        self.iss.load()
         self.transform_df()
 
     def transform_df(self) -> None:
@@ -360,6 +358,20 @@ class SecurityData(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+
+    def load(self) -> None:
+        """
+        load data and transform dataframe
+        """
+        from_table = (
+            from_table
+        ) = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query=query)
+        self.transform_df()
 
     def transform_df(self) -> None:
         """

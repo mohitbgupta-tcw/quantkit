@@ -18,8 +18,6 @@ class Snowflake(object):
         snowflake database
     schema: str
         snowflake schema
-    table_name: str
-        snowflake table name
     account: str, optional
         snowflake account
     host: str, optional
@@ -34,9 +32,9 @@ class Snowflake(object):
         role: str,
         database: str,
         schema: str,
-        table_name: str,
         account: str = "tcw",
         host: str = "tcw.west-us-2.azure.snowflakecomputing.com",
+        **kwargs
     ) -> None:
         self.account = account
         self.user = user
@@ -54,19 +52,16 @@ class Snowflake(object):
             "database": self.database,
             "schema": self.schema,
         }
-        self.table_name = table_name
 
-    def load(self) -> None:
+    def load(self, query: str) -> None:
         """
         Load data from snowflake and save as pd.DataFrame in self.df
+
+        Parameters
+        ----------
+        query: str
+            SQL query for data
         """
         session = Session.builder.configs(self.connection_parameters).create()
-
-        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
-        query = f"""
-        SELECT * 
-        FROM {from_table}
-        """
-
         df_table = session.sql(query)
         self.df = pd.DataFrame(df_table.collect())

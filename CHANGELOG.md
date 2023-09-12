@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - all runners into seperate runner folder
 - adding analyst adjustment for sovereigns
+- enable flexible queries to load data from Snowflake
 
 
 ### Removed

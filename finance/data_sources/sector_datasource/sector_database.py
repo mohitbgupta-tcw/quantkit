@@ -33,7 +33,13 @@ class SectorDataSource(ds.DataSources):
         load data and transform dataframe
         """
         logging.log("Loading Sector Data")
-        self.datasource.load()
+
+        from_table = f"""SANDBOX_ESG.ESG."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query=query)
         self.transform_df()
 
     def iter(self) -> None:
@@ -98,7 +104,12 @@ class SubIndustryDataSource(ds.DataSources):
         """
         load data and transform dataframe
         """
-        self.datasource.load()
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query)
         self.transform_df()
 
     def transform_df(self) -> None:
@@ -134,7 +145,7 @@ class SubIndustryDataSource(ds.DataSources):
                 sectors.Industry(
                     industry,
                     transition_risk=row["Transition Risk Module"],
-                    **self.transition_params
+                    **self.transition_params,
                 ),
             )
 

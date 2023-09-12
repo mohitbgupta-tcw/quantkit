@@ -29,6 +29,7 @@ class Runner(object):
         """
 
         # read params file
+        self.local_configs = local_configs
         self.params = configs.read_configs(local_configs)
         api_settings = self.params["API_settings"]
 

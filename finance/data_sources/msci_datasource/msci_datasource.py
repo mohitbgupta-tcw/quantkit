@@ -26,10 +26,15 @@ class MSCIDataSource(ds.DataSources):
         load data and transform dataframe
         """
         logging.log("Loading MSCI Data")
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
         if self.params["historical"]:
-            self.datasource.load_historical()
+            self.datasource.load_historical(query=query)
         else:
-            self.datasource.load()
+            self.datasource.load(query=query)
         self.transform_df()
 
     def transform_df(self) -> None:

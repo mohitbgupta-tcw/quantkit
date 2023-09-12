@@ -6,6 +6,7 @@ import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
 import quantkit.utils.mapping_configs as mapping_configs
+import quantkit.utils.snowflake_utils as snowflake_utils
 import numpy as np
 
 
@@ -143,18 +144,18 @@ class Runner(loader.Runner):
         - Load Portfolio Data from snowflake
         - create universe based on indexes from params file
         """
-        snowflake_params = self.params["API_settings"]["snowflake_parameters"]
-        snowflake_params["schema"] = "TIM_SCHEMA"
-        sf = snowflake.Snowflake(
-            table_name="Sustainability_Framework_Detailed", **snowflake_params
+        df = snowflake_utils.load_from_snowflake(
+            database="SANDBOX_ESG",
+            schema="TIM_SCHEMA",
+            table_name="Sustainability_Framework_Detailed",
+            local_configs=self.local_configs,
         )
-        sf.load()
 
         # all tickers in index which are labeled green or blue
         self.universe_tickers = list(
-            sf.df[
-                (sf.df["Portfolio ISIN"].isin(self.params["universe"]))
-                & (sf.df["SCLASS_Level2"].isin(["Transition", "Sustainable Theme"]))
+            df[
+                (df["Portfolio ISIN"].isin(self.params["universe"]))
+                & (df["SCLASS_Level2"].isin(["Transition", "Sustainable Theme"]))
             ]["Ticker"].unique()
         )
         # filter for securities that match msci ticker
