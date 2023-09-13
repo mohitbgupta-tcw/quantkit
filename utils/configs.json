@@ -1,6 +1,10 @@
 {   
-    "A9Funds": [6781, 16705, 3738, 3750, 16719, 16706, "BB HIGH YIELD 2% CAP", "MSCI WORLD", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "BB INTERMEDIATE CORP", "JPM CEMBI BROAD DIVERSE"],
-    "A8Funds":  [13727, 3735, 3775, 13751, "BLOOMBERG AGGREGATE INDEX"],
+    "as_of_date": "08/31/2023",
+    "portfolios": ["701","702","703","704", "705","706","707","708","709", "710","711","712","713","714","3237","3704","3720","3730","3735","3738", "3750","3775","4790","6283","6717","6739","6741","6748","6751","6757","6781","6784","13727","13751","16703","16705","16706","16719", "16720"],
+    "equity_benchmark": ["JESG EMBI Global Diversified Index", "JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI", "MSCI WORLD", "Russell 1000", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "RUSSELL 3000 INDEX", "S & P 500 INDEX"],
+    "fixed_income_benchmark": ["BB HIGH YIELD 2% CAP", "BB INTERMEDIATE CORP", "BLOOMBER LONG GOVT/CREDIT", "BLOOMBERG AGGREGATE INDEX"],
+    "A9Funds": ["6781", "16705", "3738", "3750", "16719", "16706", "BB HIGH YIELD 2% CAP", "MSCI WORLD", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "BB INTERMEDIATE CORP", "JPM CEMBI BROAD DIVERSE"],
+    "A8Funds":  ["13727", "3735", "3775", "13751", "BLOOMBERG AGGREGATE INDEX"],
     "carve_out_sectors": ["Electric Utilities", "Electric", "Gas Utilities","Multi-Utilities","Other Utility","Water Utilities","Independent Power Producers & Energy Traders","Integrated Oil & Gas","Oil & Gas Drilling","Oil & Gas Equipment & Services","Oil & Gas Exploration & Production","Oil & Gas Refining & Marketing","Oil & Gas Storage & Transportation","Oil Field Services", "Government Owned, No Guarantee"],
 
     "transition_parameters": {
@@ -32,9 +36,10 @@
     },
     
     "portfolio_datasource": {
-        "source": 1,
-        "file": "C:\\Users\\bastit\\Documents\\Risk_Score\\Input\\Portfolio_Data.xlsx",
-        "sheet_name": "Portfolio",
+        "source": 3,
+        "table_name": "POSITION_VW",
+        "database": "TCW_CORE_DEV",
+        "schema": "TCW",
         "load": true
     },
 

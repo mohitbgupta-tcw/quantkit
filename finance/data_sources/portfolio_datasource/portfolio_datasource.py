@@ -37,7 +37,7 @@ class PortfolioDataSource(ds.DataSources):
             security esg type
         Loan Category: str
             loan category
-        ISSUER_Name: str
+        ISSUER_NAME: str
             name of issuer
         TCW ESG: str
             ESG label of TCW
@@ -55,16 +55,18 @@ class PortfolioDataSource(ds.DataSources):
             BClass Level 3 of issuer
         BCLASS_level4: str
             BClass Level 4 of issuer
-        Market Region: str
-            market region (DM, EM)
         Country of Risk: str
             issuer country
+        MSCI ISSUERID: str
+            msci issuer id
+        ISS ISSUERID: str
+            iss issuer id
+        BBG ISSUERID: str
+            bloomberg issuer id
         Portfolio_Weight: float
             weight of security in portfolio
         Base Mkt Value: float
             market value of position in portfolio
-        Rating Raw MSCI: str
-            MSCI rating of issuer
         OAS: float
             OAS
     """
@@ -77,16 +79,238 @@ class PortfolioDataSource(ds.DataSources):
         self.sovereigns = dict()
         self.securitized = dict()
 
-    def load(self) -> None:
+    def load(
+        self,
+        as_of_date: str,
+        pfs: list,
+        equity_benchmark: list,
+        fixed_income_benchmark: list,
+    ) -> None:
         """
         load data and transform dataframe
+
+        Parameters
+        ----------
+        as_of_date: str,
+            date to pull from API
+        pfs: list
+            list of all portfolios to pull from API
+        equity_benchmark: list
+            list of all equity benchmarks to pull from API
+        fixed_income_benchmark: list
+            list of all equity benchmarks to pull from API
         """
         logging.log("Loading Portfolio Data")
-
-        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
         query = f"""
-        SELECT * 
-        FROM {from_table}
+        SELECT *
+        FROM (
+            SELECT 
+                pos.as_of_date as "As Of Date",
+                pos.portfolio_number AS "Portfolio",
+                pos.portfolio_name AS "Portfolio Name",
+                TRIM( 
+                    CASE 
+                        WHEN sec.esg_collateral_type IS null 
+                        THEN 'Unknown' 
+                        ELSE sec.esg_collateral_type 
+                    END 
+                ) AS "ESG Collateral Type", 
+                pos.isin AS "ISIN",
+                CASE 
+                    WHEN sec.issuer_esg ='NA ' 
+                    OR sec.issuer_esg is null  
+                    THEN 'No' 
+                    ELSE sec.issuer_esg 
+                END AS "Issuer ESG",
+                sec.loan_category AS "Loan Category",
+                CASE 
+                    WHEN sec.labeled_esg_type IS null 
+                    THEN 'None' 
+                    ELSE sec.labeled_esg_type 
+                END AS "Labeled ESG Type",
+                sec.security_name AS "ISSUER_NAME",
+                CASE 
+                    WHEN sec.tcw_esg_type IS null 
+                    THEN 'None' 
+                    ELSE sec.tcw_esg_type 
+                END AS "TCW ESG",
+                sec.id_ticker AS "Ticker Cd",
+                CASE 
+                    WHEN rs.report_sector1_name IS null 
+                    THEN 'Cash and Other' 
+                    ELSE  rs.report_sector1_name 
+                END AS "Sector Level 1",
+                CASE 
+                    WHEN rs.report_sector2_name IS null 
+                    THEN 'Cash and Other' 
+                    ELSE  rs.report_sector2_name 
+                END AS "Sector Level 2",
+                sec.jpm_sector_level1 AS "JPM Sector",
+                sec.bclass_level2 AS "BCLASS_Level2", 
+                sec.bclass_level3 AS "BCLASS_Level3", 
+                CASE 
+                    WHEN sec.bclass_level4 = 'N/A' 
+                    THEN 'Unknown BCLASS' 
+                    ELSE sec.bclass_level4 
+                END AS "BCLASS_Level4",
+                sec.em_country_of_risk_name AS "Country of Risk",
+                sec.issuer_id_msci AS "MSCI ISSUERID",
+                sec.issuer_id_iss AS "ISS ISSUERID",
+                sec.issuer_id_bbg AS "BBG ISSUERID",
+                pos.pct_market_value * 100 AS "Portfolio_Weight",
+                pos.base_market_value AS "Base Mkt Val",
+                null AS "OAS",
+                (
+                    SELECT MAX(ISIN) 
+                    FROM tcw_core_dev.esg_iss.dim_issuer_iss iss 
+                    WHERE iss.issuer_id = sec.issuer_id_iss
+                ) AS "Issuer ISIN"
+            FROM tcw_core_dev.tcw.position_vw pos
+            LEFT JOIN tcw_core_dev.tcw.security_vw sec 
+                ON pos.security_key = sec.security_key
+                AND pos.as_of_date = sec.as_of_date
+            LEFT JOIN tcw_core_dev.reference.report_sectors_map_vw rs 
+                ON sec.sector_key_tclass = rs.sector_key 
+                AND rs.report_scheme = '7. ESG - Primary Summary'
+            WHERE pos.as_of_date = '{as_of_date}'
+            AND pos.portfolio_number in (
+                {', '.join(f"'{pf}'" for pf in pfs)}
+            )
+            UNION
+            --Benchmark Holdings
+            SELECT  
+                bench.as_of_date AS "As Of Date",
+                CASE 
+                    WHEN bench.benchmark_name IN (
+                        'JPM CEMBI BROAD DIVERSE',
+                        'JPM EMBI GLOBAL DIVERSIFI'
+                    ) 
+                    THEN 'JPM EM Custom Index (50/50)'
+                    WHEN bench.benchmark_name IN (
+                        'S & P 500 INDEX'
+                    ) 
+                    THEN 'S&P 500 INDEX'
+                    WHEN bench.benchmark_name IN (
+                        'Russell 1000'
+                    ) 
+                    THEN 'RUSSELL 1000'
+                    ELSE bench.benchmark_name 
+                END AS "Portfolio",
+                CASE 
+                    WHEN bench.benchmark_name IN (
+                        'JPM CEMBI BROAD DIVERSE',
+                        'JPM EMBI GLOBAL DIVERSIFI'
+                    ) 
+                    THEN 'JPM EM Custom Index (50/50)' 
+                    WHEN bench.benchmark_name IN (
+                        'S & P 500 INDEX'
+                    ) 
+                    THEN 'S&P 500 INDEX'
+                    WHEN bench.benchmark_name IN (
+                        'Russell 1000'
+                    ) 
+                    THEN 'RUSSELL 1000'
+                    ELSE bench.benchmark_name 
+                END AS "Portfolio Name",
+                TRIM(
+                    CASE 
+                        WHEN sec.esg_collateral_type IS null 
+                        THEN 'Unknown' 
+                        ELSE sec.esg_collateral_type 
+                    END 
+                ) AS "ESG Collateral Type", 
+                bench.isin AS "ISIN",
+                CASE 
+                    WHEN sec.issuer_esg ='NA '
+                    OR sec.issuer_esg IS null
+                    THEN 'No' 
+                    ELSE sec.issuer_esg 
+                END AS "Issuer ESG",
+                sec.loan_category AS "Loan Category",
+                CASE 
+                    WHEN sec.labeled_esg_type IS null
+                    THEN 'None' 
+                    ELSE sec.labeled_esg_type 
+                END AS "Labeled ESG Type",
+                sec.security_name AS "ISSUER_NAME",
+                CASE 
+                    WHEN sec.tcw_esg_type IS null 
+                    THEN 'None' 
+                    ELSE sec.tcw_esg_type 
+                END AS "TCW ESG",
+                sec.id_ticker as "Ticker Cd",
+                CASE 
+                    WHEN rs.report_sector1_name IS null 
+                    THEN 'Cash and Other' 
+                    ELSE  rs.report_sector1_name 
+                END AS "Sector Level 1",
+                CASE 
+                    WHEN rs.report_sector2_name IS null
+                    THEN 'Cash and Other' 
+                    ELSE rs.report_sector2_name 
+                END AS "Sector Level 2",
+                sec.jpm_sector_level1 AS "JPM Sector",
+                sec.bclass_level2 AS "BCLASS_Level2",
+                sec.bclass_level3 AS "BCLASS_Level3", 
+                CASE 
+                    WHEN sec.bclass_level4 = 'N/A' 
+                    THEN 'Unknown BCLASS' 
+                    ELSE sec.bclass_level4 
+                END AS "BCLASS_Level4",
+                sec.em_country_of_risk_name AS "Country of Risk",
+                sec.issuer_id_msci AS "MSCI ISSUERID",
+                sec.issuer_id_iss AS "ISS ISSUERID",
+                sec.issuer_id_bbg AS "BBG ISSUERID",
+                (
+                    CASE 
+                        WHEN bench.benchmark_name IN (
+                            'JPM CEMBI BROAD DIVERSE',
+                            'JPM EMBI GLOBAL DIVERSIFI'
+                        ) 
+                        THEN (
+                            CASE 
+                                WHEN bench.market_value_percentage IS null 
+                                THEN bench.market_value / SUM(bench.market_value) 
+                                    OVER(partition BY bench.benchmark_name) 
+                                ELSE  bench.market_value_percentage 
+                            END
+                        )*0.5 
+                        ELSE (
+                            CASE 
+                                WHEN bench.market_value_percentage IS null 
+                                THEN bench.market_value / SUM(bench.market_value)
+                                    OVER(partition BY bench.benchmark_name) 
+                                ELSE bench.MARKET_VALUE_PERCENTAGE 
+                            END
+                        )
+                    END
+                )*100  AS "Portfolio_Weight",
+                bench.market_value AS "Base Mkt Val",
+                null AS "OAS",
+                (
+                    SELECT MAX(ISIN) 
+                    FROM tcw_core_dev.esg_iss.dim_issuer_iss iss 
+                    WHERE iss.issuer_id = sec.issuer_id_iss
+                ) AS "Issuer ISIN"
+            FROM tcw_core_dev.benchmark.benchmark_position_vw bench
+            LEFT JOIN tcw_core_dev.tcw.security_vw sec 
+                ON bench.security_key = sec.security_key
+                AND bench.as_of_date = sec.as_of_date
+            LEFT JOIN tcw_core_dev.reference.report_sectors_map_vw rs 
+                ON sec.sector_key_tclass = rs.sector_key 
+                AND rs.report_scheme = '7. ESG - Primary Summary'
+            WHERE bench.as_of_date = '{as_of_date}'
+            AND (
+                universe_type_code = 'STATS' 
+                AND benchmark_name IN (
+                    {', '.join(f"'{b}'" for b in fixed_income_benchmark)}
+                ) 
+                OR benchmark_name IN (
+                    {', '.join(f"'{b}'" for b in equity_benchmark)}
+                )
+            )
+        ) 
+        ORDER BY "Portfolio" ASC
         """
         self.datasource.load(query=query)
         self.transform_df()
@@ -169,7 +393,6 @@ class PortfolioDataSource(ds.DataSources):
         - create Muni, Sovereign, Securitized objects
         - attach sector information to company
         - attach BCLASS to company
-        - attach MSCI rating to company
         - attach holdings, OAS to self.holdings with security object
 
         Parameters
@@ -269,9 +492,6 @@ class PortfolioDataSource(ds.DataSources):
             # attach BCLASS object
             self.attach_bclass(parent_store, row["BCLASS_Level4"], bclass_dict)
 
-            # attach MSCI rating
-            self.attach_msci_rating(parent_store, row["Rating Raw MSCI"])
-
             # attach security object, portfolio weight, OAS to portfolio
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
@@ -366,27 +586,6 @@ class PortfolioDataSource(ds.DataSources):
         if not (bclass_object.class_name == "Unassigned BCLASS"):
             parent_store.information["BCLASS_Level4"] = bclass_object
             bclass_object.companies[parent_store.isin] = parent_store
-
-    def attach_msci_rating(self, parent_store, msci_rating: str) -> None:
-        """
-        Attach MSCI Rating to security parent
-
-        Parameters
-        ----------
-        parent_store: CompanyStore | MuniStore | SovereignStore | SecuritizedStore
-            store object of parent
-        msci_rating: str
-            MSCI Rating (AAA to CCC)
-        """
-        # for first initialization of MSCI Rating
-        parent_store.information["Rating_Raw_MSCI"] = parent_store.information.get(
-            "Rating_Raw_MSCI", msci_rating
-        )
-
-        # sometimes same security is labeled with different MSCI Ratings
-        # --> if it's not NA: overwrite, else: skipp
-        if not pd.isna(msci_rating):
-            parent_store.information["Rating_Raw_MSCI"] = msci_rating
 
     @property
     def df(self) -> pd.DataFrame:

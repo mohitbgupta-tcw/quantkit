@@ -193,7 +193,12 @@ class Runner(object):
         - create portfolio objects
         - attach Sector to Portfolio object
         """
-        self.portfolio_datasource.load()
+        self.portfolio_datasource.load(
+            as_of_date=self.params["as_of_date"],
+            pfs=self.params["portfolios"],
+            equity_benchmark=self.params["equity_benchmark"],
+            fixed_income_benchmark=self.params["fixed_income_benchmark"],
+        )
         self.portfolio_datasource.iter()
 
         # attach sector to portfolio
