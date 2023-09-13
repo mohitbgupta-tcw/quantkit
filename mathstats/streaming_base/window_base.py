@@ -76,3 +76,56 @@ class WindowBase(object):
 
         if index is not None:
             self._indexes.append(index)
+
+
+class WindowStream(WindowBase):
+    def __init__(
+        self,
+        window_shape: Tuple[int, ...],
+        curr_shape: Tuple[int, ...],
+        window_size: int = 1,
+    ):
+        """
+        Inherited from base class WindowBase to include current vector
+
+        Parameters
+        ----------
+        window_shape : Tuple[int, ...]
+            Shape of the window matrix
+        curr_shape : Tuple[int, ...]
+            Shape of current vector
+        window_size : int, default 1
+            Size of the rolling window
+
+        Attributes
+        ----------
+        curr_vector : np.ndarray
+
+        """
+        super().__init__(window_shape=window_shape, window_size=window_size)
+        self.curr_vector = np.zeros(curr_shape) * np.nan
+
+        return
+
+    def is_positive(self, adjustment=0) -> bool:
+        return np.all(self.matrix + adjustment > 0, axis=0)
+
+    def update(self, new_vector: np.ndarray, batch_weight: int = 1, **kwargs) -> None:
+        """
+        Sum vectors and update the window matrix of the new vector
+
+        Parameters
+        ----------
+        new_vector : np.ndarray
+            Newly calculated vector from data streamed in
+        update_type : str
+            Update type (covariance, regression)
+        """
+        # Update streaming module
+        vector_three = self.matrix[self.current_loc, :, :]
+        self.curr_vector = np.nansum(
+            [self.curr_vector, new_vector, -1 * vector_three], axis=0
+        )
+        super().update(new_vector=new_vector, **kwargs)
+
+        return
