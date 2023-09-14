@@ -16,11 +16,11 @@ class WindowLS(streaming_base.StreamingBase):
 
     Calculation
     -----------
-    The standard least-square fit gives regression coefficients 
+    The standard least-square fit gives regression coefficients
 
     beta = (X'X)^{-1}X'Y
     (see https://stats.stackexchange.com/questions/6920/efficient-online-linear-regression/56642#56642)
-    
+
     Parameters
     ----------
     num_ind_variables : int
@@ -44,18 +44,18 @@ class WindowLS(streaming_base.StreamingBase):
         self.wxx = window_base.WindowStream(
             window_shape=(
                 window_size,
-                num_ind_variables+1,
-                num_ind_variables+1,
+                num_ind_variables + 1,
+                num_ind_variables + 1,
             ),
-            curr_shape=(num_ind_variables+1, num_ind_variables+1),
+            curr_shape=(num_ind_variables + 1, num_ind_variables + 1),
             window_size=window_size,
         )
 
         self.wxy = window_base.WindowStream(
-            curr_shape=(num_ind_variables+1, num_dep_variables),
+            curr_shape=(num_ind_variables + 1, num_dep_variables),
             window_shape=(
                 window_size,
-                num_ind_variables+1,
+                num_ind_variables + 1,
                 num_dep_variables,
             ),
             window_size=window_size,
@@ -66,20 +66,23 @@ class WindowLS(streaming_base.StreamingBase):
             window_size=window_size,
         )
 
-        self.cov_calculator = window_covariance.WindowCovariance(num_ind_variables=num_ind_variables+num_dep_variables, window_size=window_size)
+        self.cov_calculator = window_covariance.WindowCovariance(
+            num_ind_variables=num_ind_variables + num_dep_variables,
+            window_size=window_size,
+        )
 
     @property
     def results(self) -> dict:
         r"""
-        Generate a dictionary of results 
+        Generate a dictionary of results
 
         Note
         ----
         R squared can be calculated by
 
-        (Cov(X, Y) * Cov(X, Y)) / (Var(X) * Var(Y))
+        r'_{y,x} * r_{x,x} * r_{y,x}
 
-        See https://stats.stackexchange.com/questions/17050/explanation-for-r-squared-as-ratio-of-covariances-and-variances
+        See https://stats.stackexchange.com/questions/314926/can-you-calculate-r2-from-correlation-coefficents-in-multiple-linear-regressi/364630#364630
 
         Returns
         -------
@@ -102,19 +105,13 @@ class WindowLS(streaming_base.StreamingBase):
             _S_wxx_inv = np.linalg.pinv(self.wxx.curr_vector)
             m = (_S_wxx_inv @ self.wxy.curr_vector) * _mask_current
 
-
-        # cov = self.cov_calculator.results["cov"]
-        # cov_ind, cov_dep = cov[:self.num_ind_variables][:, :self.num_ind_variables], cov[:self.num_ind_variables][:, self.num_ind_variables:]
-        # cov_dep_sq = cov_dep * cov_dep
-        # var = self.cov_calculator.results["variance"]
-        # var_ind, var_dep = var[:self.num_ind_variables], var[self.num_ind_variables:]
-        # var_dep = var_dep * var_ind
-        # self._results["r_squared"] = cov_dep_sq / var_dep
-
-        corr = correlation.cov_to_corr(self.cov_calculator.results["cov"])
+        _corr = correlation.cov_to_corr(self.cov_calculator.results["cov"])
+        _ryx = _corr[: self.num_ind_variables, self.num_ind_variables :]
+        _rxx = np.linalg.pinv(_corr[: self.num_ind_variables, : self.num_ind_variables])
 
         self._results["beta"] = m[1:]
         self._results["sigma"] = m[0]
+        self._results["r_squared"] = np.diag(_ryx.T @ _rxx @ _ryx)
         return self._results
 
     def update(
@@ -139,7 +136,7 @@ class WindowLS(streaming_base.StreamingBase):
         self.cov_calculator.update(_all_batch)
 
         self.total_iterations += 1
-        batch_ind = np.insert(batch_ind,0,1,axis=1)
+        batch_ind = np.insert(batch_ind, 0, 1, axis=1)
 
         _s_wxy_new = batch_dep * batch_ind.T * batch_weight
         _S_wxx_new = batch_ind.T @ batch_ind * batch_weight
