@@ -111,7 +111,7 @@ class WindowLS(streaming_base.StreamingBase):
 
         self._results["beta"] = m[1:]
         self._results["sigma"] = m[0]
-        self._results["r_squared"] = np.diag(_ryx.T @ _rxx @ _ryx)
+        self._results["r_squared"] = np.diag(_ryx.T @ _rxx @ _ryx) * _mask_current
         return self._results
 
     def update(
