@@ -4,29 +4,23 @@ import numpy as np
 import datetime
 
 
-class Momentum(strategy.Strategy):
+class PickAll(strategy.Strategy):
     """
-    "Buy Low, Sell High."
-
-    Base class for Simple Momentum Strategy
-    Idea: Take top n securities based on cumulative returns in window_size
+    Base class that picks all stocks in the universe
 
     Parameters
     ----------
     params: dict
         strategy specific parameters which should include
-            - type: "momentum", str
+            - type: "pick_all", str
             - window_size: lookback period in trading days, int
-            - return_engine: "cumprod", str
+            - return_engine: str
             - risk_engine: str
-            - top_n: number of stocks to pick, int
             - allocation_models: weighting strategies, list
     """
 
     def __init__(self, params: dict) -> None:
         super().__init__(**params)
-        self.window_size = params["window_size"]
-        self.top_n = params["top_n"]
 
     def assign(
         self,
@@ -66,30 +60,24 @@ class Momentum(strategy.Strategy):
     @property
     def selected_securities(self) -> np.array:
         """
-        Index (position in universe_tickers as integer) of top n momentum securities
+        Index (position in universe_tickers as integer) of selected securities
 
         Returns
         -------
         np.array
             array of indexes
         """
-        nan_sum = np.isnan(self.latest_return).sum()
-        if nan_sum > 0:
-            return (-self.return_metrics_intuitive).argsort()[: self.top_n][:-nan_sum]
-        return (-self.return_metrics_intuitive).argsort()[: self.top_n]
+        ss = np.arange(self.num_total_assets)
+        return ss[~np.isnan(self.latest_return)]
 
     @property
     def return_metrics_optimizer(self) -> np.array:
         """
-        Forecaseted DAILY returns from return engine of top n momentum securities
-        in order of selected_securities
+        Forecaseted DAILY returns from return engine in order of selected_securities
 
         Returns
         -------
         np.array
             returns
         """
-        returns_topn = self.return_metrics_intuitive[self.selected_securities]
-        return annualize_adjustments.compound_annualization(
-            returns_topn, 1 / self.window_size
-        )
+        return self.return_metrics_intuitive[self.selected_securities]

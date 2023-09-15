@@ -78,6 +78,7 @@ def get_quandl_price_data(
     filters = dict()
     # filters["ticker"] = ticker
     filters["paginate"] = True
+    filters["ticker"] = ticker
     if start_date and end_date:
         filters["date"] = {"gte": start_date, "lte": end_date}
     elif start_date:

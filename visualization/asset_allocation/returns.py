@@ -19,8 +19,6 @@ def strategy_returns(strategy_df: pd.DataFrame) -> None:
 
     fig, ax = plt.subplots(figsize=(8, 6))
     for name, group in grouped:
-        if name == "ex_ante_mean_variance":
-            continue
         grouped_df = group["return"].cumprod()
         grouped_df.plot(ax=ax, label=name)
 
