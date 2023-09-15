@@ -5,6 +5,7 @@ import quantkit.data_sources.snowflake as snowflake
 import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
+import quantkit.asset_allocation.strategies.pick_all as pick_all
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.utils.snowflake_utils as snowflake_utils
 import numpy as np
@@ -87,6 +88,8 @@ class Runner(loader.Runner):
             ]
             if strat_params["type"] == "momentum":
                 self.strategies[strategy] = momentum.Momentum(strat_params)
+            elif strat_params["type"] == "pick_all":
+                self.strategies[strategy] = pick_all.PickAll(strat_params)
 
     def iter_quandl(self) -> None:
         """
@@ -150,14 +153,20 @@ class Runner(loader.Runner):
             table_name="Sustainability_Framework_Detailed",
             local_configs=self.local_configs,
         )
-
-        # all tickers in index which are labeled green or blue
-        self.universe_tickers = list(
-            df[
-                (df["Portfolio ISIN"].isin(self.params["universe"]))
-                & (df["SCLASS_Level2"].isin(["Transition", "Sustainable Theme"]))
-            ]["Ticker"].unique()
-        )
+        if self.params["sustainable_universe"]:
+            # all tickers in index which are labeled green or blue
+            self.universe_tickers = list(
+                df[
+                    (df["Portfolio ISIN"].isin(self.params["universe"]))
+                    & (df["SCLASS_Level2"].isin(["Transition", "Sustainable Theme"]))
+                ]["Ticker"].unique()
+            )
+        else:
+            self.universe_tickers = list(
+                df[df["Portfolio ISIN"].isin(self.params["universe"])][
+                    "Ticker"
+                ].unique()
+            )
         # filter for securities that match msci ticker
         for c, comp_store in self.portfolio_datasource.companies.items():
             ticker = comp_store.msci_information["ISSUER_TICKER"]
