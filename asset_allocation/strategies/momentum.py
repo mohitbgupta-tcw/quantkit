@@ -74,8 +74,12 @@ class Momentum(strategy.Strategy):
             array of indexes
         """
         nan_sum = np.isnan(self.latest_return).sum()
-        if nan_sum > 0:
-            return (-self.return_metrics_intuitive).argsort()[: self.top_n][:-nan_sum]
+        top_n = min(self.top_n, self.num_total_assets)
+        missing_assets = (self.num_total_assets - nan_sum) - top_n
+        if missing_assets < 0:
+            return (-self.return_metrics_intuitive).argsort()[: self.top_n][
+                :missing_assets
+            ]
         return (-self.return_metrics_intuitive).argsort()[: self.top_n]
 
     @property

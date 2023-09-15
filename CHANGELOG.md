@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Pick-All strategy
+- OLS linear regression calculation 
 ### Fixed
 ### Changed
 ### Removed
