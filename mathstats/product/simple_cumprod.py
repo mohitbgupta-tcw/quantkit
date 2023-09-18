@@ -33,7 +33,7 @@ class SimpleCumProd(object):
         np.array
             Cumulative Product of current array
         """
-        return self._cumprod - 1
+        return self._cumprod
 
     def calculate_cumprod(
         self,

@@ -132,6 +132,8 @@ class WindowLS(streaming_base.StreamingBase):
         batch_weight : float, default 1
             The weight for this batch
         """
+        batch_dep = batch_dep[np.newaxis, :]
+        batch_ind = batch_ind[np.newaxis, :]
         _all_batch = np.append(batch_ind, batch_dep, 1).squeeze()
         self.cov_calculator.update(_all_batch)
 
