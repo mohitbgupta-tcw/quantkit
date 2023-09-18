@@ -31,6 +31,10 @@ class SovereignStore(headstore.HeadStore):
             "Sovereign_Score"
         ]
 
+        if self.msci_information["GOVERNMENT_ESG_RATING"] == "CCC":
+            self.scores["Sovereign_Score_unadjusted"] = 5
+            self.scores["Sovereign_Score"] = 5
+
     def calculate_risk_overall_score(self) -> None:
         """
         Calculate risk overall score on security level:

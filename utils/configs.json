@@ -209,7 +209,8 @@
                 "CARBON_EMISSIONS_SCOPE_12_INTEN",
                 "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",
                 "INDUSTRY_ADJUSTED_SCORE", 
-                "GOVERNMENT_ADJUSTED_ESG_SCORE"
+                "GOVERNMENT_ADJUSTED_ESG_SCORE",
+                "GOVERNMENT_ESG_RATING"
             ]
         },
         "transformation": {
