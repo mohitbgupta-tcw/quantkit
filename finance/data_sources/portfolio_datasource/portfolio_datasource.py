@@ -124,14 +124,14 @@ class PortfolioDataSource(ds.DataSources):
                 END AS "Issuer ESG",
                 sec.loan_category AS "Loan Category",
                 CASE 
-                    WHEN sec.labeled_esg_type IS null 
-                    THEN 'None' 
+                    WHEN sec.labeled_esg_type = 'None' 
+                    THEN null 
                     ELSE sec.labeled_esg_type 
                 END AS "Labeled ESG Type",
                 sec.security_name AS "ISSUER_NAME",
                 CASE 
-                    WHEN sec.tcw_esg_type IS null 
-                    THEN 'None' 
+                    WHEN sec.tcw_esg_type = 'None' 
+                    THEN null 
                     ELSE sec.tcw_esg_type 
                 END AS "TCW ESG",
                 sec.id_ticker AS "Ticker Cd",
@@ -228,14 +228,14 @@ class PortfolioDataSource(ds.DataSources):
                 END AS "Issuer ESG",
                 sec.loan_category AS "Loan Category",
                 CASE 
-                    WHEN sec.labeled_esg_type IS null
-                    THEN 'None' 
+                    WHEN sec.labeled_esg_type = 'None'
+                    THEN null 
                     ELSE sec.labeled_esg_type 
                 END AS "Labeled ESG Type",
                 sec.security_name AS "ISSUER_NAME",
                 CASE 
-                    WHEN sec.tcw_esg_type IS null 
-                    THEN 'None' 
+                    WHEN sec.tcw_esg_type = 'None' 
+                    THEN null 
                     ELSE sec.tcw_esg_type 
                 END AS "TCW ESG",
                 sec.id_ticker as "Ticker Cd",
