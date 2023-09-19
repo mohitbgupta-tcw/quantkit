@@ -98,12 +98,7 @@ class OrdinaryLR(streaming_base.StreamingBase):
             np.sum(self._mask.matrix, axis=0) == self.window_size, 1, np.nan
         )
 
-        if self.wxx.matrix.shape[0] == 1:
-            _S_wxx_inv = 1 / self.wxx.curr_vector
-            m = (_S_wxx_inv * self.wxy.curr_vector) * _mask_current
-        else:
-            _S_wxx_inv = np.linalg.pinv(self.wxx.curr_vector)
-            m = (_S_wxx_inv @ self.wxy.curr_vector) * _mask_current
+        m = self.calculate_vector(_mask_current)
 
         _corr = correlation.cov_to_corr(self.cov_calculator.results["cov"])
         _ryx = _corr[: self.num_ind_variables, self.num_ind_variables :]
@@ -113,6 +108,29 @@ class OrdinaryLR(streaming_base.StreamingBase):
         self._results["sigma"] = m[0]
         self._results["r_squared"] = np.diag(_ryx.T @ _rxx @ _ryx) * _mask_current
         return self._results
+
+    def calculate_vector(self, mask_current: np.array) -> np.array:
+        """
+        Calculate regression specific vector
+
+        Parameters
+        ---------
+        mask_current: np.array
+            array indicating which positions are nan's
+
+        Returns
+        -------
+        np.array
+            vector
+        """
+
+        if self.wxx.matrix.shape[0] == 1:
+            _S_wxx_inv = 1 / self.wxx.curr_vector
+            m = (_S_wxx_inv * self.wxy.curr_vector) * mask_current
+        else:
+            _S_wxx_inv = np.linalg.pinv(self.wxx.curr_vector)
+            m = (_S_wxx_inv @ self.wxy.curr_vector) * mask_current
+        return m
 
     def update(
         self,
