@@ -5,7 +5,7 @@ import quantkit.mathstats.matrix.correlation as correlation
 import numpy as np
 
 
-class WindowLS(streaming_base.StreamingBase):
+class OrdinaryLR(streaming_base.StreamingBase):
     r"""
     A class for performing Ordinary Least Squared Regression (OLS) on windows of streaming data
     Calculates online version of sklearn.linear_model.LinearRegression()

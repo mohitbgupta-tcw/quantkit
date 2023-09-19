@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
-import quantkit.mathstats.regression.linear_regression as lr
+import quantkit.mathstats.regression.ols_regression as lr
 
 
 def window_regression_dataset():
@@ -23,7 +23,7 @@ def window_regression_dataset():
     ind_variables = np.random.uniform(-4, 4, [7, 2])
 
     # quantkit
-    regression = lr.WindowLS(window_size=6, num_dep_variables=5, num_ind_variables=2)
+    regression = lr.OrdinaryLR(window_size=6, num_dep_variables=5, num_ind_variables=2)
 
     for dep, ind in zip(dep_variables, ind_variables):
         ind = np.array(ind)
