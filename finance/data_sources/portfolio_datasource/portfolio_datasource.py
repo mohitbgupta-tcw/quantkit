@@ -150,7 +150,7 @@ class PortfolioDataSource(ds.DataSources):
                 sec.bclass_level3 AS "BCLASS_Level3", 
                 CASE 
                     WHEN sec.bclass_level4 = 'N/A' 
-                    THEN 'Unknown BCLASS' 
+                    THEN 'Unassigned BCLASS' 
                     ELSE sec.bclass_level4 
                 END AS "BCLASS_Level4",
                 sec.em_country_of_risk_name AS "Country of Risk",
@@ -254,7 +254,7 @@ class PortfolioDataSource(ds.DataSources):
                 sec.bclass_level3 AS "BCLASS_Level3", 
                 CASE 
                     WHEN sec.bclass_level4 = 'N/A' 
-                    THEN 'Unknown BCLASS' 
+                    THEN 'Unassigned BCLASS' 
                     ELSE sec.bclass_level4 
                 END AS "BCLASS_Level4",
                 sec.em_country_of_risk_name AS "Country of Risk",
@@ -297,7 +297,7 @@ class PortfolioDataSource(ds.DataSources):
                 ON bench.security_key = sec.security_key
                 AND bench.as_of_date = sec.as_of_date
             LEFT JOIN tcw_core_dev.reference.report_sectors_map_vw rs 
-                ON sec.sector_key_tclass = rs.sector_key 
+                ON bench.core_sector_key = rs.sector_key 
                 AND rs.report_scheme = '7. ESG - Primary Summary'
             WHERE bench.as_of_date = '{as_of_date}'
             AND (
