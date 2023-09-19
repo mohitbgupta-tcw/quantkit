@@ -66,7 +66,6 @@ def window_ridge_dataset():
     - sigma = intercept_
     - r_squared
     """
-    np.random.seed(42)
     window_size = 6
 
     dep_variables = np.random.uniform(-10, 10, [7, 5])
