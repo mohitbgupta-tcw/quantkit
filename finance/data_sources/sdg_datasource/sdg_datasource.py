@@ -25,16 +25,17 @@ class SDGDataSource(object):
     """
 
     def __init__(self, params: dict, **kwargs) -> None:
-        self.sdg = SDGData(params["sdg"], **kwargs)
-        self.sdga = SDGData(params["sdga"], **kwargs)
+        self.sdg_datasource = SDGData(params["sdg"], **kwargs)
+        self.sdga_datasource = SDGData(params["sdga"], **kwargs)
+        self.sdg = dict()
 
     def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading SDG Data")
-        self.sdg.load()
-        self.sdga.load()
+        self.sdg_datasource.load()
+        self.sdga_datasource.load()
         self.transform_df()
 
     def transform_df(self) -> None:
@@ -42,8 +43,11 @@ class SDGDataSource(object):
         - merge sdg and sdga data into one DataFrame
         - change datatype to float for specified columns
         """
-        df_ = self.sdg.datasource.df.merge(
-            self.sdga.datasource.df, left_on="ISIN", right_on="ISIN", how="outer"
+        df_ = self.sdg_datasource.datasource.df.merge(
+            self.sdga_datasource.datasource.df,
+            left_on="ISIN",
+            right_on="ISIN",
+            how="outer",
         )
         df_["GreenExpTotalCapExSharePercent"] = df_[
             "GreenExpTotalCapExSharePercent"
@@ -51,6 +55,10 @@ class SDGDataSource(object):
         df_["SDGSolClimatePercentCombCont"] = df_[
             "SDGSolClimatePercentCombCont"
         ].astype(float)
+
+        df_["issuerID"] = df_["issuerID_x"].fillna(df_["issuerID_y"])
+        df_ = df_.drop(["issuerID_x", "issuerID_y"], axis=1)
+
         self.df_ = df_
 
     def iter(
@@ -73,12 +81,15 @@ class SDGDataSource(object):
         # only iterate over companies we hold in the portfolios
         for index, row in self.df[self.df["ISIN"].isin(companies.keys())].iterrows():
             isin = row["ISIN"]
+            iss_id = row["issuerID"]
 
             sdg_information = row.to_dict()
+            self.sdg[iss_id] = sdg_information
             companies[isin].sdg_information = sdg_information
 
         # --> not every company has these information, so create empty df with NA's for those
         empty_sdg = pd.Series(np.nan, index=self.df.columns).to_dict()
+        self.sdg[np.nan] = empty_sdg
 
         parents = [companies, munis, sovereigns, securitized]
 
@@ -134,7 +145,6 @@ class SDGData(ds.DataSources):
                 "IssuerName",
                 "Ticker",
                 "CountryOfIncorporation",
-                "issuerID",
                 "IssuerLEI",
                 "ESGRatingParentEntityName",
                 "ESGRatingParentEntityID",

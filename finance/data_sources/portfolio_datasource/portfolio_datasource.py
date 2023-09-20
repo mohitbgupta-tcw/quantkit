@@ -5,7 +5,9 @@ import quantkit.finance.companies.companies as comp
 import quantkit.finance.securities.securities as secs
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.utils.mapping_configs as mapping_configs
+import quantkit.handyman.msci_data_loader as msci_data_loader
 import pandas as pd
+import numpy as np
 from copy import deepcopy
 
 
@@ -324,6 +326,7 @@ class PortfolioDataSource(ds.DataSources):
         """
         self.datasource.df["ISIN"].fillna("NoISIN", inplace=True)
         self.datasource.df["ISIN"].replace("--", "NoISIN", inplace=True)
+        self.datasource.df["ISIN"].replace("N/A", "NoISIN", inplace=True)
         self.datasource.df["BCLASS_Level4"] = self.datasource.df[
             "BCLASS_Level4"
         ].fillna("Unassigned BCLASS")
@@ -355,6 +358,27 @@ class PortfolioDataSource(ds.DataSources):
                 [f"{col}_x", f"{col}_y"], axis=1
             )
 
+        local_configs = "C:\\Users\\bastit\\Documents\\quantkit\\configs\\configs.json"
+        sec_isins = list(
+            self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]
+            .dropna()
+            .unique()
+        )
+        msci_df = msci_data_loader.create_msci_mapping(
+            "ISIN", sec_isins, local_configs
+        )[["Client_ID", "ISSUERID"]]
+        self.datasource.df = pd.merge(
+            left=self.datasource.df,
+            right=msci_df,
+            left_on="ISIN",
+            right_on="Client_ID",
+            how="left",
+        )
+        self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
+            "MSCI ISSUERID"
+        ].fillna(self.datasource.df["ISSUERID"])
+        self.datasource.df = self.datasource.df.drop(["Client_ID", "ISSUERID"], axis=1)
+
     def iter(self) -> None:
         """
         - iterate over portfolios and:
@@ -385,7 +409,11 @@ class PortfolioDataSource(ds.DataSources):
         ) if "NoISIN" not in self.all_holdings else self.all_holdings
 
     def iter_holdings(
-        self, securities: dict, securitized_mapping: dict, bclass_dict: dict
+        self,
+        securities: dict,
+        securitized_mapping: dict,
+        bclass_dict: dict,
+        bloomberg_dict: dict,
     ) -> None:
         """
         Iterate over portfolio holdings
@@ -393,6 +421,7 @@ class PortfolioDataSource(ds.DataSources):
         - create Muni, Sovereign, Securitized objects
         - attach sector information to company
         - attach BCLASS to company
+        - attach Bloomberg information to company
         - attach holdings, OAS to self.holdings with security object
 
         Parameters
@@ -403,6 +432,8 @@ class PortfolioDataSource(ds.DataSources):
             mapping for ESG Collat Type
         bclass_dict: dict
             dictionary of all bclass objects
+        bloomberg_dict: dict
+            dictionary of bloomberg information
         """
         logging.log("Iterate Holdings")
         for index, row in self.df.iterrows():
@@ -492,6 +523,15 @@ class PortfolioDataSource(ds.DataSources):
             # attach BCLASS object
             self.attach_bclass(parent_store, row["BCLASS_Level4"], bclass_dict)
 
+            # attach bloomberg information
+            if row["BBG ISSUERID"] in bloomberg_dict:
+                bbg_information = bloomberg_dict[row["BBG ISSUERID"]]
+                parent_store.bloomberg_information = bbg_information
+            else:
+                bbg_information = deepcopy(bloomberg_dict[np.nan])
+                if not hasattr(parent_store, "bloomberg_information"):
+                    parent_store.bloomberg_information = bbg_information
+
             # attach security object, portfolio weight, OAS to portfolio
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
@@ -513,6 +553,9 @@ class PortfolioDataSource(ds.DataSources):
         self.companies["NoISIN"].information["BCLASS_Level4"] = bclass_dict[
             "Unassigned BCLASS"
         ]
+        self.companies["NoISIN"].bloomberg_information = deepcopy(
+            bloomberg_dict[np.nan]
+        )
 
     def create_store(
         self,
@@ -586,6 +629,10 @@ class PortfolioDataSource(ds.DataSources):
         if not (bclass_object.class_name == "Unassigned BCLASS"):
             parent_store.information["BCLASS_Level4"] = bclass_object
             bclass_object.companies[parent_store.isin] = parent_store
+
+    @property
+    def all_msci_ids(self):
+        return list(self.df["MSCI ISSUERID"].dropna().unique())
 
     @property
     def df(self) -> pd.DataFrame:

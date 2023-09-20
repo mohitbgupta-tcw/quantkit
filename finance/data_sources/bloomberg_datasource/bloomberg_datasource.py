@@ -25,6 +25,7 @@ class BloombergDataSource(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.bloomberg = dict()
 
     def load(self) -> None:
         """
@@ -42,34 +43,24 @@ class BloombergDataSource(ds.DataSources):
 
     def transform_df(self) -> None:
         """
-        None
+        Drop Duplicates of Bloomberg ID
         """
-        pass
+        self.datasource.df = self.datasource.df.drop_duplicates(subset=["BBG_ID"])
 
-    def iter(self, companies: dict) -> None:
+    def iter(self) -> None:
         """
-        Attach bloomberg information to company objects
-
-        Parameters
-        ----------
-        companies: dict
-            dictionary of all company objects
+        Attach bloomberg information to dict
         """
         # only iterate over companies we hold in the portfolios
-        for index, row in self.df[
-            self.df["Client_ID"].isin(companies.keys())
-        ].iterrows():
-            isin = row["Client_ID"]
+        for index, row in self.df.iterrows():
+            bbg_id = row["BBG_ID"]
 
             bloomberg_information = row.to_dict()
-            companies[isin].bloomberg_information = bloomberg_information
+            self.bloomberg[bbg_id] = bloomberg_information
 
         # --> not every company has these information, so create empty df with NA's for those
         empty_bloomberg = pd.Series(np.nan, index=self.df.columns).to_dict()
-
-        for c, comp_store in companies.items():
-            if not hasattr(comp_store, "bloomberg_information"):
-                comp_store.bloomberg_information = deepcopy(empty_bloomberg)
+        self.bloomberg[np.nan] = deepcopy(empty_bloomberg)
 
     @property
     def df(self) -> pd.DataFrame:

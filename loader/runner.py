@@ -218,9 +218,8 @@ class Runner(object):
         parent_ids = self.parent_issuer_datasource.parent_issuer_ids()
 
         # load MSCI data
-        issuer_ids = self.security_datasource.issuer_ids(
-            self.portfolio_datasource.all_holdings
-        )
+        issuer_ids = self.portfolio_datasource.all_msci_ids
+
         issuer_ids += parent_ids
         issuer_ids = list(set(issuer_ids))
         self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
@@ -256,13 +255,14 @@ class Runner(object):
         - create Muni, Sovereign, Securitized objects
         - attach sector information to company
         - attach BCLASS to company
-        - attach MSCI rating to company
+        - attach Bloomberg information
         - attach holdings, OAS to self.holdings with security object
         """
         self.portfolio_datasource.iter_holdings(
-            self.security_datasource.securities,
-            self.securitized_datasource.securitized_mapping,
-            self.bclass_datasource.bclass,
+            securities=self.security_datasource.securities,
+            securitized_mapping=self.securitized_datasource.securitized_mapping,
+            bclass_dict=self.bclass_datasource.bclass,
+            bloomberg_dict=self.bloomberg_datasource.bloomberg,
         )
 
     def iter_sdg(self) -> None:
@@ -288,7 +288,7 @@ class Runner(object):
         """
         # load bloomberg data
         self.bloomberg_datasource.load()
-        self.bloomberg_datasource.iter(self.portfolio_datasource.companies)
+        self.bloomberg_datasource.iter()
 
     def iter_quandl(self) -> None:
         """
@@ -348,9 +348,6 @@ class Runner(object):
 
         # attach sdg information
         self.iter_sdg()
-
-        # attach bloomberg information
-        self.iter_bloomberg()
 
         # attach quandl information
         self.iter_quandl()

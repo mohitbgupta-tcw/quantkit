@@ -29,6 +29,7 @@ class Runner(loader.Runner):
         self.iter_regions()
         self.iter_sectors()
         self.iter_securitized_mapping()
+        self.iter_bloomberg()
         self.iter_portfolios()
         self.iter_securities()
         self.iter_holdings()
