@@ -33,12 +33,15 @@ class Quandl(object):
         if os.name == "nt":
             nasdaqdatalink.ApiConfig.verify_ssl = "quantkit/certs.crt"
 
-        batches = list(util_functions.divide_chunks(self.filters["ticker"], 100))
-        self.df = pd.DataFrame()
-        for i, batch in enumerate(batches):
-            logging.log(f"Batch {i+1}/{len(batches)}")
-            filters = deepcopy(self.filters)
-            filters["ticker"] = batch
+        if "ticker" in self.filters:
+            batches = list(util_functions.divide_chunks(self.filters["ticker"], 100))
+            self.df = pd.DataFrame()
+            for i, batch in enumerate(batches):
+                logging.log(f"Batch {i+1}/{len(batches)}")
+                filters = deepcopy(self.filters)
+                filters["ticker"] = batch
 
-            df = nasdaqdatalink.get_table(self.table, **filters)
-            self.df = pd.concat([self.df, df], ignore_index=True)
+                df = nasdaqdatalink.get_table(self.table, **filters)
+                self.df = pd.concat([self.df, df], ignore_index=True)
+        else:
+            self.df = nasdaqdatalink.get_table(self.table, **self.filters)

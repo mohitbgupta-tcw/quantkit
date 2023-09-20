@@ -36,7 +36,7 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         np.array
             returns
         """
-        return self.return_calculator.cumprod
+        return self.return_calculator.cumprod - 1
 
     @property
     def return_metrics_intuitive(self) -> np.array:

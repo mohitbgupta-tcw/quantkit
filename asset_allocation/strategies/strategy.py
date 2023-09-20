@@ -194,18 +194,7 @@ class Strategy(object):
         annualize_factor: int, optional
             factor depending on data frequency
         """
-        self.return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.portfolio_return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.risk_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.portfolio_risk_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
+        self.latest_return = price_return
 
     def get_risk_budgets(self, date: datetime.date) -> dict:
         """

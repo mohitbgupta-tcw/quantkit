@@ -115,6 +115,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "GOVERNMENT_ADJUSTED_ESG_SCORE": comp_store.msci_information[
                         "GOVERNMENT_ADJUSTED_ESG_SCORE"
                     ],
+                    "GOVERNMENT_ESG_RATING": comp_store.msci_information[
+                        "GOVERNMENT_ESG_RATING"
+                    ],
                     "Muni Score": comp_store.scores["Muni_Score"],
                     "Securitized Score": sec_store.scores["Securitized_Score"],
                     "Sovereign Score": comp_store.scores["Sovereign_Score"],

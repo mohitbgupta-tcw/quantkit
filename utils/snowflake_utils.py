@@ -89,3 +89,34 @@ def write_to_snowflake(
     session.write_pandas(
         df, table_name=table_name, auto_create_table=True, overwrite=True
     )
+
+
+def overwrite_history(
+    local_configs: str = "",
+) -> None:
+    """
+    Overwrite the history DataFrame in Snowflake by appending newest data
+
+    Parameters
+    ----------
+    local_configs: str, optional
+        path to a local configarations file
+    """
+    df_new = load_from_snowflake(
+        schema="TIM_SCHEMA",
+        table_name="Sustainability_Framework_Detailed",
+        local_configs=local_configs,
+    )
+    df_history = load_from_snowflake(
+        schema="TIM_SCHEMA",
+        table_name="Sustainability_Framework_Detailed_history",
+        local_configs=local_configs,
+    )
+    df_history = pd.concat([df_history, df_new])
+
+    write_to_snowflake(
+        df_history,
+        schema="TIM_SCHEMA",
+        table_name="Sustainability_Framework_Detailed_history",
+        local_configs=local_configs,
+    )
