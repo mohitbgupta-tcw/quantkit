@@ -76,7 +76,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             else self.benchmark_isin
         )
         self.as_of_date = datetime.datetime.strptime(
-            self.portfolio_data["As Of Date"].max(), "%m/%d/%Y"
+            self.portfolio_data["As Of Date"].max(), "%Y-%m-%d"
         ).date()
         super().run()
 

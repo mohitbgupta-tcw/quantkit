@@ -51,7 +51,6 @@ class BloombergDataSource(ds.DataSources):
         """
         Attach bloomberg information to dict
         """
-        # only iterate over companies we hold in the portfolios
         for index, row in self.df.iterrows():
             bbg_id = row["BBG_ID"]
 

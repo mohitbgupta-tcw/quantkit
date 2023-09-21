@@ -61,43 +61,20 @@ class SDGDataSource(object):
 
         self.df_ = df_
 
-    def iter(
-        self, companies: dict, munis: dict, sovereigns: dict, securitized: dict
-    ) -> None:
+    def iter(self) -> None:
         """
-        Attach SDG information to company objects
-
-        Parameters
-        ----------
-        companies: dict
-            dictionary of all company objects
-        munis: dict
-            dictionary of all muni objects
-        sovereigns: dict
-            dictionary of all sovereign objects
-        securitized: dict
-            dictionary of all securitized objects
+        Attach SDG information to dict
         """
         # only iterate over companies we hold in the portfolios
-        for index, row in self.df[self.df["ISIN"].isin(companies.keys())].iterrows():
-            isin = row["ISIN"]
+        for index, row in self.df.iterrows():
             iss_id = row["issuerID"]
 
             sdg_information = row.to_dict()
             self.sdg[iss_id] = sdg_information
-            companies[isin].sdg_information = sdg_information
 
         # --> not every company has these information, so create empty df with NA's for those
         empty_sdg = pd.Series(np.nan, index=self.df.columns).to_dict()
-        self.sdg[np.nan] = empty_sdg
-
-        parents = [companies, munis, sovereigns, securitized]
-
-        for p in parents:
-            for s, sec_store in p.items():
-                # assign empty sdg information to companies that dont have these information
-                if not hasattr(sec_store, "sdg_information"):
-                    sec_store.sdg_information = deepcopy(empty_sdg)
+        self.sdg[np.nan] = deepcopy(empty_sdg)
 
     @property
     def df(self) -> pd.DataFrame:

@@ -224,6 +224,7 @@ class Runner(object):
         issuer_ids = list(set(issuer_ids))
         self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
         self.msci_datasource.load()
+        self.msci_datasource.iter()
 
         # load adjustment data
         self.adjustment_datasource.load()
@@ -263,6 +264,7 @@ class Runner(object):
             securitized_mapping=self.securitized_datasource.securitized_mapping,
             bclass_dict=self.bclass_datasource.bclass,
             bloomberg_dict=self.bloomberg_datasource.bloomberg,
+            sdg_dict=self.sdg_datasource.sdg,
         )
 
     def iter_sdg(self) -> None:
@@ -273,12 +275,7 @@ class Runner(object):
         """
         # load SDG data
         self.sdg_datasource.load()
-        self.sdg_datasource.iter(
-            self.portfolio_datasource.companies,
-            self.portfolio_datasource.munis,
-            self.portfolio_datasource.sovereigns,
-            self.portfolio_datasource.securitized,
-        )
+        self.sdg_datasource.iter()
 
     def iter_bloomberg(self) -> None:
         """
@@ -345,9 +342,6 @@ class Runner(object):
         Iterate over all companies
         """
         logging.log("Iterate Companies")
-
-        # attach sdg information
-        self.iter_sdg()
 
         # attach quandl information
         self.iter_quandl()

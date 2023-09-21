@@ -414,6 +414,7 @@ class PortfolioDataSource(ds.DataSources):
         securitized_mapping: dict,
         bclass_dict: dict,
         bloomberg_dict: dict,
+        sdg_dict: dict,
     ) -> None:
         """
         Iterate over portfolio holdings
@@ -434,6 +435,8 @@ class PortfolioDataSource(ds.DataSources):
             dictionary of all bclass objects
         bloomberg_dict: dict
             dictionary of bloomberg information
+        sdg_dict: dict
+            dictionary of iss information
         """
         logging.log("Iterate Holdings")
         for index, row in self.df.iterrows():
@@ -532,6 +535,15 @@ class PortfolioDataSource(ds.DataSources):
                 if not hasattr(parent_store, "bloomberg_information"):
                     parent_store.bloomberg_information = bbg_information
 
+            # attach bloomberg information
+            if row["ISS ISSUERID"] in sdg_dict:
+                iss_information = sdg_dict[row["ISS ISSUERID"]]
+                parent_store.sdg_information = iss_information
+            else:
+                iss_information = deepcopy(sdg_dict[np.nan])
+                if not hasattr(parent_store, "sdg_information"):
+                    parent_store.sdg_information = iss_information
+
             # attach security object, portfolio weight, OAS to portfolio
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
@@ -556,6 +568,7 @@ class PortfolioDataSource(ds.DataSources):
         self.companies["NoISIN"].bloomberg_information = deepcopy(
             bloomberg_dict[np.nan]
         )
+        self.companies["NoISIN"].sdg_information = deepcopy(sdg_dict[np.nan])
 
     def create_store(
         self,
