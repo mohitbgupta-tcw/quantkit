@@ -11,7 +11,7 @@ class SecuritizedStore(headstore.HeadStore):
     Parameters
     ----------
     isin: str
-        securitized's isin. NoISIN if no isin is available
+        securitized's isin
     """
 
     def __init__(self, isin: str, **kwargs) -> None:

@@ -11,7 +11,7 @@ class MuniStore(headstore.HeadStore):
     Parameters
     ----------
     isin: str
-        muni's isin. NoISIN if no isin is available
+        muni's isin
     """
 
     def __init__(self, isin: str, **kwargs) -> None:

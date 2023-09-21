@@ -168,8 +168,7 @@ class Runner(loader.Runner):
         and SClass_Level5 for each security rule based
         """
         for c in self.portfolio_datasource.companies:
-            if not self.portfolio_datasource.companies[c].isin == "NoISIN":
-                self.portfolio_datasource.companies[c].update_sclass()
+            self.portfolio_datasource.companies[c].update_sclass()
 
         for sov in self.portfolio_datasource.sovereigns:
             self.portfolio_datasource.sovereigns[sov].update_sclass()

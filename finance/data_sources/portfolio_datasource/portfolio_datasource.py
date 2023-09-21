@@ -117,7 +117,11 @@ class PortfolioDataSource(ds.DataSources):
                         ELSE sec.esg_collateral_type 
                     END 
                 ) AS "ESG Collateral Type", 
-                pos.isin AS "ISIN",
+                CASE
+                    WHEN pos.isin ='N/A' 
+                    THEN null
+                    ELSE pos.isin
+                END AS "ISIN",
                 CASE 
                     WHEN sec.issuer_esg ='NA ' 
                     OR sec.issuer_esg is null  
@@ -221,7 +225,11 @@ class PortfolioDataSource(ds.DataSources):
                         ELSE sec.esg_collateral_type 
                     END 
                 ) AS "ESG Collateral Type", 
-                bench.isin AS "ISIN",
+                CASE
+                    WHEN bench.isin ='N/A' 
+                    THEN null
+                    ELSE bench.isin
+                END AS "ISIN",
                 CASE 
                     WHEN sec.issuer_esg ='NA '
                     OR sec.issuer_esg IS null
@@ -319,22 +327,24 @@ class PortfolioDataSource(ds.DataSources):
 
     def transform_df(self) -> None:
         """
-        - replace NA's in ISIN with 'NoISIN'
+        - replace NA's in ISIN with Name of Cash
         - replace NA's in BCLASS_Level4 with 'Unassigned BCLASS'
         - change first letter of each word to upper, else lower case
         - replace NA's in several columns
         - replace NA's of MSCI ISSUERID by running MSCI API
         - reaplace transformation values
         """
-        self.datasource.df["ISIN"].fillna("NoISIN", inplace=True)
-        self.datasource.df["ISIN"].replace("--", "NoISIN", inplace=True)
-        self.datasource.df["ISIN"].replace("N/A", "NoISIN", inplace=True)
+        self.datasource.df.loc[
+            (self.datasource.df["ISIN"].isna())
+            & self.datasource.df["ISSUER_NAME"].isna(),
+            "ISIN",
+        ] = "Cash"
+        self.datasource.df["ISIN"].fillna(
+            self.datasource.df["ISSUER_NAME"], inplace=True
+        )
         self.datasource.df["BCLASS_Level4"] = self.datasource.df[
             "BCLASS_Level4"
         ].fillna("Unassigned BCLASS")
-        self.datasource.df["BCLASS_Level4"].replace(
-            "N/A", "Unassigned BCLASS", inplace=True
-        )
         self.datasource.df["BCLASS_Level4"] = self.datasource.df[
             "BCLASS_Level4"
         ].str.title()
@@ -413,9 +423,6 @@ class PortfolioDataSource(ds.DataSources):
 
         # save all securities that occur in portfolios to filter down security database later on
         self.all_holdings = list(self.df["ISIN"].unique())
-        self.all_holdings.append(
-            "NoISIN"
-        ) if "NoISIN" not in self.all_holdings else self.all_holdings
 
     def iter_holdings(
         self,
@@ -454,41 +461,6 @@ class PortfolioDataSource(ds.DataSources):
         for index, row in self.df.iterrows():
             pf = row["Portfolio"]  # portfolio id
             isin = row["ISIN"]  # security isin
-            # no ISIN for security (cash, swaps, etc.)
-            # --> create company object with name as identifier
-            if isin == "NoISIN":
-                if pd.isna(row["ISSUER_NAME"]):
-                    isin = "Cash"
-                else:
-                    isin = row["ISSUER_NAME"]
-                self.companies[isin] = self.companies.get(
-                    isin,
-                    comp.CompanyStore(
-                        isin,
-                        deepcopy(self.companies["NoISIN"].msci_information),
-                    ),
-                )
-                self.companies[isin].msci_information["ISSUER_NAME"] = isin
-                self.companies[isin].msci_information["ISSUER_TICKER"] = row[
-                    "Ticker Cd"
-                ]
-                # create security object if not there yet
-                securities[isin] = securities.get(
-                    isin,
-                    secs.SecurityStore(
-                        isin,
-                        {
-                            "ISSUERID": "NoISSUERID",
-                            "Security ISIN": isin,
-                            "ISIN": isin,
-                            "IssuerName": isin,
-                            "Security_Name": isin,
-                        },
-                    ),
-                )
-                # assign parent store and vice versa
-                securities[isin].add_parent(self.companies[isin])
-                self.companies[isin].add_security(isin, securities[isin])
 
             security_store = securities[isin]
             parent_store = security_store.parent_store
@@ -576,14 +548,6 @@ class PortfolioDataSource(ds.DataSources):
 
             # attach portfolio to security
             security_store.portfolio_store[pf] = self.portfolios[pf]
-
-        self.companies["NoISIN"].information["BCLASS_Level4"] = bclass_dict[
-            "Unassigned BCLASS"
-        ]
-        self.companies["NoISIN"].bloomberg_information = deepcopy(
-            bloomberg_dict[np.nan]
-        )
-        self.companies["NoISIN"].sdg_information = deepcopy(sdg_dict[np.nan])
 
     def create_store(
         self,

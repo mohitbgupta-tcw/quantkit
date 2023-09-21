@@ -114,18 +114,6 @@ class SecurityDataSource(object):
             axis=1,
         )
 
-        # add NoISIN row to df
-        df_NoISIN = pd.DataFrame(
-            {
-                "ISIN": ["NoISIN"],
-                "Security ISIN": ["NoISIN"],
-                "IssuerName": ["NoISIN"],
-                "ISSUERID": ["NoISSUERID"],
-            }
-        )
-        df_ = pd.concat([df_, df_NoISIN], ignore_index=True)
-        df_.reset_index()
-
         self.df_ = df_
 
     def iter(

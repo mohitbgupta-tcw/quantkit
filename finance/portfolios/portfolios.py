@@ -74,14 +74,12 @@ class PortfolioStore(object):
         initial_weight_sov = 0
         for s in self.holdings:
             t = self.holdings[s]["object"].parent_store.type
-            isin = self.holdings[s]["object"].parent_store.msci_information[
-                "ISSUER_ISIN"
-            ]
-            if t == "company" and not isin == "NoISIN":
+            s1 = self.holdings[s]["object"].parent_store.information["Sector_Level_1"]
+            if t == "company" and not s1 == "Cash and Other":
                 for h in self.holdings[s]["holding_measures"]:
                     total_mkt_value += h["Base Mkt Val"]
                     initial_weight += h["Portfolio_Weight"]
-            elif t == "sovereign" and not isin == "NoISIN":
+            elif t == "sovereign" and not s1 == "Cash and Other":
                 for h in self.holdings[s]["holding_measures"]:
                     total_mkt_value_sov += h["Base Mkt Val"]
                     initial_weight_sov += h["Portfolio_Weight"]

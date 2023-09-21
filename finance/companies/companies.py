@@ -17,7 +17,7 @@ class CompanyStore(headstore.HeadStore):
     Parameters
     ----------
     isin: str
-        company's isin. NoISIN if no isin is available
+        company's isin
     row_data: pd.Series
         company information derived from MSCI
     """
@@ -285,7 +285,7 @@ class CompanyStore(headstore.HeadStore):
         -----
             - Sector Level 2 in excemption list
             - BCLASS is Treasury
-            - ISIN is NoISIN
+            - Sector Level 1 is Cash
 
         Returns
         -------
@@ -293,16 +293,19 @@ class CompanyStore(headstore.HeadStore):
             security is non applicable
         """
         sector_level2 = ["Cash and Other"]
+        sector_level1 = ["Cash and Other"]
 
         if self.information["Sector_Level_2"] in sector_level2:
             return True
         elif self.information["BCLASS_Level4"].class_name == "Treasury":
             return True
-        elif self.msci_information["ISSUER_ISIN"] == "NoISIN":
+        elif self.information["Sector_Level_1"] == sector_level1:
             return True
         elif "TCW" in self.msci_information["ISSUER_NAME"]:
             return True
         elif " ETF " in self.msci_information["ISSUER_NAME"]:
+            return True
+        elif self.isin[:16] == "MKT VALUE ADJUST":
             return True
         return False
 
@@ -580,7 +583,7 @@ class CompanyStore(headstore.HeadStore):
         parent_id = self.msci_information["PARENT_ULTIMATE_ISSUERID"]
 
         # find parent store
-        parent = "NoISIN"
+        parent = "Cash"
         for c, comp_store in companies.items():
             if comp_store.msci_information["ISSUERID"] == parent_id:
                 parent = c

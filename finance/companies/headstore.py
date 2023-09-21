@@ -19,7 +19,7 @@ class HeadStore(object):
     Parameters
     ----------
     isin: str
-        company's isin. NoISIN if no isin is available
+        company's isin
     """
 
     def __init__(self, isin: str, **kwargs) -> None:

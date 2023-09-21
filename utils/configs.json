@@ -50,6 +50,10 @@
                 "BCLASS_Level2": "Sovereign",
                 "BCLASS_Level3": "Sovereign", 
                 "BCLASS_Level4": "Sovereign"
+            },
+            "HOMER CITY HOLDINGS LLC (PLACEHOLDER)": {
+                "Sector Level 1": "Cash and Other", 
+                "Sector Level 2": "Cash and Other"
             }
         }
     },
