@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ridge regression calculation 
 - test folder for mathstats
 - overwrite history function for Snowflake
+- handyman function for unadjusted scores
 ### Fixed
 
 ### Changed
