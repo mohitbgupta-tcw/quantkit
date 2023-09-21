@@ -228,6 +228,7 @@ class Runner(object):
 
         # load adjustment data
         self.adjustment_datasource.load()
+        self.adjustment_datasource.iter()
 
         # load exclusion data
         self.exclusion_datasource.load()
@@ -239,7 +240,6 @@ class Runner(object):
             companies=self.portfolio_datasource.companies,
             df_portfolio=self.portfolio_datasource.df,
             msci_df=self.msci_datasource.df,
-            adjustment_df=self.adjustment_datasource.df,
         )
 
     def iter_securitized_mapping(self) -> None:
@@ -263,6 +263,7 @@ class Runner(object):
             securities=self.security_datasource.securities,
             securitized_mapping=self.securitized_datasource.securitized_mapping,
             bclass_dict=self.bclass_datasource.bclass,
+            sec_adjustment_dict=self.adjustment_datasource.security_isins,
             bloomberg_dict=self.bloomberg_datasource.bloomberg,
             sdg_dict=self.sdg_datasource.sdg,
         )
@@ -306,7 +307,7 @@ class Runner(object):
             self.portfolio_datasource.sovereigns[s].iter(
                 regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
-                adjustment_df=self.adjustment_datasource.df,
+                msci_adjustment_dict=self.adjustment_datasource.msci_ids,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
             )
@@ -362,7 +363,7 @@ class Runner(object):
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
                 category_d=self.category_datasource.categories,
-                adjustment_df=self.adjustment_datasource.df,
+                msci_adjustment_dict=self.adjustment_datasource.msci_ids,
                 themes=self.theme_datasource.themes,
             )
 

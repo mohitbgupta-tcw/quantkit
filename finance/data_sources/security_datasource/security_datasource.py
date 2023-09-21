@@ -128,32 +128,12 @@ class SecurityDataSource(object):
 
         self.df_ = df_
 
-    def issuer_ids(self, securities: list) -> list:
-        """
-        For a list of isin's, return the corresponding MSCI ISSUERIDs
-
-        Parameters
-        ----------
-        securities: list
-            list of all security isins in portfolios
-
-        Returns
-        -------
-        list
-            list of all msci issuer ids for isin's in security list
-        """
-        df_ = self.df[self.df["Security ISIN"].isin(securities)]
-        ii = list(df_["ISSUERID"].unique())
-        ii.remove("NoISSUERID")
-        return ii
-
     def iter(
         self,
         securities: list,
         companies: dict,
         df_portfolio: pd.DataFrame,
         msci_df: pd.DataFrame,
-        adjustment_df: pd.DataFrame,
     ) -> None:
         """
         - create Company object for each security with key ISIN
@@ -171,8 +151,6 @@ class SecurityDataSource(object):
             portfolio DataFrame with all holdings
         msci_df: pd.DataFrame
             DataFrame with all MSCI information
-        adjustment_df: pd.DataFrame
-            DataFrame with analyst adjustment information
         """
         df_ = self.df[self.df["Security ISIN"].isin(securities)]
 
@@ -210,9 +188,6 @@ class SecurityDataSource(object):
             # attach security to company and vice versa
             companies[issuer].add_security(sec, self.securities[sec])
             self.securities[sec].parent_store = companies[issuer]
-
-            # attach adjustment
-            self.attach_analyst_adjustment(issuer, sec, companies, adjustment_df)
 
     def create_security_store(
         self, security_isin: str, security_information: dict
@@ -304,36 +279,6 @@ class SecurityDataSource(object):
             msci_information["ISSUER_ISIN"] = security_information["ISIN"]
             msci_information["ISSUER_TICKER"] = security_information["Ticker"]
         return msci_information
-
-    def attach_analyst_adjustment(
-        self,
-        company_isin: str,
-        security_isin: str,
-        companies: dict,
-        adjustment_df: pd.DataFrame,
-    ) -> None:
-        """
-        Attach Analyst Adjustment to company
-        Adjustment in adjustment_df is on security level
-
-        Parameters
-        ----------
-        company_isin: str
-            isin of company
-        security_isin: str
-            isin of security
-        companies: dict
-            dictionary of all company objects
-        adjustment_df: pd.DataFrame
-            DataFrame with analyst adjustment information
-        """
-        adj_df = adjustment_df[adjustment_df["ISIN"] == security_isin]
-        if not adj_df.empty:
-            companies[company_isin].Adjustment = pd.concat(
-                [companies[company_isin].Adjustment, adj_df],
-                ignore_index=True,
-                sort=False,
-            )
 
     @property
     def df(self) -> pd.DataFrame:

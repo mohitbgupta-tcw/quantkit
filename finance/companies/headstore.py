@@ -53,14 +53,11 @@ class HeadStore(object):
         self.scores["Governance_Flags"] = dict()
         self.scores["NA_Flags_ESRM"] = dict()
         self.scores["NA_Flags_Governance"] = dict()
-        self.Adjustment = pd.DataFrame(
-            columns=["Thematic Type", "Category", "Adjustment"]
-        )
+        self.Adjustment = list()
         self.Exclusion = pd.DataFrame()
         self.information["Exclusion_d"] = dict()
         self.information["Exclusion"] = []
         self.information["Sector_Level_2"] = np.nan
-        self.information["IVA_COMPANY_RATING"] = np.nan
 
     def add_security(
         self,
@@ -120,25 +117,20 @@ class HeadStore(object):
         self.information["Issuer_Country"] = regions[country]
         regions[country].add_company(self.isin, self)
 
-    def attach_analyst_adjustment(self, adjustment_df: pd.DataFrame) -> None:
+    def attach_analyst_adjustment(self, msci_adjustment_dict: dict) -> None:
         """
         Attach analyst adjustment to company object
         Link to adjustment datasource by MSCI issuer id
 
         Parameters
         ----------
-        adjustment_df: pd.Dataframe
-            DataFrame of Analyst Adjustments
+        msci_adjustment_dict: dict
+            dictionary of Analyst Adjustments
         """
         # attach analyst adjustment
         msci_issuerid = self.msci_information["ISSUERID"]
-        adj_df = adjustment_df[adjustment_df["ISIN"] == msci_issuerid]
-        if not adj_df.empty:
-            self.Adjustment = pd.concat(
-                [self.Adjustment, adj_df],
-                ignore_index=True,
-                sort=False,
-            )
+        if msci_issuerid in msci_adjustment_dict:
+            self.Adjustment = msci_adjustment_dict[msci_issuerid]
 
     def iter_analyst_adjustment(self, themes: dict) -> None:
         """
@@ -156,11 +148,11 @@ class HeadStore(object):
             dictionary of all themes
         """
         # check for analyst adjustment
-        for index, row in self.Adjustment.iterrows():
-            thematic_type = row["Thematic Type"]
-            cat = row["Category"]
-            a = row["Adjustment"]
-            comment = row["Comments"]
+        for adj in self.Adjustment:
+            thematic_type = adj["Thematic Type"]
+            cat = adj["Category"]
+            a = adj["Adjustment"]
+            comment = adj["Comments"]
             func_ = getattr(adjustment, thematic_type)
             func_(
                 store=self,

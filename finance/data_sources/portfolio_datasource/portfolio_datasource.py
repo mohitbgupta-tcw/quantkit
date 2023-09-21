@@ -422,6 +422,7 @@ class PortfolioDataSource(ds.DataSources):
         securities: dict,
         securitized_mapping: dict,
         bclass_dict: dict,
+        sec_adjustment_dict: dict,
         bloomberg_dict: dict,
         sdg_dict: dict,
     ) -> None:
@@ -442,6 +443,8 @@ class PortfolioDataSource(ds.DataSources):
             mapping for ESG Collat Type
         bclass_dict: dict
             dictionary of all bclass objects
+        sec_adjustment_dict: dict
+            dictionary with analyst adjustment information
         bloomberg_dict: dict
             dictionary of bloomberg information
         sdg_dict: dict
@@ -535,6 +538,9 @@ class PortfolioDataSource(ds.DataSources):
             # attach BCLASS object
             self.attach_bclass(parent_store, row["BCLASS_Level4"], bclass_dict)
 
+            # attach adjustment
+            self.attach_analyst_adjustment(parent_store, isin, sec_adjustment_dict)
+
             # attach bloomberg information
             if row["BBG ISSUERID"] in bloomberg_dict:
                 bbg_information = bloomberg_dict[row["BBG ISSUERID"]]
@@ -544,7 +550,7 @@ class PortfolioDataSource(ds.DataSources):
                 if not hasattr(parent_store, "bloomberg_information"):
                     parent_store.bloomberg_information = bbg_information
 
-            # attach bloomberg information
+            # attach iss information
             if row["ISS ISSUERID"] in sdg_dict:
                 iss_information = sdg_dict[row["ISS ISSUERID"]]
                 parent_store.sdg_information = iss_information
@@ -651,6 +657,28 @@ class PortfolioDataSource(ds.DataSources):
         if not (bclass_object.class_name == "Unassigned BCLASS"):
             parent_store.information["BCLASS_Level4"] = bclass_object
             bclass_object.companies[parent_store.isin] = parent_store
+
+    def attach_analyst_adjustment(
+        self,
+        parent_store,
+        security_isin: str,
+        sec_adjustment_dict: dict,
+    ) -> None:
+        """
+        Attach Analyst Adjustment to company
+        Adjustment in sec_adjustment_dict is on security level
+
+        Parameters
+        ----------
+        parent_store: CompanyStore | MuniStore | SovereignStore | SecuritizedStore
+            store object of parent
+        security_isin: str
+            isin of security
+        sec_adjustment_dict: dict
+            dictionary with analyst adjustment information
+        """
+        if security_isin in sec_adjustment_dict:
+            parent_store.Adjustment = sec_adjustment_dict[security_isin]
 
     @property
     def all_msci_ids(self):

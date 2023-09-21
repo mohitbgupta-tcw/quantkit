@@ -638,7 +638,7 @@ class CompanyStore(headstore.HeadStore):
         regions_df: pd.DataFrame,
         regions: dict,
         exclusion_df: pd.DataFrame,
-        adjustment_df: pd.DataFrame,
+        msci_adjustment_dict: pd.DataFrame,
         gics_d: dict,
         bclass_d: dict,
         category_d: dict,
@@ -665,8 +665,8 @@ class CompanyStore(headstore.HeadStore):
             dictionary of all region objects
         exclusion_df: pd.DataFrame
             DataFrame of Exclusions
-        adjustment_df: pd.Dataframe
-            DataFrame of Analyst Adjustments
+        msci_adjustment_dict: dict
+            dictionary of Analyst Adjustments
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
         bclass_d: dict
@@ -703,7 +703,7 @@ class CompanyStore(headstore.HeadStore):
         self.attach_category(category_d)
 
         # attach analyst adjustment
-        self.attach_analyst_adjustment(adjustment_df)
+        self.attach_analyst_adjustment(msci_adjustment_dict)
 
         # calculate capex
         self.calculate_capex()

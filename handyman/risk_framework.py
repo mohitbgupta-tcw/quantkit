@@ -178,7 +178,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "PROD_SFTY_QUALITY_EXP_SCORE": comp_store.msci_information[
                         "PROD_SFTY_QUALITY_EXP_SCORE"
                     ],
-                    "IVA_COMPANY_RATING": comp_store.information["IVA_COMPANY_RATING"],
+                    "IVA_COMPANY_RATING": comp_store.msci_information[
+                        "IVA_COMPANY_RATING"
+                    ],
                     "OVERALL_FLAG": comp_store.msci_information["OVERALL_FLAG"],
                     "UNGC_COMPLIANCE": comp_store.msci_information["UNGC_COMPLIANCE"],
                     "Governance Score": comp_store.scores["Governance_Score"],
