@@ -8,12 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Fixed
+### Changed
+### Removed
+
+## [1.1.1] - 2023-09-21
+### Added
 - Pick-All strategy
 - OLS linear regression calculation 
 - ridge regression calculation 
 - test folder for mathstats
 - overwrite history function for Snowflake
 - handyman function for unadjusted scores
+
 ### Fixed
 
 ### Changed
@@ -105,6 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.1.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.1
 [1.1.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.0
 [1.0.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.1
 [1.0.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.0
