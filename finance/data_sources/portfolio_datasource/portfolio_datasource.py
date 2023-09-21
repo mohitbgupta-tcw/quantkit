@@ -323,6 +323,8 @@ class PortfolioDataSource(ds.DataSources):
         - replace NA's in BCLASS_Level4 with 'Unassigned BCLASS'
         - change first letter of each word to upper, else lower case
         - replace NA's in several columns
+        - replace NA's of MSCI ISSUERID by running MSCI API
+        - reaplace transformation values
         """
         self.datasource.df["ISIN"].fillna("NoISIN", inplace=True)
         self.datasource.df["ISIN"].replace("--", "NoISIN", inplace=True)
@@ -378,6 +380,13 @@ class PortfolioDataSource(ds.DataSources):
             "MSCI ISSUERID"
         ].fillna(self.datasource.df["ISSUERID"])
         self.datasource.df = self.datasource.df.drop(["Client_ID", "ISSUERID"], axis=1)
+
+        if self.params.get("transformation"):
+            for sec, trans in self.params["transformation"].items():
+                for col, col_value in trans.items():
+                    self.datasource.df.loc[
+                        self.datasource.df["ISIN"] == sec, col
+                    ] = col_value
 
     def iter(self) -> None:
         """

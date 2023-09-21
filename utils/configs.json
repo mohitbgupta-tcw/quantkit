@@ -40,7 +40,18 @@
         "table_name": "POSITION_VW",
         "database": "TCW_CORE_DEV",
         "schema": "TCW",
-        "load": true
+        "load": true,
+        "transformation": {
+            "XS2403443786": {"TCW ESG": "TCW Social"},
+            "USU35914AA51": {
+                "Labeled ESG Type": null, 
+                "Sector Level 1": "Government Related", 
+                "Sector Level 2": "Sovereign", 
+                "BCLASS_Level2": "Sovereign",
+                "BCLASS_Level3": "Sovereign", 
+                "BCLASS_Level4": "Sovereign"
+            }
+        }
     },
 
     "category_datasource": {
