@@ -48,7 +48,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "Issuer Name": comp_store.msci_information["ISSUER_NAME"],
                     "Ticker": comp_store.msci_information["ISSUER_TICKER"],
                     "CUSIP": comp_store.msci_information["ISSUER_CUSIP"],
-                    "Country of Risk": sec_store.information["Country_of_Risk"],
+                    "Country of Risk": sec_store.information["Country of Risk"],
                     "Analyst": comp_store.information["Sub-Industry"].information[
                         "Analyst"
                     ],
@@ -60,12 +60,12 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "CARBON_EMISSIONS_SCOPE_12_INTEN": comp_store.msci_information[
                         "CARBON_EMISSIONS_SCOPE_12_INTEN"
                     ],
-                    "Labeled ESG Type": sec_store.information["Labeled_ESG_Type"],
+                    "Labeled ESG Type": sec_store.information["Labeled ESG Type"],
                     "Sector Level 2": comp_store.information["Sector_Level_2"],
-                    "ESG Collateral Type": sec_store.information["ESG_Collateral_Type"][
+                    "ESG Collateral Type": sec_store.information["ESG Collateral Type"][
                         "ESG Collat Type"
                     ],
-                    "JPM Sector": sec_store.information["JPM_Sector"],
+                    "JPM Sector": sec_store.information["JPM Sector"],
                     "Industry": comp_store.information["Industry"].name,
                     "BCLASS_Level2": sec_store.information["BCLASS_Level2"],
                     "BCLASS_Level3": sec_store.information["BCLASS_Level3"],
@@ -304,7 +304,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     port_store.id in r.params["A8Funds"]
                     and "Article 8" in comp_store.information["Exclusion"]
                     and not (
-                        sec_store.information["Labeled_ESG_Type"]
+                        sec_store.information["Labeled ESG Type"]
                         in [
                             "Labeled Green",
                             "Labeled Social",
@@ -324,7 +324,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     port_store.id in r.params["A9Funds"]
                     and "Article 9" in comp_store.information["Exclusion"]
                     and not (
-                        sec_store.information["Labeled_ESG_Type"]
+                        sec_store.information["Labeled ESG Type"]
                         in [
                             "Labeled Green",
                             "Labeled Social",
@@ -427,17 +427,8 @@ def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     portfolio_df["OAS"] = np.nan
     portfolio_df = portfolio_df.to_json(orient="index")
 
-    # create msci mapping file
-    msci_df = msci_data_loaders.create_msci_mapping(
-        isin_list=isin_list, local_configs=local_configs
-    )
-    msci_df = msci_df.to_json(orient="index")
-
     configs_overwrite = {
-        "portfolio_datasource": {"source": 6, "json_str": portfolio_df},
-        "security_datasource": {
-            "msci": {"source": 6, "json_str": msci_df},
-        },
+        "portfolio_datasource": {"source": 6, "json_str": portfolio_df}
     }
 
     if os.path.isfile(local_configs):

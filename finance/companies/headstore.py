@@ -62,11 +62,7 @@ class HeadStore(object):
     def add_security(
         self,
         isin: str,
-        store: Union[
-            securities.EquityStore,
-            securities.FixedIncomeStore,
-            securities.SecurityStore,
-        ],
+        store: securities.SecurityStore,
     ) -> None:
         """
         Add security object to parent.
@@ -76,7 +72,7 @@ class HeadStore(object):
         ----------
         isin: str
             security's isin
-        store: securities.EquityStore | securities.FixedIncomeStore | securities.SecurityStore:
+        store: SecurityStore
             security store of new security
         """
         self.securities[isin] = store
@@ -113,6 +109,8 @@ class HeadStore(object):
         # if issuer country is country name, map to ISO2
         # attach region object to company
         country = self.msci_information["ISSUER_CNTRY_DOMICILE"]
+        if pd.isna(self.msci_information["ISSUER_CNTRY_DOMICILE"]):
+            country = "US"
         country = temp_regions.get(country, country)
         self.information["Issuer_Country"] = regions[country]
         regions[country].add_company(self.isin, self)

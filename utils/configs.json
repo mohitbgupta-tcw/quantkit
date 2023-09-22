@@ -65,20 +65,6 @@
         "schema": "ESG",
         "load": true 
     },
-
-    "security_datasource": {
-        "iss": {        
-            "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230703.csv",
-            "load": true
-        },
-        "msci": {
-            "source": 1,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Portfolio_Data.xlsx",
-            "sheet_name": "Mapping",
-            "load": true
-        }
-    },
     "bloomberg_datasource": {
         "source": 3,
         "table_name": "BLOOMBERG_DATA",

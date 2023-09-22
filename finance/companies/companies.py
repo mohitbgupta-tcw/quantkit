@@ -301,9 +301,9 @@ class CompanyStore(headstore.HeadStore):
             return True
         elif self.information["Sector_Level_1"] == sector_level1:
             return True
-        elif "TCW" in self.msci_information["ISSUER_NAME"]:
+        elif "TCW" in self.information["Security_Name"]:
             return True
-        elif " ETF " in self.msci_information["ISSUER_NAME"]:
+        elif " ETF " in self.information["Security_Name"]:
             return True
         elif self.isin[:16] == "MKT VALUE ADJUST":
             return True
@@ -526,7 +526,7 @@ class CompanyStore(headstore.HeadStore):
         transition_tag = self.scores["Transition_Tag"]
         sustainability_tag = self.scores["Sustainability_Tag"]
         for sec, sec_store in self.securities.items():
-            labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
+            labeled_bond_tag = sec_store.information["Labeled ESG Type"]
             sec_store.level_5()
 
             if governance_score == 5:

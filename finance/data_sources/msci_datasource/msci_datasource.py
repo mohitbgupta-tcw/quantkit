@@ -68,7 +68,7 @@ class MSCIDataSource(ds.DataSources):
 
         # --> not every company has these information, so create empty df with NA's for those
         empty_msci = pd.Series(np.nan, index=self.df.columns).to_dict()
-        self.msci[np.nan] = deepcopy(empty_msci)
+        self.msci["NoISSUERID"] = deepcopy(empty_msci)
 
     @property
     def df(self) -> pd.DataFrame:

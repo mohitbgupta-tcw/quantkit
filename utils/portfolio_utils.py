@@ -436,6 +436,7 @@ def calculate_sector_distribution(df: pd.DataFrame) -> pd.DataFrame:
     )
     df_filtered = df_filtered.sort_values("Contribution", ascending=False)
     df_filtered = df_filtered[["JPM Sector", "Contribution"]]
+    df_filtered["JPM Sector"] = df_filtered["JPM Sector"].str.title()
     return df_filtered
 
 

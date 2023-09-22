@@ -2,6 +2,7 @@ import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import quantkit.finance.portfolios.portfolios as portfolios
 import quantkit.finance.companies.companies as comp
+import quantkit.finance.securities.securities as securitites
 import quantkit.finance.securities.securities as secs
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.utils.mapping_configs as mapping_configs
@@ -39,8 +40,8 @@ class PortfolioDataSource(ds.DataSources):
             security esg type
         Loan Category: str
             loan category
-        ISSUER_NAME: str
-            name of issuer
+        Security_Name: str
+            name of security
         TCW ESG: str
             ESG label of TCW
         Ticker Cd: str
@@ -76,6 +77,7 @@ class PortfolioDataSource(ds.DataSources):
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.portfolios = dict()
+        self.securities = dict()
         self.companies = dict()
         self.munis = dict()
         self.sovereigns = dict()
@@ -134,7 +136,7 @@ class PortfolioDataSource(ds.DataSources):
                     THEN null 
                     ELSE sec.labeled_esg_type 
                 END AS "Labeled ESG Type",
-                sec.security_name AS "ISSUER_NAME",
+                sec.security_name AS "Security_Name",
                 CASE 
                     WHEN sec.tcw_esg_type = 'None' 
                     THEN null 
@@ -159,7 +161,11 @@ class PortfolioDataSource(ds.DataSources):
                     THEN 'Unassigned BCLASS' 
                     ELSE sec.bclass_level4 
                 END AS "BCLASS_Level4",
-                sec.em_country_of_risk_name AS "Country of Risk",
+                CASE 
+                    WHEN sec.em_country_of_risk_name is null 
+                    THEN sec.country_of_risk_name 
+                    ELSE sec.em_country_of_risk_name 
+                END AS "Country of Risk",
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
                 sec.issuer_id_bbg AS "BBG ISSUERID",
@@ -242,7 +248,7 @@ class PortfolioDataSource(ds.DataSources):
                     THEN null 
                     ELSE sec.labeled_esg_type 
                 END AS "Labeled ESG Type",
-                sec.security_name AS "ISSUER_NAME",
+                sec.security_name AS "Security_Name",
                 CASE 
                     WHEN sec.tcw_esg_type = 'None' 
                     THEN null 
@@ -267,7 +273,11 @@ class PortfolioDataSource(ds.DataSources):
                     THEN 'Unassigned BCLASS' 
                     ELSE sec.bclass_level4 
                 END AS "BCLASS_Level4",
-                sec.em_country_of_risk_name AS "Country of Risk",
+                CASE 
+                    WHEN sec.em_country_of_risk_name is null 
+                    THEN sec.country_of_risk_name 
+                    ELSE sec.em_country_of_risk_name 
+                END AS "Country of Risk",
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
                 sec.issuer_id_bbg AS "BBG ISSUERID",
@@ -336,11 +346,17 @@ class PortfolioDataSource(ds.DataSources):
         """
         self.datasource.df.loc[
             (self.datasource.df["ISIN"].isna())
-            & self.datasource.df["ISSUER_NAME"].isna(),
+            & self.datasource.df["Security_Name"].isna(),
             "ISIN",
         ] = "Cash"
         self.datasource.df["ISIN"].fillna(
-            self.datasource.df["ISSUER_NAME"], inplace=True
+            self.datasource.df["Security_Name"], inplace=True
+        )
+        self.datasource.df["Security_Name"].fillna(
+            self.datasource.df["ISIN"], inplace=True
+        )
+        self.datasource.df["Issuer ISIN"].fillna(
+            self.datasource.df["ISIN"], inplace=True
         )
         self.datasource.df["BCLASS_Level4"] = self.datasource.df[
             "BCLASS_Level4"
@@ -391,6 +407,10 @@ class PortfolioDataSource(ds.DataSources):
         ].fillna(self.datasource.df["ISSUERID"])
         self.datasource.df = self.datasource.df.drop(["Client_ID", "ISSUERID"], axis=1)
 
+        self.datasource.df["MSCI ISSUERID"].fillna("NoISSUERID", inplace=True)
+        self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)
+        self.datasource.df["ISS ISSUERID"].fillna("NoISSUERID", inplace=True)
+
         if self.params.get("transformation"):
             for sec, trans in self.params["transformation"].items():
                 for col, col_value in trans.items():
@@ -407,6 +427,7 @@ class PortfolioDataSource(ds.DataSources):
             - add holdings df
         - save all held securities
         """
+        self.all_tickers = list(self.df["Ticker Cd"].unique())
         for index, row in (
             self.df[["As Of Date", "Portfolio", "Portfolio Name"]]
             .drop_duplicates()
@@ -426,12 +447,12 @@ class PortfolioDataSource(ds.DataSources):
 
     def iter_holdings(
         self,
-        securities: dict,
         securitized_mapping: dict,
         bclass_dict: dict,
         sec_adjustment_dict: dict,
         bloomberg_dict: dict,
         sdg_dict: dict,
+        msci_dict: dict,
     ) -> None:
         """
         Iterate over portfolio holdings
@@ -444,8 +465,6 @@ class PortfolioDataSource(ds.DataSources):
 
         Parameters
         ----------
-        securities: dict
-            dictionary of all security objects
         securitized_mapping: dict
             mapping for ESG Collat Type
         bclass_dict: dict
@@ -456,28 +475,62 @@ class PortfolioDataSource(ds.DataSources):
             dictionary of bloomberg information
         sdg_dict: dict
             dictionary of iss information
+        msci_dict: dict
+            dictionary of msci information
         """
         logging.log("Iterate Holdings")
         for index, row in self.df.iterrows():
-            pf = row["Portfolio"]  # portfolio id
-            isin = row["ISIN"]  # security isin
+            sec_info = (
+                row[
+                    [
+                        "ESG Collateral Type",
+                        "ISIN",
+                        "Issuer ESG",
+                        "Loan Category",
+                        "Labeled ESG Type",
+                        "Security_Name",
+                        "TCW ESG",
+                        "Ticker Cd",
+                        "Sector Level 1",
+                        "Sector Level 2",
+                        "BCLASS_Level4",
+                        "MSCI ISSUERID",
+                        "ISS ISSUERID",
+                        "BBG ISSUERID",
+                        "Issuer ISIN",
+                        "BCLASS_Level2",
+                        "BCLASS_Level3",
+                        "JPM Sector",
+                        "Country of Risk",
+                    ]
+                ]
+                .squeeze()
+                .to_dict()
+            )
 
-            security_store = securities[isin]
+            pf = row["Portfolio"]  # portfolio id
+            isin = sec_info["ISIN"]  # security isin
+
+            # get MSCI information
+            msci_information = self.create_msci_information(sec_info, msci_dict)
+
+            # create security store
+            self.create_security_store(isin, sec_info)
+            security_store = self.securities[isin]
+
+            # create company object
+            issuer = sec_info["ISIN"]
+            self.create_company_store(issuer, msci_information)
+
+            # attach security to company and vice versa
+            self.companies[issuer].add_security(isin, security_store)
+            security_store.parent_store = self.companies[issuer]
+
             parent_store = security_store.parent_store
 
-            # attach information to security
-            security_store.information["ESG_Collateral_Type"] = securitized_mapping[
+            security_store.information["ESG Collateral Type"] = securitized_mapping[
                 row["ESG Collateral Type"]
             ]
-            security_store.information["Labeled_ESG_Type"] = row["Labeled ESG Type"]
-            security_store.information["TCW_ESG"] = row["TCW ESG"]
-            security_store.information["Issuer_ESG"] = row["Issuer ESG"]
-            security_store.information["JPM_Sector"] = row["JPM Sector"]
-            security_store.information["Country_of_Risk"] = row["Country of Risk"]
-            security_store.information["BCLASS_Level2"] = row["BCLASS_Level2"]
-            security_store.information["BCLASS_Level3"] = row["BCLASS_Level3"]
-            if not pd.isna(row["ISSUER_NAME"]):
-                security_store.information["Security_Name"] = row["ISSUER_NAME"]
 
             # attach information to security's company
             # create new objects for Muni, Sovereign and Securitized
@@ -549,6 +602,25 @@ class PortfolioDataSource(ds.DataSources):
             # attach portfolio to security
             security_store.portfolio_store[pf] = self.portfolios[pf]
 
+    def create_security_store(
+        self, security_isin: str, security_information: dict
+    ) -> None:
+        """
+        create security store
+
+        Parameters
+        ----------
+        security isin: str
+            isin of security
+        security_information: dict
+            dictionary of information about the security
+        """
+        if not security_isin in self.securities:
+            security_store = securitites.SecurityStore(
+                isin=security_isin, information=security_information
+            )
+            self.securities[security_isin] = security_store
+
     def create_store(
         self,
         security_store: secs.SecurityStore,
@@ -571,7 +643,7 @@ class PortfolioDataSource(ds.DataSources):
             dictionary of all company objects
         """
         parent_store = security_store.parent_store
-        security_isin = security_store.information["Security ISIN"]
+        security_isin = security_store.information["ISIN"]
         issuer_isin = parent_store.isin
         class_ = mapping_configs.security_type_mapping[check_type]
         all_parents[issuer_isin] = all_parents.get(issuer_isin, class_(issuer_isin))
@@ -585,6 +657,33 @@ class PortfolioDataSource(ds.DataSources):
         parent_store.add_security(security_isin, security_store)
         parent_store.Adjustment = adj_df
         security_store.add_parent(parent_store)
+
+    def create_company_store(self, company_isin: str, msci_information: dict) -> None:
+        """
+        Create company object with msci information
+
+        Parameters
+        ----------
+        company_isin: str
+            isin of company
+        companies: dict
+            dictionary of all company objects
+        msci_information: dict
+            dictionary of msci information on company level
+        """
+        # company object could already be there if company has more than 1 security
+        if company_isin in self.companies:
+            # assign msci data for missing values
+            for val in msci_information:
+                if pd.isna(self.companies[company_isin].msci_information[val]):
+                    self.companies[company_isin].msci_information[
+                        val
+                    ] = msci_information[val]
+        else:
+            self.companies[company_isin] = comp.CompanyStore(
+                isin=company_isin,
+                row_data=msci_information,
+            )
 
     def attach_bclass(self, parent_store, bclass4: str, bclass_dict: dict) -> None:
         """
@@ -621,6 +720,35 @@ class PortfolioDataSource(ds.DataSources):
         if not (bclass_object.class_name == "Unassigned BCLASS"):
             parent_store.information["BCLASS_Level4"] = bclass_object
             bclass_object.companies[parent_store.isin] = parent_store
+
+    def create_msci_information(
+        self, security_information: dict, msci_dict: dict
+    ) -> dict:
+        """
+        Get MSCI information of company
+
+        Parameters
+        ----------
+        security_information: dict
+            dictionary of information about the security
+        msci_dict: dict
+            dictionary of all MSCI information
+
+        Returns
+        -------
+        dict
+            dictionary of MSCI information
+        """
+        issuer_id = security_information["MSCI ISSUERID"]
+
+        issuer_dict = msci_dict[issuer_id]
+        issuer_isin = issuer_dict["ISSUER_ISIN"]
+        if not pd.isna(issuer_isin):
+            security_information["Issuer_ISIN"] = issuer_isin
+        else:
+            issuer_dict["ISSUER_ISIN"] = security_information["ISIN"]
+            issuer_dict["ISSUER_NAME"] = security_information["Security_Name"]
+        return issuer_dict
 
     def attach_analyst_adjustment(
         self,

@@ -27,11 +27,6 @@ class SecurityStore(object):
         self.portfolio_store = dict()
         self.scores = dict()
 
-        self.information["ESG_Collateral_Type"] = dict()
-        self.information["Labeled_ESG_Type"] = np.nan
-        self.information["TCW_ESG"] = np.nan
-        self.information["Issuer_ESG"] = "No"
-        self.information["Security_Name"] = ""
         self.scores["Securitized_Score"] = 0
         self.scores["Securitized_Score_unadjusted"] = 0
         self.scores["Risk_Score_Overall"] = "Poor Risk Score"
@@ -76,7 +71,7 @@ class SecurityStore(object):
         """
         Set SClass Level 5 as ESG Collat Type
         """
-        self.information["SClass_Level5"] = self.information["ESG_Collateral_Type"][
+        self.information["SClass_Level5"] = self.information["ESG Collateral Type"][
             "ESG Collat Type"
         ]
 
@@ -147,13 +142,13 @@ class SecurityStore(object):
         """
         Set SClass Levels for securities with collat type
         """
-        self.information["SClass_Level4-P"] = self.information["ESG_Collateral_Type"][
+        self.information["SClass_Level4-P"] = self.information["ESG Collateral Type"][
             "Primary"
         ]
-        self.information["SClass_Level4"] = self.information["ESG_Collateral_Type"][
+        self.information["SClass_Level4"] = self.information["ESG Collateral Type"][
             "Primary"
         ]
-        self.information["SClass_Level3"] = self.information["ESG_Collateral_Type"][
+        self.information["SClass_Level3"] = self.information["ESG Collateral Type"][
             "Sclass_Level3"
         ]
         self.information["SClass_Level2"] = "Sustainable Theme"
@@ -210,48 +205,3 @@ class SecurityStore(object):
             self.information["SClass_Level4-P"] = transition_category[0]
         else:
             raise ValueError("If transition tag is 'Y', category should be assigned.")
-
-
-class EquityStore(SecurityStore):
-    """
-    Equity Object
-    Stores information such as:
-        - isin
-        - parent (as store)
-        - portfolios the security is held in (as store)
-        - ESG factors
-        - security information
-
-    Parameters
-    ----------
-    isin: str
-        Equity's isin
-    information: dict
-        dictionary of security specific information
-    """
-
-    def __init__(self, isin: str, information: dict, **kwargs) -> None:
-        super().__init__(isin, information)
-
-
-class FixedIncomeStore(SecurityStore):
-    """
-    Fixed Income Object
-    Stores information such as:
-        - isin
-        - parent (as store)
-        - portfolios the security is held in (as store)
-        - ESG factors
-        - security information
-
-    Parameters
-    ----------
-    isin: str
-        Fixed Income's isin
-    information: dict
-        dictionary of security specific information
-
-    """
-
-    def __init__(self, isin: str, information: dict, **kwargs) -> None:
-        super().__init__(isin, information)

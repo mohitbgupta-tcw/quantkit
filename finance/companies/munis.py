@@ -52,7 +52,7 @@ class MuniStore(headstore.HeadStore):
         transition_tag = self.scores["Transition_Tag"]
         sustainability_tag = self.scores["Sustainability_Tag"]
         for sec, sec_store in self.securities.items():
-            labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
+            labeled_bond_tag = sec_store.information["Labeled ESG Type"]
             sec_store.level_5()
 
             if score == 5:

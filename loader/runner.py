@@ -2,7 +2,6 @@ import quantkit.utils.configs as configs
 import quantkit.utils.logging as logging
 import quantkit.finance.data_sources.regions_datasource.regions_datasource as rd
 import quantkit.finance.data_sources.category_datasource.category_database as cd
-import quantkit.finance.data_sources.security_datasource.security_datasource as sd
 import quantkit.finance.data_sources.msci_datasource.msci_datasource as mscids
 import quantkit.finance.data_sources.bloomberg_datasource.bloomberg_datasource as blds
 import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
@@ -77,11 +76,6 @@ class Runner(object):
         # connect transition datasource
         self.transition_datasource = trd.TransitionDataSource(
             params=self.params["transition_datasource"], api_settings=api_settings
-        )
-
-        # connecy security datasource
-        self.security_datasource = sd.SecurityDataSource(
-            params=self.params["security_datasource"], api_settings=api_settings
         )
 
         # connect parent issuer datasource
@@ -210,8 +204,6 @@ class Runner(object):
         - create Security object with key Security ISIN
         - attach analyst adjustment based on sec isin
         """
-        # load security data
-        self.security_datasource.load()
 
         # load parent issuer data
         self.parent_issuer_datasource.load()
@@ -233,15 +225,6 @@ class Runner(object):
         # load exclusion data
         self.exclusion_datasource.load()
 
-        logging.log("Iterate Securities")
-        # only iterate over securities the portfolios actually hold to save time
-        self.security_datasource.iter(
-            securities=self.portfolio_datasource.all_holdings,
-            companies=self.portfolio_datasource.companies,
-            df_portfolio=self.portfolio_datasource.df,
-            msci_df=self.msci_datasource.df,
-        )
-
     def iter_securitized_mapping(self) -> None:
         """
         Iterate over the securitized mapping
@@ -260,12 +243,12 @@ class Runner(object):
         - attach holdings, OAS to self.holdings with security object
         """
         self.portfolio_datasource.iter_holdings(
-            securities=self.security_datasource.securities,
             securitized_mapping=self.securitized_datasource.securitized_mapping,
             bclass_dict=self.bclass_datasource.bclass,
             sec_adjustment_dict=self.adjustment_datasource.security_isins,
             bloomberg_dict=self.bloomberg_datasource.bloomberg,
             sdg_dict=self.sdg_datasource.sdg,
+            msci_dict=self.msci_datasource.msci,
         )
 
     def iter_sdg(self) -> None:
@@ -295,7 +278,7 @@ class Runner(object):
         - if company doesn't have data, attach all nan's
         """
         # load quandl data
-        self.quandl_datasource.load(self.security_datasource.all_tickers)
+        self.quandl_datasource.load(self.portfolio_datasource.all_tickers)
         self.quandl_datasource.iter(self.portfolio_datasource.companies)
 
     def iter_sovereigns(self) -> None:
@@ -372,5 +355,5 @@ class Runner(object):
         Manually add parent issuer for selected securities
         """
         self.parent_issuer_datasource.iter(
-            self.portfolio_datasource.companies, self.security_datasource.securities
+            self.portfolio_datasource.companies, self.portfolio_datasource.securities
         )
