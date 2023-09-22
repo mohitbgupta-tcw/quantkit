@@ -15,9 +15,8 @@ class SovereignStore(headstore.HeadStore):
         company's isin
     """
 
-    def __init__(self, isin: str, **kwargs) -> None:
-        super().__init__(isin, **kwargs)
-        self.msci_information = {}
+    def __init__(self, isin: str, row_data: pd.Series, **kwargs) -> None:
+        super().__init__(isin, row_data, **kwargs)
         self.type = "sovereign"
 
     def update_sovereign_score(self) -> None:

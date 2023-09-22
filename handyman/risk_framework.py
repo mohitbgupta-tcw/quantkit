@@ -61,7 +61,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         "CARBON_EMISSIONS_SCOPE_12_INTEN"
                     ],
                     "Labeled ESG Type": sec_store.information["Labeled ESG Type"],
-                    "Sector Level 2": comp_store.information["Sector_Level_2"],
+                    "Sector Level 2": sec_store.information["Sector Level 2"],
                     "ESG Collateral Type": sec_store.information["ESG Collateral Type"][
                         "ESG Collat Type"
                     ],

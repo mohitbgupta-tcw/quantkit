@@ -23,12 +23,8 @@ class CompanyStore(headstore.HeadStore):
     """
 
     def __init__(self, isin: str, row_data: pd.Series, **kwargs) -> None:
-        super().__init__(isin, **kwargs)
-        self.msci_information = row_data
+        super().__init__(isin, row_data, **kwargs)
         self.type = "company"
-        self.information["IVA_COMPANY_RATING"] = self.msci_information[
-            "IVA_COMPANY_RATING"
-        ]
 
     def update_sovereign_score(self) -> None:
         """
@@ -293,17 +289,14 @@ class CompanyStore(headstore.HeadStore):
             security is non applicable
         """
         sector_level2 = ["Cash and Other"]
-        sector_level1 = ["Cash and Other"]
 
-        if self.information["Sector_Level_2"] in sector_level2:
+        if self.information["BCLASS_Level4"].class_name == "Treasury":
             return True
-        elif self.information["BCLASS_Level4"].class_name == "Treasury":
+        elif self.information["Sector_Level_2"] in sector_level2:
             return True
-        elif self.information["Sector_Level_1"] == sector_level1:
+        elif "TCW" in self.msci_information["ISSUER_NAME"]:
             return True
-        elif "TCW" in self.information["Security_Name"]:
-            return True
-        elif " ETF " in self.information["Security_Name"]:
+        elif " ETF " in self.msci_information["ISSUER_NAME"]:
             return True
         elif self.isin[:16] == "MKT VALUE ADJUST":
             return True

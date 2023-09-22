@@ -198,33 +198,6 @@ class Runner(object):
         # attach sector to portfolio
         self.sector_datasource.iter_portfolios(self.portfolio_datasource.portfolios)
 
-    def iter_securities(self) -> None:
-        """
-        - create Company object for each security with key ISIN
-        - create Security object with key Security ISIN
-        - attach analyst adjustment based on sec isin
-        """
-
-        # load parent issuer data
-        self.parent_issuer_datasource.load()
-        parent_ids = self.parent_issuer_datasource.parent_issuer_ids()
-
-        # load MSCI data
-        issuer_ids = self.portfolio_datasource.all_msci_ids
-
-        issuer_ids += parent_ids
-        issuer_ids = list(set(issuer_ids))
-        self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
-        self.msci_datasource.load()
-        self.msci_datasource.iter()
-
-        # load adjustment data
-        self.adjustment_datasource.load()
-        self.adjustment_datasource.iter()
-
-        # load exclusion data
-        self.exclusion_datasource.load()
-
     def iter_securitized_mapping(self) -> None:
         """
         Iterate over the securitized mapping
@@ -243,13 +216,42 @@ class Runner(object):
         - attach holdings, OAS to self.holdings with security object
         """
         self.portfolio_datasource.iter_holdings(
-            securitized_mapping=self.securitized_datasource.securitized_mapping,
-            bclass_dict=self.bclass_datasource.bclass,
-            sec_adjustment_dict=self.adjustment_datasource.security_isins,
             bloomberg_dict=self.bloomberg_datasource.bloomberg,
             sdg_dict=self.sdg_datasource.sdg,
             msci_dict=self.msci_datasource.msci,
         )
+
+    def iter_adjustment(self) -> None:
+        """
+        iterate over adjustment data
+        """
+        # load adjustment data
+        self.adjustment_datasource.load()
+        self.adjustment_datasource.iter()
+
+    def iter_exclusion(self) -> None:
+        """
+        iterate over exclusion data
+        """
+        # load exclusion data
+        self.exclusion_datasource.load()
+
+    def iter_msci(self) -> None:
+        """
+        iterate over MSCI data
+        """
+        # load parent issuer data
+        self.parent_issuer_datasource.load()
+        parent_ids = self.parent_issuer_datasource.parent_issuer_ids()
+
+        # load MSCI data
+        issuer_ids = self.portfolio_datasource.all_msci_ids
+
+        issuer_ids += parent_ids
+        issuer_ids = list(set(issuer_ids))
+        self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
+        self.msci_datasource.load()
+        self.msci_datasource.iter()
 
     def iter_sdg(self) -> None:
         """
@@ -280,6 +282,19 @@ class Runner(object):
         # load quandl data
         self.quandl_datasource.load(self.portfolio_datasource.all_tickers)
         self.quandl_datasource.iter(self.portfolio_datasource.companies)
+
+    def iter_securities(self) -> None:
+        """
+        - create Company object for each security with key ISIN
+        - create Security object with key Security ISIN
+        - attach analyst adjustment based on sec isin
+        """
+        for sec, sec_store in self.portfolio_datasource.securities.items():
+            sec_store.iter(
+                securitized_mapping=self.securitized_datasource.securitized_mapping,
+                bclass_dict=self.bclass_datasource.bclass,
+                sec_adjustment_dict=self.adjustment_datasource.security_isins,
+            )
 
     def iter_sovereigns(self) -> None:
         """

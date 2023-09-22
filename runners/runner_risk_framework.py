@@ -30,10 +30,13 @@ class Runner(loader.Runner):
         self.iter_sectors()
         self.iter_securitized_mapping()
         self.iter_bloomberg()
-        self.iter_sdg()
         self.iter_portfolios()
-        self.iter_securities()
+        self.iter_sdg()
+        self.iter_msci()
+        self.iter_adjustment()
+        self.iter_exclusion()
         self.iter_holdings()
+        self.iter_securities()
         self.iter_companies()
         self.iter_sovereigns()
         self.iter_securitized()
@@ -43,8 +46,6 @@ class Runner(loader.Runner):
         """
         Iterate over all companies
         """
-        logging.log("Iterate Companies")
-
         super().iter_companies()
         self.replace_transition_risk()
 

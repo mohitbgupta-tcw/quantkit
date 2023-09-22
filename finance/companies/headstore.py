@@ -22,10 +22,11 @@ class HeadStore(object):
         company's isin
     """
 
-    def __init__(self, isin: str, **kwargs) -> None:
+    def __init__(self, isin: str, row_data: pd.Series, **kwargs) -> None:
         self.isin = isin
         self.securities = dict()
         self.scores = dict()
+        self.msci_information = row_data
         self.information = dict()
 
         # assign some default values for measures
@@ -57,7 +58,6 @@ class HeadStore(object):
         self.Exclusion = pd.DataFrame()
         self.information["Exclusion_d"] = dict()
         self.information["Exclusion"] = []
-        self.information["Sector_Level_2"] = np.nan
 
     def add_security(
         self,

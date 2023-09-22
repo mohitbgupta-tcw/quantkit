@@ -1,5 +1,8 @@
 import numpy as np
+import pandas as pd
 from typing import Union
+from copy import deepcopy
+import quantkit.finance.sectors.sectors as sectors
 
 
 class SecurityStore(object):
@@ -47,6 +50,68 @@ class SecurityStore(object):
             parent store
         """
         self.parent_store = parent
+
+    def add_collateral_type(self, securitized_mapping: dict) -> None:
+        """
+        Add ESG Collateral Type object to information
+
+        Parameters
+        ----------
+        securitized_mapping: dict
+            mapping for ESG Collat Type
+        """
+        self.information["ESG Collateral Type"] = securitized_mapping[
+            self.information["ESG Collateral Type"]
+        ]
+
+    def attach_bclass(self, bclass_dict: dict) -> None:
+        """
+        Attach BCLASS object to security parent
+
+        Parameters
+        ----------
+        bclass_dict: dict
+            dictionary of all bclass objects
+        """
+        bclass4 = self.information["BCLASS_Level4"]
+        # attach BCLASS object
+        # if BCLASS is not in BCLASS store (covered industries), attach 'Unassigned BCLASS'
+        if not bclass4 in bclass_dict:
+            bclass_dict[bclass4] = sectors.BClass(
+                bclass4,
+                deepcopy(pd.Series(bclass_dict["Unassigned BCLASS"].information)),
+            )
+            bclass_dict[bclass4].add_industry(bclass_dict["Unassigned BCLASS"].industry)
+            bclass_dict["Unassigned BCLASS"].industry.add_sub_sector(
+                bclass_dict[bclass4]
+            )
+        bclass_object = bclass_dict[bclass4]
+
+        # for first initialization of BCLASS
+        self.parent_store.information[
+            "BCLASS_Level4"
+        ] = self.parent_store.information.get("BCLASS_Level4", bclass_object)
+        # sometimes same security is labeled with different BCLASS_Level4
+        # --> if it was unassigned before: overwrite, else: skipp
+        if not (bclass_object.class_name == "Unassigned BCLASS"):
+            self.parent_store.information["BCLASS_Level4"] = bclass_object
+            bclass_object.companies[self.parent_store.isin] = self.parent_store
+
+    def attach_analyst_adjustment(
+        self,
+        sec_adjustment_dict: dict,
+    ) -> None:
+        """
+        Attach Analyst Adjustment to parent
+        Adjustment in sec_adjustment_dict is on security level
+
+        Parameters
+        ----------
+        sec_adjustment_dict: dict
+            dictionary with analyst adjustment information
+        """
+        if self.isin in sec_adjustment_dict:
+            self.parent_store.Adjustment = sec_adjustment_dict[self.isin]
 
     def set_risk_overall_score(self, score: Union[float, int]) -> None:
         """
@@ -205,3 +270,23 @@ class SecurityStore(object):
             self.information["SClass_Level4-P"] = transition_category[0]
         else:
             raise ValueError("If transition tag is 'Y', category should be assigned.")
+
+    def iter(
+        self, securitized_mapping: dict, bclass_dict: dict, sec_adjustment_dict: dict
+    ) -> None:
+        """
+        - Add ESG Collateral Type
+        - Attach BClass Level4 to parent
+
+        Parameters
+        ----------
+        securitized_mapping: dict
+            mapping for ESG Collat Type
+        bclass_dict: dict
+            dictionary of all bclass objects
+        sec_adjustment_dict: dict
+            dictionary with analyst adjustment information
+        """
+        self.add_collateral_type(securitized_mapping)
+        self.attach_bclass(bclass_dict)
+        self.attach_analyst_adjustment(sec_adjustment_dict)

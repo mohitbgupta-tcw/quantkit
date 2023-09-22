@@ -74,7 +74,7 @@ class PortfolioStore(object):
         initial_weight_sov = 0
         for s in self.holdings:
             t = self.holdings[s]["object"].parent_store.type
-            s1 = self.holdings[s]["object"].parent_store.information["Sector_Level_1"]
+            s1 = self.holdings[s]["object"].information["Sector Level 1"]
             if t == "company" and not s1 == "Cash and Other":
                 for h in self.holdings[s]["holding_measures"]:
                     total_mkt_value += h["Base Mkt Val"]

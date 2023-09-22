@@ -67,7 +67,7 @@ class SDGDataSource(object):
         """
         # only iterate over companies we hold in the portfolios
         for index, row in self.df.iterrows():
-            iss_id = row["issuerID"]
+            iss_id = str(int(row["issuerID"]))
 
             sdg_information = row.to_dict()
             self.sdg[iss_id] = sdg_information

@@ -14,8 +14,8 @@ class SecuritizedStore(headstore.HeadStore):
         securitized's isin
     """
 
-    def __init__(self, isin: str, **kwargs) -> None:
-        super().__init__(isin, **kwargs)
+    def __init__(self, isin: str, row_data: pd.Series, **kwargs) -> None:
+        super().__init__(isin, row_data, **kwargs)
         self.type = "securitized"
 
     def calculate_securitized_score(self) -> None:

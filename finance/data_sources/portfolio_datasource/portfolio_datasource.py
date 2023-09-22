@@ -2,9 +2,11 @@ import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import quantkit.finance.portfolios.portfolios as portfolios
 import quantkit.finance.companies.companies as comp
+import quantkit.finance.companies.munis as munis
+import quantkit.finance.companies.securitized as securitized
+import quantkit.finance.companies.sovereigns as sovereigns
+import quantkit.finance.companies.cash as cash
 import quantkit.finance.securities.securities as securitites
-import quantkit.finance.securities.securities as secs
-import quantkit.finance.sectors.sectors as sectors
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.handyman.msci_data_loader as msci_data_loader
 import pandas as pd
@@ -82,6 +84,7 @@ class PortfolioDataSource(ds.DataSources):
         self.munis = dict()
         self.sovereigns = dict()
         self.securitized = dict()
+        self.cash = dict()
 
     def load(
         self,
@@ -408,6 +411,9 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df = self.datasource.df.drop(["Client_ID", "ISSUERID"], axis=1)
 
         self.datasource.df["MSCI ISSUERID"].fillna("NoISSUERID", inplace=True)
+        self.datasource.df.loc[
+            self.datasource.df["Sector Level 1"] == "Cash and Other", "MSCI ISSUERID"
+        ] = "NoISSUERID"
         self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["ISS ISSUERID"].fillna("NoISSUERID", inplace=True)
 
@@ -447,9 +453,6 @@ class PortfolioDataSource(ds.DataSources):
 
     def iter_holdings(
         self,
-        securitized_mapping: dict,
-        bclass_dict: dict,
-        sec_adjustment_dict: dict,
         bloomberg_dict: dict,
         sdg_dict: dict,
         msci_dict: dict,
@@ -465,12 +468,6 @@ class PortfolioDataSource(ds.DataSources):
 
         Parameters
         ----------
-        securitized_mapping: dict
-            mapping for ESG Collat Type
-        bclass_dict: dict
-            dictionary of all bclass objects
-        sec_adjustment_dict: dict
-            dictionary with analyst adjustment information
         bloomberg_dict: dict
             dictionary of bloomberg information
         sdg_dict: dict
@@ -519,56 +516,19 @@ class PortfolioDataSource(ds.DataSources):
             security_store = self.securities[isin]
 
             # create company object
-            issuer = sec_info["ISIN"]
-            self.create_company_store(issuer, msci_information)
-
-            # attach security to company and vice versa
-            self.companies[issuer].add_security(isin, security_store)
-            security_store.parent_store = self.companies[issuer]
+            issuer = sec_info["Issuer ISIN"]
+            self.create_parent_store(
+                sector_level_2=row["Sector Level 2"],
+                issuer_isin=issuer,
+                msci_information=msci_information,
+                security_store=security_store,
+            )
 
             parent_store = security_store.parent_store
-
-            security_store.information["ESG Collateral Type"] = securitized_mapping[
-                row["ESG Collateral Type"]
-            ]
-
-            # attach information to security's company
-            # create new objects for Muni, Sovereign and Securitized
-            if row["Sector Level 2"] in ["Muni / Local Authority"]:
-                self.create_store(
-                    security_store=security_store,
-                    check_type="Muni",
-                    all_parents=self.munis,
-                    companies=self.companies,
-                )
-            elif row["Sector Level 2"] in ["Residential MBS", "CMBS", "ABS"]:
-                self.create_store(
-                    security_store=security_store,
-                    check_type="Securitized",
-                    all_parents=self.securitized,
-                    companies=self.companies,
-                )
-            elif row["Sector Level 2"] in ["Sovereign"]:
-                self.create_store(
-                    security_store=security_store,
-                    check_type="Sovereign",
-                    all_parents=self.sovereigns,
-                    companies=self.companies,
-                )
-            parent_store = security_store.parent_store
-
-            parent_store.information["Sector_Level_1"] = row["Sector Level 1"]
-            parent_store.information["Sector_Level_2"] = row["Sector Level 2"]
-
-            # attach BCLASS object
-            self.attach_bclass(parent_store, row["BCLASS_Level4"], bclass_dict)
-
-            # attach adjustment
-            self.attach_analyst_adjustment(parent_store, isin, sec_adjustment_dict)
 
             # attach bloomberg information
             if row["BBG ISSUERID"] in bloomberg_dict:
-                bbg_information = bloomberg_dict[row["BBG ISSUERID"]]
+                bbg_information = deepcopy(bloomberg_dict[row["BBG ISSUERID"]])
                 parent_store.bloomberg_information = bbg_information
             else:
                 bbg_information = deepcopy(bloomberg_dict[np.nan])
@@ -577,7 +537,7 @@ class PortfolioDataSource(ds.DataSources):
 
             # attach iss information
             if row["ISS ISSUERID"] in sdg_dict:
-                iss_information = sdg_dict[row["ISS ISSUERID"]]
+                iss_information = deepcopy(sdg_dict[row["ISS ISSUERID"]])
                 parent_store.sdg_information = iss_information
             else:
                 iss_information = deepcopy(sdg_dict[np.nan])
@@ -621,105 +581,62 @@ class PortfolioDataSource(ds.DataSources):
             )
             self.securities[security_isin] = security_store
 
-    def create_store(
+    def create_parent_store(
         self,
-        security_store: secs.SecurityStore,
-        check_type: str,
-        all_parents: dict,
-        companies: dict,
+        sector_level_2: str,
+        issuer_isin: str,
+        msci_information: dict,
+        security_store: securitites.SecurityStore,
     ) -> None:
         """
         create new objects for Muni, Sovereign and Securitized if applicable
 
         Parameters
         ----------
-        security_store: secs.SecurityStore
-            security store
-        check_type: str
-            check if security is of this type, either Muni, Securitized or Sovereign
-        all_parents: dict
-            dictionary of current parent object of this type
-        companies: dict
-            dictionary of all company objects
-        """
-        parent_store = security_store.parent_store
-        security_isin = security_store.information["ISIN"]
-        issuer_isin = parent_store.isin
-        class_ = mapping_configs.security_type_mapping[check_type]
-        all_parents[issuer_isin] = all_parents.get(issuer_isin, class_(issuer_isin))
-        parent_store.remove_security(security_isin)
-        adj_df = parent_store.Adjustment
-        msci_info = parent_store.msci_information
-        if (not parent_store.securities) and parent_store.type == "company":
-            companies.pop(issuer_isin, None)
-        parent_store = all_parents[issuer_isin]
-        parent_store.msci_information = msci_info
-        parent_store.add_security(security_isin, security_store)
-        parent_store.Adjustment = adj_df
-        security_store.add_parent(parent_store)
-
-    def create_company_store(self, company_isin: str, msci_information: dict) -> None:
-        """
-        Create company object with msci information
-
-        Parameters
-        ----------
-        company_isin: str
-            isin of company
-        companies: dict
-            dictionary of all company objects
+        sector_level_2: str
+            Sector Level 2
+        issuer_isin: str
+            parent issuer isin
         msci_information: dict
             dictionary of msci information on company level
+        security_store: SecurityStore
+            security object
         """
-        # company object could already be there if company has more than 1 security
-        if company_isin in self.companies:
-            # assign msci data for missing values
-            for val in msci_information:
-                if pd.isna(self.companies[company_isin].msci_information[val]):
-                    self.companies[company_isin].msci_information[
-                        val
-                    ] = msci_information[val]
+        security_type_mapping = {
+            "Securitized": securitized.SecuritizedStore,
+            "Muni": munis.MuniStore,
+            "Sovereign": sovereigns.SovereignStore,
+            "Cash": cash.CashStore,
+            "Corporate": comp.CompanyStore,
+        }
+
+        # attach information to security's company
+        # create new objects for Muni, Sovereign and Securitized
+        if sector_level_2 in ["Muni / Local Authority"]:
+            check_type = "Muni"
+            all_parents = self.munis
+        elif sector_level_2 in ["Residential MBS", "CMBS", "ABS"]:
+            check_type = "Securitized"
+            all_parents = self.securitized
+        elif sector_level_2 in ["Sovereign"]:
+            check_type = "Sovereign"
+            all_parents = self.sovereigns
+        # elif sector_level_2 in ["Cash and Other"]:
+        #     check_type = "Cash"
+        #     all_parents = self.cash
         else:
-            self.companies[company_isin] = comp.CompanyStore(
-                isin=company_isin,
-                row_data=msci_information,
-            )
+            check_type = "Corporate"
+            all_parents = self.companies
 
-    def attach_bclass(self, parent_store, bclass4: str, bclass_dict: dict) -> None:
-        """
-        Attach BCLASS object to security parent
-
-        Parameters
-        ----------
-        parent_store: CompanyStore | MuniStore | SovereignStore | SecuritizedStore
-            store object of parent
-        bclass4: str
-            BCLASS Level 4
-        bclass_dict: dict
-            dictionary of all bclass objects
-        """
-        # attach BCLASS object
-        # if BCLASS is not in BCLASS store (covered industries), attach 'Unassigned BCLASS'
-        if not bclass4 in bclass_dict:
-            bclass_dict[bclass4] = sectors.BClass(
-                bclass4,
-                pd.Series(bclass_dict["Unassigned BCLASS"].information),
-            )
-            bclass_dict[bclass4].add_industry(bclass_dict["Unassigned BCLASS"].industry)
-            bclass_dict["Unassigned BCLASS"].industry.add_sub_sector(
-                bclass_dict[bclass4]
-            )
-        bclass_object = bclass_dict[bclass4]
-
-        # for first initialization of BCLASS
-        parent_store.information["BCLASS_Level4"] = parent_store.information.get(
-            "BCLASS_Level4", bclass_object
+        class_ = security_type_mapping[check_type]
+        all_parents[issuer_isin] = all_parents.get(
+            issuer_isin, class_(issuer_isin, msci_information)
         )
-        # sometimes same security is labeled with different BCLASS_Level4
-        # --> if it was unassigned before: overwrite, else: skipp
-        if not (bclass_object.class_name == "Unassigned BCLASS"):
-            parent_store.information["BCLASS_Level4"] = bclass_object
-            bclass_object.companies[parent_store.isin] = parent_store
+        all_parents[issuer_isin].information["Sector_Level_2"] = sector_level_2
+
+        # attach security to company and vice versa
+        all_parents[issuer_isin].add_security(security_store.isin, security_store)
+        security_store.parent_store = all_parents[issuer_isin]
 
     def create_msci_information(
         self, security_information: dict, msci_dict: dict
@@ -741,36 +658,14 @@ class PortfolioDataSource(ds.DataSources):
         """
         issuer_id = security_information["MSCI ISSUERID"]
 
-        issuer_dict = msci_dict[issuer_id]
+        issuer_dict = deepcopy(msci_dict[issuer_id])
         issuer_isin = issuer_dict["ISSUER_ISIN"]
         if not pd.isna(issuer_isin):
-            security_information["Issuer_ISIN"] = issuer_isin
+            security_information["Issuer ISIN"] = issuer_isin
         else:
             issuer_dict["ISSUER_ISIN"] = security_information["ISIN"]
             issuer_dict["ISSUER_NAME"] = security_information["Security_Name"]
         return issuer_dict
-
-    def attach_analyst_adjustment(
-        self,
-        parent_store,
-        security_isin: str,
-        sec_adjustment_dict: dict,
-    ) -> None:
-        """
-        Attach Analyst Adjustment to company
-        Adjustment in sec_adjustment_dict is on security level
-
-        Parameters
-        ----------
-        parent_store: CompanyStore | MuniStore | SovereignStore | SecuritizedStore
-            store object of parent
-        security_isin: str
-            isin of security
-        sec_adjustment_dict: dict
-            dictionary with analyst adjustment information
-        """
-        if security_isin in sec_adjustment_dict:
-            parent_store.Adjustment = sec_adjustment_dict[security_isin]
 
     @property
     def all_msci_ids(self):
