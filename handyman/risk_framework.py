@@ -1,7 +1,4 @@
 import quantkit.runners.runner_risk_framework as runner_risk_framework
-import quantkit.utils.configs as configs
-import quantkit.handyman.msci_data_loader as msci_data_loaders
-import quantkit.data_sources.snowflake as snowflake
 import quantkit.visualization.risk_framework.esg_characteristics as esg_characteristics
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.utils.snowflake_utils as snowflake_utils
@@ -410,7 +407,11 @@ def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     portfolio_df["Issuer ESG"] = "No"
     portfolio_df["Loan Category"] = np.nan
     portfolio_df["Labeled ESG Type"] = "None"
-    portfolio_df["ISSUER_NAME"] = isin_list
+    portfolio_df["Security_Name"] = isin_list
+    portfolio_df["Issuer ISIN"] = isin_list
+    portfolio_df["MSCI ISSUERID"] = np.nan
+    portfolio_df["ISS ISSUERID"] = np.nan
+    portfolio_df["BBG ISSUERID"] = np.nan
     portfolio_df["TCW ESG"] = "None"
     portfolio_df["Ticker Cd"] = np.nan
     portfolio_df["Sector Level 1"] = "Corporate"

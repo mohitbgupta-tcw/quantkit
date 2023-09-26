@@ -281,7 +281,6 @@ class CompanyStore(headstore.HeadStore):
         -----
             - Sector Level 2 in excemption list
             - BCLASS is Treasury
-            - Sector Level 1 is Cash
 
         Returns
         -------
@@ -576,29 +575,29 @@ class CompanyStore(headstore.HeadStore):
         parent_id = self.msci_information["PARENT_ULTIMATE_ISSUERID"]
 
         # find parent store
-        parent = "Cash"
         for c, comp_store in companies.items():
             if comp_store.msci_information["ISSUERID"] == parent_id:
                 parent = c
+
+                # assign sdg data for missing values
+                for val in self.sdg_information:
+                    if pd.isna(self.sdg_information[val]):
+                        new_val = companies[parent].sdg_information[val]
+                        self.sdg_information[val] = new_val
+
+                # assign msci data for missing values
+                for val in self.msci_information:
+                    if pd.isna(self.msci_information[val]):
+                        new_val = companies[parent].msci_information[val]
+                        self.msci_information[val] = new_val
+
+                # assign bloomberg data for missing values
+                for val in self.bloomberg_information:
+                    if pd.isna(self.bloomberg_information[val]):
+                        new_val = companies[parent].bloomberg_information[val]
+                        self.bloomberg_information[val] = new_val
+
                 break
-
-        # assign sdg data for missing values
-        for val in self.sdg_information:
-            if pd.isna(self.sdg_information[val]):
-                new_val = companies[parent].sdg_information[val]
-                self.sdg_information[val] = new_val
-
-        # assign msci data for missing values
-        for val in self.msci_information:
-            if pd.isna(self.msci_information[val]):
-                new_val = companies[parent].msci_information[val]
-                self.msci_information[val] = new_val
-
-        # assign bloomberg data for missing values
-        for val in self.bloomberg_information:
-            if pd.isna(self.bloomberg_information[val]):
-                new_val = companies[parent].bloomberg_information[val]
-                self.bloomberg_information[val] = new_val
 
     def replace_unassigned_industry(
         self, high_threshold: float, industries: dict
@@ -631,10 +630,9 @@ class CompanyStore(headstore.HeadStore):
     def iter(
         self,
         companies: dict,
-        regions_df: pd.DataFrame,
         regions: dict,
-        exclusion_df: pd.DataFrame,
-        msci_adjustment_dict: pd.DataFrame,
+        exclusion_dict: dict,
+        msci_adjustment_dict: dict,
         gics_d: dict,
         bclass_d: dict,
         category_d: dict,
@@ -655,12 +653,10 @@ class CompanyStore(headstore.HeadStore):
         ----------
         companies: dict
             dictionary of all company objects
-        regions_df: pd.DataFrame
-            DataFrame of regions information
         regions: dict
             dictionary of all region objects
-        exclusion_df: pd.DataFrame
-            DataFrame of Exclusions
+        exclusion_dict: dict
+            dictionary of Exclusions
         msci_adjustment_dict: dict
             dictionary of Analyst Adjustments
         gics_d: dict
@@ -674,7 +670,7 @@ class CompanyStore(headstore.HeadStore):
         """
 
         # attach region
-        self.attach_region(regions_df, regions)
+        self.attach_region(regions)
 
         # update sovereign score for Treausury
         self.update_sovereign_score()
@@ -684,13 +680,10 @@ class CompanyStore(headstore.HeadStore):
             self.get_parent_issuer_data(companies)
 
         # attach exclusion df
-        self.attach_exclusion(exclusion_df)
-
-        # attach exclusion article
-        self.iter_exclusion()
+        self.attach_exclusion(exclusion_dict)
 
         # attach GICS Sub industry
-        self.attach_gics(gics_d, self.msci_information["GICS_SUB_IND"])
+        self.attach_gics(gics_d)
 
         # attach industry and sub industry
         self.attach_industry(gics_d, bclass_d)

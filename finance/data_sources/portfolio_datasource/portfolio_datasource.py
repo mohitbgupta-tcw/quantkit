@@ -7,10 +7,8 @@ import quantkit.finance.companies.securitized as securitized
 import quantkit.finance.companies.sovereigns as sovereigns
 import quantkit.finance.companies.cash as cash
 import quantkit.finance.securities.securities as securitites
-import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.handyman.msci_data_loader as msci_data_loader
 import pandas as pd
-import numpy as np
 from copy import deepcopy
 
 
@@ -350,7 +348,7 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df.loc[
             (self.datasource.df["ISIN"].isna())
             & self.datasource.df["Security_Name"].isna(),
-            "ISIN",
+            ["ISIN", "Security_Name"],
         ] = "Cash"
         self.datasource.df["ISIN"].fillna(
             self.datasource.df["Security_Name"], inplace=True
@@ -389,31 +387,21 @@ class PortfolioDataSource(ds.DataSources):
                 [f"{col}_x", f"{col}_y"], axis=1
             )
 
-        local_configs = "C:\\Users\\bastit\\Documents\\quantkit\\configs\\configs.json"
         sec_isins = list(
             self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]
             .dropna()
             .unique()
         )
-        msci_df = msci_data_loader.create_msci_mapping(
-            "ISIN", sec_isins, local_configs
-        )[["Client_ID", "ISSUERID"]]
-        self.datasource.df = pd.merge(
-            left=self.datasource.df,
-            right=msci_df,
-            left_on="ISIN",
-            right_on="Client_ID",
-            how="left",
-        )
+        msci_d = msci_data_loader.create_msci_mapping("ISIN", sec_isins)[
+            ["Client_ID", "ISSUERID"]
+        ]
+        msci_d = dict(zip(msci_d["Client_ID"], msci_d["ISSUERID"]))
+        msci_d.pop("Cash", None)
         self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
             "MSCI ISSUERID"
-        ].fillna(self.datasource.df["ISSUERID"])
-        self.datasource.df = self.datasource.df.drop(["Client_ID", "ISSUERID"], axis=1)
+        ].fillna(self.datasource.df["ISIN"].map(msci_d))
 
         self.datasource.df["MSCI ISSUERID"].fillna("NoISSUERID", inplace=True)
-        self.datasource.df.loc[
-            self.datasource.df["Sector Level 1"] == "Cash and Other", "MSCI ISSUERID"
-        ] = "NoISSUERID"
         self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["ISS ISSUERID"].fillna("NoISSUERID", inplace=True)
 
@@ -448,30 +436,18 @@ class PortfolioDataSource(ds.DataSources):
             pf_store.add_as_of_date(row["As Of Date"])
             self.portfolios[pf] = pf_store
 
-        # save all securities that occur in portfolios to filter down security database later on
-        self.all_holdings = list(self.df["ISIN"].unique())
-
     def iter_holdings(
         self,
-        bloomberg_dict: dict,
-        sdg_dict: dict,
         msci_dict: dict,
     ) -> None:
         """
         Iterate over portfolio holdings
-        - attach ESG information so security
-        - create Muni, Sovereign, Securitized objects
-        - attach sector information to company
-        - attach BCLASS to company
-        - attach Bloomberg information to company
+        - Create Security objects
+        - create Company, Muni, Sovereign, Securitized, Cash objects
         - attach holdings, OAS to self.holdings with security object
 
         Parameters
         ----------
-        bloomberg_dict: dict
-            dictionary of bloomberg information
-        sdg_dict: dict
-            dictionary of iss information
         msci_dict: dict
             dictionary of msci information
         """
@@ -524,26 +500,6 @@ class PortfolioDataSource(ds.DataSources):
                 security_store=security_store,
             )
 
-            parent_store = security_store.parent_store
-
-            # attach bloomberg information
-            if row["BBG ISSUERID"] in bloomberg_dict:
-                bbg_information = deepcopy(bloomberg_dict[row["BBG ISSUERID"]])
-                parent_store.bloomberg_information = bbg_information
-            else:
-                bbg_information = deepcopy(bloomberg_dict[np.nan])
-                if not hasattr(parent_store, "bloomberg_information"):
-                    parent_store.bloomberg_information = bbg_information
-
-            # attach iss information
-            if row["ISS ISSUERID"] in sdg_dict:
-                iss_information = deepcopy(sdg_dict[row["ISS ISSUERID"]])
-                parent_store.sdg_information = iss_information
-            else:
-                iss_information = deepcopy(sdg_dict[np.nan])
-                if not hasattr(parent_store, "sdg_information"):
-                    parent_store.sdg_information = iss_information
-
             # attach security object, portfolio weight, OAS to portfolio
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
@@ -589,7 +545,7 @@ class PortfolioDataSource(ds.DataSources):
         security_store: securitites.SecurityStore,
     ) -> None:
         """
-        create new objects for Muni, Sovereign and Securitized if applicable
+        create new objects for Company, Muni, Sovereign and Securitized, Cash
 
         Parameters
         ----------
@@ -632,7 +588,6 @@ class PortfolioDataSource(ds.DataSources):
         all_parents[issuer_isin] = all_parents.get(
             issuer_isin, class_(issuer_isin, msci_information)
         )
-        all_parents[issuer_isin].information["Sector_Level_2"] = sector_level_2
 
         # attach security to company and vice versa
         all_parents[issuer_isin].add_security(security_store.isin, security_store)

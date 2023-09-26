@@ -94,11 +94,11 @@ class SovereignStore(headstore.HeadStore):
 
     def iter(
         self,
-        regions_df: pd.DataFrame,
         regions: dict,
         msci_adjustment_dict: dict,
         gics_d: dict,
         bclass_d: dict,
+        exclusion_dict: dict,
     ) -> None:
         """
         - attach region information
@@ -110,8 +110,6 @@ class SovereignStore(headstore.HeadStore):
 
         Parameters
         ----------
-        regions_df: pd.DataFrame
-            DataFrame of regions information
         regions: dict
             dictionary of all region objects
         msci_adjustment_dict: pd.Dataframe
@@ -120,10 +118,12 @@ class SovereignStore(headstore.HeadStore):
             dictionary of gics sub industries with gics as key, gics object as value
         bclass_d: dict
             dictionary of bclass sub industries with bclass as key, bclass object as value
+        exclusion_dict: dict
+            dictionary of Exclusions
         """
-        self.attach_region(regions_df, regions)
+        self.attach_region(regions)
         self.update_sovereign_score()
         self.attach_analyst_adjustment(msci_adjustment_dict)
-        self.attach_gics(gics_d, self.msci_information["GICS_SUB_IND"])
-        self.iter_exclusion()
+        self.attach_gics(gics_d)
+        self.attach_exclusion(exclusion_dict)
         self.attach_industry(gics_d, bclass_d)

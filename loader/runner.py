@@ -216,8 +216,6 @@ class Runner(object):
         - attach holdings, OAS to self.holdings with security object
         """
         self.portfolio_datasource.iter_holdings(
-            bloomberg_dict=self.bloomberg_datasource.bloomberg,
-            sdg_dict=self.sdg_datasource.sdg,
             msci_dict=self.msci_datasource.msci,
         )
 
@@ -235,6 +233,7 @@ class Runner(object):
         """
         # load exclusion data
         self.exclusion_datasource.load()
+        self.exclusion_datasource.iter()
 
     def iter_msci(self) -> None:
         """
@@ -294,6 +293,8 @@ class Runner(object):
                 securitized_mapping=self.securitized_datasource.securitized_mapping,
                 bclass_dict=self.bclass_datasource.bclass,
                 sec_adjustment_dict=self.adjustment_datasource.security_isins,
+                bloomberg_dict=self.bloomberg_datasource.bloomberg,
+                sdg_dict=self.sdg_datasource.sdg,
             )
 
     def iter_sovereigns(self) -> None:
@@ -303,11 +304,11 @@ class Runner(object):
         logging.log("Iterate Sovereigns")
         for s in self.portfolio_datasource.sovereigns:
             self.portfolio_datasource.sovereigns[s].iter(
-                regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
                 msci_adjustment_dict=self.adjustment_datasource.msci_ids,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
+                exclusion_dict=self.exclusion_datasource.exclusions,
             )
 
     def iter_securitized(self) -> None:
@@ -317,7 +318,6 @@ class Runner(object):
         logging.log("Iterate Securitized")
         for sec in self.portfolio_datasource.securitized:
             self.portfolio_datasource.securitized[sec].iter(
-                regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
@@ -330,7 +330,18 @@ class Runner(object):
         logging.log("Iterate Munis")
         for m in self.portfolio_datasource.munis:
             self.portfolio_datasource.munis[m].iter(
-                regions_df=self.region_datasource.df,
+                regions=self.region_datasource.regions,
+                gics_d=self.gics_datasource.gics,
+                bclass_d=self.bclass_datasource.bclass,
+            )
+
+    def iter_cash(self) -> None:
+        """
+        Iterate over all Cash objects
+        """
+        logging.log("Iterate Securitized")
+        for c in self.portfolio_datasource.cash:
+            self.portfolio_datasource.cash[c].iter(
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
@@ -355,9 +366,8 @@ class Runner(object):
         for c in self.portfolio_datasource.companies:
             self.portfolio_datasource.companies[c].iter(
                 companies=self.portfolio_datasource.companies,
-                regions_df=self.region_datasource.df,
                 regions=self.region_datasource.regions,
-                exclusion_df=self.exclusion_datasource.df,
+                exclusion_dict=self.exclusion_datasource.exclusions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
                 category_d=self.category_datasource.categories,

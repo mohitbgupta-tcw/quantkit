@@ -97,6 +97,53 @@ class SecurityStore(object):
             self.parent_store.information["BCLASS_Level4"] = bclass_object
             bclass_object.companies[self.parent_store.isin] = self.parent_store
 
+    def attach_sector_level_2(self) -> None:
+        """
+        Attach Sector Level 2 to security parent
+        """
+        sector_level_2 = self.information["Sector Level 2"]
+        self.parent_store.information["Sector_Level_2"] = sector_level_2
+
+    def attach_bloomberg_information(
+        self,
+        bloomberg_dict: dict,
+    ) -> None:
+        """
+        Attach bloomberg information to security parent
+
+        Parameters
+        ----------
+        bloomberg_dict: dict
+            dictionary of bloomberg information
+        """
+        if self.information["BBG ISSUERID"] in bloomberg_dict:
+            bbg_information = deepcopy(bloomberg_dict[self.information["BBG ISSUERID"]])
+            self.parent_store.bloomberg_information = bbg_information
+        else:
+            bbg_information = deepcopy(bloomberg_dict[np.nan])
+            if not hasattr(self.parent_store, "bloomberg_information"):
+                self.parent_store.bloomberg_information = bbg_information
+
+    def attach_iss_information(
+        self,
+        sdg_dict: dict,
+    ) -> None:
+        """
+        Attach iss information to security parent
+
+        Parameters
+        ----------
+        sdg_dict: dict
+            dictionary of iss information
+        """
+        if self.information["ISS ISSUERID"] in sdg_dict:
+            iss_information = deepcopy(sdg_dict[self.information["ISS ISSUERID"]])
+            self.parent_store.sdg_information = iss_information
+        else:
+            iss_information = deepcopy(sdg_dict[np.nan])
+            if not hasattr(self.parent_store, "sdg_information"):
+                self.parent_store.sdg_information = iss_information
+
     def attach_analyst_adjustment(
         self,
         sec_adjustment_dict: dict,
@@ -272,7 +319,12 @@ class SecurityStore(object):
             raise ValueError("If transition tag is 'Y', category should be assigned.")
 
     def iter(
-        self, securitized_mapping: dict, bclass_dict: dict, sec_adjustment_dict: dict
+        self,
+        securitized_mapping: dict,
+        bclass_dict: dict,
+        sec_adjustment_dict: dict,
+        bloomberg_dict: dict,
+        sdg_dict: dict,
     ) -> None:
         """
         - Add ESG Collateral Type
@@ -286,7 +338,14 @@ class SecurityStore(object):
             dictionary of all bclass objects
         sec_adjustment_dict: dict
             dictionary with analyst adjustment information
+        bloomberg_dict: dict
+            dictionary of bloomberg information
+        sdg_dict: dict
+            dictionary of iss information
         """
         self.add_collateral_type(securitized_mapping)
         self.attach_bclass(bclass_dict)
+        self.attach_sector_level_2()
         self.attach_analyst_adjustment(sec_adjustment_dict)
+        self.attach_bloomberg_information(bloomberg_dict)
+        self.attach_iss_information(sdg_dict)

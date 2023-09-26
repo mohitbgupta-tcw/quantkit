@@ -86,21 +86,16 @@ class MuniStore(headstore.HeadStore):
             elif score == 0:
                 sec_store.is_not_scored()
 
-    def iter(
-        self, regions_df: pd.DataFrame, regions: dict, gics_d: dict, bclass_d: dict
-    ) -> None:
+    def iter(self, regions: dict, gics_d: dict, bclass_d: dict) -> None:
         """
         - attach GICS information
-        - attach exclusions
         - attach region
-        - attach industry
+        - objectsattach industry
 
         Parameters
         ----------
-        regions_df: pd.DataFrame
-            DataFrame of regions information
         regions: dict
-            dictionary of all region objects
+            dictionary of all region
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
         bclass_d: dict
@@ -109,11 +104,8 @@ class MuniStore(headstore.HeadStore):
         # attach GICS
         self.attach_gics(gics_d)
 
-        # attach exclusions
-        self.iter_exclusion()
-
         # attach region
-        self.attach_region(regions_df, regions)
+        self.attach_region(regions)
 
         # attach industry and sub industry
         self.attach_industry(gics_d, bclass_d)

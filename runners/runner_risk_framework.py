@@ -37,6 +37,7 @@ class Runner(loader.Runner):
         self.iter_exclusion()
         self.iter_holdings()
         self.iter_securities()
+        self.iter_cash()
         self.iter_companies()
         self.iter_sovereigns()
         self.iter_securitized()

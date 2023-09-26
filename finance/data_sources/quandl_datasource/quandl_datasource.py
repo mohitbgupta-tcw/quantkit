@@ -22,6 +22,7 @@ class QuandlDataSource(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.quandl = dict()
 
     def load(self, ticker: list) -> None:
         """
@@ -96,6 +97,20 @@ class QuandlDataSource(ds.DataSources):
                     comp_store.quandl_information = deepcopy(empty_quandl)
                 elif self.params["type"] == "price":
                     comp_store.quandl_information_price = deepcopy(empty_quandl)
+
+    # def iter(self) -> None:
+    #     """
+    #     Attach bloomberg information to dict
+    #     """
+    #     for index, row in self.df.iterrows():
+    #         ticker = row["ticker"]
+
+    #         quandl_information = row.to_dict()
+    #         self.quandl[ticker] = quandl_information
+
+    #     # --> not every company has these information, so create empty df with NA's for those
+    #     empty_quandl = pd.Series(np.nan, index=self.df.columns).to_dict()
+    #     self.quandl[np.nan] = deepcopy(empty_quandl)
 
     @property
     def df(self) -> pd.DataFrame:
