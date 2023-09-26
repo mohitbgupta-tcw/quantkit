@@ -73,13 +73,13 @@ class PieChart(object):
                 "layout": go.Layout(
                     autosize=True,
                     title=self.title,
-                    font={"family": "Calibri", "size": 12},
+                    font={"family": "Calibri", "size": 15},
                     height=self.height,
                     width=self.width,
                     hovermode="closest",
                     margin={
-                        "r": 20,
-                        "t": 20,
+                        "r": 30,
+                        "t": 30,
                         "b": 5,
                         "l": 20,
                     },
