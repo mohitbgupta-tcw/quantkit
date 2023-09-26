@@ -1075,7 +1075,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with total score table
         """
-        styles = {0: ["bold", "size13"]}
+        styles = {0: ["bold", "size19"]}
         bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
         total = sum(bonds.values())
 
@@ -1241,20 +1241,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
         df_ci = portfolio_utils.calculate_carbon_intensity(
             self.portfolio_data, self.portfolio_type
         )
-        df_ci["Sector"] = df_ci["Sector"].str.replace(" ", "   <br>")
         df_ci["Sector"] = df_ci["Sector"].str.replace(
-            "Government   <br>Owned", "Government Owned"
-        )
-        df_ci["Sector"] = df_ci["Sector"].str.replace(
-            "No   <br>Guarantee", "No Guarantee"
+            "Government Owned, No Guarantee", "Government Owned, <br> No Guarantee"
         )
         df_ci["Carbon_Intensity"] = round(df_ci["Carbon_Intensity"], 0)
 
-        if self.portfolio_type in ["fixed_income_a8", "fixed_income_a9"]:
-            height = 280
-        else:
-            height = 350
-
+        height = 420
         ci_chart = html.Div(
             [
                 html.H6(
@@ -1321,8 +1313,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     values=df["Portfolio Weight"],
                     color=df["Color"],
                     hole=0.5,
-                    width=230,
-                    height=230,
+                    width=290,
+                    height=290,
                 ),
                 legend,
             ],

@@ -66,7 +66,7 @@ class BarChart(object):
                 "layout": go.Layout(
                     autosize=True,
                     title=self.title,
-                    font={"family": "Calibri", "size": 11},
+                    font={"family": "Calibri", "size": 16},
                     height=self.height,
                     width=self.width,
                     hovermode="closest",

@@ -448,6 +448,122 @@ def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     return df
 
 
+def compare_unadjusted(isin_list: list, local_configs: str = "") -> pd.DataFrame:
+    """
+    Run risk framework for a list of isins
+    and return DataFrame comparing adjsuted and unadjusted scores and themes
+
+    Parameters
+    ----------
+    isin_list: list
+        list of isins
+    local_configs: str, optional
+        path to a local configarations file
+
+    Returns
+    -------
+    pd.DataFrame
+        Detailed DataFrame
+    """
+    # create portfolio sheet
+    portfolio_df = pd.DataFrame()
+    portfolio_df["ISIN"] = isin_list
+    portfolio_df["As Of Date"] = pd.to_datetime("today").normalize()
+    portfolio_df["Portfolio"] = "Test_Portfolio"
+    portfolio_df["Portfolio Name"] = "Test_Portfolio"
+    portfolio_df["ESG Collateral Type"] = "Unknown"
+    portfolio_df["Issuer ESG"] = "No"
+    portfolio_df["Loan Category"] = np.nan
+    portfolio_df["Labeled ESG Type"] = "None"
+    portfolio_df["ISSUER_NAME"] = isin_list
+    portfolio_df["TCW ESG"] = "None"
+    portfolio_df["Ticker Cd"] = np.nan
+    portfolio_df["Sector Level 1"] = "Corporate"
+    portfolio_df["Sector Level 2"] = "Industrial"
+    portfolio_df["JPM Sector"] = np.nan
+    portfolio_df["BCLASS_Level2"] = np.nan
+    portfolio_df["BCLASS_Level3"] = np.nan
+    portfolio_df["BCLASS_Level4"] = np.nan
+    portfolio_df["Market Region"] = np.nan
+    portfolio_df["Country of Risk"] = np.nan
+    portfolio_df["Portfolio_Weight"] = 1 / len(isin_list)
+    portfolio_df["Base Mkt Val"] = 1
+    portfolio_df["Rating Raw MSCI"] = np.nan
+    portfolio_df["OAS"] = np.nan
+    portfolio_df = portfolio_df.to_json(orient="index")
+
+    # create msci mapping file
+    msci_df = msci_data_loaders.create_msci_mapping(
+        isin_list=isin_list, local_configs=local_configs
+    )
+    msci_df = msci_df.to_json(orient="index")
+
+    configs_overwrite = {
+        "portfolio_datasource": {"source": 6, "json_str": portfolio_df},
+        "security_datasource": {
+            "msci": {"source": 6, "json_str": msci_df},
+        },
+    }
+
+    if os.path.isfile(local_configs):
+        with open(local_configs) as f_in:
+            configs_local = json.load(f_in)
+        c = {**configs_local, **configs_overwrite}
+    else:
+        configs_local = None
+        c = configs_overwrite
+    with open("quantkit\\params_temp.json", "w") as f:
+        json.dump(c, f)
+
+    # run framework
+    r = runner_risk_framework.Runner()
+    r.init(local_configs="quantkit\\params_temp.json")
+    r.run()
+
+    data = []
+    for sec, sec_store in r.security_datasource.securities.items():
+        comp_store = sec_store.parent_store
+        sec_data = {
+            "Security ISIN": sec,
+            "Issuer Name": sec_store.information["IssuerName"],
+            "Security Name": sec_store.information["Security_Name"],
+            "Analyst": comp_store.information["Sub-Industry"].information["Analyst"],
+            "MSCI ISSUERID": comp_store.msci_information["ISSUERID"],
+            "SClass_Level4": sec_store.information["SClass_Level4-P"],
+            "Sector Level 2": comp_store.information["Sector_Level_2"],
+            "Muni Score": comp_store.scores["Muni_Score"],
+            "Muni Score Unadjusted": comp_store.scores["Muni_Score_unadjusted"],
+            "Securitized Score": sec_store.scores["Securitized_Score"],
+            "Securitized Score Unadjusted": sec_store.scores[
+                "Securitized_Score_unadjusted"
+            ],
+            "Sovereign Score": comp_store.scores["Sovereign_Score"],
+            "Sovereign Score Unadjusted": comp_store.scores[
+                "Sovereign_Score_unadjusted"
+            ],
+            "ESRM Score": comp_store.scores["ESRM_Score"],
+            "ESRM Score Unadjusted": comp_store.scores["ESRM_Score_unadjusted"],
+            "Governance Score": comp_store.scores["Governance_Score"],
+            "Governance Score Unadjusted": comp_store.scores[
+                "Governance_Score_unadjusted"
+            ],
+            "Transition Score": comp_store.scores["Transition_Score"],
+            "Transition Score Unadjusted": comp_store.scores[
+                "Transition_Score_unadjusted"
+            ],
+            "Themes": list(comp_store.scores["Themes"].keys()),
+            "Themes Unadjusted": list(comp_store.scores["Themes_unadjusted"].keys()),
+            "Transition Category": comp_store.scores["Transition_Category"],
+            "Transition Category Unadjusted": comp_store.scores[
+                "Transition_Category_unadjusted"
+            ],
+        }
+        data.append(sec_data)
+
+    os.remove("quantkit\\params_temp.json")
+    return pd.DataFrame(data)
+
+
 def print_esg_characteristics_pdf(
     portfolio_isin: str,
     local_configs: str = "",
