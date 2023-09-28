@@ -130,18 +130,32 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             row with header Div
         """
-        header_text = [
-            html.H3("Sustainable Characteristics", className="overall-header"),
-            html.H5(f"{self.portfolio_name}"),
-            html.P(
-                f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS",
-                className="sub-header",
-            ),
-            html.P(
-                f"""AS OF {self.as_of_date.strftime("%d %B %Y")} | SHARE CLASS: IU""",
-                className="sub-header",
-            ),
-        ]
+        if self.portfolio_type in ["equity_msci"]:
+            header_text = [
+                html.H3("Sustainable Characteristics", className="overall-header"),
+                html.H5(f"{self.portfolio_name}"),
+                html.P(
+                    f"Benchmark: {self.benchmark_name}",
+                    className="sub-header",
+                ),
+                html.P(
+                    f"""As of {self.as_of_date.strftime("%d %B %Y")}""",
+                    className="sub-header",
+                ),
+            ]
+        else:
+            header_text = [
+                html.H3("Sustainable Characteristics", className="overall-header"),
+                html.H5(f"{self.portfolio_name}"),
+                html.P(
+                    f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS",
+                    className="sub-header",
+                ),
+                html.P(
+                    f"""As of {self.as_of_date.strftime("%d %B %Y")} | SHARE CLASS: IU""",
+                    className="sub-header",
+                ),
+            ]
         return super().add_header(header_text)
 
     def add_header_holdings(self) -> html.Div:
@@ -390,7 +404,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     self.add_risk_score_distribution(),
                     self.add_score_distribution(),
                 ],
-                className="three columns",
+                className="three-point-five columns",
             ),
             # second column
             html.Div(
@@ -405,7 +419,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             # third column
             html.Div(
                 [self.add_msci_score_distribution(), self.add_carbon_intensity_chart()],
-                className="four columns",
+                className="three-point-five columns",
             ),
         ]
         return body_content
@@ -865,7 +879,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
 
             styles = {0: ["grey-row"], 1: ["grey-row"], 4: ["normal-row"]}
         elif self.portfolio_type == "equity_msci":
-            labels = ["% Coverage", "Overall", "E&S", "Governance", "Transition"]
+            labels = ["% Coverage3", "Overall", "E&S", "Governance", "Transition"]
             cov_portfolio = portfolio_utils.calculate_portfolio_coverage(
                 self.portfolio_data
             )
@@ -982,7 +996,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         total = sum(scores.values())
 
         not_scored = (
-            "Not Scored4" if self.portfolio_type == "equity_msci" else "Not Scored6"
+            "Not Scored5" if self.portfolio_type == "equity_msci" else "Not Scored6"
         )
 
         df_distr = pd.DataFrame(
@@ -1006,13 +1020,13 @@ class ESGCharacteristics(visualizor.PDFCreator):
 
         styles = {3: ["italic"]}
 
-        sup = 3 if self.portfolio_type == "equity_msci" else 5
+        sup = 4 if self.portfolio_type == "equity_msci" else 5
 
         distr = html.Div(
             [
                 html.H6(
                     [
-                        "ESG Risk Score Distribution",
+                        "TCW ESG Risk Score Distribution",
                         html.Sup(sup, className="superscript"),
                         html.A(" (%MV)", className="mv"),
                     ],
@@ -1387,7 +1401,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         )
         df_ci["Carbon_Intensity"] = round(df_ci["Carbon_Intensity"], 0)
 
-        height = 420
+        height = 400
         ci_chart = html.Div(
             [
                 html.H6(
