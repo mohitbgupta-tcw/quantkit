@@ -130,18 +130,32 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             row with header Div
         """
-        header_text = [
-            html.H3("Sustainable Characteristics", className="overall-header"),
-            html.H5(f"{self.portfolio_name}"),
-            html.P(
-                f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS",
-                className="sub-header",
-            ),
-            html.P(
-                f"""AS OF {self.as_of_date.strftime("%d %B %Y")} | SHARE CLASS: IU""",
-                className="sub-header",
-            ),
-        ]
+        if self.portfolio_type in ["equity_msci"]:
+            header_text = [
+                html.H3("Sustainable Characteristics", className="overall-header"),
+                html.H5(f"{self.portfolio_name}"),
+                html.P(
+                    f"Benchmark: {self.benchmark_name}",
+                    className="sub-header",
+                ),
+                html.P(
+                    f"""As of {self.as_of_date.strftime("%d %B %Y")}""",
+                    className="sub-header",
+                ),
+            ]
+        else:
+            header_text = [
+                html.H3("Sustainable Characteristics", className="overall-header"),
+                html.H5(f"{self.portfolio_name}"),
+                html.P(
+                    f"A SUB-FUND OF TCW FUNDS, A LUXEMBOURG DOMICILED UCITS",
+                    className="sub-header",
+                ),
+                html.P(
+                    f"""As of {self.as_of_date.strftime("%d %B %Y")} | SHARE CLASS: IU""",
+                    className="sub-header",
+                ),
+            ]
         return super().add_header(header_text)
 
     def add_header_holdings(self) -> html.Div:
@@ -260,6 +274,27 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     ],
                 ),
             ]
+        elif self.portfolio_type in ["equity_msci"]:
+            index_text = mapping_utils.benchmark_text[self.benchmark_isin].split(":", 1)
+            footnote_text = [
+                "Source: TCW, Bloomberg, MSCI, ISS",
+                html.Br(),
+                html.B("1 Weighted Average Carbon Intensity measure"),
+                """ represents the weighted average summary of the portfolio company’s most recently reported or estimated Scope 1 and 2 emissions normalized by the most recently available sales in million USD. """,
+                html.B("2 Carbon intensity reduction"),
+                """ relative to benchmark and/or universe. Applies to equity securities. """,
+                html.B("3 TCW has developed a scoring methodology"),
+                """ to assess the ESG risk or characteristics of companies and/or issuers. All securities are assessed according to this methodology. """,
+                html.B("4 Not scored securities"),
+                """ represent securities that are not evaluated for the purposes of sustainable characteristics. These include cash, cash equivalents, or other instruments that are used for the purposes of portfolio liquidity and hedging only. Portfolio market value is calculated on a trade date basis. A negative market value represents forward settling trades (specifically agency MBS TBAs) that are backed by liquid securities other than cash.""",
+                html.Br(className="m"),
+                html.Span(
+                    [
+                        html.B(index_text[0] + ":"),
+                        index_text[1],
+                    ],
+                ),
+            ]
         else:
             footnote_text = [
                 "Source: TCW, Bloomberg, MSCI, ISS",
@@ -348,6 +383,43 @@ class ESGCharacteristics(visualizor.PDFCreator):
             html.Div(
                 [self.add_carbon_intensity_chart()],
                 className="four columns",
+            ),
+        ]
+        return body_content
+
+    def add_body_equity_msci(self) -> html.Div:
+        """
+        Create main body with tables, charts and text
+
+        Returns
+        -------
+        html.Div
+            row with body Div
+        """
+        body_content = [
+            # first column
+            html.Div(
+                [
+                    self.add_WACI_table(),
+                    self.add_risk_score_distribution(),
+                    self.add_score_distribution(),
+                ],
+                className="three-point-five columns",
+            ),
+            # second column
+            html.Div(
+                [
+                    self.add_planet_table(),
+                    self.add_people_table(),
+                    self.add_total_table(),
+                    self.add_transition_table(),
+                ],
+                className="five columns",
+            ),
+            # third column
+            html.Div(
+                [self.add_msci_score_distribution(), self.add_carbon_intensity_chart()],
+                className="three-point-five columns",
             ),
         ]
         return body_content
@@ -495,6 +567,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
             body_content = self.add_body_equity_fi()
         elif self.portfolio_type in ["equity_a9"]:
             body_content = self.add_body_equity_a9()
+        elif self.portfolio_type in ["equity_msci"]:
+            body_content = self.add_body_equity_msci()
         elif self.portfolio_type in ["fixed_income_a8"]:
             body_content = self.add_body_fi_a8()
         elif self.portfolio_type in ["fixed_income_a9"]:
@@ -700,9 +774,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
             ]
 
         sub_fund = "Sub-Fund4" if self.portfolio_type == "em" else "Sub-Fund"
-        cr_label = (
-            "Carbon Reduction5" if self.portfolio_type == "em" else "Carbon Reduction4"
-        )
+        if self.portfolio_type == "em":
+            cr_label = "Carbon Reduction5"
+        elif self.portfolio_type == "equity_msci":
+            cr_label = "Carbon Reduction2"
+        else:
+            cr_label = "Carbon Reduction4"
 
         name = [sub_fund, "Index", cr_label]
 
@@ -801,6 +878,18 @@ class ESGCharacteristics(visualizor.PDFCreator):
             ind.insert(0, "{0:.2f}".format(sov_index))
 
             styles = {0: ["grey-row"], 1: ["grey-row"], 4: ["normal-row"]}
+        elif self.portfolio_type == "equity_msci":
+            labels = ["% Coverage3", "Overall", "E&S", "Governance", "Transition"]
+            cov_portfolio = portfolio_utils.calculate_portfolio_coverage(
+                self.portfolio_data
+            )
+            cov_index = portfolio_utils.calculate_portfolio_coverage(
+                self.benchmark_data
+            )
+            portfolio.insert(0, "{0:.2f}".format(cov_portfolio))
+            ind.insert(0, "{0:.2f}".format(cov_index))
+
+            styles = {0: ["grey-row"], 1: ["grey-row"], 4: ["normal-row"]}
         else:
             styles = {0: ["grey-row"], 3: ["normal-row"]}
 
@@ -833,6 +922,66 @@ class ESGCharacteristics(visualizor.PDFCreator):
         )
         return distr_div
 
+    def add_msci_score_distribution(self) -> html.Div:
+        """
+        For portfolio and benchmark, calculate MSCI scores.
+        Show these values in a table.
+
+        Returns
+        -------
+        html.Div
+            div with scores table and header
+        """
+        styles = {}
+        msci_portfolio = portfolio_utils.calculate_portfolio_msci_score(
+            self.portfolio_data
+        )
+        msci_index = portfolio_utils.calculate_portfolio_msci_score(self.benchmark_data)
+        cov_portfolio = portfolio_utils.calculate_portfolio_msci_coverage(
+            self.portfolio_data
+        )
+        cov_index = portfolio_utils.calculate_portfolio_msci_coverage(
+            self.benchmark_data
+        )
+
+        labels = ["MSCI ESG Score", "% Coverage"]
+        portfolio = [
+            "{0:.2f}".format(msci_portfolio),
+            "{0:.2f}".format(cov_portfolio),
+        ]
+        ind = [
+            "{0:.2f}".format(msci_index),
+            "{0:.2f}".format(cov_index),
+        ]
+
+        df_msci_score_distr = pd.DataFrame(
+            data={
+                "": labels,
+                "Portfolio": portfolio,
+                "Index": ind,
+            }
+        )
+
+        styles = {1: ["normal-row"]}
+
+        distr_div = html.Div(
+            [
+                html.H6(
+                    ["MSCI ESG Score"],
+                    className="subtitle padded",
+                ),
+                self.add_table(
+                    df_msci_score_distr,
+                    show_header=True,
+                    id="msci-score",
+                    styles=styles,
+                ),
+            ],
+            className="row",
+            id="msci-scores",
+        )
+        return distr_div
+
     def add_score_distribution(self) -> html.Div:
         """
         For a portfolio, calculate score distribution.
@@ -846,13 +995,17 @@ class ESGCharacteristics(visualizor.PDFCreator):
         scores = portfolio_utils.calculate_risk_distribution(self.portfolio_data)
         total = sum(scores.values())
 
+        not_scored = (
+            "Not Scored5" if self.portfolio_type == "equity_msci" else "Not Scored6"
+        )
+
         df_distr = pd.DataFrame(
             data={
                 "Name": [
                     "Leading ESG Score",
                     "Average ESG Score",
                     "Poor Risk Score",
-                    "Not Scored6",
+                    not_scored,
                     "Total",
                 ],
                 "Value": [
@@ -867,12 +1020,14 @@ class ESGCharacteristics(visualizor.PDFCreator):
 
         styles = {3: ["italic"]}
 
+        sup = 4 if self.portfolio_type == "equity_msci" else 5
+
         distr = html.Div(
             [
                 html.H6(
                     [
-                        "ESG Risk Score Distribution",
-                        html.Sup(5, className="superscript"),
+                        "TCW ESG Risk Score Distribution",
+                        html.Sup(sup, className="superscript"),
                         html.A(" (%MV)", className="mv"),
                     ],
                     className="subtitle padded",
@@ -1246,7 +1401,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         )
         df_ci["Carbon_Intensity"] = round(df_ci["Carbon_Intensity"], 0)
 
-        height = 420
+        height = 400
         ci_chart = html.Div(
             [
                 html.H6(
