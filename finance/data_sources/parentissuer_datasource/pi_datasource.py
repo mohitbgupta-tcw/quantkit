@@ -27,6 +27,7 @@ class ParentIssuerSource(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.parent_issuers = dict()
 
     def load(self) -> None:
         """
@@ -56,30 +57,19 @@ class ParentIssuerSource(ds.DataSources):
         list
             list of MSCI ISSUERIDs for parents
         """
-        pii = list(self.df["PARENT_ULTIMATE_ISSUERID"].dropna().unique())
-        return pii
+        if self.parent_issuers:
+            pii = list(self.df["PARENT_ULTIMATE_ISSUERID"].dropna().unique())
+            return pii
+        return list()
 
-    def iter(self, companies: dict, securities: dict) -> None:
+    def iter(self) -> None:
         """
         Manually add parent issuer for selected securities
-
-        Parameters
-        ----------
-        companies: dict
-            dictionary of all company objects
-        securities: dict
-            dictionary of all security objects
         """
         for index, row in self.df.iterrows():
-            parent = row["ISIN"]
+            issuer_row = row.squeeze().to_dict()
             sec = row["SECURITY_ISIN"]
-            if parent in companies:
-                if sec in securities:
-                    securities[sec].parent_store.remove_security(isin=sec)
-                    companies[parent].add_security(isin=sec, store=securities[sec])
-                    securities[sec].add_parent(companies[parent])
-                if sec in companies:
-                    del companies[sec]
+            self.parent_issuers[sec] = issuer_row
 
     @property
     def df(self) -> pd.DataFrame:

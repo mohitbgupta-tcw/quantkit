@@ -74,19 +74,18 @@ class PortfolioStore(object):
         initial_weight_sov = 0
         for s in self.holdings:
             t = self.holdings[s]["object"].parent_store.type
-            s1 = self.holdings[s]["object"].information["Sector Level 1"]
-            if t == "company" and not s1 == "Cash and Other":
+            if t == "company":
                 for h in self.holdings[s]["holding_measures"]:
                     total_mkt_value += h["Base Mkt Val"]
                     initial_weight += h["Portfolio_Weight"]
-            elif t == "sovereign" and not s1 == "Cash and Other":
+            elif t == "sovereign":
                 for h in self.holdings[s]["holding_measures"]:
                     total_mkt_value_sov += h["Base Mkt Val"]
                     initial_weight_sov += h["Portfolio_Weight"]
 
-        self.total_market_value_corp = total_mkt_value / exchange_rate
+        self.total_market_value_corp = float(total_mkt_value) / exchange_rate
         self.initial_weight_corp = initial_weight
-        self.total_market_value_sov = total_mkt_value_sov / exchange_rate
+        self.total_market_value_sov = float(total_mkt_value_sov) / exchange_rate
         self.initial_weight_sov = initial_weight_sov
 
     def calculate_carbon_impact(self, impact_column: str) -> None:
@@ -179,7 +178,7 @@ class PortfolioStore(object):
 
         impact = 0
         for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
+            norm_weight = float(s["Portfolio_Weight"] / total_weight)
             impact += s["ENERGY_CONSUMP_INTEN_EUR"] * norm_weight
         coverage = (
             total_weight / self.initial_weight_corp
@@ -273,7 +272,7 @@ class PortfolioStore(object):
 
         impact = 0
         for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
+            norm_weight = float(s["Portfolio_Weight"] / total_weight)
             impact += s["CTRY_GHG_INTEN_GDP_EUR"] * norm_weight
         coverage = (
             total_weight / self.initial_weight_sov
@@ -320,7 +319,7 @@ class PortfolioStore(object):
 
         impact = 0
         for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
+            norm_weight = float(s["Portfolio_Weight"] / total_weight)
             if (
                 s["GOVERNMENT_EU_SANCTIONS"] == "Yes"
                 or s["GOVERNMENT_UN_SANCTIONS"] == "Yes"
@@ -410,7 +409,7 @@ class PortfolioStore(object):
 
         impact = 0
         for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
+            norm_weight = float(s["Portfolio_Weight"] / total_weight)
             investor_stake = (
                 norm_weight * self.total_market_value_corp / (s["EVIC_EUR"] * 1000000)
             )
@@ -468,7 +467,7 @@ class PortfolioStore(object):
 
         impact = 0
         for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
+            norm_weight = float(s["Portfolio_Weight"] / total_weight)
             waci = norm_weight * s[impact_column]
             impact += waci
 
@@ -521,7 +520,7 @@ class PortfolioStore(object):
 
         impact = 0
         for s in data:
-            norm_weight = s["Portfolio_Weight"] / total_weight
+            norm_weight = float(s["Portfolio_Weight"] / total_weight)
             if s[impact_column] == filter_word:
                 impact += norm_weight
         coverage = (

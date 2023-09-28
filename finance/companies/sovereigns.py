@@ -102,7 +102,6 @@ class SovereignStore(headstore.HeadStore):
     ) -> None:
         """
         - attach region information
-        - calculate sovereign score
         - attach analyst adjustment
         - attach GICS information
         - attach exclusions
@@ -122,7 +121,6 @@ class SovereignStore(headstore.HeadStore):
             dictionary of Exclusions
         """
         self.attach_region(regions)
-        self.update_sovereign_score()
         self.attach_analyst_adjustment(msci_adjustment_dict)
         self.attach_gics(gics_d)
         self.attach_exclusion(exclusion_dict)

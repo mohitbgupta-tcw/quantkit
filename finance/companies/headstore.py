@@ -99,6 +99,8 @@ class HeadStore(object):
         regions: dict
             dictionary of all region objects
         """
+        if not regions:
+            return
         country = self.msci_information["ISSUER_CNTRY_DOMICILE"]
         country = np.nan if pd.isna(country) else country
         self.information["Issuer_Country"] = regions[country]
@@ -188,6 +190,8 @@ class HeadStore(object):
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
         """
+        if not gics_d:
+            return
         # if we can't find GICS in store, create new one as 'Unassigned GICS'
         gics_sub = self.msci_information["GICS_SUB_IND"]
         if pd.isna(gics_sub):
@@ -215,6 +219,8 @@ class HeadStore(object):
         bclass_d: dict
             dictionary of bclass_level4 with bclass as key, bclass object as value
         """
+        if not gics_d and not bclass_d:
+            return
         gics_sub = self.information["GICS_SUB_IND"].information["GICS_SUB_IND"]
         bclass4 = self.information["BCLASS_Level4"].information["BCLASS_Level4"]
 
@@ -247,7 +253,8 @@ class HeadStore(object):
         category_d: dict
             dictionary of ESRM categories
         """
-
+        if not category_d:
+            return
         esrm_module = self.information["Sub-Industry"].information["ESRM Module"]
         self.information["ESRM Module"] = category_d[esrm_module]
 

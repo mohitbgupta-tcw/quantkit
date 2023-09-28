@@ -66,6 +66,8 @@ class PortfolioDataSource(ds.DataSources):
             iss issuer id
         BBG ISSUERID: str
             bloomberg issuer id
+        Issuer ISIN: str
+            issuer isin
         Portfolio_Weight: float
             weight of security in portfolio
         Base Mkt Value: float
@@ -189,6 +191,7 @@ class PortfolioDataSource(ds.DataSources):
             AND pos.portfolio_number in (
                 {', '.join(f"'{pf}'" for pf in pfs)}
             )
+            AND pos.source_system = 'SMS' -- temp fix
             UNION
             --Benchmark Holdings
             SELECT  
@@ -577,9 +580,9 @@ class PortfolioDataSource(ds.DataSources):
         elif sector_level_2 in ["Sovereign"]:
             check_type = "Sovereign"
             all_parents = self.sovereigns
-        # elif sector_level_2 in ["Cash and Other"]:
-        #     check_type = "Cash"
-        #     all_parents = self.cash
+        elif sector_level_2 in ["Cash and Other"]:
+            check_type = "Cash"
+            all_parents = self.cash
         else:
             check_type = "Corporate"
             all_parents = self.companies
@@ -612,6 +615,7 @@ class PortfolioDataSource(ds.DataSources):
             dictionary of MSCI information
         """
         issuer_id = security_information["MSCI ISSUERID"]
+        issuer_id = issuer_id if issuer_id in msci_dict else "NoISSUERID"
 
         issuer_dict = deepcopy(msci_dict[issuer_id])
         issuer_isin = issuer_dict["ISSUER_ISIN"]

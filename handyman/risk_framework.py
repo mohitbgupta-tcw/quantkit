@@ -448,14 +448,15 @@ def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     return df
 
 
-def compare_unadjusted(isin_list: list, local_configs: str = "") -> pd.DataFrame:
+def compare_unadjusted(isin_list: list = [], local_configs: str = "") -> pd.DataFrame:
     """
     Run risk framework for a list of isins
     and return DataFrame comparing adjsuted and unadjusted scores and themes
+    if no isin list is provided, run on whole universe
 
     Parameters
     ----------
-    isin_list: list
+    isin_list: list, optional
         list of isins
     local_configs: str, optional
         path to a local configarations file
@@ -465,67 +466,69 @@ def compare_unadjusted(isin_list: list, local_configs: str = "") -> pd.DataFrame
     pd.DataFrame
         Detailed DataFrame
     """
-    # create portfolio sheet
-    portfolio_df = pd.DataFrame()
-    portfolio_df["ISIN"] = isin_list
-    portfolio_df["As Of Date"] = pd.to_datetime("today").normalize()
-    portfolio_df["Portfolio"] = "Test_Portfolio"
-    portfolio_df["Portfolio Name"] = "Test_Portfolio"
-    portfolio_df["ESG Collateral Type"] = "Unknown"
-    portfolio_df["Issuer ESG"] = "No"
-    portfolio_df["Loan Category"] = np.nan
-    portfolio_df["Labeled ESG Type"] = "None"
-    portfolio_df["ISSUER_NAME"] = isin_list
-    portfolio_df["TCW ESG"] = "None"
-    portfolio_df["Ticker Cd"] = np.nan
-    portfolio_df["Sector Level 1"] = "Corporate"
-    portfolio_df["Sector Level 2"] = "Industrial"
-    portfolio_df["JPM Sector"] = np.nan
-    portfolio_df["BCLASS_Level2"] = np.nan
-    portfolio_df["BCLASS_Level3"] = np.nan
-    portfolio_df["BCLASS_Level4"] = np.nan
-    portfolio_df["Market Region"] = np.nan
-    portfolio_df["Country of Risk"] = np.nan
-    portfolio_df["Portfolio_Weight"] = 1 / len(isin_list)
-    portfolio_df["Base Mkt Val"] = 1
-    portfolio_df["Rating Raw MSCI"] = np.nan
-    portfolio_df["OAS"] = np.nan
-    portfolio_df = portfolio_df.to_json(orient="index")
+    if isin_list:
+        # create portfolio sheet
+        portfolio_df = pd.DataFrame()
+        portfolio_df["ISIN"] = isin_list
+        portfolio_df["As Of Date"] = pd.to_datetime("today").normalize()
+        portfolio_df["Portfolio"] = "Test_Portfolio"
+        portfolio_df["Portfolio Name"] = "Test_Portfolio"
+        portfolio_df["ESG Collateral Type"] = "Unknown"
+        portfolio_df["Issuer ESG"] = "No"
+        portfolio_df["Loan Category"] = np.nan
+        portfolio_df["Labeled ESG Type"] = "None"
+        portfolio_df["Security_Name"] = isin_list
+        portfolio_df["Issuer ISIN"] = isin_list
+        portfolio_df["MSCI ISSUERID"] = np.nan
+        portfolio_df["ISS ISSUERID"] = np.nan
+        portfolio_df["BBG ISSUERID"] = np.nan
+        portfolio_df["TCW ESG"] = "None"
+        portfolio_df["Ticker Cd"] = np.nan
+        portfolio_df["Sector Level 1"] = "Corporate"
+        portfolio_df["Sector Level 2"] = "Industrial"
+        portfolio_df["JPM Sector"] = np.nan
+        portfolio_df["BCLASS_Level2"] = np.nan
+        portfolio_df["BCLASS_Level3"] = np.nan
+        portfolio_df["BCLASS_Level4"] = np.nan
+        portfolio_df["Market Region"] = np.nan
+        portfolio_df["Country of Risk"] = np.nan
+        portfolio_df["Portfolio_Weight"] = 1 / len(isin_list)
+        portfolio_df["Base Mkt Val"] = 1
+        portfolio_df["Rating Raw MSCI"] = np.nan
+        portfolio_df["OAS"] = np.nan
+        portfolio_df = portfolio_df.to_json(orient="index")
 
-    # create msci mapping file
-    msci_df = msci_data_loaders.create_msci_mapping(
-        isin_list=isin_list, local_configs=local_configs
-    )
-    msci_df = msci_df.to_json(orient="index")
+        configs_overwrite = {
+            "portfolio_datasource": {"source": 6, "json_str": portfolio_df}
+        }
 
-    configs_overwrite = {
-        "portfolio_datasource": {"source": 6, "json_str": portfolio_df},
-        "security_datasource": {
-            "msci": {"source": 6, "json_str": msci_df},
-        },
-    }
+        if os.path.isfile(local_configs):
+            with open(local_configs) as f_in:
+                configs_local = json.load(f_in)
+            c = {**configs_local, **configs_overwrite}
+        else:
+            configs_local = None
+            c = configs_overwrite
+        with open("quantkit\\params_temp.json", "w") as f:
+            json.dump(c, f)
 
-    if os.path.isfile(local_configs):
-        with open(local_configs) as f_in:
-            configs_local = json.load(f_in)
-        c = {**configs_local, **configs_overwrite}
+        # run framework
+        r = runner_risk_framework.Runner()
+        r.init(local_configs="quantkit\\params_temp.json")
+        r.run()
+
     else:
-        configs_local = None
-        c = configs_overwrite
-    with open("quantkit\\params_temp.json", "w") as f:
-        json.dump(c, f)
-
-    # run framework
-    r = runner_risk_framework.Runner()
-    r.init(local_configs="quantkit\\params_temp.json")
-    r.run()
+        # run framework
+        r = runner_risk_framework.Runner()
+        r.init(local_configs=local_configs)
+        r.run()
 
     data = []
-    for sec, sec_store in r.security_datasource.securities.items():
+    for sec, sec_store in r.portfolio_datasource.securities.items():
         comp_store = sec_store.parent_store
         sec_data = {
             "Security ISIN": sec,
-            "Issuer Name": sec_store.information["IssuerName"],
+            "Issuer Name": comp_store.msci_information["ISSUER_NAME"],
             "Security Name": sec_store.information["Security_Name"],
             "Analyst": comp_store.information["Sub-Industry"].information["Analyst"],
             "MSCI ISSUERID": comp_store.msci_information["ISSUERID"],
@@ -560,7 +563,8 @@ def compare_unadjusted(isin_list: list, local_configs: str = "") -> pd.DataFrame
         }
         data.append(sec_data)
 
-    os.remove("quantkit\\params_temp.json")
+    if isin_list:
+        os.remove("quantkit\\params_temp.json")
     return pd.DataFrame(data)
 
 

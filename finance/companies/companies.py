@@ -580,22 +580,25 @@ class CompanyStore(headstore.HeadStore):
                 parent = c
 
                 # assign sdg data for missing values
-                for val in self.sdg_information:
-                    if pd.isna(self.sdg_information[val]):
-                        new_val = companies[parent].sdg_information[val]
-                        self.sdg_information[val] = new_val
+                if hasattr(self, "sdg_information"):
+                    for val in self.sdg_information:
+                        if pd.isna(self.sdg_information[val]):
+                            new_val = companies[parent].sdg_information[val]
+                            self.sdg_information[val] = new_val
 
                 # assign msci data for missing values
-                for val in self.msci_information:
-                    if pd.isna(self.msci_information[val]):
-                        new_val = companies[parent].msci_information[val]
-                        self.msci_information[val] = new_val
+                if hasattr(self, "msci_information"):
+                    for val in self.msci_information:
+                        if pd.isna(self.msci_information[val]):
+                            new_val = companies[parent].msci_information[val]
+                            self.msci_information[val] = new_val
 
                 # assign bloomberg data for missing values
-                for val in self.bloomberg_information:
-                    if pd.isna(self.bloomberg_information[val]):
-                        new_val = companies[parent].bloomberg_information[val]
-                        self.bloomberg_information[val] = new_val
+                if hasattr(self, "bloomberg_information"):
+                    for val in self.bloomberg_information:
+                        if pd.isna(self.bloomberg_information[val]):
+                            new_val = companies[parent].bloomberg_information[val]
+                            self.bloomberg_information[val] = new_val
 
                 break
 
@@ -636,11 +639,9 @@ class CompanyStore(headstore.HeadStore):
         gics_d: dict,
         bclass_d: dict,
         category_d: dict,
-        themes: dict,
     ) -> None:
         """
         - attach region information
-        - attach sovereign score
         - attach data from parent
         - attach exclusions
         - attach GICS information
@@ -665,15 +666,10 @@ class CompanyStore(headstore.HeadStore):
             dictionary of bclass sub industries with bclass as key, bclass object as value
         category_d: dict
             dictionary of ESRM categories
-        themes: dict
-            dictionary of all theme objects
         """
 
         # attach region
         self.attach_region(regions)
-
-        # update sovereign score for Treausury
-        self.update_sovereign_score()
 
         # attach data from parent if missing
         if not pd.isna(self.msci_information["PARENT_ULTIMATE_ISSUERID"]):
@@ -693,15 +689,3 @@ class CompanyStore(headstore.HeadStore):
 
         # attach analyst adjustment
         self.attach_analyst_adjustment(msci_adjustment_dict)
-
-        # calculate capex
-        self.calculate_capex()
-
-        # calculate climate revenue
-        self.calculate_climate_revenue()
-
-        # calculate carbon intensite --> if na, assign industry median
-        self.calculate_carbon_intensity()
-
-        # assign theme and Sustainability_Tag
-        self.check_theme_requirements(themes)

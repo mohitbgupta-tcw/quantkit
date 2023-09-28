@@ -172,6 +172,13 @@ class Runner(object):
         # map transition target and transition revenue to each sub-sector
         self.iter_transitions()
 
+    def iter_category(self):
+        """
+        load category data
+        """
+        self.category_datasource.load()
+        self.category_datasource.iter()
+
     def iter_transitions(self) -> None:
         """
         - load transition data
@@ -185,7 +192,6 @@ class Runner(object):
         """
         - load portfolio data
         - create portfolio objects
-        - attach Sector to Portfolio object
         """
         self.portfolio_datasource.load(
             as_of_date=self.params["as_of_date"],
@@ -194,9 +200,6 @@ class Runner(object):
             fixed_income_benchmark=self.params["fixed_income_benchmark"],
         )
         self.portfolio_datasource.iter()
-
-        # attach sector to portfolio
-        self.sector_datasource.iter_portfolios(self.portfolio_datasource.portfolios)
 
     def iter_securitized_mapping(self) -> None:
         """
@@ -208,11 +211,8 @@ class Runner(object):
     def iter_holdings(self) -> None:
         """
         Iterate over portfolio holdings
-        - attach ESG information so security
-        - create Muni, Sovereign, Securitized objects
-        - attach sector information to company
-        - attach BCLASS to company
-        - attach Bloomberg information
+        - Create Security objects
+        - create Company, Muni, Sovereign, Securitized, Cash objects
         - attach holdings, OAS to self.holdings with security object
         """
         self.portfolio_datasource.iter_holdings(
@@ -235,12 +235,18 @@ class Runner(object):
         self.exclusion_datasource.load()
         self.exclusion_datasource.iter()
 
+    def iter_parent_issuers(self) -> None:
+        """
+        iterate over parent issuers
+        """
+        self.parent_issuer_datasource.load()
+        self.parent_issuer_datasource.iter()
+
     def iter_msci(self) -> None:
         """
         iterate over MSCI data
         """
         # load parent issuer data
-        self.parent_issuer_datasource.load()
         parent_ids = self.parent_issuer_datasource.parent_issuer_ids()
 
         # load MSCI data
@@ -279,8 +285,11 @@ class Runner(object):
         - if company doesn't have data, attach all nan's
         """
         # load quandl data
-        self.quandl_datasource.load(self.portfolio_datasource.all_tickers)
-        self.quandl_datasource.iter(self.portfolio_datasource.companies)
+        self.params["quandl_datasource"]["filters"]["ticker"] = list(
+            set(self.portfolio_datasource.all_tickers)
+        )
+        self.quandl_datasource.load()
+        self.quandl_datasource.iter()
 
     def iter_securities(self) -> None:
         """
@@ -290,11 +299,14 @@ class Runner(object):
         """
         for sec, sec_store in self.portfolio_datasource.securities.items():
             sec_store.iter(
+                parent_issuer_dict=self.parent_issuer_datasource.parent_issuers,
+                companies=self.portfolio_datasource.companies,
                 securitized_mapping=self.securitized_datasource.securitized_mapping,
                 bclass_dict=self.bclass_datasource.bclass,
                 sec_adjustment_dict=self.adjustment_datasource.security_isins,
                 bloomberg_dict=self.bloomberg_datasource.bloomberg,
                 sdg_dict=self.sdg_datasource.sdg,
+                quandl_dict=self.quandl_datasource.quandl,
             )
 
     def iter_sovereigns(self) -> None:
@@ -302,8 +314,8 @@ class Runner(object):
         Iterate over all sovereigns
         """
         logging.log("Iterate Sovereigns")
-        for s in self.portfolio_datasource.sovereigns:
-            self.portfolio_datasource.sovereigns[s].iter(
+        for s, sov_store in self.portfolio_datasource.sovereigns.items():
+            sov_store.iter(
                 regions=self.region_datasource.regions,
                 msci_adjustment_dict=self.adjustment_datasource.msci_ids,
                 gics_d=self.gics_datasource.gics,
@@ -316,8 +328,8 @@ class Runner(object):
         Iterate over all Securitized
         """
         logging.log("Iterate Securitized")
-        for sec in self.portfolio_datasource.securitized:
-            self.portfolio_datasource.securitized[sec].iter(
+        for sec, sec_store in self.portfolio_datasource.securitized.items():
+            sec_store.iter(
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
@@ -328,8 +340,8 @@ class Runner(object):
         Iterate over all Munis
         """
         logging.log("Iterate Munis")
-        for m in self.portfolio_datasource.munis:
-            self.portfolio_datasource.munis[m].iter(
+        for m, muni_store in self.portfolio_datasource.munis.items():
+            muni_store.iter(
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
@@ -339,9 +351,9 @@ class Runner(object):
         """
         Iterate over all Cash objects
         """
-        logging.log("Iterate Securitized")
-        for c in self.portfolio_datasource.cash:
-            self.portfolio_datasource.cash[c].iter(
+        logging.log("Iterate Cash")
+        for c, cash_store in self.portfolio_datasource.cash.items():
+            cash_store.iter(
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
@@ -352,19 +364,8 @@ class Runner(object):
         Iterate over all companies
         """
         logging.log("Iterate Companies")
-
-        # attach quandl information
-        self.iter_quandl()
-
-        # attach parent issuer id --> manually added parents from file
-        self.attach_parent_issuer()
-
-        # load category data
-        self.category_datasource.load()
-        self.category_datasource.iter()
-
-        for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].iter(
+        for c, comp_store in self.portfolio_datasource.companies.items():
+            comp_store.iter(
                 companies=self.portfolio_datasource.companies,
                 regions=self.region_datasource.regions,
                 exclusion_dict=self.exclusion_datasource.exclusions,
@@ -372,13 +373,4 @@ class Runner(object):
                 bclass_d=self.bclass_datasource.bclass,
                 category_d=self.category_datasource.categories,
                 msci_adjustment_dict=self.adjustment_datasource.msci_ids,
-                themes=self.theme_datasource.themes,
             )
-
-    def attach_parent_issuer(self) -> None:
-        """
-        Manually add parent issuer for selected securities
-        """
-        self.parent_issuer_datasource.iter(
-            self.portfolio_datasource.companies, self.portfolio_datasource.securities
-        )

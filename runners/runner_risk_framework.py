@@ -28,11 +28,14 @@ class Runner(loader.Runner):
         self.iter_themes()
         self.iter_regions()
         self.iter_sectors()
+        self.iter_category()
         self.iter_securitized_mapping()
+        self.iter_parent_issuers()
         self.iter_bloomberg()
         self.iter_portfolios()
         self.iter_sdg()
         self.iter_msci()
+        self.iter_quandl()
         self.iter_adjustment()
         self.iter_exclusion()
         self.iter_holdings()
@@ -48,7 +51,25 @@ class Runner(loader.Runner):
         Iterate over all companies
         """
         super().iter_companies()
+        self.company_calculations()
         self.replace_transition_risk()
+
+    def company_calculations(self):
+        """
+        Multiple Company calculations
+        """
+        for c, comp_store in self.portfolio_datasource.companies.items():
+            # calculate capex
+            comp_store.calculate_capex()
+
+            # calculate climate revenue
+            comp_store.calculate_climate_revenue()
+
+            # calculate carbon intensite --> if na, assign industry median
+            comp_store.calculate_carbon_intensity()
+
+            # assign theme and Sustainability_Tag
+            comp_store.check_theme_requirements(self.theme_datasource.themes)
 
     def replace_transition_risk(self) -> None:
         """
@@ -58,138 +79,105 @@ class Runner(loader.Runner):
         """
         # create new Industry objects for Unassigned High and Low
 
-        for c in self.bclass_datasource.industries["Unassigned BCLASS"].companies:
-            self.portfolio_datasource.companies[c].replace_unassigned_industry(
-                high_threshold=self.params["transition_parameters"]["High_Threshold"],
-                industries=self.bclass_datasource.industries,
-            )
+        for c, store in self.bclass_datasource.industries[
+            "Unassigned BCLASS"
+        ].companies.items():
+            if store.type == "company":
+                store.replace_unassigned_industry(
+                    high_threshold=self.params["transition_parameters"][
+                        "High_Threshold"
+                    ],
+                    industries=self.bclass_datasource.industries,
+                )
 
-    def calculate_securitized_score(self) -> None:
+    def iter_portfolios(self) -> None:
         """
-        Calculation of Securitized Score
+        - load portfolio data
+        - create portfolio objects
+        - attach Sector to Portfolio object
         """
-        for sec in self.portfolio_datasource.securitized:
-            self.portfolio_datasource.securitized[sec].calculate_securitized_score()
+        super().iter_portfolios()
+        self.sector_datasource.iter_portfolios(self.portfolio_datasource.portfolios)
 
-    def analyst_adjustment(self) -> None:
+    def calculate_company_scores(self) -> None:
         """
-        Do analyst adjustments for each company.
-        Different calculations for each thematic type:
-            - Risk
-            - Transition
-            - People
-            - Planet
-        See quantkit.finance.adjustments for more information
+        Calculuate scores for each company:
+            - sovereign score (for treasury)
+            - esrm score
+            - governance score
+            - transition score
+            - analyst adjustment
+            - corporate score
+            - risk overall score
+            - SClass
         """
-        for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].iter_analyst_adjustment(
-                self.theme_datasource.themes
-            )
+        for c, comp_store in self.portfolio_datasource.companies.items():
+            comp_store.update_sovereign_score()
+            comp_store.calculate_transition_score()
+            comp_store.calculate_esrm_score()
+            comp_store.iter_analyst_adjustment(self.theme_datasource.themes)
+            comp_store.calculate_corporate_score()
+            comp_store.calculate_risk_overall_score()
+            comp_store.update_sclass()
 
-        for sov in self.portfolio_datasource.sovereigns:
-            self.portfolio_datasource.sovereigns[sov].iter_analyst_adjustment(
-                self.theme_datasource.themes
-            )
-
-        for muni in self.portfolio_datasource.munis:
-            self.portfolio_datasource.munis[muni].iter_analyst_adjustment(
-                self.theme_datasource.themes
-            )
-
-        for sec in self.portfolio_datasource.securitized:
-            self.portfolio_datasource.securitized[sec].iter_analyst_adjustment(
-                self.theme_datasource.themes
-            )
-
-    def calculate_esrm_score(self) -> None:
+    def calculate_sovereign_scores(self) -> None:
         """
-        Calculuate esrm score for each company:
-        1) For each category save indicator fields and EM and DM flag scorings
-        2) For each company:
-            2.1) Get ESRM Module (category)
-            2.2) Iterate over category indicator fields and
-                - count number of flags based on operator and flag threshold
-                - save flag value in indicator_Flag
-                - create ESRM score based on flag scorings and region
-            2.3) Create Governance_Score based on Region_Theme
-            2.4) Save flags in company_information
+        Calculate scores for each sovereign:
+            - sovereign score
+            - analyst adjustment
+            - risk overall score
+            - SClass
         """
+        for sov, sov_store in self.portfolio_datasource.sovereigns.items():
+            sov_store.update_sovereign_score()
+            sov_store.iter_analyst_adjustment(self.theme_datasource.themes)
+            sov_store.calculate_risk_overall_score()
+            sov_store.update_sclass()
 
-        for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].calculate_esrm_score()
-
-    def calculate_transition_score(self) -> None:
+    def calculate_securitized_scores(self) -> None:
         """
-        Calculate transition score (Transition_Score) for each company:
-        0) Check if company is excempted --> set score to 0
-        1) Create transition tags
-        2) Calculate target score
-        3) Calculate transition score
-            3.1) Start with industry initial score (3 for low, 5 for high risk)
-            3.2) Subtract target score
-            3.3) Subtract carbon intensity credit:
-                - if in lowest quantile of industry: -2
-                - if in medium quantile of industry: -1
+        Calculate scores for each Securitzed:
+            - securitized score
+            - risk overall score
+            - SClass
         """
-        for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].calculate_transition_score()
+        for sec, sec_store in self.portfolio_datasource.securitized.items():
+            sec_store.calculate_securitized_score()
+            sec_store.iter_analyst_adjustment(self.theme_datasource.themes)
+            sec_store.calculate_risk_overall_score()
+            sec_store.update_sclass()
 
-    def calculate_corporate_score(self) -> None:
+    def calculate_muni_scores(self) -> None:
         """
-        Calculate corporate score for a company based on other scores.
-        Calculation:
-
-            (Governance Score + ESRM Score + Transition Score) / 3
+        Calculate scores for each Muni:
+            - analyst adjustment
+            - risk overall score
+            - SClass
         """
-        for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].calculate_corporate_score()
+        for muni, muni_store in self.portfolio_datasource.munis.items():
+            muni_store.iter_analyst_adjustment(self.theme_datasource.themes)
+            muni_store.calculate_risk_overall_score()
+            muni_store.update_sclass()
 
-    def calculate_risk_overall_score(self) -> None:
+    def calculate_cash_scores(self) -> None:
         """
-        Calculate risk overall score on security level:
-            - if security specific score between 1 and 2: Leading
-            - if security specific score between 2 and 4: Average
-            - if security specific score above 4: Poor
-            - if security specific score 0: not scored
+        Calculate scores for Cash:
+            - analyst adjustment
+            - risk overall score
+            - SClass
         """
-        for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].calculate_risk_overall_score()
-
-        for sov in self.portfolio_datasource.sovereigns:
-            self.portfolio_datasource.sovereigns[sov].calculate_risk_overall_score()
-
-        for muni in self.portfolio_datasource.munis:
-            self.portfolio_datasource.munis[muni].calculate_risk_overall_score()
-
-        for sec in self.portfolio_datasource.securitized:
-            self.portfolio_datasource.securitized[sec].calculate_risk_overall_score()
-
-    def update_sclass(self) -> None:
-        """
-        Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
-        and SClass_Level5 for each security rule based
-        """
-        for c in self.portfolio_datasource.companies:
-            self.portfolio_datasource.companies[c].update_sclass()
-
-        for sov in self.portfolio_datasource.sovereigns:
-            self.portfolio_datasource.sovereigns[sov].update_sclass()
-
-        for muni in self.portfolio_datasource.munis:
-            self.portfolio_datasource.munis[muni].update_sclass()
-
-        for sec in self.portfolio_datasource.securitized:
-            self.portfolio_datasource.securitized[sec].update_sclass()
+        for cash, cash_store in self.portfolio_datasource.cash.items():
+            cash_store.iter_analyst_adjustment(self.theme_datasource.themes)
+            cash_store.calculate_risk_overall_score()
+            cash_store.update_sclass()
 
     def run(self) -> None:
         """
         run calculations
         """
         logging.log("Start Calculations")
-        self.calculate_transition_score()
-        self.calculate_esrm_score()
-        self.calculate_securitized_score()
-        self.analyst_adjustment()
-        self.calculate_corporate_score()
-        self.calculate_risk_overall_score()
-        self.update_sclass()
+        self.calculate_company_scores()
+        self.calculate_securitized_scores()
+        self.calculate_sovereign_scores()
+        self.calculate_muni_scores()
+        self.calculate_cash_scores()

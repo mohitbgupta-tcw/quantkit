@@ -60,9 +60,10 @@ class SecurityStore(object):
         securitized_mapping: dict
             mapping for ESG Collat Type
         """
-        self.information["ESG Collateral Type"] = securitized_mapping[
-            self.information["ESG Collateral Type"]
-        ]
+        if securitized_mapping:
+            self.information["ESG Collateral Type"] = securitized_mapping[
+                self.information["ESG Collateral Type"]
+            ]
 
     def attach_bclass(self, bclass_dict: dict) -> None:
         """
@@ -73,6 +74,8 @@ class SecurityStore(object):
         bclass_dict: dict
             dictionary of all bclass objects
         """
+        if not bclass_dict:
+            return
         bclass4 = self.information["BCLASS_Level4"]
         # attach BCLASS object
         # if BCLASS is not in BCLASS store (covered industries), attach 'Unassigned BCLASS'
@@ -116,6 +119,8 @@ class SecurityStore(object):
         bloomberg_dict: dict
             dictionary of bloomberg information
         """
+        if not bloomberg_dict:
+            return
         if self.information["BBG ISSUERID"] in bloomberg_dict:
             bbg_information = deepcopy(bloomberg_dict[self.information["BBG ISSUERID"]])
             self.parent_store.bloomberg_information = bbg_information
@@ -136,6 +141,8 @@ class SecurityStore(object):
         sdg_dict: dict
             dictionary of iss information
         """
+        if not sdg_dict:
+            return
         if self.information["ISS ISSUERID"] in sdg_dict:
             iss_information = deepcopy(sdg_dict[self.information["ISS ISSUERID"]])
             self.parent_store.sdg_information = iss_information
@@ -143,6 +150,37 @@ class SecurityStore(object):
             iss_information = deepcopy(sdg_dict[np.nan])
             if not hasattr(self.parent_store, "sdg_information"):
                 self.parent_store.sdg_information = iss_information
+
+    def attach_quandl_information(
+        self,
+        quandl_dict: dict,
+        data_type: str = "fundamental",
+    ) -> None:
+        """
+        Attach iss information to security parent
+
+        Parameters
+        ----------
+        quandl_dict: dict
+            dictionary of quandl information
+        data_type: str, optional
+            data type, either "fundamental" or "price"
+        """
+        if not quandl_dict:
+            return
+        if self.information["Ticker Cd"] in quandl_dict:
+            quandl_information = deepcopy(quandl_dict[self.information["Ticker Cd"]])
+            if data_type == "fundamental":
+                self.parent_store.quandl_information = quandl_information
+            elif data_type == "price":
+                self.parent_store.quandl_information_price = quandl_information
+        else:
+            quandl_information = deepcopy(quandl_dict[np.nan])
+            if not hasattr(self.parent_store, "quandl_information"):
+                if data_type == "fundamental":
+                    self.parent_store.quandl_information = quandl_information
+                elif data_type == "price":
+                    self.parent_store.quandl_information_price = quandl_information
 
     def attach_analyst_adjustment(
         self,
@@ -159,6 +197,28 @@ class SecurityStore(object):
         """
         if self.isin in sec_adjustment_dict:
             self.parent_store.Adjustment = sec_adjustment_dict[self.isin]
+
+    def overwrite_parent(self, parent_issuer_dict: dict, companies: dict) -> None:
+        """
+        Manually overwrite the parent of a security
+
+        Parameters
+        ----------
+        parent_issuer_dict: dict
+            dictionary of security to parent mapping
+        companies: dict
+            dictionary of all company objects
+        """
+        if self.isin in parent_issuer_dict:
+            adj = parent_issuer_dict[self.isin]
+            parent = adj["ISIN"]
+            if parent in companies:
+                prev_parent = self.parent_store.isin
+                self.parent_store.remove_security(isin=self.isin)
+                companies[parent].add_security(isin=self.isin, store=self)
+                self.add_parent(companies[parent])
+                if not companies[prev_parent].securities:
+                    del companies[prev_parent]
 
     def set_risk_overall_score(self, score: Union[float, int]) -> None:
         """
@@ -320,11 +380,14 @@ class SecurityStore(object):
 
     def iter(
         self,
+        parent_issuer_dict: dict,
+        companies: dict,
         securitized_mapping: dict,
         bclass_dict: dict,
         sec_adjustment_dict: dict,
         bloomberg_dict: dict,
         sdg_dict: dict,
+        quandl_dict: dict,
     ) -> None:
         """
         - Add ESG Collateral Type
@@ -332,6 +395,10 @@ class SecurityStore(object):
 
         Parameters
         ----------
+        parent_issuer_dict: dict
+            dictionary of security to parent mapping
+        companies: dict
+            dictionary of all company objects
         securitized_mapping: dict
             mapping for ESG Collat Type
         bclass_dict: dict
@@ -342,10 +409,14 @@ class SecurityStore(object):
             dictionary of bloomberg information
         sdg_dict: dict
             dictionary of iss information
+        quandl_dict: dict
+            dictionary of quandl information
         """
+        self.overwrite_parent(parent_issuer_dict, companies)
         self.add_collateral_type(securitized_mapping)
         self.attach_bclass(bclass_dict)
         self.attach_sector_level_2()
         self.attach_analyst_adjustment(sec_adjustment_dict)
         self.attach_bloomberg_information(bloomberg_dict)
         self.attach_iss_information(sdg_dict)
+        self.attach_quandl_information(quandl_dict)
