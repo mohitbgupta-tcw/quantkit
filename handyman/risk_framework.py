@@ -439,12 +439,12 @@ def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     else:
         configs_local = None
         c = configs_overwrite
-    with open("quantkit\\params_temp.json", "w") as f:
+    with open("quantkit//params_temp.json", "w") as f:
         json.dump(c, f)
 
     # run framework
-    df = risk_framework("quantkit\\params_temp.json")
-    os.remove("quantkit\\params_temp.json")
+    df = risk_framework("quantkit//params_temp.json")
+    os.remove("quantkit//params_temp.json")
     return df
 
 
@@ -509,12 +509,12 @@ def compare_unadjusted(isin_list: list = [], local_configs: str = "") -> pd.Data
         else:
             configs_local = None
             c = configs_overwrite
-        with open("quantkit\\params_temp.json", "w") as f:
+        with open("quantkit//params_temp.json", "w") as f:
             json.dump(c, f)
 
         # run framework
         r = runner_risk_framework.Runner()
-        r.init(local_configs="quantkit\\params_temp.json")
+        r.init(local_configs="quantkit//params_temp.json")
         r.run()
 
     else:
@@ -564,7 +564,7 @@ def compare_unadjusted(isin_list: list = [], local_configs: str = "") -> pd.Data
         data.append(sec_data)
 
     if isin_list:
-        os.remove("quantkit\\params_temp.json")
+        os.remove("quantkit//params_temp.json")
     return pd.DataFrame(data)
 
 
