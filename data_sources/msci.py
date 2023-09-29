@@ -1,4 +1,3 @@
-import os
 import requests
 from base64 import b64encode
 import json
@@ -64,24 +63,9 @@ class MSCI(object):
             filters["issuer_identifier_list"] = batch
             inp = json.dumps(filters)
 
-            if os.name == "posix":
-                response = requests.request("POST", self.url, headers=headers, data=inp)
-            elif os.name == "nt":
-                response = requests.request(
-                    "POST",
-                    self.url,
-                    headers=headers,
-                    data=inp,
-                    verify="quantkit/certs.crt",
-                )
-            else:
-                response = requests.request(
-                    "POST",
-                    self.url,
-                    headers=headers,
-                    data=inp,
-                    verify="quantkit/certs.crt",
-                )
+            response = requests.request(
+                "POST", self.url, headers=headers, data=inp, verify="quantkit/certs.crt"
+            )
             message = response.json()["messages"]
             if message:
                 logging.log(message)

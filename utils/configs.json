@@ -270,6 +270,7 @@
         "schema": "ESG",
         "load": true
     },
+
     "exclusion_datasource": {
         "Article8": {
             "source": 1,
@@ -284,6 +285,7 @@
             "load": true
         }
     },
+
     "regions_datasource": {
         "source": 3,
         "table_name": "REGIONS",
@@ -313,6 +315,7 @@
         "sheet_name": "Analyst Adjustment",
         "load": true
     },
+
     "securitized_datasource": {
         "source": 3,
         "table_name": "SECURITIZED_MAPPING",

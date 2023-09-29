@@ -88,8 +88,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - move iteration into loader
 
 ### Removed
-- ml_azure branch
-- median calculation for industries
 
 ## [1.0.0] - 2023-08-09
 
