@@ -139,7 +139,7 @@ There is no need to copy over all other settings for the datasource. Lastly, if 
 ```
 
 #### Changes to the Input data
-To change the input data, just change the file linked to in the parameters file. For example, if you want to add a portfolio to the portfolio datasource and you linked it to an Excel file, just add the portfolio to that Excel file. If the data is in snowflake, follow this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/snowflake/mapping_tables.ipynb) to change the data. 
+To change the input data, just change the file linked to in the parameters file. For example, if you want to add a portfolio to the portfolio datasource and you linked it to an Excel file, just add the portfolio to that Excel file. If the data is in snowflake, follow this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/quantkit/quantkit/snowflake.ipynb) to change the data. 
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
