@@ -26,10 +26,6 @@ class Runner(loader.Runner):
         super().init(local_configs)
 
         # connect quandl datasource
-        self.quandl_datasource_prices = quds.QuandlDataSource(
-            params=self.params["quandl_datasource_prices"],
-            api_settings=self.params["API_settings"],
-        )
         self.universe = dict()
 
         self.annualize_factor = mapping_configs.annualize_factor_d.get(
@@ -49,13 +45,13 @@ class Runner(loader.Runner):
         """
         iterate over DataFrames and create connected objects
         """
-        self.iter_regions()
-        self.iter_sectors()
-        self.iter_securitized_mapping()
         self.iter_portfolios()
-        self.iter_securities()
-        self.iter_holdings()
         self.create_universe()
+        self.iter_msci()
+        self.iter_quandl()
+        self.iter_holdings()
+        self.iter_securities()
+        self.iter_cash()
         self.iter_companies()
         self.iter_sovereigns()
         self.iter_securitized()
@@ -80,7 +76,7 @@ class Runner(loader.Runner):
             strat_params["frequency"] = self.params["quandl_datasource_prices"][
                 "frequency"
             ]
-            strat_params["universe"] = self.universe_tickers
+            strat_params["universe"] = self.portfolio_datasource.all_tickers
             strat_params["rebalance_dates"] = self.rebalance_dates
             strat_params["trans_cost"] = self.params["trans_cost"]
             strat_params["weight_constraint"] = self.params[
@@ -91,6 +87,14 @@ class Runner(loader.Runner):
             elif strat_params["type"] == "pick_all":
                 self.strategies[strategy] = pick_all.PickAll(strat_params)
 
+    def iter_holdings(self) -> None:
+        super().iter_holdings()
+        # filter for securities that match msci ticker
+        for s, sec_store in self.portfolio_datasource.securities.items():
+            ticker = sec_store.information["Ticker Cd"]
+            if ticker in self.portfolio_datasource.all_tickers:
+                self.universe[ticker] = sec_store
+
     def iter_quandl(self) -> None:
         """
         - iterate over quandl data
@@ -98,11 +102,7 @@ class Runner(loader.Runner):
         - create price DataFrame
         - create return DataFrame with sorted universe in columns
         """
-        # load quandl data
-        self.quandl_datasource_prices.load(self.universe_tickers)
-        self.quandl_datasource.load(self.universe_tickers)
-        self.quandl_datasource.iter(self.universe)
-        self.quandl_datasource_prices.iter(self.universe)
+        super().iter_quandl()
 
         # price data
         self.price_data = self.quandl_datasource_prices.df.pivot(
@@ -112,15 +112,15 @@ class Runner(loader.Runner):
         # return data
         self.return_data = self.price_data.pct_change(1)
 
-        # filter universe for companies that have quandl and msci data
-        self.universe_tickers = list(
-            set(self.universe.keys())
-            & set(self.return_data.columns)
+        # filter universe for companies that have quandl data
+        self.portfolio_datasource.all_tickers = list(
+            set(self.return_data.columns)
             & set(self.quandl_datasource.df["ticker"])
+            & set(self.portfolio_datasource.all_tickers)
         )
 
         # order return data
-        self.return_data = self.return_data[self.universe_tickers]
+        self.return_data = self.return_data[self.portfolio_datasource.all_tickers]
 
         # rebalance dates -> last trading day of month
         self.rebalance_dates = list(
@@ -140,38 +140,27 @@ class Runner(loader.Runner):
         self.next_fundamental_date = 0
 
         # initialize market caps
-        self.market_caps = np.ones(shape=len(self.universe_tickers))
+        self.market_caps = np.ones(shape=len(self.portfolio_datasource.all_tickers))
 
     def create_universe(self) -> None:
         """
         - Load Portfolio Data from snowflake
         - create universe based on indexes from params file
         """
-        df = snowflake_utils.load_from_snowflake(
-            database="SANDBOX_ESG",
-            schema="TIM_SCHEMA",
-            table_name="Sustainability_Framework_Detailed",
-            local_configs=self.local_configs,
-        )
         if self.params["sustainable_universe"]:
+            df = snowflake_utils.load_from_snowflake(
+                database="SANDBOX_ESG",
+                schema="TIM_SCHEMA",
+                table_name="Sustainability_Framework_Detailed",
+                local_configs=self.local_configs,
+            )
             # all tickers in index which are labeled green or blue
-            self.universe_tickers = list(
+            self.portfolio_datasource.all_tickers = list(
                 df[
                     (df["Portfolio ISIN"].isin(self.params["universe"]))
                     & (df["SCLASS_Level2"].isin(["Transition", "Sustainable Theme"]))
                 ]["Ticker"].unique()
             )
-        else:
-            self.universe_tickers = list(
-                df[df["Portfolio ISIN"].isin(self.params["universe"])][
-                    "Ticker"
-                ].unique()
-            )
-        # filter for securities that match msci ticker
-        for c, comp_store in self.portfolio_datasource.companies.items():
-            ticker = comp_store.msci_information["ISSUER_TICKER"]
-            if ticker in self.universe_tickers:
-                self.universe[ticker] = self.portfolio_datasource.companies[c]
 
     def run_strategies(self) -> None:
         """
@@ -187,7 +176,7 @@ class Runner(loader.Runner):
                 )
                 df = df.loc[self.fundamental_dates[self.next_fundamental_date]]
 
-                df = df[self.universe_tickers]
+                df = df[self.portfolio_datasource.all_tickers]
                 self.market_caps = np.array(df)
                 self.next_fundamental_date += 1
 

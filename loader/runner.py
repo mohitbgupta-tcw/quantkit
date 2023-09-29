@@ -117,6 +117,10 @@ class Runner(object):
         self.quandl_datasource = quds.QuandlDataSource(
             params=self.params["quandl_datasource"], api_settings=api_settings
         )
+        self.quandl_datasource_prices = quds.QuandlDataSource(
+            params=self.params["quandl_datasource_prices"],
+            api_settings=api_settings,
+        )
 
     def iter_themes(self) -> None:
         """
@@ -288,8 +292,13 @@ class Runner(object):
         self.params["quandl_datasource"]["filters"]["ticker"] = list(
             set(self.portfolio_datasource.all_tickers)
         )
+        self.params["quandl_datasource_prices"]["filters"]["ticker"] = list(
+            set(self.portfolio_datasource.all_tickers)
+        )
+        self.quandl_datasource_prices.load()
         self.quandl_datasource.load()
         self.quandl_datasource.iter()
+        self.quandl_datasource_prices.iter()
 
     def iter_securities(self) -> None:
         """
@@ -306,7 +315,8 @@ class Runner(object):
                 sec_adjustment_dict=self.adjustment_datasource.security_isins,
                 bloomberg_dict=self.bloomberg_datasource.bloomberg,
                 sdg_dict=self.sdg_datasource.sdg,
-                quandl_dict=self.quandl_datasource.quandl,
+                quandl_dict_fundamental=self.quandl_datasource.quandl,
+                quandl_dict_prices=self.quandl_datasource_prices.quandl,
             )
 
     def iter_sovereigns(self) -> None:

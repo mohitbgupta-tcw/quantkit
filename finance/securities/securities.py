@@ -153,34 +153,39 @@ class SecurityStore(object):
 
     def attach_quandl_information(
         self,
-        quandl_dict: dict,
-        data_type: str = "fundamental",
+        quandl_dict_fundamental: dict,
+        quandl_dict_prices: dict,
     ) -> None:
         """
         Attach iss information to security parent
 
         Parameters
         ----------
-        quandl_dict: dict
-            dictionary of quandl information
-        data_type: str, optional
-            data type, either "fundamental" or "price"
+        quandl_dict_fundamental: dict
+            dictionary of quandl fundamental information
+        quandl_dict_prices: dict
+            dictionary of quandl price information
         """
-        if not quandl_dict:
-            return
-        if self.information["Ticker Cd"] in quandl_dict:
-            quandl_information = deepcopy(quandl_dict[self.information["Ticker Cd"]])
-            if data_type == "fundamental":
+        if quandl_dict_fundamental:
+            if self.information["Ticker Cd"] in quandl_dict_fundamental:
+                quandl_information = deepcopy(
+                    quandl_dict_fundamental[self.information["Ticker Cd"]]
+                )
                 self.parent_store.quandl_information = quandl_information
-            elif data_type == "price":
-                self.parent_store.quandl_information_price = quandl_information
-        else:
-            quandl_information = deepcopy(quandl_dict[np.nan])
-            if not hasattr(self.parent_store, "quandl_information"):
-                if data_type == "fundamental":
+            else:
+                quandl_information = deepcopy(quandl_dict_fundamental[np.nan])
+                if not hasattr(self.parent_store, "quandl_information"):
                     self.parent_store.quandl_information = quandl_information
-                elif data_type == "price":
-                    self.parent_store.quandl_information_price = quandl_information
+        if quandl_dict_prices:
+            if self.information["Ticker Cd"] in quandl_dict_prices:
+                quandl_information = deepcopy(
+                    quandl_dict_prices[self.information["Ticker Cd"]]
+                )
+                self.parent_store.quandl_information_prices = quandl_information
+            else:
+                quandl_information = deepcopy(quandl_dict_prices[np.nan])
+                if not hasattr(self.parent_store, "quandl_information"):
+                    self.parent_store.quandl_information_prices = quandl_information
 
     def attach_analyst_adjustment(
         self,
@@ -387,7 +392,8 @@ class SecurityStore(object):
         sec_adjustment_dict: dict,
         bloomberg_dict: dict,
         sdg_dict: dict,
-        quandl_dict: dict,
+        quandl_dict_fundamental: dict,
+        quandl_dict_prices: dict,
     ) -> None:
         """
         - Add ESG Collateral Type
@@ -409,8 +415,10 @@ class SecurityStore(object):
             dictionary of bloomberg information
         sdg_dict: dict
             dictionary of iss information
-        quandl_dict: dict
-            dictionary of quandl information
+        quandl_dict_fundamental: dict
+            dictionary of quandl fundamental information
+        quandl_dict_prices: dict
+            dictionary of quandl price information
         """
         self.overwrite_parent(parent_issuer_dict, companies)
         self.add_collateral_type(securitized_mapping)
@@ -419,4 +427,4 @@ class SecurityStore(object):
         self.attach_analyst_adjustment(sec_adjustment_dict)
         self.attach_bloomberg_information(bloomberg_dict)
         self.attach_iss_information(sdg_dict)
-        self.attach_quandl_information(quandl_dict)
+        self.attach_quandl_information(quandl_dict_fundamental, quandl_dict_prices)

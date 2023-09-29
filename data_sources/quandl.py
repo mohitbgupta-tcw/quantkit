@@ -39,7 +39,7 @@ class Quandl(object):
             for i, batch in enumerate(batches):
                 logging.log(f"Batch {i+1}/{len(batches)}")
                 filters = deepcopy(self.filters)
-                filters["ticker"] = batch
+                filters["ticker"] = list(batch)
 
                 df = nasdaqdatalink.get_table(self.table, **filters)
                 self.df = pd.concat([self.df, df], ignore_index=True)

@@ -108,6 +108,17 @@ class PortfolioDataSource(ds.DataSources):
             list of all equity benchmarks to pull from API
         """
         logging.log("Loading Portfolio Data")
+
+        pf = ", ".join(f"'{pf}'" for pf in pfs) if pfs else "''"
+        fi_benchmark = (
+            ", ".join(f"'{b}'" for b in fixed_income_benchmark)
+            if fixed_income_benchmark
+            else "''"
+        )
+        e_benchmark = (
+            ", ".join(f"'{b}'" for b in equity_benchmark) if equity_benchmark else "''"
+        )
+
         query = f"""
         SELECT *
         FROM (
@@ -189,7 +200,7 @@ class PortfolioDataSource(ds.DataSources):
                 AND rs.report_scheme = '7. ESG - Primary Summary'
             WHERE pos.as_of_date = '{as_of_date}'
             AND pos.portfolio_number in (
-                {', '.join(f"'{pf}'" for pf in pfs)}
+                {pf}
             )
             AND pos.source_system = 'SMS' -- temp fix
             UNION
@@ -327,10 +338,10 @@ class PortfolioDataSource(ds.DataSources):
             AND (
                 universe_type_code = 'STATS' 
                 AND benchmark_name IN (
-                    {', '.join(f"'{b}'" for b in fixed_income_benchmark)}
+                    {fi_benchmark}
                 ) 
                 OR benchmark_name IN (
-                    {', '.join(f"'{b}'" for b in equity_benchmark)}
+                    {e_benchmark}
                 )
             )
         ) 

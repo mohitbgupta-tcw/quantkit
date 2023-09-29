@@ -28,10 +28,16 @@ class QuandlDataSource(ds.DataSources):
         """
         load data and transform dataframe
         """
+        ticker = (
+            ", ".join(f"'{pf}'" for pf in self.params["filters"]["ticker"])
+            if self.params["filters"]["ticker"]
+            else "''"
+        )
         from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
         query = f"""
         SELECT * 
         FROM {from_table}
+        WHERE "ticker" in ({ticker})
         """
         if self.params["type"] == "fundamental":
             t = "FUNDAMENTAL"
@@ -67,19 +73,13 @@ class QuandlDataSource(ds.DataSources):
         """
         Attach bloomberg information to dict
         """
-        for index, row in self.df.iterrows():
-            ticker = row["ticker"]
-
-            quandl_information = row.to_dict()
-
-            if ticker in self.quandl:
-                self.quandl[ticker].append(quandl_information)
-            else:
-                self.quandl[ticker] = [quandl_information]
+        grouped = self.df.groupby("ticker")
+        for c, quandl_information in grouped:
+            self.quandl[c] = quandl_information
 
         # --> not every company has these information, so create empty df with NA's for those
-        empty_quandl = pd.Series(np.nan, index=self.df.columns).to_dict()
-        self.quandl[np.nan] = [deepcopy(empty_quandl)]
+        empty_quandl = pd.DataFrame(columns=self.df.columns)
+        self.quandl[np.nan] = deepcopy(empty_quandl)
 
     @property
     def df(self) -> pd.DataFrame:
