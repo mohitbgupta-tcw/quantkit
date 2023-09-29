@@ -11,11 +11,11 @@ class SecuritizedStore(headstore.HeadStore):
     Parameters
     ----------
     isin: str
-        securitized's isin. NoISIN if no isin is available
+        securitized's isin
     """
 
-    def __init__(self, isin: str, **kwargs) -> None:
-        super().__init__(isin, **kwargs)
+    def __init__(self, isin: str, row_data: pd.Series, **kwargs) -> None:
+        super().__init__(isin, row_data, **kwargs)
         self.type = "securitized"
 
     def calculate_securitized_score(self) -> None:
@@ -46,9 +46,9 @@ class SecuritizedStore(headstore.HeadStore):
         ]
         for sec, sec_store in self.securities.items():
             if (
-                not pd.isna(sec_store.information["Labeled_ESG_Type"])
-            ) or sec_store.information["Issuer_ESG"] == "Yes":
-                if pd.isna(sec_store.information["TCW_ESG"]):
+                not pd.isna(sec_store.information["Labeled ESG Type"])
+            ) or sec_store.information["Issuer ESG"] == "Yes":
+                if pd.isna(sec_store.information["TCW ESG"]):
                     sec_store.scores["Securitized_Score_unadjusted"] = 5
                     sec_store.scores["Securitized_Score"] = 5
                 else:
@@ -58,38 +58,38 @@ class SecuritizedStore(headstore.HeadStore):
                 sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
             elif (
-                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
                 in collat_type_3
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif (
-                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
                 == "Affordable Multifamily (min 20% aff. units)"
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
             elif (
-                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
                 in collat_type_1
-                and sec_store.information["Labeled_ESG_Type"] != "Labeled Green"
-                and sec_store.information["TCW_ESG"] == "TCW Green"
+                and sec_store.information["Labeled ESG Type"] != "Labeled Green"
+                and sec_store.information["TCW ESG"] == "TCW Green"
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif (
-                sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
                 in collat_type_2
-                and sec_store.information["Labeled_ESG_Type"] != "Labeled Social"
-                and sec_store.information["TCW_ESG"] == "TCW Social"
-                and not "TBA " in sec_store.information["IssuerName"]
+                and sec_store.information["Labeled ESG Type"] != "Labeled Social"
+                and sec_store.information["TCW ESG"] == "TCW Social"
+                and not "TBA " in sec_store.information["Security_Name"]
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif (
-                (pd.isna(sec_store.information["Labeled_ESG_Type"]))
-                and pd.isna(sec_store.information["TCW_ESG"])
-                and not "TBA " in sec_store.information["IssuerName"]
+                (pd.isna(sec_store.information["Labeled ESG Type"]))
+                and pd.isna(sec_store.information["TCW ESG"])
+                and not "TBA " in sec_store.information["Security_Name"]
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 4
                 sec_store.scores["Securitized_Score"] = 4
@@ -125,7 +125,7 @@ class SecuritizedStore(headstore.HeadStore):
         7) Is not scored
         """
         for sec, sec_store in self.securities.items():
-            labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
+            labeled_bond_tag = sec_store.information["Labeled ESG Type"]
             score = sec_store.scores["Securitized_Score"]
             sec_store.level_5()
 
@@ -142,10 +142,10 @@ class SecuritizedStore(headstore.HeadStore):
                 sec_store.is_esg_labeled("Sustainable")
             elif labeled_bond_tag == "Labeled Sustainable Linked":
                 sec_store.is_esg_labeled("Sustainability-Linked Bonds")
-            elif sec_store.information["ESG_Collateral_Type"]["G/S/S"] == "CLO":
+            elif sec_store.information["ESG Collateral Type"]["G/S/S"] == "CLO":
                 sec_store.is_CLO()
             elif (
-                not sec_store.information["ESG_Collateral_Type"]["ESG Collat Type"]
+                not sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
                 == "Unknown"
             ):
                 sec_store.has_collat_type()
@@ -158,19 +158,14 @@ class SecuritizedStore(headstore.HeadStore):
             elif score == 0:
                 sec_store.is_not_scored()
 
-    def iter(
-        self, regions_df: pd.DataFrame, regions: dict, gics_d: dict, bclass_d: dict
-    ) -> None:
+    def iter(self, regions: dict, gics_d: dict, bclass_d: dict) -> None:
         """
         - attach GICS information
-        - attach exclusions
         - attach region
         - attach industry
 
         Parameters
         ----------
-        regions_df: pd.DataFrame
-            DataFrame of regions information
         regions: dict
             dictionary of all region objects
         gics_d: dict
@@ -181,11 +176,8 @@ class SecuritizedStore(headstore.HeadStore):
         # attach GICS
         self.attach_gics(gics_d)
 
-        # attach exclusions
-        self.iter_exclusion()
-
         # attach region
-        self.attach_region(regions_df, regions)
+        self.attach_region(regions)
 
         # attach industry and sub industry
         self.attach_industry(gics_d, bclass_d)

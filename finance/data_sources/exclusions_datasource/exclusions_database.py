@@ -39,6 +39,7 @@ class ExclusionsDataSource(object):
         self.params = params
         self.article8 = ExclusionData(params["Article8"], **kwargs)
         self.article9 = ExclusionData(params["Article9"], **kwargs)
+        self.exclusions = dict()
 
     def load(self) -> None:
         """
@@ -61,6 +62,19 @@ class ExclusionsDataSource(object):
             ignore_index=True,
         )
         self.df_ = df_
+
+    def iter(self) -> None:
+        """
+        Attach exclusion information to dict
+        """
+        for index, row in self.df.iterrows():
+            isin = row["MSCI Issuer ID"]
+
+            exclusion_information = row.to_dict()
+            if isin in self.exclusions:
+                self.exclusions[isin].append(exclusion_information)
+            else:
+                self.exclusions[isin] = [exclusion_information]
 
     @property
     def df(self) -> pd.DataFrame:

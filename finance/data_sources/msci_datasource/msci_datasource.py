@@ -2,6 +2,7 @@ import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 
 
 class MSCIDataSource(ds.DataSources):
@@ -20,6 +21,7 @@ class MSCIDataSource(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.msci = dict()
 
     def load(self) -> None:
         """
@@ -53,6 +55,20 @@ class MSCIDataSource(ds.DataSources):
 
         # replace values in each column from params transformation file
         self.datasource.df = self.datasource.df.replace(self.params["transformation"])
+
+    def iter(self) -> None:
+        """
+        Attach msci information to dict
+        """
+        for index, row in self.df.iterrows():
+            msci_id = row["ISSUERID"]
+
+            msci_information = row.to_dict()
+            self.msci[msci_id] = msci_information
+
+        # --> not every company has these information, so create empty df with NA's for those
+        empty_msci = pd.Series(np.nan, index=self.df.columns).to_dict()
+        self.msci["NoISSUERID"] = deepcopy(empty_msci)
 
     @property
     def df(self) -> pd.DataFrame:

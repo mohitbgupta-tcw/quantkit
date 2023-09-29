@@ -734,7 +734,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     [
                         "Summary Characteristics",
                         html.Sup(1, className="superscript"),
-                        html.A(" (%MV)", className="mv"),
+                        html.A(" (% MV)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
@@ -1100,7 +1100,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Detailed Highlights - Sustainable Themes ",
-                        html.A("(%MV)", className="mv"),
+                        html.A("(% MV)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
@@ -1340,7 +1340,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Labeled Bonds by Country ",
-                        html.A("(%labeled Bonds)", className="mv"),
+                        html.A("(% labeled Bonds)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
@@ -1372,7 +1372,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Labeled Bonds by Sector ",
-                        html.A("(%labeled Bonds)", className="mv"),
+                        html.A("(% labeled Bonds)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
@@ -1457,7 +1457,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                         html.H6(
                             [
                                 "TCW Sustainable Classification ",
-                                html.A("(%MV)", className="mv"),
+                                html.A("(% MV)", className="mv"),
                             ],
                             className="subtitle padded",
                         ),
@@ -1498,7 +1498,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Labeled Bond Detail by Industry ",
-                        html.A("(%labeled Bonds)", className="mv"),
+                        html.A("(% labeled Bonds)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
@@ -1530,7 +1530,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Labeled Bond Detail by Industry ",
-                        html.A("(%labeled Bonds)", className="mv"),
+                        html.A("(% labeled Bonds)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),

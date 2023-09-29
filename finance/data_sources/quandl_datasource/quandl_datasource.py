@@ -22,20 +22,22 @@ class QuandlDataSource(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.quandl = dict()
 
-    def load(self, ticker: list) -> None:
+    def load(self) -> None:
         """
         load data and transform dataframe
-
-        Parameters
-        ----------
-        ticker: list
-            list of all tickers in portfolios
         """
+        ticker = (
+            ", ".join(f"'{pf}'" for pf in self.params["filters"]["ticker"])
+            if self.params["filters"]["ticker"]
+            else "''"
+        )
         from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
         query = f"""
         SELECT * 
         FROM {from_table}
+        WHERE "ticker" in ({ticker})
         """
         if self.params["type"] == "fundamental":
             t = "FUNDAMENTAL"
@@ -43,8 +45,6 @@ class QuandlDataSource(ds.DataSources):
             t = "PRICE"
 
         logging.log(f"Loading Quandl {t} Data")
-        self.params["filters"]["ticker"] = list(set(ticker))
-
         self.datasource.load(query=query)
         self.transform_df()
 
@@ -69,33 +69,17 @@ class QuandlDataSource(ds.DataSources):
             )
         self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
 
-    def iter(self, companies: dict) -> None:
+    def iter(self) -> None:
         """
-        Attach quandl information to company objects
-
-        Parameters
-        ----------
-        companies: dict
-            dictionary of all company objects
+        Attach bloomberg information to dict
         """
-
-        # --> not every company has these information, so create empty df with NA's for those
-        empty_quandl = pd.Series(np.nan, index=self.df.columns)
-
         grouped = self.df.groupby("ticker")
         for c, quandl_information in grouped:
-            if c in companies:
-                if self.params["type"] == "fundamental":
-                    companies[c].quandl_information = quandl_information
-                elif self.params["type"] == "price":
-                    companies[c].quandl_information_price = quandl_information
+            self.quandl[c] = quandl_information
 
-        for c, comp_store in companies.items():
-            if self.params["type"] == "fundamental":
-                if not hasattr(comp_store, "quandl_information"):
-                    comp_store.quandl_information = deepcopy(empty_quandl)
-                elif self.params["type"] == "price":
-                    comp_store.quandl_information_price = deepcopy(empty_quandl)
+        # --> not every company has these information, so create empty df with NA's for those
+        empty_quandl = pd.DataFrame(columns=self.df.columns)
+        self.quandl[np.nan] = deepcopy(empty_quandl)
 
     @property
     def df(self) -> pd.DataFrame:

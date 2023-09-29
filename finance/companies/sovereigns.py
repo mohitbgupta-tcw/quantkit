@@ -12,12 +12,11 @@ class SovereignStore(headstore.HeadStore):
     Parameters
     ----------
     isin: str
-        company's isin. NoISIN if no isin is available
+        company's isin
     """
 
-    def __init__(self, isin: str, **kwargs) -> None:
-        super().__init__(isin, **kwargs)
-        self.msci_information = {}
+    def __init__(self, isin: str, row_data: pd.Series, **kwargs) -> None:
+        super().__init__(isin, row_data, **kwargs)
         self.type = "sovereign"
 
     def update_sovereign_score(self) -> None:
@@ -66,7 +65,7 @@ class SovereignStore(headstore.HeadStore):
         transition_tag = self.scores["Transition_Tag"]
         sustainability_tag = self.scores["Sustainability_Tag"]
         for sec, sec_store in self.securities.items():
-            labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
+            labeled_bond_tag = sec_store.information["Labeled ESG Type"]
             sec_store.level_5()
 
             if labeled_bond_tag == "Labeled Green":
@@ -95,15 +94,14 @@ class SovereignStore(headstore.HeadStore):
 
     def iter(
         self,
-        regions_df: pd.DataFrame,
         regions: dict,
-        adjustment_df: pd.DataFrame,
+        msci_adjustment_dict: dict,
         gics_d: dict,
         bclass_d: dict,
+        exclusion_dict: dict,
     ) -> None:
         """
         - attach region information
-        - calculate sovereign score
         - attach analyst adjustment
         - attach GICS information
         - attach exclusions
@@ -111,20 +109,19 @@ class SovereignStore(headstore.HeadStore):
 
         Parameters
         ----------
-        regions_df: pd.DataFrame
-            DataFrame of regions information
         regions: dict
             dictionary of all region objects
-        adjustment_df: pd.Dataframe
-            DataFrame of Analyst Adjustments
+        msci_adjustment_dict: pd.Dataframe
+            dictionary of Analyst Adjustments
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
         bclass_d: dict
             dictionary of bclass sub industries with bclass as key, bclass object as value
+        exclusion_dict: dict
+            dictionary of Exclusions
         """
-        self.attach_region(regions_df, regions)
-        self.update_sovereign_score()
-        self.attach_analyst_adjustment(adjustment_df)
-        self.attach_gics(gics_d, self.msci_information["GICS_SUB_IND"])
-        self.iter_exclusion()
+        self.attach_region(regions)
+        self.attach_analyst_adjustment(msci_adjustment_dict)
+        self.attach_gics(gics_d)
+        self.attach_exclusion(exclusion_dict)
         self.attach_industry(gics_d, bclass_d)

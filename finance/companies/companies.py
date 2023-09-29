@@ -17,18 +17,14 @@ class CompanyStore(headstore.HeadStore):
     Parameters
     ----------
     isin: str
-        company's isin. NoISIN if no isin is available
+        company's isin
     row_data: pd.Series
         company information derived from MSCI
     """
 
     def __init__(self, isin: str, row_data: pd.Series, **kwargs) -> None:
-        super().__init__(isin, **kwargs)
-        self.msci_information = row_data
+        super().__init__(isin, row_data, **kwargs)
         self.type = "company"
-        self.information["IVA_COMPANY_RATING"] = self.msci_information[
-            "IVA_COMPANY_RATING"
-        ]
 
     def update_sovereign_score(self) -> None:
         """
@@ -285,7 +281,6 @@ class CompanyStore(headstore.HeadStore):
         -----
             - Sector Level 2 in excemption list
             - BCLASS is Treasury
-            - ISIN is NoISIN
 
         Returns
         -------
@@ -294,15 +289,15 @@ class CompanyStore(headstore.HeadStore):
         """
         sector_level2 = ["Cash and Other"]
 
-        if self.information["Sector_Level_2"] in sector_level2:
+        if self.information["BCLASS_Level4"].class_name == "Treasury":
             return True
-        elif self.information["BCLASS_Level4"].class_name == "Treasury":
-            return True
-        elif self.msci_information["ISSUER_ISIN"] == "NoISIN":
+        elif self.information["Sector_Level_2"] in sector_level2:
             return True
         elif "TCW" in self.msci_information["ISSUER_NAME"]:
             return True
         elif " ETF " in self.msci_information["ISSUER_NAME"]:
+            return True
+        elif self.isin[:16] == "MKT VALUE ADJUST":
             return True
         return False
 
@@ -523,7 +518,7 @@ class CompanyStore(headstore.HeadStore):
         transition_tag = self.scores["Transition_Tag"]
         sustainability_tag = self.scores["Sustainability_Tag"]
         for sec, sec_store in self.securities.items():
-            labeled_bond_tag = sec_store.information["Labeled_ESG_Type"]
+            labeled_bond_tag = sec_store.information["Labeled ESG Type"]
             sec_store.level_5()
 
             if governance_score == 5:
@@ -580,29 +575,32 @@ class CompanyStore(headstore.HeadStore):
         parent_id = self.msci_information["PARENT_ULTIMATE_ISSUERID"]
 
         # find parent store
-        parent = "NoISIN"
         for c, comp_store in companies.items():
             if comp_store.msci_information["ISSUERID"] == parent_id:
                 parent = c
+
+                # assign sdg data for missing values
+                if hasattr(self, "sdg_information"):
+                    for val in self.sdg_information:
+                        if pd.isna(self.sdg_information[val]):
+                            new_val = companies[parent].sdg_information[val]
+                            self.sdg_information[val] = new_val
+
+                # assign msci data for missing values
+                if hasattr(self, "msci_information"):
+                    for val in self.msci_information:
+                        if pd.isna(self.msci_information[val]):
+                            new_val = companies[parent].msci_information[val]
+                            self.msci_information[val] = new_val
+
+                # assign bloomberg data for missing values
+                if hasattr(self, "bloomberg_information"):
+                    for val in self.bloomberg_information:
+                        if pd.isna(self.bloomberg_information[val]):
+                            new_val = companies[parent].bloomberg_information[val]
+                            self.bloomberg_information[val] = new_val
+
                 break
-
-        # assign sdg data for missing values
-        for val in self.sdg_information:
-            if pd.isna(self.sdg_information[val]):
-                new_val = companies[parent].sdg_information[val]
-                self.sdg_information[val] = new_val
-
-        # assign msci data for missing values
-        for val in self.msci_information:
-            if pd.isna(self.msci_information[val]):
-                new_val = companies[parent].msci_information[val]
-                self.msci_information[val] = new_val
-
-        # assign bloomberg data for missing values
-        for val in self.bloomberg_information:
-            if pd.isna(self.bloomberg_information[val]):
-                new_val = companies[parent].bloomberg_information[val]
-                self.bloomberg_information[val] = new_val
 
     def replace_unassigned_industry(
         self, high_threshold: float, industries: dict
@@ -635,18 +633,15 @@ class CompanyStore(headstore.HeadStore):
     def iter(
         self,
         companies: dict,
-        regions_df: pd.DataFrame,
         regions: dict,
-        exclusion_df: pd.DataFrame,
-        adjustment_df: pd.DataFrame,
+        exclusion_dict: dict,
+        msci_adjustment_dict: dict,
         gics_d: dict,
         bclass_d: dict,
         category_d: dict,
-        themes: dict,
     ) -> None:
         """
         - attach region information
-        - attach sovereign score
         - attach data from parent
         - attach exclusions
         - attach GICS information
@@ -659,42 +654,32 @@ class CompanyStore(headstore.HeadStore):
         ----------
         companies: dict
             dictionary of all company objects
-        regions_df: pd.DataFrame
-            DataFrame of regions information
         regions: dict
             dictionary of all region objects
-        exclusion_df: pd.DataFrame
-            DataFrame of Exclusions
-        adjustment_df: pd.Dataframe
-            DataFrame of Analyst Adjustments
+        exclusion_dict: dict
+            dictionary of Exclusions
+        msci_adjustment_dict: dict
+            dictionary of Analyst Adjustments
         gics_d: dict
             dictionary of gics sub industries with gics as key, gics object as value
         bclass_d: dict
             dictionary of bclass sub industries with bclass as key, bclass object as value
         category_d: dict
             dictionary of ESRM categories
-        themes: dict
-            dictionary of all theme objects
         """
 
         # attach region
-        self.attach_region(regions_df, regions)
-
-        # update sovereign score for Treausury
-        self.update_sovereign_score()
+        self.attach_region(regions)
 
         # attach data from parent if missing
         if not pd.isna(self.msci_information["PARENT_ULTIMATE_ISSUERID"]):
             self.get_parent_issuer_data(companies)
 
         # attach exclusion df
-        self.attach_exclusion(exclusion_df)
-
-        # attach exclusion article
-        self.iter_exclusion()
+        self.attach_exclusion(exclusion_dict)
 
         # attach GICS Sub industry
-        self.attach_gics(gics_d, self.msci_information["GICS_SUB_IND"])
+        self.attach_gics(gics_d)
 
         # attach industry and sub industry
         self.attach_industry(gics_d, bclass_d)
@@ -703,16 +688,4 @@ class CompanyStore(headstore.HeadStore):
         self.attach_category(category_d)
 
         # attach analyst adjustment
-        self.attach_analyst_adjustment(adjustment_df)
-
-        # calculate capex
-        self.calculate_capex()
-
-        # calculate climate revenue
-        self.calculate_climate_revenue()
-
-        # calculate carbon intensite --> if na, assign industry median
-        self.calculate_carbon_intensity()
-
-        # assign theme and Sustainability_Tag
-        self.check_theme_requirements(themes)
+        self.attach_analyst_adjustment(msci_adjustment_dict)

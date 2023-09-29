@@ -25,16 +25,17 @@ class SDGDataSource(object):
     """
 
     def __init__(self, params: dict, **kwargs) -> None:
-        self.sdg = SDGData(params["sdg"], **kwargs)
-        self.sdga = SDGData(params["sdga"], **kwargs)
+        self.sdg_datasource = SDGData(params["sdg"], **kwargs)
+        self.sdga_datasource = SDGData(params["sdga"], **kwargs)
+        self.sdg = dict()
 
     def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading SDG Data")
-        self.sdg.load()
-        self.sdga.load()
+        self.sdg_datasource.load()
+        self.sdga_datasource.load()
         self.transform_df()
 
     def transform_df(self) -> None:
@@ -42,8 +43,11 @@ class SDGDataSource(object):
         - merge sdg and sdga data into one DataFrame
         - change datatype to float for specified columns
         """
-        df_ = self.sdg.datasource.df.merge(
-            self.sdga.datasource.df, left_on="ISIN", right_on="ISIN", how="outer"
+        df_ = self.sdg_datasource.datasource.df.merge(
+            self.sdga_datasource.datasource.df,
+            left_on="ISIN",
+            right_on="ISIN",
+            how="outer",
         )
         df_["GreenExpTotalCapExSharePercent"] = df_[
             "GreenExpTotalCapExSharePercent"
@@ -51,42 +55,26 @@ class SDGDataSource(object):
         df_["SDGSolClimatePercentCombCont"] = df_[
             "SDGSolClimatePercentCombCont"
         ].astype(float)
+
+        df_["issuerID"] = df_["issuerID_x"].fillna(df_["issuerID_y"])
+        df_ = df_.drop(["issuerID_x", "issuerID_y"], axis=1)
+
         self.df_ = df_
 
-    def iter(
-        self, companies: dict, munis: dict, sovereigns: dict, securitized: dict
-    ) -> None:
+    def iter(self) -> None:
         """
-        Attach SDG information to company objects
-
-        Parameters
-        ----------
-        companies: dict
-            dictionary of all company objects
-        munis: dict
-            dictionary of all muni objects
-        sovereigns: dict
-            dictionary of all sovereign objects
-        securitized: dict
-            dictionary of all securitized objects
+        Attach SDG information to dict
         """
         # only iterate over companies we hold in the portfolios
-        for index, row in self.df[self.df["ISIN"].isin(companies.keys())].iterrows():
-            isin = row["ISIN"]
+        for index, row in self.df.iterrows():
+            iss_id = str(int(row["issuerID"]))
 
             sdg_information = row.to_dict()
-            companies[isin].sdg_information = sdg_information
+            self.sdg[iss_id] = sdg_information
 
         # --> not every company has these information, so create empty df with NA's for those
         empty_sdg = pd.Series(np.nan, index=self.df.columns).to_dict()
-
-        parents = [companies, munis, sovereigns, securitized]
-
-        for p in parents:
-            for s, sec_store in p.items():
-                # assign empty sdg information to companies that dont have these information
-                if not hasattr(sec_store, "sdg_information"):
-                    sec_store.sdg_information = deepcopy(empty_sdg)
+        self.sdg[np.nan] = deepcopy(empty_sdg)
 
     @property
     def df(self) -> pd.DataFrame:
@@ -134,7 +122,6 @@ class SDGData(ds.DataSources):
                 "IssuerName",
                 "Ticker",
                 "CountryOfIncorporation",
-                "issuerID",
                 "IssuerLEI",
                 "ESGRatingParentEntityName",
                 "ESGRatingParentEntityID",

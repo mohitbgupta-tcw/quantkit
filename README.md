@@ -106,12 +106,13 @@ The source numeration works as follows:
 5. Quandl API
 6. JSON
 
-So, if you want to change the portfolio_datasource to snowflake, enter the following paramaters to your local file:
+So, if you want to change the portfolio_datasource to Excel, enter the following paramaters to your local file:
 
 ```json
     "portfolio_datasource": {
-        "source": 3,
-        "table_name": "TABLE_NAME" ,
+        "source": 1,
+        "file": "path/to/excel",
+        "sheet_name": "Sheet_Name" ,
         "load": true 
     }
 ```
@@ -138,7 +139,7 @@ There is no need to copy over all other settings for the datasource. Lastly, if 
 ```
 
 #### Changes to the Input data
-To change the input data, just change the file linked to in the parameters file. For example, if you want to add a portfolio to the portfolio datasource and you linked it to an Excel file, just add the portfolio to that Excel file. If the data is in snowflake, follow this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/snowflake-demo-copy.ipynb) to change the data. 
+To change the input data, just change the file linked to in the parameters file. For example, if you want to add a portfolio to the portfolio datasource and you linked it to an Excel file, just add the portfolio to that Excel file. If the data is in snowflake, follow this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/snowflake/mapping_tables.ipynb) to change the data. 
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
@@ -200,7 +201,7 @@ Quantkit users can use and run the package in two ways. For more details, please
 The experienced user can make use of the objects structure itself created in the code. First, initialize a runner object in the following way.
 
 ```python
-import quantkit.runner as runner
+import quantkit.runners.runner_risk_framework as runner
 
 local_configs = "path\\to\\your\\configs.json"
 
@@ -238,7 +239,7 @@ This query returns all the holdings of portfolio 16705 in a dictionary.
 The portfolio holdings above showcase another object type, the security object. To see information about a security, run the following line.
 
 ```python
-r.security_datasource.securities["US88160R1014"].information
+r.portfolio_datasource.securities["US88160R1014"].information
 ```
 
 This returns a dictionary of information about the security including p.e. issuer name, seucrity isin, ticker and SClass Levels.
@@ -316,10 +317,7 @@ df_isin = risk_framework.isin_lookup(isin_list=isins, local_configs=local_config
 
 ## Roadmap
 ---
-- [ ] Add to mathstats folder for mathematical calculations
-- [ ] create data visualization folder
 - [ ] add functions to handyman folder
-- [ ] update data pipelines (connect portfolio data to snowflake)
 
 See the [open issues](https://gitlab.com/tcw-group/quant-research/quantkit/-/issues) for a full list of proposed features (and known issues).
 
