@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 ### Fixed
+- make pathes working in ML Azure
+- BClass replace N/A's
 ### Changed
 ### Removed
 
