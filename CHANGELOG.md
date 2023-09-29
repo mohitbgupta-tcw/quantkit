@@ -5,15 +5,91 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
 
+## [Unreleased]
 ### Added
+### Fixed
+### Changed
+### Removed
+
+
+## [1.2.0] - 2023-09-29
+### Added
+- PDF page for Equity MSCI
+### Fixed
+### Changed
+- Portfolio Data comes from Snowflake table
+- Use Portfolio Datasource to create security and company objects
+### Removed
+- security datasource
+
+## [1.1.1] - 2023-09-21
+### Added
+- Pick-All strategy
+- OLS linear regression calculation 
+- ridge regression calculation 
+- test folder for mathstats
+- overwrite history function for Snowflake
+- handyman function for unadjusted scores
 
 ### Fixed
 
 ### Changed
+- allow quandl pull without ticker list
+- add MSCI CCC screen for Sovereigns
 
 ### Removed
+
+
+
+## [1.1.0] - 2023-09-12
+### Added
+- asset allocation folder including:
+    - weighting scheme calculators (equal weight, market weight, MVO, min variance, risk parity)
+    - return and risk calculator (cumprod, EWMA, simple, log)
+    - strategies (simple momentum)
+- mathstats folder including:
+    - mean and covariance calcutor (simple, rolling, exponential)
+    - optimizer
+    - portfolio stats
+    - cumprod
+    - streaming base
+    - time series calculation
+- visualization function for asset allocation
+- asset allocation runner
+
+### Fixed
+- bugs in pdf creator
+- bugs in PAI
+- fill na's by row of same security
+
+### Changed
+- all runners into seperate runner folder
+- adding analyst adjustment for sovereigns
+- enable flexible queries to load data from Snowflake
+
+
+### Removed
+
+## [1.0.1] - 2023-08-23
+
+### Added
+- load historical data through MSCI API
+- run snowflake locally with python 3.10 environment
+- Quandl handyman functionality
+- FRED API and handyman functionality
+- PDF creator visualization tool
+- PAI calculation
+
+### Fixed
+
+### Changed
+- Static Q-Low, Q-High and median values on BCLASS and GICS level in transition calculation
+- move iteration into loader
+
+### Removed
+- ml_azure branch
+- median calculation for industries
 
 ## [1.0.0] - 2023-08-09
 
@@ -47,5 +123,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.2.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.0
+[1.1.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.1
+[1.1.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.0
+[1.0.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.1
 [1.0.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.0
 [0.0.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/0.0.1

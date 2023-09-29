@@ -1,5 +1,8 @@
 import numpy as np
+import pandas as pd
 from typing import Union
+from copy import deepcopy
+import quantkit.finance.sectors.sectors as sectors
 
 
 class SecurityStore(object):
@@ -21,17 +24,12 @@ class SecurityStore(object):
 
     """
 
-    def __init__(self, isin: str, information: dict, **kwargs):
+    def __init__(self, isin: str, information: dict, **kwargs) -> None:
         self.isin = isin
         self.information = information
         self.portfolio_store = dict()
         self.scores = dict()
 
-        self.information["ESG_Collateral_Type"] = dict()
-        self.information["Labeled_ESG_Type"] = np.nan
-        self.information["TCW_ESG"] = np.nan
-        self.information["Issuer_ESG"] = "No"
-        self.information["Security_Name"] = ""
         self.scores["Securitized_Score"] = 0
         self.scores["Securitized_Score_unadjusted"] = 0
         self.scores["Risk_Score_Overall"] = "Poor Risk Score"
@@ -52,6 +50,180 @@ class SecurityStore(object):
             parent store
         """
         self.parent_store = parent
+
+    def add_collateral_type(self, securitized_mapping: dict) -> None:
+        """
+        Add ESG Collateral Type object to information
+
+        Parameters
+        ----------
+        securitized_mapping: dict
+            mapping for ESG Collat Type
+        """
+        if securitized_mapping:
+            self.information["ESG Collateral Type"] = securitized_mapping[
+                self.information["ESG Collateral Type"]
+            ]
+
+    def attach_bclass(self, bclass_dict: dict) -> None:
+        """
+        Attach BCLASS object to security parent
+
+        Parameters
+        ----------
+        bclass_dict: dict
+            dictionary of all bclass objects
+        """
+        if not bclass_dict:
+            return
+        bclass4 = self.information["BCLASS_Level4"]
+        # attach BCLASS object
+        # if BCLASS is not in BCLASS store (covered industries), attach 'Unassigned BCLASS'
+        if not bclass4 in bclass_dict:
+            bclass_dict[bclass4] = sectors.BClass(
+                bclass4,
+                deepcopy(pd.Series(bclass_dict["Unassigned BCLASS"].information)),
+            )
+            bclass_dict[bclass4].add_industry(bclass_dict["Unassigned BCLASS"].industry)
+            bclass_dict["Unassigned BCLASS"].industry.add_sub_sector(
+                bclass_dict[bclass4]
+            )
+        bclass_object = bclass_dict[bclass4]
+
+        # for first initialization of BCLASS
+        self.parent_store.information[
+            "BCLASS_Level4"
+        ] = self.parent_store.information.get("BCLASS_Level4", bclass_object)
+        # sometimes same security is labeled with different BCLASS_Level4
+        # --> if it was unassigned before: overwrite, else: skipp
+        if not (bclass_object.class_name == "Unassigned BCLASS"):
+            self.parent_store.information["BCLASS_Level4"] = bclass_object
+            bclass_object.companies[self.parent_store.isin] = self.parent_store
+
+    def attach_sector_level_2(self) -> None:
+        """
+        Attach Sector Level 2 to security parent
+        """
+        sector_level_2 = self.information["Sector Level 2"]
+        self.parent_store.information["Sector_Level_2"] = sector_level_2
+
+    def attach_bloomberg_information(
+        self,
+        bloomberg_dict: dict,
+    ) -> None:
+        """
+        Attach bloomberg information to security parent
+
+        Parameters
+        ----------
+        bloomberg_dict: dict
+            dictionary of bloomberg information
+        """
+        if not bloomberg_dict:
+            return
+        if self.information["BBG ISSUERID"] in bloomberg_dict:
+            bbg_information = deepcopy(bloomberg_dict[self.information["BBG ISSUERID"]])
+            self.parent_store.bloomberg_information = bbg_information
+        else:
+            bbg_information = deepcopy(bloomberg_dict[np.nan])
+            if not hasattr(self.parent_store, "bloomberg_information"):
+                self.parent_store.bloomberg_information = bbg_information
+
+    def attach_iss_information(
+        self,
+        sdg_dict: dict,
+    ) -> None:
+        """
+        Attach iss information to security parent
+
+        Parameters
+        ----------
+        sdg_dict: dict
+            dictionary of iss information
+        """
+        if not sdg_dict:
+            return
+        if self.information["ISS ISSUERID"] in sdg_dict:
+            iss_information = deepcopy(sdg_dict[self.information["ISS ISSUERID"]])
+            self.parent_store.sdg_information = iss_information
+        else:
+            iss_information = deepcopy(sdg_dict[np.nan])
+            if not hasattr(self.parent_store, "sdg_information"):
+                self.parent_store.sdg_information = iss_information
+
+    def attach_quandl_information(
+        self,
+        quandl_dict_fundamental: dict,
+        quandl_dict_prices: dict,
+    ) -> None:
+        """
+        Attach iss information to security parent
+
+        Parameters
+        ----------
+        quandl_dict_fundamental: dict
+            dictionary of quandl fundamental information
+        quandl_dict_prices: dict
+            dictionary of quandl price information
+        """
+        if quandl_dict_fundamental:
+            if self.information["Ticker Cd"] in quandl_dict_fundamental:
+                quandl_information = deepcopy(
+                    quandl_dict_fundamental[self.information["Ticker Cd"]]
+                )
+                self.parent_store.quandl_information = quandl_information
+            else:
+                quandl_information = deepcopy(quandl_dict_fundamental[np.nan])
+                if not hasattr(self.parent_store, "quandl_information"):
+                    self.parent_store.quandl_information = quandl_information
+        if quandl_dict_prices:
+            if self.information["Ticker Cd"] in quandl_dict_prices:
+                quandl_information = deepcopy(
+                    quandl_dict_prices[self.information["Ticker Cd"]]
+                )
+                self.parent_store.quandl_information_prices = quandl_information
+            else:
+                quandl_information = deepcopy(quandl_dict_prices[np.nan])
+                if not hasattr(self.parent_store, "quandl_information"):
+                    self.parent_store.quandl_information_prices = quandl_information
+
+    def attach_analyst_adjustment(
+        self,
+        sec_adjustment_dict: dict,
+    ) -> None:
+        """
+        Attach Analyst Adjustment to parent
+        Adjustment in sec_adjustment_dict is on security level
+
+        Parameters
+        ----------
+        sec_adjustment_dict: dict
+            dictionary with analyst adjustment information
+        """
+        if self.isin in sec_adjustment_dict:
+            self.parent_store.Adjustment = sec_adjustment_dict[self.isin]
+
+    def overwrite_parent(self, parent_issuer_dict: dict, companies: dict) -> None:
+        """
+        Manually overwrite the parent of a security
+
+        Parameters
+        ----------
+        parent_issuer_dict: dict
+            dictionary of security to parent mapping
+        companies: dict
+            dictionary of all company objects
+        """
+        if self.isin in parent_issuer_dict:
+            adj = parent_issuer_dict[self.isin]
+            parent = adj["ISIN"]
+            if parent in companies:
+                prev_parent = self.parent_store.isin
+                self.parent_store.remove_security(isin=self.isin)
+                companies[parent].add_security(isin=self.isin, store=self)
+                self.add_parent(companies[parent])
+                if not companies[prev_parent].securities:
+                    del companies[prev_parent]
 
     def set_risk_overall_score(self, score: Union[float, int]) -> None:
         """
@@ -76,7 +248,7 @@ class SecurityStore(object):
         """
         Set SClass Level 5 as ESG Collat Type
         """
-        self.information["SClass_Level5"] = self.information["ESG_Collateral_Type"][
+        self.information["SClass_Level5"] = self.information["ESG Collateral Type"][
             "ESG Collat Type"
         ]
 
@@ -123,6 +295,8 @@ class SecurityStore(object):
         """
         self.information["SClass_Level4"] = "Not Scored"
         self.information["SClass_Level4-P"] = "Not Scored"
+        self.information["SClass_Level3"] = "Not Scored"
+        self.information["SClass_Level2"] = "Not Scored"
 
     def is_TBA(self) -> None:
         """
@@ -145,13 +319,13 @@ class SecurityStore(object):
         """
         Set SClass Levels for securities with collat type
         """
-        self.information["SClass_Level4-P"] = self.information["ESG_Collateral_Type"][
+        self.information["SClass_Level4-P"] = self.information["ESG Collateral Type"][
             "Primary"
         ]
-        self.information["SClass_Level4"] = self.information["ESG_Collateral_Type"][
+        self.information["SClass_Level4"] = self.information["ESG Collateral Type"][
             "Primary"
         ]
-        self.information["SClass_Level3"] = self.information["ESG_Collateral_Type"][
+        self.information["SClass_Level3"] = self.information["ESG Collateral Type"][
             "Sclass_Level3"
         ]
         self.information["SClass_Level2"] = "Sustainable Theme"
@@ -209,48 +383,48 @@ class SecurityStore(object):
         else:
             raise ValueError("If transition tag is 'Y', category should be assigned.")
 
+    def iter(
+        self,
+        parent_issuer_dict: dict,
+        companies: dict,
+        securitized_mapping: dict,
+        bclass_dict: dict,
+        sec_adjustment_dict: dict,
+        bloomberg_dict: dict,
+        sdg_dict: dict,
+        quandl_dict_fundamental: dict,
+        quandl_dict_prices: dict,
+    ) -> None:
+        """
+        - Add ESG Collateral Type
+        - Attach BClass Level4 to parent
 
-class EquityStore(SecurityStore):
-    """
-    Equity Object
-    Stores information such as:
-        - isin
-        - parent (as store)
-        - portfolios the security is held in (as store)
-        - ESG factors
-        - security information
-
-    Parameters
-    ----------
-    isin: str
-        Equity's isin
-    information: dict
-        dictionary of security specific information
-
-    """
-
-    def __init__(self, isin: str, information: dict, **kwargs):
-        super().__init__(isin, information)
-
-
-class FixedIncomeStore(SecurityStore):
-    """
-    Fixed Income Object
-    Stores information such as:
-        - isin
-        - parent (as store)
-        - portfolios the security is held in (as store)
-        - ESG factors
-        - security information
-
-    Parameters
-    ----------
-    isin: str
-        Fixed Income's isin
-    information: dict
-        dictionary of security specific information
-
-    """
-
-    def __init__(self, isin: str, information: dict, **kwargs):
-        super().__init__(isin, information)
+        Parameters
+        ----------
+        parent_issuer_dict: dict
+            dictionary of security to parent mapping
+        companies: dict
+            dictionary of all company objects
+        securitized_mapping: dict
+            mapping for ESG Collat Type
+        bclass_dict: dict
+            dictionary of all bclass objects
+        sec_adjustment_dict: dict
+            dictionary with analyst adjustment information
+        bloomberg_dict: dict
+            dictionary of bloomberg information
+        sdg_dict: dict
+            dictionary of iss information
+        quandl_dict_fundamental: dict
+            dictionary of quandl fundamental information
+        quandl_dict_prices: dict
+            dictionary of quandl price information
+        """
+        self.overwrite_parent(parent_issuer_dict, companies)
+        self.add_collateral_type(securitized_mapping)
+        self.attach_bclass(bclass_dict)
+        self.attach_sector_level_2()
+        self.attach_analyst_adjustment(sec_adjustment_dict)
+        self.attach_bloomberg_information(bloomberg_dict)
+        self.attach_iss_information(sdg_dict)
+        self.attach_quandl_information(quandl_dict_fundamental, quandl_dict_prices)

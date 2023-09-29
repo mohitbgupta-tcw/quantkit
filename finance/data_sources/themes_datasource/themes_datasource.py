@@ -36,7 +36,7 @@ class ThemeDataSource(ds.DataSources):
             words linked with theme
     """
 
-    def __init__(self, params: dict, theme_calculations: dict, **kwargs):
+    def __init__(self, params: dict, theme_calculations: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.theme_calculations = theme_calculations
         self.themes = dict()
@@ -46,7 +46,13 @@ class ThemeDataSource(ds.DataSources):
         load data and transform dataframe
         """
         logging.log("Loading Thematic Mapping Data")
-        self.datasource.load()
+
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query=query)
         self.transform_df()
 
     def transform_df(self) -> None:

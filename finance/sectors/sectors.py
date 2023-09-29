@@ -30,12 +30,11 @@ class Industry(object):
 
     def __init__(
         self, name: str, transition_risk: str, Q_Low: float, Q_High: float, **kwargs
-    ):
+    ) -> None:
         self.name = name
         self.transition_risk = transition_risk
         self.sub_sectors = dict()
         self.companies = dict()
-        self.carbon_median = median.Quantiles()
         self.Q_Low = Q_Low
         self.Q_High = Q_High
         self.Q_Low_score = 0
@@ -44,43 +43,6 @@ class Industry(object):
             self.initial_score = 5
         else:
             self.initial_score = 3
-
-    def calculate_quantiles(self) -> np.array:
-        """
-        Calculate quantiles for carbon intensity based on Q_Low and Q_High
-
-        Returns
-        -------
-        np.array
-            array with two elements (lower and higher quantile)
-        """
-        return self.carbon_median.quantiles([self.Q_Low, self.Q_High])
-
-    @property
-    def median(self) -> float:
-        """
-        Median for carbon intensity out of all companies attached to this Industry
-
-        Returns
-        -------
-        float
-            carbon intensity median for Industry
-        """
-        return self.carbon_median.median
-
-    def update(self, carbon_intensity: float) -> None:
-        """
-        update Industry information such as collecting carbon intensity whenever company is added to Industry
-        and calcualte quantiles based on new value, update Industry specific Q_Low and Q_High
-
-        Parameters
-        ----------
-        carbon_intensity: float
-            carbon intensity for company
-        """
-        self.carbon_median.add_value(carbon_intensity)
-        self.quantiles = self.calculate_quantiles()
-        self.Q_Low_score, self.Q_High_score = self.quantiles[0], self.quantiles[1]
 
     def add_sub_sector(self, sub_sector) -> None:
         """
@@ -113,7 +75,7 @@ class BClass(object):
         information about sub sector
     """
 
-    def __init__(self, class_name: str, row_information: pd.Series):
+    def __init__(self, class_name: str, row_information: pd.Series) -> None:
         self.class_name = class_name
         self.information = row_information.to_dict()
         self.companies = dict()
@@ -171,7 +133,7 @@ class GICS(object):
         information about sub sector
     """
 
-    def __init__(self, class_name: str, row_information: pd.Series):
+    def __init__(self, class_name: str, row_information: pd.Series) -> None:
         self.class_name = class_name
         self.information = row_information.to_dict()
         self.companies = dict()
@@ -224,7 +186,7 @@ class Sector(object):
         Sector name (either GICS or BCLASS)
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
         self.sub_sectors = dict()
 

@@ -1,6 +1,7 @@
 import quantkit.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import pandas as pd
+from pandas.tseries.offsets import MonthEnd
 import numpy as np
 from copy import deepcopy
 
@@ -19,51 +20,66 @@ class QuandlDataSource(ds.DataSources):
     DataFrame
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.quandl = dict()
 
-    def load(self, ticker: list) -> None:
+    def load(self) -> None:
         """
         load data and transform dataframe
-
-        Parameters
-        ----------
-        ticker: list
-            list of all tickers in portfolios
         """
-        logging.log("Loading Quandl Data")
+        ticker = (
+            ", ".join(f"'{pf}'" for pf in self.params["filters"]["ticker"])
+            if self.params["filters"]["ticker"]
+            else "''"
+        )
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        WHERE "ticker" in ({ticker})
+        """
+        if self.params["type"] == "fundamental":
+            t = "FUNDAMENTAL"
+        else:
+            t = "PRICE"
 
-        self.params["filters"]["ticker"] = list(set(ticker))
-
-        self.datasource.load()
+        logging.log(f"Loading Quandl {t} Data")
+        self.datasource.load(query=query)
         self.transform_df()
 
     def transform_df(self) -> None:
         """
-        None
+        order by ticker and date
         """
-        pass
+        if "calendardate" in self.datasource.df.columns:
+            self.datasource.df = self.datasource.df.rename(
+                columns={"calendardate": "date"}
+            )
+        self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
+        self.datasource.df = self.datasource.df.sort_values(
+            by=["ticker", "date"], ascending=True, ignore_index=True
+        )
+        if self.params["type"] == "fundamental":
+            self.datasource.df["release_date"] = (
+                self.datasource.df["date"] + pd.DateOffset(months=3) + MonthEnd(0)
+            )
+            self.datasource.df["release_date"] = pd.to_datetime(
+                self.datasource.df["release_date"]
+            )
+        self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
 
-    def iter(self, companies: dict) -> None:
+    def iter(self) -> None:
         """
-        Attach quandl information to company objects
-
-        Parameters
-        ----------
-        companies: dict
-            dictionary of all company objects
+        Attach bloomberg information to dict
         """
+        grouped = self.df.groupby("ticker")
+        for c, quandl_information in grouped:
+            self.quandl[c] = quandl_information
 
         # --> not every company has these information, so create empty df with NA's for those
-        empty_quandl = pd.Series(np.nan, index=self.df.columns).to_dict()
-
-        for c in companies:
-            t = companies[c].msci_information["ISSUER_TICKER"]
-            quandl_information = self.df[self.df["ticker"] == t]
-            if not quandl_information.empty:
-                companies[c].quandl_information = quandl_information.squeeze().to_dict()
-            else:
-                companies[c].quandl_information = deepcopy(empty_quandl)
+        empty_quandl = pd.DataFrame(columns=self.df.columns)
+        self.quandl[np.nan] = deepcopy(empty_quandl)
 
     @property
     def df(self) -> pd.DataFrame:

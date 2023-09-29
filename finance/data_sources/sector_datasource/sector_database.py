@@ -24,7 +24,7 @@ class SectorDataSource(ds.DataSources):
             sector
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.sectors = dict()
 
@@ -33,7 +33,13 @@ class SectorDataSource(ds.DataSources):
         load data and transform dataframe
         """
         logging.log("Loading Sector Data")
-        self.datasource.load()
+
+        from_table = f"""SANDBOX_ESG.ESG."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query=query)
         self.transform_df()
 
     def iter(self) -> None:
@@ -89,7 +95,7 @@ class SubIndustryDataSource(ds.DataSources):
         transition paramaters
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs):
+    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.transition_params = transition_params
         self.industries = dict()
@@ -98,7 +104,12 @@ class SubIndustryDataSource(ds.DataSources):
         """
         load data and transform dataframe
         """
-        self.datasource.load()
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query)
         self.transform_df()
 
     def transform_df(self) -> None:
@@ -134,7 +145,7 @@ class SubIndustryDataSource(ds.DataSources):
                 sectors.Industry(
                     industry,
                     transition_risk=row["Transition Risk Module"],
-                    **self.transition_params
+                    **self.transition_params,
                 ),
             )
 
@@ -182,7 +193,7 @@ class BClassDataSource(SubIndustryDataSource):
             transition risk of industry
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs):
+    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
         super().__init__(params, transition_params, **kwargs)
         self.bclass = dict()
 
@@ -233,7 +244,7 @@ class GICSDataSource(SubIndustryDataSource):
             transition risk of industry
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs):
+    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
         super().__init__(params, transition_params, **kwargs)
         self.gics = dict()
 

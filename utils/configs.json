@@ -1,6 +1,10 @@
 {   
-    "A9Funds": [6781, 16705, 3738, 3750, 16719, 16706, "BB HIGH YIELD 2% CAP", "MSCI WORLD", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "BB INTERMEDIATE CORP", "JPM CEMBI BROAD DIVERSE"],
-    "A8Funds":  [13727, 3735, 3775, 13751, "BLOOMBERG AGGREGATE INDEX"],
+    "as_of_date": "09/26/2023",
+    "portfolios": ["701","702","703","704", "705","706","707","708","709", "710","711","712","713","714","3237","3704","3720","3730","3735","3738", "3750","3775", "3798", "4790","6283", "6293", "6717","6739","6741","6748","6751","6757","6781","6784","13727","13751","16703","16705","16706","16719", "16720", "3666", "3667", "3668", "3669", "6293"],
+    "equity_benchmark": ["JESG EMBI Global Diversified Index", "JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI", "MSCI WORLD", "Russell 1000", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "RUSSELL 3000 INDEX", "S & P 500 INDEX", "MSCI EAFE", "RUSSELL 2000", "RUSSELL 2000 VALUE", "RUSSELL MIDCAP", "Russell Midcap Value", "S&P 500 EX TOBACCO"],
+    "fixed_income_benchmark": ["BB HIGH YIELD 2% CAP", "BB INTERMEDIATE CORP", "BLOOMBER LONG GOVT/CREDIT", "BLOOMBERG AGGREGATE INDEX", "Pan Euro Credit", "Pan Euro High Yield"],
+    "A9Funds": ["6781", "16705", "3738", "3750", "16719", "16706", "BB HIGH YIELD 2% CAP", "MSCI WORLD", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "BB INTERMEDIATE CORP", "JPM CEMBI BROAD DIVERSE"],
+    "A8Funds":  ["13727", "3735", "3775", "13751", "BLOOMBERG AGGREGATE INDEX"],
     "carve_out_sectors": ["Electric Utilities", "Electric", "Gas Utilities","Multi-Utilities","Other Utility","Water Utilities","Independent Power Producers & Energy Traders","Integrated Oil & Gas","Oil & Gas Drilling","Oil & Gas Equipment & Services","Oil & Gas Exploration & Production","Oil & Gas Refining & Marketing","Oil & Gas Storage & Transportation","Oil Field Services", "Government Owned, No Guarantee"],
 
     "transition_parameters": {
@@ -14,9 +18,7 @@
         "snowflake_parameters": {
             "user": "",   
             "password": "",    
-            "role": "APP-SNOWF-ESG_ADVANCED",
-            "database": "SANDBOX_ESG",
-            "schema": "ESG"
+            "role": "APP-SNOWF-ESG_ADVANCED"
             },
     
         "msci_parameters": {
@@ -26,42 +28,64 @@
     
         "quandl_parameters": {
             "key": "MxE6oNePp886npLJ2CGs"
+        },
+
+        "fred_parameters": {
+            "key": "eb4f46c42913c92951a8c64d545598ca"
         }
     },
     
     "portfolio_datasource": {
-        "source": 1,
-        "file": "C:\\Users\\bastit\\Documents\\Risk_Score\\Input\\Portfolio_Data.xlsx",
-        "sheet_name": "Portfolio",
-        "load": true
+        "source": 3,
+        "table_name": "POSITION_VW",
+        "database": "TCW_CORE_DEV",
+        "schema": "TCW",
+        "load": true,
+        "transformation": {
+            "XS2403443786": {"TCW ESG": "TCW Social"},
+            "USU35914AA51": {
+                "Labeled ESG Type": null, 
+                "Sector Level 1": "Government Related", 
+                "Sector Level 2": "Sovereign", 
+                "BCLASS_Level2": "Sovereign",
+                "BCLASS_Level3": "Sovereign", 
+                "BCLASS_Level4": "Sovereign"
+            },
+            "HOMER CITY HOLDINGS LLC (PLACEHOLDER)": {
+                "Sector Level 1": "Cash and Other", 
+                "Sector Level 2": "Cash and Other"
+            },
+            "XS2384697830": {
+                "MSCI ISSUERID": "IID000000002180450",
+                "BBG ISSUERID": 101409,
+                "ISS ISSUERID": 126354,
+                "Issuer ISIN": "US74460D1090"
+            },
+            "USP16259AM84": {
+                "MSCI ISSUERID": "IID000000002227610",
+                "BBG ISSUERID": 18592634,
+                "ISS ISSUERID": 3091672,
+                "Issuer ISIN": "USP16259AK29"
+            }
+        }
     },
 
     "category_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
-        "sheet_name": "Materiality Map_v2",
-        "load": true
-    },
-
-    "security_datasource": {
-        "iss": {        
-            "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Multi-Security_Standard_Issuers_20230703.csv",
-            "load": true
-        },
-        "msci": {
-            "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/msci_security_mapping.csv",
-            "load": true
-        }
+        "source": 3,
+        "table_name": "MATERIALITY_MAPPING" ,
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
+        "load": true 
     },
     "bloomberg_datasource": {
-        "source": 1,
-        "file": "C:\\Users\\bastit\\Documents\\Risk_Score\\Input\\Portfolio_Data.xlsx",
-        "sheet_name": "Bloomberg",
+        "source": 3,
+        "table_name": "BLOOMBERG_DATA",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "quandl_datasource": {
+        "type": "fundamental",
         "source": 5,
         "table": "SHARADAR/SF1",
         "filters": {
@@ -72,9 +96,22 @@
         },
         "load": false
     },
+    "quandl_datasource_prices": {
+        "type": "price",
+        "source": 5,
+        "frequency": "DAY",
+        "table": "SHARADAR/SEP",
+        "filters": {
+            "ticker": [],
+            "paginate": true,
+            "date": {"gte": "2023-01-01"}
+        },
+        "load": false
+    },
     "msci_datasource": {
         "source": 4,
         "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "historical": false,
         "filters": {
             "issuer_identifier_type": "ISSUER_ID",
             "issuer_identifier_list": [],
@@ -190,7 +227,8 @@
                 "CARBON_EMISSIONS_SCOPE_12_INTEN",
                 "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",
                 "INDUSTRY_ADJUSTED_SCORE", 
-                "GOVERNMENT_ADJUSTED_ESG_SCORE"
+                "GOVERNMENT_ADJUSTED_ESG_SCORE",
+                "GOVERNMENT_ESG_RATING"
             ]
         },
         "transformation": {
@@ -212,24 +250,26 @@
         }
     },
     "sector_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Portfolio_Data.xlsx",
-        "sheet_name": "Sector_Code",
+        "source": 3,
+        "table_name": "SECTOR_CODES",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "bclass_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
-        "sheet_name": "BCLASS",
+        "source": 3,
+        "table_name": "BCLASS",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "gics_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
-        "sheet_name": "GICS",
+        "source": 3,
+        "table_name": "GICS",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
-
     "exclusion_datasource": {
         "Article8": {
             "source": 1,
@@ -244,25 +284,27 @@
             "load": true
         }
     },
-
     "regions_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Materiality Factors by Sector.xlsx",
-        "sheet_name": "Regions",
+        "source": 3,
+        "table_name": "REGIONS",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
 
     "theme_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "Thematic Mapping",
+        "source": 3,
+        "table_name": "THEMATIC_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
 
     "transition_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "Transition Industry Mapping",
+        "source": 3,
+        "table_name": "TRANSITION_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "adjustment_datasource": {
@@ -271,17 +313,18 @@
         "sheet_name": "Analyst Adjustment",
         "load": true
     },
-
     "securitized_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "SecuritizedMapping",
+        "source": 3,
+        "table_name": "SECURITIZED_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "parent_issuer_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "ApplyParentIssuer",
+        "source": 3,
+        "table_name": "PARENT_ISSUER_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "theme_calculation": {
@@ -348,6 +391,4 @@
             "sales_threshold": 18
         }
     }
-
-
 }

@@ -37,7 +37,7 @@ class Theme(object):
         pillar: str,
         information_df: pd.DataFrame,
         params: dict,
-    ):
+    ) -> None:
         self.acronym = acronym
         self.name = name
         self.pillar = pillar

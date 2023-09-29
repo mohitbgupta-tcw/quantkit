@@ -37,15 +37,22 @@ class AdjustmentDataSource(ds.DataSources):
             date
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.msci_ids = dict()
+        self.security_isins = dict()
 
     def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Adjustment Data")
-        self.datasource.load()
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query=query)
         self.transform_df()
 
     def transform_df(self) -> None:
@@ -55,6 +62,25 @@ class AdjustmentDataSource(ds.DataSources):
         self.datasource.df = self.datasource.df.sort_values(
             by=["Adjustment"], ascending=False
         )
+
+    def iter(self) -> None:
+        """
+        Attach analyst adjustment information to dicts
+        """
+        for index, row in self.df.iterrows():
+            isin = row["ISIN"]
+
+            adjustment_information = row.to_dict()
+            if isin[:3] == "IID":
+                if isin in self.msci_ids:
+                    self.msci_ids[isin].append(adjustment_information)
+                else:
+                    self.msci_ids[isin] = [adjustment_information]
+            else:
+                if isin in self.security_isins:
+                    self.security_isins[isin].append(adjustment_information)
+                else:
+                    self.security_isins[isin] = [adjustment_information]
 
     @property
     def df(self) -> pd.DataFrame:

@@ -35,20 +35,19 @@ class ExclusionsDataSource(object):
             value over threshold
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         self.params = params
         self.article8 = ExclusionData(params["Article8"], **kwargs)
         self.article9 = ExclusionData(params["Article9"], **kwargs)
+        self.exclusions = dict()
 
     def load(self) -> None:
         """
         load data and transform dataframe
         """
         logging.log("Loading Exclusions Data")
-        self.article8.datasource.load()
-        self.article8.transform_df()
-        self.article9.datasource.load()
-        self.article9.transform_df()
+        self.article8.load()
+        self.article9.load()
         self.transform_df()
 
     def transform_df(self) -> None:
@@ -63,6 +62,19 @@ class ExclusionsDataSource(object):
             ignore_index=True,
         )
         self.df_ = df_
+
+    def iter(self) -> None:
+        """
+        Attach exclusion information to dict
+        """
+        for index, row in self.df.iterrows():
+            isin = row["MSCI Issuer ID"]
+
+            exclusion_information = row.to_dict()
+            if isin in self.exclusions:
+                self.exclusions[isin].append(exclusion_information)
+            else:
+                self.exclusions[isin] = [exclusion_information]
 
     @property
     def df(self) -> pd.DataFrame:
@@ -85,8 +97,21 @@ class ExclusionData(ds.DataSources):
         datasource specific parameters including datasource
     """
 
-    def __init__(self, params: dict, **kwargs):
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.table_name = params["table_name"] if "table_name" in params else ""
+
+    def load(self) -> None:
+        """
+        load data and transform dataframe
+        """
+        from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        query = f"""
+        SELECT * 
+        FROM {from_table}
+        """
+        self.datasource.load(query=query)
+        self.transform_df()
 
     def transform_df(self) -> None:
         """

@@ -13,11 +13,11 @@ class JSON(object):
         Indication of expected JSON string format
     """
 
-    def __init__(self, json_str: str, orient: str = "index"):
+    def __init__(self, json_str: str, orient: str = "index", **kwargs) -> None:
         self.json_str = json_str
         self.orient = orient
 
-    def load(self) -> None:
+    def load(self, **kwargs) -> None:
         """
         Load file and save data as pd.DataFrame in self.df
         """

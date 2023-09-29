@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 def group_mode(
@@ -41,3 +42,24 @@ def group_mode(
     df = df.drop_duplicates(subset=[group_by_column])
     df = df.drop("Count", axis=1)
     return df
+
+
+def nanprodwrapper(a, **kwargs) -> float:
+    """
+    Calculate nanprod of an array.
+    If all values are nan, return nan.
+
+    Parameters
+    ----------
+    a: np.array
+        array
+
+    Returns
+    -------
+    float
+        nanprod of array
+    """
+    if np.isnan(a).all():
+        return np.nan
+    else:
+        return np.nanprod(a, **kwargs)

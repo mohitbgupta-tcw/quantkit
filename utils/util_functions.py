@@ -34,9 +34,9 @@ def iter_list(input_list: Union[list, set]) -> list:
         unique values of input list which are not nan's
     """
     output_list = []
-    for iss in input_list:
-        if not (pd.isna(iss) or iss in output_list):
-            output_list.append(iss)
+    for i in input_list:
+        if not (pd.isna(i) or i in output_list):
+            output_list.append(i)
     return output_list
 
 
@@ -61,7 +61,10 @@ def replace_dictionary(new_d: dict, original_d: dict) -> dict:
         for k, v in new_d.items():
             if isinstance(new_d[k], (list, int, str, float)):
                 original_d[k] = new_d[k]
-            replace_dictionary(v, original_d[k])
+            if k in original_d:
+                replace_dictionary(v, original_d[k])
+            else:
+                original_d[k] = new_d[k]
     return original_d
 
 
