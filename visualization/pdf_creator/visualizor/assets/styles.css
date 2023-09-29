@@ -335,8 +335,8 @@ p.padded {
   padding-left: 8px;
 }
 #planet-table td:last-child {
-  text-align: left;
-  padding-left: 8px;
+  text-align: right;
+  padding-right: 8px;
 }
 #people-table td:first-child {
   width: 10%;
@@ -348,8 +348,8 @@ p.padded {
   padding-left: 8px;
 }
 #people-table td:last-child {
-  text-align: left;
-  padding-left: 8px;
+  text-align: right;
+  padding-right: 8px;
 }
 #total-table td:first-child {
   width: 10%;
@@ -361,8 +361,8 @@ p.padded {
   padding-left: 8px;
 }
 #total-table td:last-child {
-  text-align: left;
-  padding-left: 8px;
+  text-align: right;
+  padding-right: 8px;
 }
 #transition-table td:first-child {
   width: 10%;
@@ -374,8 +374,8 @@ p.padded {
   padding-left: 8px;
 }
 #transition-table td:last-child {
-  text-align: left;
-  padding-left: 8px;
+  text-align: right;
+  padding-right: 8px;
 }
 
 #bclass3-table tr:last-child {
@@ -523,6 +523,10 @@ td.table-element {
 
 #risk-score tr:nth-last-child(3) td:first-child{
   padding-left:15px
+}
+
+#msci-score td:first-child{
+  width: 50%;
 }
 
 .vert-text {

@@ -10,9 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 ### Fixed
 ### Changed
+### Removed
+
+
+## [1.2.0] - 2023-09-29
+### Added
+- PDF page for Equity MSCI
+### Fixed
+### Changed
 - Portfolio Data comes from Snowflake table
 - Use Portfolio Datasource to create security and company objects
 ### Removed
+- security datasource
 
 ## [1.1.1] - 2023-09-21
 ### Added
@@ -114,6 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.2.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.0
 [1.1.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.1
 [1.1.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.0
 [1.0.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.0.1

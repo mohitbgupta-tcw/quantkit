@@ -79,7 +79,7 @@ class BarChart(object):
                     showlegend=False,
                     yaxis={"automargin": True, "ticksuffix": "   "},
                     xaxis={
-                        "range": [0, max(self.x) * 1.2],
+                        "range": [0, max(self.x) * 1.25],
                         "automargin": False,
                         "showgrid": True,
                         "gridcolor": "lightgrey",

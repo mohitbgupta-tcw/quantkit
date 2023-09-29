@@ -40,6 +40,100 @@ def calculate_portfolio_waci(df: pd.DataFrame) -> float:
     return waci
 
 
+def calculate_portfolio_coverage(df: pd.DataFrame) -> float:
+    """
+    For a given portfolio, calculate the coverage for risk scores
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    float
+        portfolio's coverage
+    """
+    df_filtered = df[
+        ((df["Governance Score"] == 5) & (df["NA_Flags_Governance"] >= 7))
+        | ((df["ESRM Score"] == 5) & (df["NA_Flags_ESRM"] >= 7))
+    ]
+    if not df_filtered.empty:
+        cov = sum(df_filtered["Portfolio Weight"])
+    else:
+        cov = 0
+    return 100 - cov
+
+
+def calculate_portfolio_msci_coverage(df: pd.DataFrame) -> float:
+    """
+    For a given portfolio, calculate the msci coverage for risk scores
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    float
+        portfolio's coverage
+    """
+    df_filtered = df[
+        (
+            (df["INDUSTRY_ADJUSTED_SCORE"].isna())
+            & (
+                df["Sector Level 2"].isin(
+                    [
+                        "Industrial",
+                        "Utility",
+                        "Financial Institution",
+                        "Quasi Sovereign",
+                    ]
+                )
+            )
+        )
+    ]
+    if not df_filtered.empty:
+        cov = sum(df_filtered["Portfolio Weight"])
+    else:
+        cov = 0
+    return 100 - cov
+
+
+def calculate_portfolio_msci_score(df: pd.DataFrame) -> float:
+    """
+    For a given portfolio, calculate the market weighted MSCI score
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+
+    Returns
+    -------
+    float
+        portfolio's ESRM score
+    """
+    df["market_weight_msci"] = (
+        df["Portfolio Weight"] / 100 * df["INDUSTRY_ADJUSTED_SCORE"]
+    )
+    df_filtered = df[df["INDUSTRY_ADJUSTED_SCORE"] > 0]
+    if not df_filtered.empty:
+        msci = (
+            sum(
+                df_filtered[df_filtered["market_weight_msci"] > 0]["market_weight_msci"]
+            )
+            / sum(
+                df_filtered[df_filtered["market_weight_msci"] > 0]["Portfolio Weight"]
+            )
+            * 100
+        )
+    else:
+        msci = 0
+    return msci
+
+
 def calculate_portfolio_esrm(df: pd.DataFrame) -> float:
     """
     For a given portfolio, calculate the market weighted ESRM score
@@ -241,7 +335,7 @@ def calculate_carbon_intensity(df: pd.DataFrame, portfolio_type: str) -> pd.Data
         )
     ]
 
-    if portfolio_type in ["equity", "equity_a9"]:
+    if portfolio_type in ["equity", "equity_a9", "equity_msci"]:
         df_grouped = df_filtered.groupby("GICS_SECTOR", as_index=False).apply(
             lambda x: x["market_weight_carbon_intensity"].sum()
             / x["Portfolio Weight"].sum()

@@ -120,7 +120,7 @@ portfolio_type = {
     "13727": "fixed_income_a8",
     "13751": "fixed_income",
     "16705": "equity_a9",
-    "6717": "equity",
+    "6717": "equity_msci",
     "708": "fixed_income",
     "702": "fixed_income",
     "703": "equity",
