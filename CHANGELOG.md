@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - make pathes working in ML Azure
 - BClass replace N/A's
 ### Changed
+- Split Excluded SClass Labels into Poor Data, Poor Score, and Excluded Sector
 ### Removed
 
 
