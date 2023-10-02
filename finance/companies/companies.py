@@ -503,17 +503,20 @@ class CompanyStore(headstore.HeadStore):
 
         Order
         -----
-        1) Poor Transition, Governance or ESRM Score
-        2) Is Labeled Bond
-        3) Analyst Adjustment
-        4) Is Sustainable
-        5) Is Transition
-        6) Is Leading
-        7) Is not Scored
+        1) Poor Data
+        2) Poor Transition, Governance or ESRM Score
+        3) Is Labeled Bond
+        4) Analyst Adjustment
+        5) Is Sustainable
+        6) Is Transition
+        7) Is Leading
+        8) Is not Scored
         """
         transition_score = self.scores["Transition_Score"]
         governance_score = self.scores["Governance_Score"]
+        na_flags_governance = self.scores["NA_Flags_Governance"]
         esrm_score = self.scores["ESRM_Score"]
+        na_flags_esrm = self.scores["NA_Flags_ESRM"]
         score_sum = governance_score + transition_score + esrm_score
         transition_tag = self.scores["Transition_Tag"]
         sustainability_tag = self.scores["Sustainability_Tag"]
@@ -522,13 +525,32 @@ class CompanyStore(headstore.HeadStore):
             sec_store.level_5()
 
             if governance_score == 5:
-                sec_store.is_score_5("Governance")
+                if (
+                    sum(na_flags_esrm.values()) >= 7
+                    or sum(na_flags_governance.values()) >= 7
+                ):
+                    sec_store.has_no_data()
+                else:
+                    sec_store.is_score_5("Governance")
 
             elif esrm_score == 5:
-                sec_store.is_score_5("ESRM")
+                if (
+                    sum(na_flags_esrm.values()) >= 7
+                    or sum(na_flags_governance.values()) >= 7
+                ):
+                    sec_store.has_no_data()
+                else:
+                    sec_store.is_score_5("ESRM")
 
             elif transition_score == 5:
-                sec_store.is_score_5("Transition")
+                if (
+                    sum(na_flags_esrm.values()) >= 7
+                    or sum(na_flags_governance.values()) >= 7
+                ):
+                    sec_store.has_no_data()
+                else:
+                    sec_store.is_score_5("Transition")
+
             elif labeled_bond_tag == "Labeled Green/Sustainable Linked":
                 sec_store.is_esg_labeled("Green/Sustainable Linked")
             elif labeled_bond_tag == "Labeled Green":

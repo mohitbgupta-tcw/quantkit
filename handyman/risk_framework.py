@@ -313,8 +313,8 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     )
                 ):
                     sec_data["SCLASS_Level1"] = "Excluded"
-                    sec_data["SCLASS_Level2"] = "Exclusion"
-                    sec_data["SCLASS_Level3"] = "Exclusion"
+                    sec_data["SCLASS_Level2"] = "Excluded Sector"
+                    sec_data["SCLASS_Level3"] = "Excluded Sector"
                     sec_data["SCLASS_Level4"] = "Excluded Sector"
                     sec_data["SCLASS_Level4-P"] = "Excluded Sector"
                 elif (
@@ -333,8 +333,8 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     )
                 ):
                     sec_data["SCLASS_Level1"] = "Excluded"
-                    sec_data["SCLASS_Level2"] = "Exclusion"
-                    sec_data["SCLASS_Level3"] = "Exclusion"
+                    sec_data["SCLASS_Level2"] = "Excluded Sector"
+                    sec_data["SCLASS_Level3"] = "Excluded Sector"
                     sec_data["SCLASS_Level4"] = "Excluded Sector"
                     sec_data["SCLASS_Level4-P"] = "Excluded Sector"
 

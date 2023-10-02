@@ -263,8 +263,23 @@ class SecurityStore(object):
         """
         self.information["SClass_Level4-P"] = f"Poor {parent_type} Score"
         self.information["SClass_Level4"] = f"Poor {parent_type} Score"
-        self.information["SClass_Level3"] = "Exclusion"
-        self.information["SClass_Level2"] = "Exclusion"
+        self.information["SClass_Level3"] = "Poor Risk Score"
+        self.information["SClass_Level2"] = "Poor Risk Score"
+        self.information["SClass_Level1"] = "Excluded"
+
+    def has_no_data(self) -> None:
+        """
+        Set SClass Levels for Poor Data and Exclude Security.
+
+        Parameters
+        ----------
+        parent_type: str
+            type of parent. Either Muni, Sovereign, Securitized or Corporate
+        """
+        self.information["SClass_Level4-P"] = f"Poor Data"
+        self.information["SClass_Level4"] = f"Poor Data"
+        self.information["SClass_Level3"] = "Poor Data"
+        self.information["SClass_Level2"] = "Poor Data"
         self.information["SClass_Level1"] = "Excluded"
 
     def is_esg_labeled(self, labeled_esg_type: str) -> None:
