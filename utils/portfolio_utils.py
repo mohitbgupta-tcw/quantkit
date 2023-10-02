@@ -552,7 +552,9 @@ def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
         "ESG-Labeled Bonds": "#82b460",
         "Transition": "#0072a0",
         "ESG Scores": "#91bcd1",
-        "Exclusion": "#cd523a",
+        "Excluded Sector": "#cd523a",
+        "Poor Data": "#f0a787",
+        "Poor Risk Score": "#cd523a",
         "Not Scored": "#bebcbb",
         "Sustainable Theme": "#bde6b8",
     }
@@ -561,8 +563,10 @@ def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
         "Sustainable Theme": 2,
         "Transition": 3,
         "ESG Scores": 4,
-        "Exclusion": 5,
-        "Not Scored": 6,
+        "Poor Risk Score": 5,
+        "Excluded Sector": 6,
+        "Poor Data": 7,
+        "Not Scored": 8,
     }
     df_grouped = df.groupby("SCLASS_Level2")["Portfolio Weight"].sum().reset_index()
     df_grouped["Sort"] = df_grouped["SCLASS_Level2"].map(sort)
@@ -597,7 +601,7 @@ def calculate_portfolio_summary(df: pd.DataFrame, portfolio_type: str) -> dict:
         bonds = calculate_bond_distribution(df)
         total += sum(bonds.values())
 
-    excluded = df[df["SCLASS_Level3"] == "Exclusion"]["Portfolio Weight"].sum()
+    excluded = df[df["SCLASS_Level1"] == "Excluded"]["Portfolio Weight"].sum()
 
     scores = calculate_risk_distribution(df)
     other = scores["Not Scored"]
