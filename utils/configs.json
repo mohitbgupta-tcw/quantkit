@@ -223,6 +223,7 @@
                 "PARENT_ISSUERID",
                 "PARENT_ULTIMATE_ISSUERID",
                 "PALM_TIE",
+                "CWEAP_TIE",
                 "ACCESS_TO_HLTHCRE_SCORE",
                 "CARBON_EMISSIONS_SCOPE_12_INTEN",
                 "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",

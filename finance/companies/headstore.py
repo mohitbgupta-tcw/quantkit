@@ -5,6 +5,7 @@ import quantkit.finance.securities.securities as securities
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.finance.adjustment.adjustment as adjustment
 import quantkit.utils.mapping_configs as mapping_configs
+import quantkit.finance.exclusions.exclusions as exclusions
 
 
 class HeadStore(object):
@@ -57,6 +58,7 @@ class HeadStore(object):
         self.scores["NA_Flags_ESRM"] = dict()
         self.scores["NA_Flags_Governance"] = dict()
         self.Adjustment = list()
+        self.Exclusion = dict()
         self.information["Exclusion_d"] = dict()
         self.information["Exclusion"] = list()
 
@@ -180,6 +182,15 @@ class HeadStore(object):
                     self.information["Exclusion_d"][theme] = value
                 if not article in self.information["Exclusion"]:
                     self.information["Exclusion"].append(article)
+
+        self.Exclusion["A8"] = exclusions.A8(
+            cweap_tie=self.msci_information["CWEAP_TIE"],
+            weap_max_rev_pct=self.msci_information["WEAP_MAX_REV_PCT"],
+        )
+        self.Exclusion["A9"] = exclusions.A9(
+            cweap_tie=self.msci_information["CWEAP_TIE"],
+            weap_max_rev_pct=self.msci_information["WEAP_MAX_REV_PCT"],
+        )
 
     def attach_gics(self, gics_d: dict) -> None:
         """
