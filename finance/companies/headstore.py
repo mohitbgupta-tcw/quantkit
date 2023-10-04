@@ -186,10 +186,38 @@ class HeadStore(object):
         self.Exclusion["A8"] = exclusions.A8(
             cweap_tie=self.msci_information["CWEAP_TIE"],
             weap_max_rev_pct=self.msci_information["WEAP_MAX_REV_PCT"],
+            firearm_max_rev_pct=self.msci_information["FIREARM_MAX_REV_PCT"],
+            tob_max_rev_pct=self.msci_information["TOB_MAX_REV_PCT"],
+            thermal_coal_max_rev_pct=self.msci_information["THERMAL_COAL_MAX_REV_PCT"],
+            unconv_oil_gas_max_rev_pct=self.msci_information[
+                "UNCONV_OIL_GAS_MAX_REV_PCT"
+            ],
+            generat_max_rev_thermal_coal=self.msci_information[
+                "GENERAT_MAX_REV_THERMAL_COAL"
+            ],
+            ungc_compliance=self.msci_information["UNGC_COMPLIANCE"],
+            iva_company_rating=self.msci_information["IVA_COMPANY_RATING"],
         )
         self.Exclusion["A9"] = exclusions.A9(
             cweap_tie=self.msci_information["CWEAP_TIE"],
             weap_max_rev_pct=self.msci_information["WEAP_MAX_REV_PCT"],
+            firearm_max_rev_pct=self.msci_information["FIREARM_MAX_REV_PCT"],
+            tob_max_rev_pct=self.msci_information["TOB_MAX_REV_PCT"],
+            thermal_coal_max_rev_pct=self.msci_information["THERMAL_COAL_MAX_REV_PCT"],
+            unconv_oil_gas_max_rev_pct=self.msci_information[
+                "UNCONV_OIL_GAS_MAX_REV_PCT"
+            ],
+            og_rev=self.msci_information["OG_REV"],
+            generat_max_rev_thermal_coal=self.msci_information[
+                "GENERAT_MAX_REV_THERMAL_COAL"
+            ],
+            ae_max_rev_pct=self.msci_information["AE_MAX_REV_PCT"],
+            alc_dist_max_rev_pct=self.msci_information["ALC_DIST_MAX_REV_PCT"],
+            alc_prod_max_rev_pct=self.msci_information["ALC_PROD_MAX_REV_PCT"],
+            gam_max_rev_pct=self.msci_information["GAM_MAX_REV_PCT"],
+            ungc_compliance=self.msci_information["UNGC_COMPLIANCE"],
+            hr_compliance=self.msci_information["HR_COMPLIANCE"],
+            iva_company_rating=self.msci_information["IVA_COMPANY_RATING"],
         )
 
     def attach_gics(self, gics_d: dict) -> None:
