@@ -178,7 +178,8 @@ class HeadStore(object):
                     )
                 else:
                     self.information["Exclusion_d"][theme] = value
-                self.information["Exclusion"].append(article)
+                if not article in self.information["Exclusion"]:
+                    self.information["Exclusion"].append(article)
 
     def attach_gics(self, gics_d: dict) -> None:
         """

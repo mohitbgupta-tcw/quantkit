@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - handyman function to pull historical portfolio holdings
+- Unadjusted scores added to detailed dataframe
 ### Fixed
 - make pathes working in ML Azure
 - BClass replace N/A's

@@ -80,6 +80,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "SCLASS_Level4": sec_store.information["SClass_Level4"],
                     "SCLASS_Level4-P": sec_store.information["SClass_Level4-P"],
                     "SCLASS-Level5": sec_store.information["SClass_Level5"],
+                    "Exclusion": ", ".join(comp_store.information["Exclusion"]),
                     "Alcohol": comp_store.information["Exclusion_d"].get("Alcohol", 0),
                     "Tobacco": comp_store.information["Exclusion_d"].get("Tobacco", 0),
                     "Oil_Gas": comp_store.information["Exclusion_d"].get("Oil_Gas", 0),
@@ -116,9 +117,17 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         "GOVERNMENT_ESG_RATING"
                     ],
                     "Muni Score": comp_store.scores["Muni_Score"],
+                    "Muni Score Unadjusted": comp_store.scores["Muni_Score_unadjusted"],
                     "Securitized Score": sec_store.scores["Securitized_Score"],
+                    "Securitized Score unadjusted": sec_store.scores[
+                        "Securitized_Score_unadjusted"
+                    ],
                     "Sovereign Score": comp_store.scores["Sovereign_Score"],
+                    "Sovereign Score Unadjusted": comp_store.scores[
+                        "Sovereign_Score_unadjusted"
+                    ],
                     "ESRM Score": comp_store.scores["ESRM_Score"],
+                    "ESRM Score Unadjusted": comp_store.scores["ESRM_Score_unadjusted"],
                     "ESRM_flagged": sum(comp_store.scores["ESRM_Flags"].values()),
                     "NA_Flags_ESRM": sum(comp_store.scores["NA_Flags_ESRM"].values()),
                     "PRIVACY_DATA_SEC_EXP_SCORE_Flag": comp_store.scores[
@@ -181,6 +190,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "OVERALL_FLAG": comp_store.msci_information["OVERALL_FLAG"],
                     "UNGC_COMPLIANCE": comp_store.msci_information["UNGC_COMPLIANCE"],
                     "Governance Score": comp_store.scores["Governance_Score"],
+                    "Governance Score Unadjusted": comp_store.scores[
+                        "Governance_Score_unadjusted"
+                    ],
                     "Governance_flagged": sum(
                         comp_store.scores["Governance_Flags"].values()
                     ),
@@ -246,6 +258,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         "WOMEN_EXEC_MGMT_PCT_RECENT"
                     ],
                     "Transition Score": comp_store.scores["Transition_Score"],
+                    "Transition Score Unadjusted": comp_store.scores[
+                        "Transition_Score_unadjusted"
+                    ],
                     "Carbon Intensity (Scope 123)": comp_store.information.get(
                         "Carbon Intensity (Scope 123)", 0
                     ),
@@ -260,6 +275,12 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     ],
                     "CapEx": comp_store.information.get("CapEx", 0),
                     "Climate_Revenue": comp_store.information.get("Climate_Revenue", 0),
+                    "Sustainable Themes Unadjusted": ", ".join(
+                        list(comp_store.scores["Themes_unadjusted"].keys())
+                    ),
+                    "Transition Themes Unadjusted": ", ".join(
+                        comp_store.scores["Transition_Category_unadjusted"]
+                    ),
                     "RENEWENERGY_MSCI": comp_store.information.get(
                         "RENEWENERGY_MSCI", 0
                     ),
