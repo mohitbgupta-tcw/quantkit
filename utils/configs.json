@@ -183,11 +183,7 @@
                 "SI_CONNECTIVITY_MAX_REV",
                 "HAS_SBTI_APPROVED_TARGET",
                 "HAS_COMMITTED_TO_SBTI_TARGET",
-                "AE_MAX_REV_PCT",
-                "ALC_PROD_MAX_REV_PCT",
-                "ALC_DIST_MAX_REV_PCT",
                 "THERMAL_COAL_MAX_REV_PCT",
-                "GENERAT_MAX_REV_THERMAL_COAL",
                 "CONTROLLING_SHAREHOLDER",
                 "CROSS_SHAREHOLDINGS",
                 "POISON_PILL",
@@ -204,16 +200,9 @@
                 "COMPANY_REV_USD_RECENT",
                 "CONTROVERSY_FLAG",
                 "UNGC_COMPLIANCE",
-                "HR_COMPLIANCE",
-                "OG_REV",
-                "TOB_MAX_REV_PCT",
-                "WEAP_MAX_REV_PCT",
-                "FIREARM_MAX_REV_PCT",
-                "GAM_MAX_REV_PCT",
                 "ALC_MAX_REV",
                 "ARCTIC_OIL_MAX_REV_PCT",
                 "ARCTIC_GAS_MAX_REV_PCT",
-                "UNCONV_OIL_GAS_MAX_REV_PCT",
                 "PRIVACY_DATA_SEC_EXP_SCORE",
                 "COMM_REL_RISK_EXP_SCORE",
                 "LABOR_MGMT_EXP_SCORE",
@@ -229,7 +218,6 @@
                 "PARENT_ISSUERID",
                 "PARENT_ULTIMATE_ISSUERID",
                 "PALM_TIE",
-                "CWEAP_TIE",
                 "ACCESS_TO_HLTHCRE_SCORE",
                 "CARBON_EMISSIONS_SCOPE_12_INTEN",
                 "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",
@@ -278,18 +266,33 @@
         "load": true
     },
     "exclusion_datasource": {
-        "Article8": {
-            "source": 1,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Exclusions.xlsx",
-            "sheet_name": "Article8",
-            "load": true
+        "source": 4,
+        "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "historical": false,
+        "filters": {
+            "issuer_identifier_type": "ISSUER_ID",
+            "issuer_identifier_list": [],
+            "parent_child": "do_not_apply",
+            "factor_name_list": [
+                "ISSUER_ISIN",
+                "CWEAP_TIE",
+                "WEAP_MAX_REV_PCT",
+                "FIREARM_MAX_REV_PCT",
+                "TOB_MAX_REV_PCT",
+                "THERMAL_COAL_MAX_REV_PCT",
+                "UNCONV_OIL_GAS_MAX_REV_PCT",
+                "OG_REV",
+                "GENERAT_MAX_REV_THERMAL_COAL",
+                "AE_MAX_REV_PCT",
+                "ALC_DIST_MAX_REV_PCT",
+                "ALC_PROD_MAX_REV_PCT",
+                "GAM_MAX_REV_PCT",
+                "UNGC_COMPLIANCE",
+                "HR_COMPLIANCE",
+                "IVA_COMPANY_RATING"
+            ]
         },
-        "Article9": {
-            "source": 1,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Exclusions.xlsx",
-            "sheet_name": "Article9",
-            "load": true
-        }
+        "load": true
     },
     "regions_datasource": {
         "source": 3,

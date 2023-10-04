@@ -1,10 +1,15 @@
+import numpy as np
+
+
 class Exclusion(object):
-    """ """
+    """
+    Main Class for Exclusions logic
+    """
 
     def __init__(self):
         self.exclusion_dict = dict()
 
-    def contrweap_tie(self, cweap_tie: bool):
+    def contrweap_tie(self, cweap_tie: bool) -> None:
         """
         Companies that have any ties to cluster munitions,
         landmines, biological / chemical weapons, depleted uranium weapons,
@@ -20,7 +25,7 @@ class Exclusion(object):
         else:
             self.exclusion_dict["CWEAP_TIE"] = False
 
-    def weapons_revenue(self, weap_max_rev_pct: float, threshold: float):
+    def weapons_revenue(self, weap_max_rev_pct: float, threshold: float) -> None:
         """
         The recent-year percent of revenue, or maximum estimated percent,
         a company has derived from weapons systems, components,
@@ -38,7 +43,7 @@ class Exclusion(object):
         else:
             self.exclusion_dict["WEAP_MAX_REV_PCT"] = False
 
-    def firearm_revenue(self, firearm_max_rev_pct: float, threshold: float):
+    def firearm_revenue(self, firearm_max_rev_pct: float, threshold: float) -> None:
         """
         The recent-year percentage of revenue, or maximum estimated percent,
         a company has derived from the manufacture and retail of
@@ -56,7 +61,7 @@ class Exclusion(object):
         else:
             self.exclusion_dict["FIREARM_MAX_REV_PCT"] = False
 
-    def tobacco_revenue(self, tob_max_rev_pct: float, threshold: float):
+    def tobacco_revenue(self, tob_max_rev_pct: float, threshold: float) -> None:
         """
         The recent-year percent of revenue, or maximum estimated percent,
         a company has derived from tobacco-related business activities.
@@ -73,7 +78,9 @@ class Exclusion(object):
         else:
             self.exclusion_dict["TOB_MAX_REV_PCT"] = False
 
-    def thermal_coal_revenue(self, thermal_coal_max_rev_pct: float, threshold: float):
+    def thermal_coal_revenue(
+        self, thermal_coal_max_rev_pct: float, threshold: float
+    ) -> None:
         """
         This factor identifies the maximum percentage of revenue
         (either reported or estimated) greater than 0% that a company derives from
@@ -97,7 +104,7 @@ class Exclusion(object):
 
     def unconventional_oil_gas_revenue(
         self, unconv_oil_gas_max_rev_pct: float, threshold: float
-    ):
+    ) -> None:
         """
         This factor identifies the maximum percentage of revenue
         (either reported or estimated) greater than 0% that a company derives
@@ -117,7 +124,7 @@ class Exclusion(object):
         else:
             self.exclusion_dict["UNCONV_OIL_GAS_MAX_REV_PCT"] = False
 
-    def oil_gas_revenue(self, og_rev: float, threshold: float):
+    def oil_gas_revenue(self, og_rev: float, threshold: float) -> None:
         """
         This factor identifies the maximum percentage of revenue
         (either reported or estimated) that a company derives from oil and gas
@@ -139,7 +146,7 @@ class Exclusion(object):
 
     def thermal_coal_power_generation_revenue(
         self, generat_max_rev_thermal_coal: float, threshold: float
-    ):
+    ) -> None:
         """
         This factor identifies the maximum percentage of revenue
         (either reported or estimated) that a company derives from the
@@ -157,7 +164,9 @@ class Exclusion(object):
         else:
             self.exclusion_dict["GENERAT_MAX_REV_THERMAL_COAL"] = False
 
-    def adult_entertainment_revenue(self, ae_max_rev_pct: float, threshold: float):
+    def adult_entertainment_revenue(
+        self, ae_max_rev_pct: float, threshold: float
+    ) -> None:
         """
         The recent-year percent of revenue, or maximum estimated percent,
         a company has derived from adult entertainment.
@@ -176,7 +185,7 @@ class Exclusion(object):
 
     def alcohol_revenue(
         self, alc_prod_max_rev_pct: float, alc_dist_max_rev_pct: float, threshold: float
-    ):
+    ) -> None:
         """
         The recent-year percent of revenue, or maximum estimated percent,
         a company has derived from manufacture of alcoholic products.
@@ -192,13 +201,13 @@ class Exclusion(object):
         threshold: float
             revenue threshold
         """
-        alcohol_rev = alc_dist_max_rev_pct + alc_prod_max_rev_pct
+        alcohol_rev = np.nansum([alc_dist_max_rev_pct, alc_prod_max_rev_pct])
         if alcohol_rev > threshold:
             self.exclusion_dict["ALC_PROD_MAX_REV_PCT"] = True
         else:
             self.exclusion_dict["ALC_PROD_MAX_REV_PCT"] = False
 
-    def gambling_revenue(self, gam_max_rev_pct: float, threshold: float):
+    def gambling_revenue(self, gam_max_rev_pct: float, threshold: float) -> None:
         """
         The recent-year percent of revenue, or maximum estimated percent,
         a company has derived from gambling-related business activities.
@@ -215,7 +224,7 @@ class Exclusion(object):
         else:
             self.exclusion_dict["GAM_MAX_REV_PCT"] = False
 
-    def compliance_ungc(self, ungc_compliance: str):
+    def compliance_ungc(self, ungc_compliance: str) -> None:
         """
         This factor indicates whether the company is in compliance with the
         United Nations Global Compact principles.
@@ -233,7 +242,7 @@ class Exclusion(object):
         else:
             self.exclusion_dict["UNGC_COMPLIANCE"] = False
 
-    def compliance_hr(self, hr_compliance: str):
+    def compliance_hr(self, hr_compliance: str) -> None:
         """
         This factor indicates whether the company is in compliance with the
         United Nations Guiding Principles for Business and Human Rights.
@@ -251,7 +260,7 @@ class Exclusion(object):
         else:
             self.exclusion_dict["HR_COMPLIANCE"] = False
 
-    def msci_esg_rating(self, iva_company_rating: str):
+    def msci_esg_rating(self, iva_company_rating: str) -> None:
         """
         A company's final ESG Rating. To arrive at a final letter rating,
         the weighted average of the key issue scores are aggregated and
@@ -270,6 +279,7 @@ class Exclusion(object):
 
 class A8(Exclusion):
     """
+    Article 8 Exclusions
 
     Parameters
     ----------
@@ -319,6 +329,7 @@ class A8(Exclusion):
 
 class A9(Exclusion):
     """
+    Article 9 Exclusions
 
     Parameters
     ----------
