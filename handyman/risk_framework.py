@@ -32,17 +32,17 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
             sec_store = holdings_d["object"]
             comp_store = sec_store.parent_store
             holding_measures = holdings_d["holding_measures"]
+            un_list = [
+                comp_store.exclusion_data["UNGC_COMPLIANCE"],
+                comp_store.exclusion_data["HR_COMPLIANCE"],
+            ]
+            if "Fail" in un_list:
+                un_label = "Fail"
+            elif "Watch List" in un_list:
+                un_label = "Watch List"
+            else:
+                un_label = "Pass"
             for h in holding_measures:
-                un_list = [
-                    comp_store.exclusion_data["UNGC_COMPLIANCE"],
-                    comp_store.exclusion_data["HR_COMPLIANCE"],
-                ]
-                if "Fail" in un_list:
-                    un_label = "Fail"
-                elif "Watch List" in un_list:
-                    un_label = "Watch List"
-                else:
-                    un_label = "Pass"
                 sec_data = {
                     "As Of Date": port_store.as_of_date,
                     "Portfolio ISIN": port_store.id,

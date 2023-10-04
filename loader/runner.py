@@ -348,6 +348,7 @@ class Runner(object):
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
+                exclusion_dict=self.exclusion_datasource.exclusions,
             )
 
     def iter_muni(self) -> None:
@@ -360,6 +361,7 @@ class Runner(object):
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
+                exclusion_dict=self.exclusion_datasource.exclusions,
             )
 
     def iter_cash(self) -> None:
@@ -372,6 +374,7 @@ class Runner(object):
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
+                exclusion_dict=self.exclusion_datasource.exclusions,
             )
 
     def iter_companies(self) -> None:
