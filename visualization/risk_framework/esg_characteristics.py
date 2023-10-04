@@ -1241,6 +1241,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "Sustainability",
             "Sustainability-Linked",
             "Green/Sustainability-Linked",
+            "Sustainability/Sustainability-Linked",
         ]
         values = [
             "{0:.2f}".format(total),
@@ -1249,6 +1250,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "{0:.2f}".format(bonds["Labeled Sustainable"]),
             "{0:.2f}".format(bonds["Labeled Sustainable Linked"]),
             "{0:.2f}".format(bonds["Labeled Green/Sustainable Linked"]),
+            "{0:.2f}".format(bonds["Labeled Sustainable/Sustainable Linked"]),
         ]
 
         bond_table = pd.DataFrame(data={"Name": names, "Value": values})

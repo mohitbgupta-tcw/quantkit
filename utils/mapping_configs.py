@@ -152,7 +152,7 @@ portfolio_type = {
     "3660": "fixed_income",
     "NETZ US Equity": "equity",
     "6283": "equity",
-    "3798": "fixed_income",
+    "3798": "fixed_income_a8",
     "3666": "fixed_income",
     "3667": "fixed_income",
     "3668": "fixed_income",

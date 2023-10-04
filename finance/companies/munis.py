@@ -67,6 +67,8 @@ class MuniStore(headstore.HeadStore):
                 sec_store.is_esg_labeled("Sustainable")
             elif labeled_bond_tag == "Labeled Sustainable Linked":
                 sec_store.is_esg_labeled("Sustainability-Linked Bonds")
+            elif labeled_bond_tag == "Labeled Sustainable/Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainable/Sustainability-Linked Bonds")
 
             elif sustainability_tag == "Y*":
                 sec_store.is_sustainable()

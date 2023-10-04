@@ -150,12 +150,6 @@ def calculate_portfolio_esrm(df: pd.DataFrame) -> float:
     """
     df["market_weight_esrm"] = df["Portfolio Weight"] / 100 * df["ESRM Score"]
     df_filtered = df[~((df["ESRM Score"] == 5) & (df["NA_Flags_ESRM"] >= 7))]
-    df_filtered = df_filtered[
-        ~(
-            (df_filtered["Governance Score"] == 5)
-            & (df_filtered["NA_Flags_Governance"] >= 7)
-        )
-    ]
     if not df_filtered.empty:
         esrm = (
             sum(
@@ -188,12 +182,8 @@ def calculate_portfolio_governance(df: pd.DataFrame) -> float:
     df["market_weight_governance"] = (
         df["Portfolio Weight"] / 100 * df["Governance Score"]
     )
-    df_filtered = df[~((df["ESRM Score"] == 5) & (df["NA_Flags_ESRM"] >= 7))]
-    df_filtered = df_filtered[
-        ~(
-            (df_filtered["Governance Score"] == 5)
-            & (df_filtered["NA_Flags_Governance"] >= 7)
-        )
+    df_filtered = df[
+        ~((df["Governance Score"] == 5) & (df["NA_Flags_Governance"] >= 7))
     ]
     if not df_filtered.empty:
         gov = (

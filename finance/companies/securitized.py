@@ -142,6 +142,8 @@ class SecuritizedStore(headstore.HeadStore):
                 sec_store.is_esg_labeled("Sustainable")
             elif labeled_bond_tag == "Labeled Sustainable Linked":
                 sec_store.is_esg_labeled("Sustainability-Linked Bonds")
+            elif labeled_bond_tag == "Labeled Sustainable/Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainable/Sustainability-Linked Bonds")
             elif sec_store.information["ESG Collateral Type"]["G/S/S"] == "CLO":
                 sec_store.is_CLO()
             elif (
