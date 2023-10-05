@@ -95,7 +95,7 @@ benchmark_text = {
 }
 
 portfolio_type = {
-    "3750": "em",
+    "3750": "em_a9",
     "6739": "equity",
     "3720": "fixed_income",
     "3738": "fixed_income_a9",

@@ -21,7 +21,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
     data: pd.DataFrame
         DataFrame with data to be displayed in pdf
     portfolio_type: str
-        type of portfolio, either "equity", "fixed_income", or "em"
+        type of portfolio, either "equity", "fixed_income", or "em_a9"
     portfolio: str | int
         portfolio ISIN
     benchmark: str | int
@@ -44,6 +44,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
     ) -> None:
         super().__init__(title, data)
         self.portfolio_type = portfolio_type
+        if portfolio_type[-2:] == "a9":
+            self.exclusion_type = "Article 9"
+        elif portfolio_type[-2:] == "a8":
+            self.exclusion_type = "Article 8"
+        else:
+            self.exclusion_type = None
         self.portfolio_isin = portfolio
         self.benchmark_isin = benchmark
         self.waci_benchmark_isin = (
@@ -199,7 +205,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             row with footer Div
         """
-        if self.portfolio_type == "em":
+        if self.portfolio_type == "em_a9":
             index_text = mapping_utils.benchmark_text[self.benchmark_isin].split(":", 1)
             footnote_text = [
                 "Source: TCW, Bloomberg, MSCI, ISS",
@@ -573,7 +579,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             body_content = self.add_body_fi_a8()
         elif self.portfolio_type in ["fixed_income_a9"]:
             body_content = self.add_body_fi_a9()
-        elif self.portfolio_type == "em":
+        elif self.portfolio_type == "em_a9":
             body_content = self.add_body_em()
         return super().add_body(body_content)
 
@@ -591,22 +597,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with holdings table
         """
-        df = deepcopy(self.portfolio_data)
-        df["Risk Score"] = (
-            df["ESRM Score"] + df["Governance Score"] + df["Transition Score"]
-        ) / 3
-        df["Theme"] = df["SCLASS_Level4-P"].map(mapping_utils.sclass_4_mapping)
-        df["Risk Score Overall"] = df["Risk_Score_Overall"].map(
-            mapping_utils.risk_score_overall_mapping
-        )
-        df["style"] = np.where(
-            df["SCLASS_Level1"] == "Preferred",
-            "preferred-bg",
-            np.where(
-                df["SCLASS_Level1"] == "Excluded",
-                "excluded-bg",
-                np.where(df["SCLASS_Level3"] == "Transition", "transition-bg", np.nan),
-            ),
+        df = portfolio_utils.calculate_risk_score(
+            self.portfolio_data, self.exclusion_type
         )
         styles = df[df["style"] != "nan"]["style"].squeeze().to_dict()
         styles = {k: [v] for k, v in styles.items()}
@@ -692,7 +684,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             div with WACI table and header
         """
         scores = portfolio_utils.calculate_portfolio_summary(
-            self.portfolio_data, self.portfolio_type
+            self.portfolio_data, self.portfolio_type, self.exclusion_type
         )
         total = sum(scores.values())
 
@@ -773,8 +765,8 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 "-",
             ]
 
-        sub_fund = "Sub-Fund4" if self.portfolio_type == "em" else "Sub-Fund"
-        if self.portfolio_type == "em":
+        sub_fund = "Sub-Fund4" if self.portfolio_type == "em_a9" else "Sub-Fund"
+        if self.portfolio_type == "em_a9":
             cr_label = "Carbon Reduction5"
         elif self.portfolio_type == "equity_msci":
             cr_label = "Carbon Reduction2"
@@ -798,7 +790,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         sup = (
             3
             if self.portfolio_type
-            in ["equity_a9", "fixed_income_a9", "em", "fixed_income_a8"]
+            in ["equity_a9", "fixed_income_a9", "em_a9", "fixed_income_a8"]
             else 1
         )
         waci_div = html.Div(
@@ -865,7 +857,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         else:
             ind = ["-"] * 4
 
-        if self.portfolio_type == "em":
+        if self.portfolio_type == "em_a9":
             sov_portfolio = portfolio_utils.calculate_portfolio_sovereign(
                 self.portfolio_data
             )
@@ -1428,7 +1420,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with donut chart and header
         """
-        df = portfolio_utils.calculate_sustainable_classification(self.portfolio_data)
+        df = portfolio_utils.calculate_sustainable_classification(
+            self.portfolio_data, self.exclusion_type
+        )
         table = []
         legend_row = []
         for index, row in df.iterrows():

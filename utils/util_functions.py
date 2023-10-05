@@ -141,7 +141,7 @@ def include_rule(value: str, inclusions: list, **kwargs) -> bool:
     ----------
     value: str
         name of industry company belongs to
-    exclusions: list
+    inclusions: list
         list of industries for inclusion
 
     Returns

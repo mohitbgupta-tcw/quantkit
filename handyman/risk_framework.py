@@ -331,47 +331,6 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "Risk_Score_Overall": sec_store.scores["Risk_Score_Overall"],
                 }
 
-                if (
-                    port_store.id in r.params["A8Funds"]
-                    and "Article 8" in comp_store.information["Exclusion"]
-                    and not (
-                        sec_store.information["Labeled ESG Type"]
-                        in [
-                            "Labeled Green",
-                            "Labeled Social",
-                            "Labeled Sustainable",
-                            "Labeled Sustainable Linked",
-                        ]
-                        and comp_store.information["BCLASS_Level4"].class_name
-                        in r.params["carve_out_sectors"]
-                    )
-                ):
-                    sec_data["SCLASS_Level1"] = "Excluded"
-                    sec_data["SCLASS_Level2"] = "Excluded Sector"
-                    sec_data["SCLASS_Level3"] = "Excluded Sector"
-                    sec_data["SCLASS_Level4"] = "Excluded Sector"
-                    sec_data["SCLASS_Level4-P"] = "Excluded Sector"
-                elif (
-                    port_store.id in r.params["A9Funds"]
-                    and "Article 9" in comp_store.information["Exclusion"]
-                    and not (
-                        sec_store.information["Labeled ESG Type"]
-                        in [
-                            "Labeled Green",
-                            "Labeled Social",
-                            "Labeled Sustainable",
-                            "Labeled Sustainable Linked",
-                        ]
-                        and comp_store.information["BCLASS_Level4"].class_name
-                        in r.params["carve_out_sectors"]
-                    )
-                ):
-                    sec_data["SCLASS_Level1"] = "Excluded"
-                    sec_data["SCLASS_Level2"] = "Excluded Sector"
-                    sec_data["SCLASS_Level3"] = "Excluded Sector"
-                    sec_data["SCLASS_Level4"] = "Excluded Sector"
-                    sec_data["SCLASS_Level4-P"] = "Excluded Sector"
-
                 if "INTELSAT" in sec_store.information["Security_Name"]:
                     sec_data["SCLASS_Level1"] = "Preferred"
                     sec_data["SCLASS_Level2"] = "Sustainable Theme"
