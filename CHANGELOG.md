@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Fixed
+### Changed
+### Removed
+
+## [1.2.1] - 2023-10-05
+### Added
 - handyman function to pull historical portfolio holdings
 - Unadjusted scores added to detailed dataframe
 ### Fixed
@@ -129,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.2.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.1
 [1.2.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.0
 [1.1.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.1
 [1.1.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.0
