@@ -136,7 +136,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             row with header Div
         """
-        if self.portfolio_type in ["equity_msci"]:
+        if self.portfolio_type in ["equity_msci_a8"]:
             header_text = [
                 html.H3("Sustainable Characteristics", className="overall-header"),
                 html.H5(f"{self.portfolio_name}"),
@@ -280,7 +280,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                     ],
                 ),
             ]
-        elif self.portfolio_type in ["equity_msci"]:
+        elif self.portfolio_type in ["equity_msci_a8"]:
             index_text = mapping_utils.benchmark_text[self.benchmark_isin].split(":", 1)
             footnote_text = [
                 "Source: TCW, Bloomberg, MSCI, ISS",
@@ -573,7 +573,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             body_content = self.add_body_equity_fi()
         elif self.portfolio_type in ["equity_a9"]:
             body_content = self.add_body_equity_a9()
-        elif self.portfolio_type in ["equity_msci"]:
+        elif self.portfolio_type in ["equity_msci_a8"]:
             body_content = self.add_body_equity_msci()
         elif self.portfolio_type in ["fixed_income_a8"]:
             body_content = self.add_body_fi_a8()
@@ -768,7 +768,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         sub_fund = "Sub-Fund4" if self.portfolio_type == "em_a9" else "Sub-Fund"
         if self.portfolio_type == "em_a9":
             cr_label = "Carbon Reduction5"
-        elif self.portfolio_type == "equity_msci":
+        elif self.portfolio_type == "equity_msci_a8":
             cr_label = "Carbon Reduction2"
         else:
             cr_label = "Carbon Reduction4"
@@ -870,7 +870,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
             ind.insert(0, "{0:.2f}".format(sov_index))
 
             styles = {0: ["grey-row"], 1: ["grey-row"], 4: ["normal-row"]}
-        elif self.portfolio_type == "equity_msci":
+        elif self.portfolio_type == "equity_msci_a8":
             labels = ["% Coverage3", "Overall", "E&S", "Governance", "Transition"]
             cov_portfolio = portfolio_utils.calculate_portfolio_coverage(
                 self.portfolio_data
@@ -988,7 +988,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
         total = sum(scores.values())
 
         not_scored = (
-            "Not Scored5" if self.portfolio_type == "equity_msci" else "Not Scored6"
+            "Not Scored5" if self.portfolio_type == "equity_msci_a8" else "Not Scored6"
         )
 
         df_distr = pd.DataFrame(
@@ -1012,7 +1012,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
 
         styles = {3: ["italic"]}
 
-        sup = 4 if self.portfolio_type == "equity_msci" else 5
+        sup = 4 if self.portfolio_type == "equity_msci_a8" else 5
 
         distr = html.Div(
             [
@@ -1042,7 +1042,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
             div with scores distribution table
         """
         styles = dict()
-        scores = portfolio_utils.calculate_planet_distribution(self.portfolio_data)
+        scores = portfolio_utils.calculate_planet_distribution(
+            self.portfolio_data, self.exclusion_type
+        )
         sust_total = sum(scores.values())
 
         names = [
@@ -1069,10 +1071,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "fixed_income_a9",
             "fixed_income_a8",
         ]:
-            bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+            bonds = portfolio_utils.calculate_bond_distribution(
+                self.portfolio_data, self.exclusion_type
+            )
             names.insert(-1, "Green - Labeled Bonds")
-            values.insert(-1, "{0:.2f}".format(bonds["Labeled Green"]))
-            sust_total += bonds["Labeled Green"]
+            values.insert(-1, "{0:.2f}".format(bonds["Green"]))
+            sust_total += bonds["Green"]
             values[-1] = "{0:.2f}".format(sust_total)
             styles = {6: ["italic"]}
 
@@ -1113,7 +1117,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
             div with scores distribution table
         """
         styles = dict()
-        scores = portfolio_utils.calculate_people_distribution(self.portfolio_data)
+        scores = portfolio_utils.calculate_people_distribution(
+            self.portfolio_data, self.exclusion_type
+        )
         sust_total = sum(scores.values())
 
         names = [
@@ -1140,10 +1146,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "fixed_income_a9",
             "fixed_income_a8",
         ]:
-            bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+            bonds = portfolio_utils.calculate_bond_distribution(
+                self.portfolio_data, self.exclusion_type
+            )
             names.insert(-1, "Social - Labeled Bonds")
-            values.insert(-1, "{0:.2f}".format(bonds["Labeled Social"]))
-            sust_total += bonds["Labeled Social"]
+            values.insert(-1, "{0:.2f}".format(bonds["Social"]))
+            sust_total += bonds["Social"]
             values[-1] = "{0:.2f}".format(sust_total)
             styles = {6: ["italic"]}
 
@@ -1176,10 +1184,10 @@ class ESGCharacteristics(visualizor.PDFCreator):
         """
         styles = dict()
         scores_people = portfolio_utils.calculate_people_distribution(
-            self.portfolio_data
+            self.portfolio_data, self.exclusion_type
         )
         scores_planet = portfolio_utils.calculate_planet_distribution(
-            self.portfolio_data
+            self.portfolio_data, self.exclusion_type
         )
         total = sum(scores_people.values()) + sum(scores_planet.values())
 
@@ -1191,13 +1199,15 @@ class ESGCharacteristics(visualizor.PDFCreator):
             "fixed_income_a9",
             "fixed_income_a8",
         ]:
-            bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+            bonds = portfolio_utils.calculate_bond_distribution(
+                self.portfolio_data, self.exclusion_type
+            )
             total += sum(bonds.values())
             values[-1] = "{0:.2f}".format(total)
             names.insert(-1, "Sustainability Bonds")
             names.insert(-1, "Sustainability-Linked Bonds")
-            values.insert(-1, "{0:.2f}".format(bonds["Labeled Sustainable"]))
-            values.insert(-1, "{0:.2f}".format(bonds["Labeled Sustainable Linked"]))
+            values.insert(-1, "{0:.2f}".format(bonds["Sustainable"]))
+            values.insert(-1, "{0:.2f}".format(bonds["Sustainability-Linked Bonds"]))
             styles = {0: ["italic"], 1: ["italic"]}
 
         total_table = pd.DataFrame(data={"Name": names, "Value": values})
@@ -1223,7 +1233,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
             div with total score table
         """
         styles = {0: ["bold", "size19"]}
-        bonds = portfolio_utils.calculate_bond_distribution(self.portfolio_data)
+        bonds = portfolio_utils.calculate_bond_distribution(
+            self.portfolio_data, self.exclusion_type
+        )
         total = sum(bonds.values())
 
         names = [
@@ -1237,12 +1249,12 @@ class ESGCharacteristics(visualizor.PDFCreator):
         ]
         values = [
             "{0:.2f}".format(total),
-            "{0:.2f}".format(bonds["Labeled Green"]),
-            "{0:.2f}".format(bonds["Labeled Social"]),
-            "{0:.2f}".format(bonds["Labeled Sustainable"]),
-            "{0:.2f}".format(bonds["Labeled Sustainable Linked"]),
-            "{0:.2f}".format(bonds["Labeled Green/Sustainable Linked"]),
-            "{0:.2f}".format(bonds["Labeled Sustainable/Sustainable Linked"]),
+            "{0:.2f}".format(bonds["Green"]),
+            "{0:.2f}".format(bonds["Social"]),
+            "{0:.2f}".format(bonds["Sustainable"]),
+            "{0:.2f}".format(bonds["Sustainability-Linked Bonds"]),
+            "{0:.2f}".format(bonds["Green/Sustainable Linked"]),
+            "{0:.2f}".format(bonds["Sustainable/Sustainability-Linked Bonds"]),
         ]
 
         bond_table = pd.DataFrame(data={"Name": names, "Value": values})
@@ -1270,7 +1282,9 @@ class ESGCharacteristics(visualizor.PDFCreator):
         html.Div
             div with scores distribution table
         """
-        scores = portfolio_utils.calculate_transition_distribution(self.portfolio_data)
+        scores = portfolio_utils.calculate_transition_distribution(
+            self.portfolio_data, self.exclusion_type
+        )
         sust_total = sum(scores.values())
 
         transition_table = pd.DataFrame(

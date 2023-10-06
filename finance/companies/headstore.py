@@ -170,6 +170,18 @@ class HeadStore(object):
         else:
             self.exclusion_data = exclusion_dict["NoISSUERID"]
 
+        parent_cols = [
+            "THERMAL_COAL_MAX_REV_PCT",
+            "UNCONV_OIL_GAS_MAX_REV_PCT",
+            "OG_REV",
+            "GENERAT_MAX_REV_THERMAL_COAL",
+            "UNGC_COMPLIANCE",
+            "HR_COMPLIANCE",
+            "IVA_COMPANY_RATING",
+        ]
+        for col in parent_cols:
+            self.exclusion_data[col] = self.msci_information[col]
+
         self.Exclusion["A8"] = exclusions.A8(
             cweap_tie=self.exclusion_data["CWEAP_TIE"],
             weap_max_rev_pct=self.exclusion_data["WEAP_MAX_REV_PCT"],

@@ -27,41 +27,20 @@ def apply_exclusions(df: pd.DataFrame, exclusion_type: str = None) -> pd.DataFra
     pd.DataFrame
         DataFrame with applied Exclusions
     """
-    labeled = [
-        "Labeled Green",
-        "Labeled Social",
-        "Labeled Sustainable",
-        "Labeled Sustainable Linked",
-    ]
-    carve_out = [
-        "Electric Utilities",
-        "Electric",
-        "Gas Utilities",
-        "Multi-Utilities",
-        "Other Utility",
-        "Water Utilities",
-        "Independent Power Producers & Energy Traders",
-        "Integrated Oil & Gas",
-        "Oil & Gas Drilling",
-        "Oil & Gas Equipment & Services",
-        "Oil & Gas Exploration & Production",
-        "Oil & Gas Refining & Marketing",
-        "Oil & Gas Storage & Transportation",
-        "Oil Field Services",
-        "Government Owned, No Guarantee",
-    ]
     if exclusion_type:
         df.loc[
             (df["Exclusion"].str.contains(exclusion_type))
             & ~(
-                (df["Labeled ESG Type"].isin(labeled)) & (df["BCLASS"].isin(carve_out))
+                (df["Labeled ESG Type"].isin(mapping_utils.labeled_bonds))
+                & (df["BCLASS"].isin(mapping_utils.carve_out_sectors))
             ),
             "SCLASS_Level1",
         ] = "Excluded"
         df.loc[
             (df["Exclusion"].str.contains(exclusion_type))
             & ~(
-                (df["Labeled ESG Type"].isin(labeled)) & (df["BCLASS"].isin(carve_out))
+                (df["Labeled ESG Type"].isin(mapping_utils.labeled_bonds))
+                & (df["BCLASS"].isin(mapping_utils.carve_out_sectors))
             ),
             ["SCLASS_Level2", "SCLASS_Level3", "SCLASS_Level4", "SCLASS_Level4-P"],
         ] = "Excluded Sector"
@@ -427,7 +406,7 @@ def calculate_carbon_intensity(df: pd.DataFrame, portfolio_type: str) -> pd.Data
         )
     ]
 
-    if portfolio_type in ["equity", "equity_a9", "equity_msci"]:
+    if portfolio_type in ["equity", "equity_a9", "equity_msci_a8"]:
         df_grouped = df_filtered.groupby("GICS_SECTOR", as_index=False).apply(
             lambda x: x["market_weight_carbon_intensity"].sum()
             / x["Portfolio Weight"].sum()
@@ -447,7 +426,7 @@ def calculate_carbon_intensity(df: pd.DataFrame, portfolio_type: str) -> pd.Data
     return df_grouped
 
 
-def calculate_planet_distribution(df: pd.DataFrame) -> dict:
+def calculate_planet_distribution(df: pd.DataFrame, exclusion_type: str = None) -> dict:
     """
     For a given portfolio, calculate score distribution of sustainable planet themes.
 
@@ -455,12 +434,15 @@ def calculate_planet_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         dictionary with portfolio weight per theme
     """
+    df = apply_exclusions(df, exclusion_type)
     themes = [
         "RENEWENERGY",
         "MOBILITY",
@@ -476,7 +458,7 @@ def calculate_planet_distribution(df: pd.DataFrame) -> dict:
     return data
 
 
-def calculate_people_distribution(df: pd.DataFrame) -> dict:
+def calculate_people_distribution(df: pd.DataFrame, exclusion_type: str = None) -> dict:
     """
     For a given portfolio, calculate score distribution of sustainable people themes.
 
@@ -484,12 +466,15 @@ def calculate_people_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         dictionary with portfolio weight per theme
     """
+    df = apply_exclusions(df, exclusion_type)
     themes = ["HEALTH", "SANITATION", "EDU", "INCLUSION", "NUTRITION", "AFFORDABLE"]
     data = dict()
     for theme in themes:
@@ -498,7 +483,7 @@ def calculate_people_distribution(df: pd.DataFrame) -> dict:
     return data
 
 
-def calculate_bond_distribution(df: pd.DataFrame) -> dict:
+def calculate_bond_distribution(df: pd.DataFrame, exclusion_type: str = None) -> dict:
     """
     For a given portfolio, calculate score distribution of labeled Bonds.
 
@@ -506,28 +491,33 @@ def calculate_bond_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         dictionary with portfolio weight per bond type
     """
+    df = apply_exclusions(df, exclusion_type)
     bonds = [
-        "Labeled Green",
-        "Labeled Social",
-        "Labeled Sustainable",
-        "Labeled Sustainable Linked",
-        "Labeled Green/Sustainable Linked",
-        "Labeled Sustainable/Sustainable Linked",
+        "Green",
+        "Social",
+        "Sustainable",
+        "Sustainability-Linked Bonds",
+        "Green/Sustainable Linked",
+        "Sustainable/Sustainability-Linked Bonds",
     ]
     data = dict()
     for bond in bonds:
-        weight = df[df["Labeled ESG Type"] == bond]["Portfolio Weight"].sum()
+        weight = df[df["SCLASS_Level4-P"] == bond]["Portfolio Weight"].sum()
         data[bond] = weight
     return data
 
 
-def calculate_transition_distribution(df: pd.DataFrame) -> dict:
+def calculate_transition_distribution(
+    df: pd.DataFrame, exclusion_type: str = None
+) -> dict:
     """
     For a given portfolio, calculate score distribution of transition themes.
 
@@ -535,12 +525,15 @@ def calculate_transition_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         dictionary with portfolio weight per theme
     """
+    df = apply_exclusions(df, exclusion_type)
     themes = [
         "LOWCARBON",
         "PIVOTTRANSPORT",
@@ -701,7 +694,12 @@ def calculate_portfolio_summary(
     scores_planet = calculate_planet_distribution(df)
     total = sum(scores_people.values()) + sum(scores_planet.values())
 
-    if portfolio_type in ["fixed_income", "fixed_income_a9", "fixed_income_a8", "em"]:
+    if portfolio_type in [
+        "fixed_income",
+        "fixed_income_a9",
+        "fixed_income_a8",
+        "em_a9",
+    ]:
         bonds = calculate_bond_distribution(df)
         total += sum(bonds.values())
 

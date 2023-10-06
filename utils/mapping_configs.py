@@ -18,6 +18,30 @@ TargetCA = ["Committed SBT", "Ambitious Target"]
 TargetCN = ["Committed SBT", "Non-Ambitious Target"]
 TargetN = ["Non-Ambitious Target"]
 
+labeled_bonds = [
+    "Labeled Green",
+    "Labeled Social",
+    "Labeled Sustainable",
+    "Labeled Sustainable Linked",
+]
+carve_out_sectors = [
+    "Electric Utilities",
+    "Electric",
+    "Gas Utilities",
+    "Multi-Utilities",
+    "Other Utility",
+    "Water Utilities",
+    "Independent Power Producers & Energy Traders",
+    "Integrated Oil & Gas",
+    "Oil & Gas Drilling",
+    "Oil & Gas Equipment & Services",
+    "Oil & Gas Exploration & Production",
+    "Oil & Gas Refining & Marketing",
+    "Oil & Gas Storage & Transportation",
+    "Oil Field Services",
+    "Government Owned, No Guarantee",
+]
+
 portfolio_benchmark = {
     "3750": "JESG EMBI Global Diversified Index",
     "6739": "RUSSELL 1000 VALUE",
@@ -103,7 +127,7 @@ portfolio_type = {
     "13727": "fixed_income_a8",
     "13751": "fixed_income",
     "16705": "equity_a9",
-    "6717": "equity_msci",
+    "6717": "equity_msci_a8",
     "708": "fixed_income",
     "702": "fixed_income",
     "703": "equity",
