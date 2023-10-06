@@ -231,17 +231,13 @@
     },
 
     "sdg_datasource": {
-        "sdg": {        
-            "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDG_Impact_Rating_Issuers_20230707.csv",
-            "load": true
-        },
-        "sdga": {
-            "source": 2,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/TCW_SDGA_Issuers_20230707.csv",
-            "load": true
-        }
+        "source": 3,
+        "table_name": "FACT_ESG_ISSUER_SDGA",
+        "database": "TCW_CORE_QA",
+        "schema": "ESG_ISS",
+        "load": true
     },
+
     "sector_datasource": {
         "source": 3,
         "table_name": "SECTOR_CODES",
