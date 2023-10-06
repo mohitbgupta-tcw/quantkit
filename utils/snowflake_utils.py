@@ -103,11 +103,13 @@ def overwrite_history(
         path to a local configarations file
     """
     df_new = load_from_snowflake(
+        database="SANDBOX_ESG",
         schema="TIM_SCHEMA",
         table_name="Sustainability_Framework_Detailed",
         local_configs=local_configs,
     )
     df_history = load_from_snowflake(
+        database="SANDBOX_ESG",
         schema="TIM_SCHEMA",
         table_name="Sustainability_Framework_Detailed_history",
         local_configs=local_configs,
@@ -116,6 +118,7 @@ def overwrite_history(
 
     write_to_snowflake(
         df_history,
+        database="SANDBOX_ESG",
         schema="TIM_SCHEMA",
         table_name="Sustainability_Framework_Detailed_history",
         local_configs=local_configs,
