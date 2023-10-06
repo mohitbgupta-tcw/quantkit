@@ -41,35 +41,37 @@ class SDGDataSource(ds.DataSources):
             sdga.issuer_name AS "IssuerName",
             sdga.ticker AS "Ticker",
             sdga.country_of_incorporation AS "CountryOfIncorporation",
-            sdga.ESG_RATING_INDUSTRY AS "ESGRatingIndustry",
-            sdga.SDG_SOL_ENERGY_PERCENT_COMB_CONT AS "SDGSolEnergyPercentCombCont",
-            sdga.SDG_SOL_CLIMATE_PERCENT_COMB_CONT AS "SDGSolClimatePercentCombCont",
-            sdga.SDG_SOL_MAT_USE_PERCENT_COMB_CONT AS "SDGSolMatUsePercentCombCont",
-            sdga.SDG_SOL_TERR_ECO_PERCENT_COMB_CONT AS "SDGSolTerrEcoPercentCombCont",
-            sdga.SDG_SOL_WATER_PERCENT_COMB_CONT AS "SDGSolWaterPercentCombCont",
-            sdga.SDG_SOL_EDU_PERCENT_COMB_CONT AS "SDGSolEduPercentCombCont",
-            sdga.SDG_SOL_POVERTY_PERCENT_COMB_CONT AS "SDGSolPovertyPercentCombCont",
-            sdga.SDG_SOL_HUNGER_PERCENT_COMB_CONT AS "SDGSolHungerPercentCombCont",
-            sdga.SDG_SOL_MARINE_PERCENT_COMB_CONT AS "SDGSolMarinePercentCombCont",
-            sdga.SDG_SOL_AGRI_PERCENT_COMB_CONT AS "SDGSolAgriPercentCombCont",
-            sdga.SDG_SOL_ENERGY_PROD_COMB_CONT AS "SDGSolEnergyProdCombCont",
-            sdga.SDG_SOL_CLIMATE_PROD_COMB_CONT AS "SDGSolClimateProdCombCont",
-            sdga.SDG_SOL_MAT_USE_PROD_COMB_CONT AS "SDGSolMatUseProdCombCont",
-            sdga.SDG_SOL_TERR_ECO_PROD_COMB_CONT AS "SDGSolTerrEcoProdCombCont",
-            sdga.SDG_SOL_WATER_PROD_COMB_CONT AS "SDGSolWaterProdCombCont",
-            sdga.SDG_SOL_EDU_PROD_COMB_CONT AS "SDGSolEduProdCombCont",
-            sdga.SDG_SOL_POVERTY_PROD_COMB_CONT AS "SDGSolPovertyProdCombCont",
-            sdga.SDG_SOL_HUNGER_PROD_COMB_CONT AS "SDGSolHungerProdCombCont",
-            sdga.SDG_SOL_MARINE_PROD_COMB_CONT AS "SDGSolMarineProdCombCont",
-            sdga.SDG_SOL_AGRI_PROD_COMB_CONT AS "SDGSolAgriProdCombCont",
-            sdgaimpact.CLIMATE_GHG_REDUCTION_TARGETS AS "ClimateGHGReductionTargets",
-            sdgaimpact.BROWN_EXP_TOTAL_CAP_EX_SHARE_PERCENT AS "BrownExpTotalCapExSharePercent",
-            sdgaimpact.GREEN_EXP_TOTAL_CAP_EX_SHARE_PERCENT AS "GreenExpTotalCapExSharePercent"
+            sdga.esg_rating_industry AS "ESGRatingIndustry",
+            sdga.sdg_sol_energy_percent_comb_cont AS "SDGSolEnergyPercentCombCont",
+            sdga.sdg_sol_climate_percent_comb_cont AS "SDGSolClimatePercentCombCont",
+            sdga.sdg_sol_mat_use_percent_comb_cont AS "SDGSolMatUsePercentCombCont",
+            sdga.sdg_sol_terr_eco_percent_comb_cont AS "SDGSolTerrEcoPercentCombCont",
+            sdga.sdg_sol_water_percent_comb_cont AS "SDGSolWaterPercentCombCont",
+            sdga.sdg_sol_edu_percent_comb_cont AS "SDGSolEduPercentCombCont",
+            sdga.sdg_sol_poverty_percent_comb_cont AS "SDGSolPovertyPercentCombCont",
+            sdga.sdg_sol_hunger_percent_comb_cont AS "SDGSolHungerPercentCombCont",
+            sdga.sdg_sol_marine_percent_comb_cont AS "SDGSolMarinePercentCombCont",
+            sdga.sdg_sol_agri_percent_comb_cont AS "SDGSolAgriPercentCombCont",
+            sdga.sdg_sol_sus_build_percent_comb_cont "SDGSolSusBuildPercentCombCont",
+            sdga.sdg_sol_energy_prod_comb_cont AS "SDGSolEnergyProdCombCont",
+            sdga.sdg_sol_climate_prod_comb_cont AS "SDGSolClimateProdCombCont",
+            sdga.sdg_sol_mat_use_prod_comb_cont AS "SDGSolMatUseProdCombCont",
+            sdga.sdg_sol_terr_eco_prod_comb_cont AS "SDGSolTerrEcoProdCombCont",
+            sdga.sdg_sol_water_prod_comb_cont AS "SDGSolWaterProdCombCont",
+            sdga.sdg_sol_edu_prod_comb_cont AS "SDGSolEduProdCombCont",
+            sdga.sdg_sol_poverty_prod_comb_cont AS "SDGSolPovertyProdCombCont",
+            sdga.sdg_sol_hunger_prod_comb_cont AS "SDGSolHungerProdCombCont",
+            sdga.sdg_sol_marine_prod_comb_cont AS "SDGSolMarineProdCombCont",
+            sdga.sdg_sol_agri_prod_comb_cont AS "SDGSolAgriProdCombCont", 
+            sdga.sdg_sol_sus_build_prod_comb_cont "SDGSolSusBuildProdCombCont",
+            sdgaimpact.climate_ghg_reduction_targets AS "ClimateGHGReductionTargets",
+            sdgaimpact.brown_exp_total_cap_ex_share_percent AS "BrownExpTotalCapExSharePercent",
+            sdgaimpact.green_exp_total_cap_ex_share_percent AS "GreenExpTotalCapExSharePercent"
         FROM tcw_core_qa.esg_iss.fact_esg_issuer_sdga sdga
         LEFT JOIN tcw_core_qa.esg_iss.fact_esg_issuer_sdg_impact_rating sdgaimpact
-            ON sdga.ISSUER_KEY = sdgaimpact.ISSUER_KEY
-            AND sdga.IS_CURRENT = sdgaimpact.IS_CURRENT
-        --AND sdga.LAST_AS_OF_DATE = sdgaimpact.LAST_AS_OF_DATE
+            ON sdga.issuer_key = sdgaimpact.issuer_key
+            AND sdga.is_current = sdgaimpact.is_current
+        --AND sdga.last_as_of_date = sdgaimpact.last_as_of_date
         --   WHERE sdga.last_as_of_date = '10/04/2023'
         WHERE sdga.is_current = 1
         ORDER BY sdga.issuer_name
@@ -91,15 +93,13 @@ class SDGDataSource(ds.DataSources):
             "SDGSolClimatePercentCombCont"
         ].astype(float)
 
-        raise NotImplementedError()
-
     def iter(self) -> None:
         """
         Attach SDG information to dict
         """
         # only iterate over companies we hold in the portfolios
         for index, row in self.df.iterrows():
-            iss_id = str(int(row["issuerID"]))
+            iss_id = str(int(row["ISSUER_ID"]))
 
             sdg_information = row.to_dict()
             self.sdg[iss_id] = sdg_information
