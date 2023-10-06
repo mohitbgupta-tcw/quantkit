@@ -163,6 +163,8 @@ class HeadStore(object):
         exclusion_dict: dict
             dict of exclusions based on articles 8 and 9
         """
+        if not exclusion_dict:
+            return
         # map exclusion based on Article 8 and 9
         msci_issuerid = self.msci_information["ISSUERID"]
         if msci_issuerid in exclusion_dict:
