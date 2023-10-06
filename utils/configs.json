@@ -1,11 +1,8 @@
 {   
     "as_of_date": "09/30/2023",
-    "portfolios": ["701","702","703","704", "705","706","707","708","709", "710","711","712","713","714","3237","3704","3720","3730","3735","3738", "3750","3775", "3798", "4790","6283", "6293", "6717","6739","6741","6748","6751","6757","6781","6784","13727","13751","16703","16705","16706","16719", "16720", "3666", "3667", "3668", "3669", "6293"],
+    "portfolios": ["701","702","703","704", "705","706","707","708","709", "710","711","712","713","714","3237","3704","3720","3730","3735","3738", "3750","3775", "3798", "4790","6283", "6293", "6717","6739","6741","6748","6751","6757","6781","6784","13727","13751","16703","16705","16706","16719", "16720", "3666", "3667", "3668", "3669", "6293", "3778"],
     "equity_benchmark": ["JESG EMBI Global Diversified Index", "JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI", "MSCI WORLD", "Russell 1000", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "RUSSELL 3000 INDEX", "S & P 500 INDEX", "MSCI EAFE", "RUSSELL 2000", "RUSSELL 2000 VALUE", "RUSSELL MIDCAP", "Russell Midcap Value", "S&P 500 EX TOBACCO"],
     "fixed_income_benchmark": ["BB HIGH YIELD 2% CAP", "BB INTERMEDIATE CORP", "BLOOMBER LONG GOVT/CREDIT", "BLOOMBERG AGGREGATE INDEX", "Pan Euro Credit", "Pan Euro High Yield"],
-    "A9Funds": ["6781", "16705", "3738", "3750", "16719", "16706", "BB HIGH YIELD 2% CAP", "MSCI WORLD", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "BB INTERMEDIATE CORP", "JPM CEMBI BROAD DIVERSE"],
-    "A8Funds":  ["13727", "3735", "3775", "13751", "BLOOMBERG AGGREGATE INDEX"],
-    "carve_out_sectors": ["Electric Utilities", "Electric", "Gas Utilities","Multi-Utilities","Other Utility","Water Utilities","Independent Power Producers & Energy Traders","Integrated Oil & Gas","Oil & Gas Drilling","Oil & Gas Equipment & Services","Oil & Gas Exploration & Production","Oil & Gas Refining & Marketing","Oil & Gas Storage & Transportation","Oil Field Services", "Government Owned, No Guarantee"],
 
     "transition_parameters": {
         "Q_Low" : 0.10,
@@ -181,6 +178,9 @@
                 "HAS_SBTI_APPROVED_TARGET",
                 "HAS_COMMITTED_TO_SBTI_TARGET",
                 "THERMAL_COAL_MAX_REV_PCT",
+                "UNCONV_OIL_GAS_MAX_REV_PCT",
+                "OG_REV",
+                "GENERAT_MAX_REV_THERMAL_COAL",
                 "CONTROLLING_SHAREHOLDER",
                 "CROSS_SHAREHOLDINGS",
                 "POISON_PILL",
@@ -197,14 +197,10 @@
                 "COMPANY_REV_USD_RECENT",
                 "CONTROVERSY_FLAG",
                 "UNGC_COMPLIANCE",
-                "OG_REV",
-                "TOB_MAX_REV_PCT",
-                "WEAP_MAX_REV_PCT",
-                "GAM_MAX_REV_PCT",
+                "HR_COMPLIANCE",
                 "ALC_MAX_REV",
                 "ARCTIC_OIL_MAX_REV_PCT",
                 "ARCTIC_GAS_MAX_REV_PCT",
-                "UNCONV_OIL_GAS_MAX_REV_PCT",
                 "PRIVACY_DATA_SEC_EXP_SCORE",
                 "COMM_REL_RISK_EXP_SCORE",
                 "LABOR_MGMT_EXP_SCORE",
@@ -268,18 +264,26 @@
         "load": true
     },
     "exclusion_datasource": {
-        "Article8": {
-            "source": 1,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Exclusions.xlsx",
-            "sheet_name": "Article8",
-            "load": true
+        "source": 4,
+        "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "historical": false,
+        "filters": {
+            "issuer_identifier_type": "ISSUER_ID",
+            "issuer_identifier_list": [],
+            "parent_child": "do_not_apply",
+            "factor_name_list": [
+                "ISSUER_ISIN",
+                "CWEAP_TIE",
+                "WEAP_MAX_REV_PCT",
+                "FIREARM_MAX_REV_PCT",
+                "TOB_MAX_REV_PCT",
+                "AE_MAX_REV_PCT",
+                "ALC_DIST_MAX_REV_PCT",
+                "ALC_PROD_MAX_REV_PCT",
+                "GAM_MAX_REV_PCT"
+            ]
         },
-        "Article9": {
-            "source": 1,
-            "file": "C:/Users/bastit/Documents/Risk_Score/Input/Exclusions.xlsx",
-            "sheet_name": "Article9",
-            "load": true
-        }
+        "load": true
     },
     "regions_datasource": {
         "source": 3,

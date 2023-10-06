@@ -1,6 +1,87 @@
 import pandas as pd
+import numpy as np
+import quantkit.utils.mapping_configs as mapping_utils
 
 pd.options.mode.chained_assignment = None
+
+
+def apply_exclusions(df: pd.DataFrame, exclusion_type: str = None) -> pd.DataFrame:
+    """
+    For a given portfolio, apply Exclusions based on Input
+    Overwrite all SClass Levels tp Excluded Sector
+
+    Logic
+    -----
+    1) Exclusion column includes exclusion type
+    2) Security is no labeled bond or in carve out sector
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with applied Exclusions
+    """
+    if exclusion_type:
+        df.loc[
+            (df["Exclusion"].str.contains(exclusion_type))
+            & ~(
+                (df["Labeled ESG Type"].isin(mapping_utils.labeled_bonds))
+                & (df["BCLASS"].isin(mapping_utils.carve_out_sectors))
+            ),
+            "SCLASS_Level1",
+        ] = "Excluded"
+        df.loc[
+            (df["Exclusion"].str.contains(exclusion_type))
+            & ~(
+                (df["Labeled ESG Type"].isin(mapping_utils.labeled_bonds))
+                & (df["BCLASS"].isin(mapping_utils.carve_out_sectors))
+            ),
+            ["SCLASS_Level2", "SCLASS_Level3", "SCLASS_Level4", "SCLASS_Level4-P"],
+        ] = "Excluded Sector"
+
+    return df
+
+
+def calculate_risk_score(df: pd.DataFrame, exclusion_type: str = None):
+    """
+    For a given portfolio, calculate Risk Overall score with adequate labels
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with risk score labels
+    """
+    df = apply_exclusions(df, exclusion_type)
+    df["Risk Score"] = (
+        df["ESRM Score"] + df["Governance Score"] + df["Transition Score"]
+    ) / 3
+    df["Theme"] = df["SCLASS_Level4-P"].map(mapping_utils.sclass_4_mapping)
+    df["Risk Score Overall"] = df["Risk_Score_Overall"].map(
+        mapping_utils.risk_score_overall_mapping
+    )
+    df["style"] = np.where(
+        df["SCLASS_Level1"] == "Preferred",
+        "preferred-bg",
+        np.where(
+            df["SCLASS_Level1"] == "Excluded",
+            "excluded-bg",
+            np.where(df["SCLASS_Level3"] == "Transition", "transition-bg", np.nan),
+        ),
+    )
+    return df
 
 
 def calculate_portfolio_waci(df: pd.DataFrame) -> float:
@@ -325,7 +406,7 @@ def calculate_carbon_intensity(df: pd.DataFrame, portfolio_type: str) -> pd.Data
         )
     ]
 
-    if portfolio_type in ["equity", "equity_a9", "equity_msci"]:
+    if portfolio_type in ["equity", "equity_a9", "equity_msci_a8"]:
         df_grouped = df_filtered.groupby("GICS_SECTOR", as_index=False).apply(
             lambda x: x["market_weight_carbon_intensity"].sum()
             / x["Portfolio Weight"].sum()
@@ -345,7 +426,7 @@ def calculate_carbon_intensity(df: pd.DataFrame, portfolio_type: str) -> pd.Data
     return df_grouped
 
 
-def calculate_planet_distribution(df: pd.DataFrame) -> dict:
+def calculate_planet_distribution(df: pd.DataFrame, exclusion_type: str = None) -> dict:
     """
     For a given portfolio, calculate score distribution of sustainable planet themes.
 
@@ -353,12 +434,15 @@ def calculate_planet_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         dictionary with portfolio weight per theme
     """
+    df = apply_exclusions(df, exclusion_type)
     themes = [
         "RENEWENERGY",
         "MOBILITY",
@@ -374,7 +458,7 @@ def calculate_planet_distribution(df: pd.DataFrame) -> dict:
     return data
 
 
-def calculate_people_distribution(df: pd.DataFrame) -> dict:
+def calculate_people_distribution(df: pd.DataFrame, exclusion_type: str = None) -> dict:
     """
     For a given portfolio, calculate score distribution of sustainable people themes.
 
@@ -382,12 +466,15 @@ def calculate_people_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         dictionary with portfolio weight per theme
     """
+    df = apply_exclusions(df, exclusion_type)
     themes = ["HEALTH", "SANITATION", "EDU", "INCLUSION", "NUTRITION", "AFFORDABLE"]
     data = dict()
     for theme in themes:
@@ -396,7 +483,7 @@ def calculate_people_distribution(df: pd.DataFrame) -> dict:
     return data
 
 
-def calculate_bond_distribution(df: pd.DataFrame) -> dict:
+def calculate_bond_distribution(df: pd.DataFrame, exclusion_type: str = None) -> dict:
     """
     For a given portfolio, calculate score distribution of labeled Bonds.
 
@@ -404,28 +491,33 @@ def calculate_bond_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         dictionary with portfolio weight per bond type
     """
+    df = apply_exclusions(df, exclusion_type)
     bonds = [
-        "Labeled Green",
-        "Labeled Social",
-        "Labeled Sustainable",
-        "Labeled Sustainable Linked",
-        "Labeled Green/Sustainable Linked",
-        "Labeled Sustainable/Sustainable Linked",
+        "Green",
+        "Social",
+        "Sustainable",
+        "Sustainability-Linked Bonds",
+        "Green/Sustainable Linked",
+        "Sustainable/Sustainability-Linked Bonds",
     ]
     data = dict()
     for bond in bonds:
-        weight = df[df["Labeled ESG Type"] == bond]["Portfolio Weight"].sum()
+        weight = df[df["SCLASS_Level4-P"] == bond]["Portfolio Weight"].sum()
         data[bond] = weight
     return data
 
 
-def calculate_transition_distribution(df: pd.DataFrame) -> dict:
+def calculate_transition_distribution(
+    df: pd.DataFrame, exclusion_type: str = None
+) -> dict:
     """
     For a given portfolio, calculate score distribution of transition themes.
 
@@ -433,12 +525,15 @@ def calculate_transition_distribution(df: pd.DataFrame) -> dict:
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         dictionary with portfolio weight per theme
     """
+    df = apply_exclusions(df, exclusion_type)
     themes = [
         "LOWCARBON",
         "PIVOTTRANSPORT",
@@ -524,14 +619,19 @@ def calculate_sector_distribution(df: pd.DataFrame) -> pd.DataFrame:
     return df_filtered
 
 
-def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
+def calculate_sustainable_classification(
+    df: pd.DataFrame, exclusion_type: str = None
+) -> pd.DataFrame:
     """
     For a given portfolio, calculate sustainable classification (SCLASS Level 2) distribution
+    Apply Exclusions based on Input
 
     Parameters
     ----------
     df: pd.DataFrame
         DataFrame with data for one portfolio
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
@@ -558,6 +658,7 @@ def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
         "Poor Data": 7,
         "Not Scored": 8,
     }
+    df = apply_exclusions(df, exclusion_type)
     df_grouped = df.groupby("SCLASS_Level2")["Portfolio Weight"].sum().reset_index()
     df_grouped["Sort"] = df_grouped["SCLASS_Level2"].map(sort)
     df_grouped = df_grouped.sort_values("Sort", ignore_index=True)
@@ -566,9 +667,12 @@ def calculate_sustainable_classification(df: pd.DataFrame) -> pd.DataFrame:
     return df_grouped
 
 
-def calculate_portfolio_summary(df: pd.DataFrame, portfolio_type: str) -> dict:
+def calculate_portfolio_summary(
+    df: pd.DataFrame, portfolio_type: str, exclusion_type: str = None
+) -> dict:
     """
     For a given portfolio, calculate the portfolio summary
+    Apply Exclusions based on Input
 
     Parameters
     ----------
@@ -576,18 +680,26 @@ def calculate_portfolio_summary(df: pd.DataFrame, portfolio_type: str) -> dict:
         DataFrame with data for one portfolio
     portfolio_type: str
         portfolio type, either "equity" or "fixed_income"
+    exclusion_type: str, optional
+        Exclusion type, valid entries: "Article 8", "Article 9"
 
     Returns
     -------
     dict
         portfolio's summary
     """
+    df = apply_exclusions(df, exclusion_type)
     summary = dict()
     scores_people = calculate_people_distribution(df)
     scores_planet = calculate_planet_distribution(df)
     total = sum(scores_people.values()) + sum(scores_planet.values())
 
-    if portfolio_type in ["fixed_income", "fixed_income_a9", "fixed_income_a8", "em"]:
+    if portfolio_type in [
+        "fixed_income",
+        "fixed_income_a9",
+        "fixed_income_a8",
+        "em_a9",
+    ]:
         bonds = calculate_bond_distribution(df)
         total += sum(bonds.values())
 

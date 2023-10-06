@@ -235,6 +235,11 @@ class Runner(object):
         """
         iterate over exclusion data
         """
+        issuer_ids = self.portfolio_datasource.all_msci_ids
+        self.params["exclusion_datasource"]["filters"][
+            "issuer_identifier_list"
+        ] = issuer_ids
+
         # load exclusion data
         self.exclusion_datasource.load()
         self.exclusion_datasource.iter()
@@ -343,6 +348,7 @@ class Runner(object):
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
+                exclusion_dict=self.exclusion_datasource.exclusions,
             )
 
     def iter_muni(self) -> None:
@@ -355,6 +361,7 @@ class Runner(object):
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
+                exclusion_dict=self.exclusion_datasource.exclusions,
             )
 
     def iter_cash(self) -> None:
@@ -367,6 +374,7 @@ class Runner(object):
                 regions=self.region_datasource.regions,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
+                exclusion_dict=self.exclusion_datasource.exclusions,
             )
 
     def iter_companies(self) -> None:

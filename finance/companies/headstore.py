@@ -5,6 +5,7 @@ import quantkit.finance.securities.securities as securities
 import quantkit.finance.sectors.sectors as sectors
 import quantkit.finance.adjustment.adjustment as adjustment
 import quantkit.utils.mapping_configs as mapping_configs
+import quantkit.finance.exclusions.exclusions as exclusions
 
 
 class HeadStore(object):
@@ -57,7 +58,7 @@ class HeadStore(object):
         self.scores["NA_Flags_ESRM"] = dict()
         self.scores["NA_Flags_Governance"] = dict()
         self.Adjustment = list()
-        self.information["Exclusion_d"] = dict()
+        self.Exclusion = dict()
         self.information["Exclusion"] = list()
 
     def add_security(
@@ -165,21 +166,62 @@ class HeadStore(object):
         # map exclusion based on Article 8 and 9
         msci_issuerid = self.msci_information["ISSUERID"]
         if msci_issuerid in exclusion_dict:
-            excl = exclusion_dict[msci_issuerid]
+            self.exclusion_data = exclusion_dict[msci_issuerid]
+        else:
+            self.exclusion_data = exclusion_dict["NoISSUERID"]
 
-            for e in excl:
-                article = e["Article"]
-                exclusion = e["Field Name"]
-                theme = mapping_configs.exclusions[exclusion]
-                value = e["Field Value"]
-                if theme in self.information["Exclusion_d"]:
-                    self.information["Exclusion_d"][theme] = max(
-                        self.information["Exclusion_d"][theme], value
-                    )
-                else:
-                    self.information["Exclusion_d"][theme] = value
-                if not article in self.information["Exclusion"]:
-                    self.information["Exclusion"].append(article)
+        parent_cols = [
+            "THERMAL_COAL_MAX_REV_PCT",
+            "UNCONV_OIL_GAS_MAX_REV_PCT",
+            "OG_REV",
+            "GENERAT_MAX_REV_THERMAL_COAL",
+            "UNGC_COMPLIANCE",
+            "HR_COMPLIANCE",
+            "IVA_COMPANY_RATING",
+        ]
+        for col in parent_cols:
+            self.exclusion_data[col] = self.msci_information[col]
+
+        self.Exclusion["A8"] = exclusions.A8(
+            cweap_tie=self.exclusion_data["CWEAP_TIE"],
+            weap_max_rev_pct=self.exclusion_data["WEAP_MAX_REV_PCT"],
+            firearm_max_rev_pct=self.exclusion_data["FIREARM_MAX_REV_PCT"],
+            tob_max_rev_pct=self.exclusion_data["TOB_MAX_REV_PCT"],
+            thermal_coal_max_rev_pct=self.exclusion_data["THERMAL_COAL_MAX_REV_PCT"],
+            unconv_oil_gas_max_rev_pct=self.exclusion_data[
+                "UNCONV_OIL_GAS_MAX_REV_PCT"
+            ],
+            generat_max_rev_thermal_coal=self.exclusion_data[
+                "GENERAT_MAX_REV_THERMAL_COAL"
+            ],
+            ungc_compliance=self.exclusion_data["UNGC_COMPLIANCE"],
+            iva_company_rating=self.exclusion_data["IVA_COMPANY_RATING"],
+        )
+        self.Exclusion["A9"] = exclusions.A9(
+            cweap_tie=self.exclusion_data["CWEAP_TIE"],
+            weap_max_rev_pct=self.exclusion_data["WEAP_MAX_REV_PCT"],
+            firearm_max_rev_pct=self.exclusion_data["FIREARM_MAX_REV_PCT"],
+            tob_max_rev_pct=self.exclusion_data["TOB_MAX_REV_PCT"],
+            thermal_coal_max_rev_pct=self.exclusion_data["THERMAL_COAL_MAX_REV_PCT"],
+            unconv_oil_gas_max_rev_pct=self.exclusion_data[
+                "UNCONV_OIL_GAS_MAX_REV_PCT"
+            ],
+            og_rev=self.exclusion_data["OG_REV"],
+            generat_max_rev_thermal_coal=self.exclusion_data[
+                "GENERAT_MAX_REV_THERMAL_COAL"
+            ],
+            ae_max_rev_pct=self.exclusion_data["AE_MAX_REV_PCT"],
+            alc_dist_max_rev_pct=self.exclusion_data["ALC_DIST_MAX_REV_PCT"],
+            alc_prod_max_rev_pct=self.exclusion_data["ALC_PROD_MAX_REV_PCT"],
+            gam_max_rev_pct=self.exclusion_data["GAM_MAX_REV_PCT"],
+            ungc_compliance=self.exclusion_data["UNGC_COMPLIANCE"],
+            hr_compliance=self.exclusion_data["HR_COMPLIANCE"],
+            iva_company_rating=self.exclusion_data["IVA_COMPANY_RATING"],
+        )
+        if sum(self.Exclusion["A8"].exclusion_dict.values()) > 0:
+            self.information["Exclusion"].append("Article 8")
+        if sum(self.Exclusion["A9"].exclusion_dict.values()) > 0:
+            self.information["Exclusion"].append("Article 9")
 
     def attach_gics(self, gics_d: dict) -> None:
         """

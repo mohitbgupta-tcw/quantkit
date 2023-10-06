@@ -10,7 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 ### Fixed
 ### Changed
+- Exclusion Datasource use MSCI API instead of Excel file
+- Don't overwrite Excluded Sector when creating detailed DataFrame
+- Overwrite Excluded Sector when pdf-dashboarding
 ### Removed
+- carve out sectors from configs file
+- A8 and A9 funds from configs file
 
 ## [1.2.1] - 2023-10-05
 ### Added
