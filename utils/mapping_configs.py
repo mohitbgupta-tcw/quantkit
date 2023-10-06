@@ -18,22 +18,29 @@ TargetCA = ["Committed SBT", "Ambitious Target"]
 TargetCN = ["Committed SBT", "Non-Ambitious Target"]
 TargetN = ["Non-Ambitious Target"]
 
-exclusions = {
-    "AlcProDistMaxRevPctAgg": "Alcohol",
-    "TobMaxRevPct": "Tobacco",
-    "UnconvOilGasMaxRevPct": "Oil_Gas",
-    "OgRev": "Oil_Gas",
-    "GamMaxRevPct": "Gambling",
-    "FirearmMaxRevPct": "Weapons_Firearms",
-    "WeapMaxRevPct": "Weapons_Firearms",
-    "ThermalCoalMaxRevPct": "Thermal_Coal_Mining",
-    "GeneratMaxRevThermalCoal": "Thermal_Coal_Power_Gen",
-    "CweapTie": "Controversial_Weapons",
-    "HrCompliance": "UN_Alignement",
-    "UngcCompliance": "UN_Alignement",
-    "AeMaxRevPct": "Adult_Entertainment",
-    "IVA_COMPANY_RATING": "ESG_Rating",
-}
+labeled_bonds = [
+    "Labeled Green",
+    "Labeled Social",
+    "Labeled Sustainable",
+    "Labeled Sustainable Linked",
+]
+carve_out_sectors = [
+    "Electric Utilities",
+    "Electric",
+    "Gas Utilities",
+    "Multi-Utilities",
+    "Other Utility",
+    "Water Utilities",
+    "Independent Power Producers & Energy Traders",
+    "Integrated Oil & Gas",
+    "Oil & Gas Drilling",
+    "Oil & Gas Equipment & Services",
+    "Oil & Gas Exploration & Production",
+    "Oil & Gas Refining & Marketing",
+    "Oil & Gas Storage & Transportation",
+    "Oil Field Services",
+    "Government Owned, No Guarantee",
+]
 
 portfolio_benchmark = {
     "3750": "JESG EMBI Global Diversified Index",
@@ -112,7 +119,7 @@ benchmark_text = {
 }
 
 portfolio_type = {
-    "3750": "em",
+    "3750": "em_a9",
     "6739": "equity",
     "3720": "fixed_income",
     "3738": "fixed_income_a9",
@@ -120,7 +127,7 @@ portfolio_type = {
     "13727": "fixed_income_a8",
     "13751": "fixed_income",
     "16705": "equity_a9",
-    "6717": "equity_msci",
+    "6717": "equity_msci_a8",
     "708": "fixed_income",
     "702": "fixed_income",
     "703": "equity",
@@ -152,7 +159,7 @@ portfolio_type = {
     "3660": "fixed_income",
     "NETZ US Equity": "equity",
     "6283": "equity",
-    "3798": "fixed_income",
+    "3798": "fixed_income_a8",
     "3666": "fixed_income",
     "3667": "fixed_income",
     "3668": "fixed_income",

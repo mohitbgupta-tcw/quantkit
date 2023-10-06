@@ -142,6 +142,8 @@ class SecuritizedStore(headstore.HeadStore):
                 sec_store.is_esg_labeled("Sustainable")
             elif labeled_bond_tag == "Labeled Sustainable Linked":
                 sec_store.is_esg_labeled("Sustainability-Linked Bonds")
+            elif labeled_bond_tag == "Labeled Sustainable/Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainable/Sustainability-Linked Bonds")
             elif sec_store.information["ESG Collateral Type"]["G/S/S"] == "CLO":
                 sec_store.is_CLO()
             elif (
@@ -158,11 +160,18 @@ class SecuritizedStore(headstore.HeadStore):
             elif score == 0:
                 sec_store.is_not_scored()
 
-    def iter(self, regions: dict, gics_d: dict, bclass_d: dict) -> None:
+    def iter(
+        self,
+        regions: dict,
+        gics_d: dict,
+        bclass_d: dict,
+        exclusion_dict: dict,
+    ) -> None:
         """
         - attach GICS information
         - attach region
         - attach industry
+        - attach exclusions
 
         Parameters
         ----------
@@ -172,6 +181,8 @@ class SecuritizedStore(headstore.HeadStore):
             dictionary of gics sub industries with gics as key, gics object as value
         bclass_d: dict
             dictionary of bclass sub industries with bclass as key, bclass object as value
+        exclusion_dict: dict
+            dictionary of Exclusions
         """
         # attach GICS
         self.attach_gics(gics_d)
@@ -181,3 +192,6 @@ class SecuritizedStore(headstore.HeadStore):
 
         # attach industry and sub industry
         self.attach_industry(gics_d, bclass_d)
+
+        # attach exclusion df
+        self.attach_exclusion(exclusion_dict)

@@ -5,11 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [Unreleased]
 ### Added
 ### Fixed
 ### Changed
+### Removed
+
+## [1.3.0] - 2023-10-06
+### Added
+### Fixed
+### Changed
+- Exclusion Datasource use MSCI API instead of Excel file
+- Don't overwrite Excluded Sector when creating detailed DataFrame
+- Overwrite Excluded Sector when pdf-dashboarding
+### Removed
+- carve out sectors from configs file
+- A8 and A9 funds from configs file
+
+## [1.2.1] - 2023-10-05
+### Added
+- handyman function to pull historical portfolio holdings
+- Unadjusted scores added to detailed dataframe
+### Fixed
+- make pathes working in ML Azure
+- BClass replace N/A's
+- add Labeled Sustainable/Sustainable Linked to labeled bonds
+### Changed
+- Split Excluded SClass Labels into Poor Data, Poor Score, and Excluded Sector
 ### Removed
 
 
@@ -123,6 +145,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.3.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.0
+[1.2.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.1
 [1.2.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.0
 [1.1.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.1
 [1.1.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.1.0

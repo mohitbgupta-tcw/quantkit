@@ -9,6 +9,7 @@ import quantkit.finance.companies.cash as cash
 import quantkit.finance.securities.securities as securitites
 import quantkit.handyman.msci_data_loader as msci_data_loader
 import pandas as pd
+import numpy as np
 from copy import deepcopy
 
 
@@ -133,11 +134,7 @@ class PortfolioDataSource(ds.DataSources):
                         ELSE sec.esg_collateral_type 
                     END 
                 ) AS "ESG Collateral Type", 
-                CASE
-                    WHEN pos.isin ='N/A' 
-                    THEN null
-                    ELSE pos.isin
-                END AS "ISIN",
+                pos.isin AS "ISIN",
                 CASE 
                     WHEN sec.issuer_esg ='NA ' 
                     OR sec.issuer_esg is null  
@@ -170,11 +167,7 @@ class PortfolioDataSource(ds.DataSources):
                 sec.jpm_sector_level1 AS "JPM Sector",
                 sec.bclass_level2 AS "BCLASS_Level2", 
                 sec.bclass_level3 AS "BCLASS_Level3", 
-                CASE 
-                    WHEN sec.bclass_level4 = 'N/A' 
-                    THEN 'Unassigned BCLASS' 
-                    ELSE sec.bclass_level4 
-                END AS "BCLASS_Level4",
+                sec.bclass_level4 AS "BCLASS_Level4",
                 CASE 
                     WHEN sec.em_country_of_risk_name is null 
                     THEN sec.country_of_risk_name 
@@ -246,11 +239,7 @@ class PortfolioDataSource(ds.DataSources):
                         ELSE sec.esg_collateral_type 
                     END 
                 ) AS "ESG Collateral Type", 
-                CASE
-                    WHEN bench.isin ='N/A' 
-                    THEN null
-                    ELSE bench.isin
-                END AS "ISIN",
+                bench.isin AS "ISIN",
                 CASE 
                     WHEN sec.issuer_esg ='NA '
                     OR sec.issuer_esg IS null
@@ -283,11 +272,7 @@ class PortfolioDataSource(ds.DataSources):
                 sec.jpm_sector_level1 AS "JPM Sector",
                 sec.bclass_level2 AS "BCLASS_Level2",
                 sec.bclass_level3 AS "BCLASS_Level3", 
-                CASE 
-                    WHEN sec.bclass_level4 = 'N/A' 
-                    THEN 'Unassigned BCLASS' 
-                    ELSE sec.bclass_level4 
-                END AS "BCLASS_Level4",
+                sec.bclass_level4 AS "BCLASS_Level4",
                 CASE 
                     WHEN sec.em_country_of_risk_name is null 
                     THEN sec.country_of_risk_name 
@@ -359,6 +344,9 @@ class PortfolioDataSource(ds.DataSources):
         - replace NA's of MSCI ISSUERID by running MSCI API
         - reaplace transformation values
         """
+        self.datasource.df.replace("N/A", np.nan, inplace=True)
+        self.datasource.df = self.datasource.df.fillna(value=np.nan)
+
         self.datasource.df.loc[
             (self.datasource.df["ISIN"].isna())
             & self.datasource.df["Security_Name"].isna(),
@@ -373,33 +361,34 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["Issuer ISIN"].fillna(
             self.datasource.df["ISIN"], inplace=True
         )
-        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
-            "BCLASS_Level4"
-        ].fillna("Unassigned BCLASS")
-        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
-            "BCLASS_Level4"
-        ].str.title()
-        self.datasource.df["BCLASS_Level4"].replace(
-            "Unassigned Bclass", "Unassigned BCLASS", inplace=True
-        )
 
         replace_nas = [
             "BCLASS_Level2",
             "BCLASS_Level3",
+            "BCLASS_Level4",
             "JPM Sector",
-            "Country of Risk",
         ]
         for col in replace_nas:
             replace_df = self.datasource.df[["ISIN", col]]
             replace_df = replace_df.dropna(subset=col)
             replace_df = replace_df.drop_duplicates(subset=["ISIN"])
-            self.datasource.df = pd.merge(
-                left=self.datasource.df, right=replace_df, how="left", on="ISIN"
+            replace_df = dict(zip(replace_df["ISIN"], replace_df[col]))
+            self.datasource.df[col] = self.datasource.df[col].fillna(
+                self.datasource.df["ISIN"].map(replace_df)
             )
-            self.datasource.df[col] = self.datasource.df[f"{col}_y"]
-            self.datasource.df = self.datasource.df.drop(
-                [f"{col}_x", f"{col}_y"], axis=1
-            )
+
+        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
+            "BCLASS_Level4"
+        ].str.title()
+        self.datasource.df["BCLASS_Level2"] = self.datasource.df[
+            "BCLASS_Level2"
+        ].fillna("Unassigned BCLASS")
+        self.datasource.df["BCLASS_Level3"] = self.datasource.df[
+            "BCLASS_Level3"
+        ].fillna("Unassigned BCLASS")
+        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
+            "BCLASS_Level4"
+        ].fillna("Unassigned BCLASS")
 
         sec_isins = list(
             self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]

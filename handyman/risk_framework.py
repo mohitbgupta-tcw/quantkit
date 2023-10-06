@@ -32,9 +32,17 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
             sec_store = holdings_d["object"]
             comp_store = sec_store.parent_store
             holding_measures = holdings_d["holding_measures"]
+            un_list = [
+                comp_store.exclusion_data["UNGC_COMPLIANCE"],
+                comp_store.exclusion_data["HR_COMPLIANCE"],
+            ]
+            if "Fail" in un_list:
+                un_label = "Fail"
+            elif "Watch List" in un_list:
+                un_label = "Watch List"
+            else:
+                un_label = "Pass"
             for h in holding_measures:
-                portfolio_weight = h["Portfolio_Weight"]
-                oas = h["OAS"]
                 sec_data = {
                     "As Of Date": port_store.as_of_date,
                     "Portfolio ISIN": port_store.id,
@@ -52,8 +60,8 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "Issuer Country": comp_store.information[
                         "Issuer_Country"
                     ].information["Country"],
-                    "Portfolio Weight": portfolio_weight,
-                    "OAS": oas,
+                    "Portfolio Weight": h["Portfolio_Weight"],
+                    "OAS": h["OAS"],
                     "CARBON_EMISSIONS_SCOPE_12_INTEN": comp_store.msci_information[
                         "CARBON_EMISSIONS_SCOPE_12_INTEN"
                     ],
@@ -80,30 +88,36 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "SCLASS_Level4": sec_store.information["SClass_Level4"],
                     "SCLASS_Level4-P": sec_store.information["SClass_Level4-P"],
                     "SCLASS-Level5": sec_store.information["SClass_Level5"],
-                    "Alcohol": comp_store.information["Exclusion_d"].get("Alcohol", 0),
-                    "Tobacco": comp_store.information["Exclusion_d"].get("Tobacco", 0),
-                    "Oil_Gas": comp_store.information["Exclusion_d"].get("Oil_Gas", 0),
-                    "Gambling": comp_store.information["Exclusion_d"].get(
-                        "Gambling", 0
+                    "Exclusion": ", ".join(comp_store.information["Exclusion"]),
+                    "Alcohol": np.nansum(
+                        [
+                            comp_store.exclusion_data["ALC_DIST_MAX_REV_PCT"],
+                            comp_store.exclusion_data["ALC_PROD_MAX_REV_PCT"],
+                        ]
                     ),
-                    "Weapons_Firearms": comp_store.information["Exclusion_d"].get(
-                        "Weapons_Firearms", 0
+                    "Tobacco": comp_store.exclusion_data["TOB_MAX_REV_PCT"],
+                    "Oil_Gas": np.nanmax(
+                        [
+                            comp_store.exclusion_data["UNCONV_OIL_GAS_MAX_REV_PCT"],
+                            comp_store.exclusion_data["OG_REV"],
+                        ]
                     ),
-                    "Thermal_Coal_Mining": comp_store.information["Exclusion_d"].get(
-                        "Thermal_Coal_Mining", 0
+                    "Gambling": comp_store.exclusion_data["GAM_MAX_REV_PCT"],
+                    "Weapons_Firearms": np.nanmax(
+                        [
+                            comp_store.exclusion_data["WEAP_MAX_REV_PCT"],
+                            comp_store.exclusion_data["FIREARM_MAX_REV_PCT"],
+                        ]
                     ),
-                    "Thermal_Coal_Power_Gen": comp_store.information["Exclusion_d"].get(
-                        "Thermal_Coal_Power_Gen", 0
-                    ),
-                    "Controversial_Weapons": comp_store.information["Exclusion_d"].get(
-                        "Controversial_Weapons", 0
-                    ),
-                    "UN_Alignement": comp_store.information["Exclusion_d"].get(
-                        "UN_Alignement", 0
-                    ),
-                    "Adult_Entertainment": comp_store.information["Exclusion_d"].get(
-                        "Adult_Entertainment", 0
-                    ),
+                    "Thermal_Coal_Mining": comp_store.exclusion_data[
+                        "THERMAL_COAL_MAX_REV_PCT"
+                    ],
+                    "Thermal_Coal_Power_Gen": comp_store.exclusion_data[
+                        "GENERAT_MAX_REV_THERMAL_COAL"
+                    ],
+                    "Controversial_Weapons": comp_store.exclusion_data["CWEAP_TIE"],
+                    "UN_Alignement": un_label,
+                    "Adult_Entertainment": comp_store.exclusion_data["AE_MAX_REV_PCT"],
                     "Review Flag": comp_store.scores["Review_Flag"],
                     "Review Comments": comp_store.scores["Review_Comments"],
                     "INDUSTRY_ADJUSTED_SCORE": comp_store.msci_information[
@@ -116,9 +130,17 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         "GOVERNMENT_ESG_RATING"
                     ],
                     "Muni Score": comp_store.scores["Muni_Score"],
+                    "Muni Score Unadjusted": comp_store.scores["Muni_Score_unadjusted"],
                     "Securitized Score": sec_store.scores["Securitized_Score"],
+                    "Securitized Score unadjusted": sec_store.scores[
+                        "Securitized_Score_unadjusted"
+                    ],
                     "Sovereign Score": comp_store.scores["Sovereign_Score"],
+                    "Sovereign Score Unadjusted": comp_store.scores[
+                        "Sovereign_Score_unadjusted"
+                    ],
                     "ESRM Score": comp_store.scores["ESRM_Score"],
+                    "ESRM Score Unadjusted": comp_store.scores["ESRM_Score_unadjusted"],
                     "ESRM_flagged": sum(comp_store.scores["ESRM_Flags"].values()),
                     "NA_Flags_ESRM": sum(comp_store.scores["NA_Flags_ESRM"].values()),
                     "PRIVACY_DATA_SEC_EXP_SCORE_Flag": comp_store.scores[
@@ -181,6 +203,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "OVERALL_FLAG": comp_store.msci_information["OVERALL_FLAG"],
                     "UNGC_COMPLIANCE": comp_store.msci_information["UNGC_COMPLIANCE"],
                     "Governance Score": comp_store.scores["Governance_Score"],
+                    "Governance Score Unadjusted": comp_store.scores[
+                        "Governance_Score_unadjusted"
+                    ],
                     "Governance_flagged": sum(
                         comp_store.scores["Governance_Flags"].values()
                     ),
@@ -246,6 +271,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         "WOMEN_EXEC_MGMT_PCT_RECENT"
                     ],
                     "Transition Score": comp_store.scores["Transition_Score"],
+                    "Transition Score Unadjusted": comp_store.scores[
+                        "Transition_Score_unadjusted"
+                    ],
                     "Carbon Intensity (Scope 123)": comp_store.information.get(
                         "Carbon Intensity (Scope 123)", 0
                     ),
@@ -260,6 +288,12 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     ],
                     "CapEx": comp_store.information.get("CapEx", 0),
                     "Climate_Revenue": comp_store.information.get("Climate_Revenue", 0),
+                    "Sustainable Themes Unadjusted": ", ".join(
+                        list(comp_store.scores["Themes_unadjusted"].keys())
+                    ),
+                    "Transition Themes Unadjusted": ", ".join(
+                        comp_store.scores["Transition_Category_unadjusted"]
+                    ),
                     "RENEWENERGY_MSCI": comp_store.information.get(
                         "RENEWENERGY_MSCI", 0
                     ),
@@ -296,47 +330,6 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                     "AFFORDABLE_ISS": comp_store.information.get("AFFORDABLE_ISS", 0),
                     "Risk_Score_Overall": sec_store.scores["Risk_Score_Overall"],
                 }
-
-                if (
-                    port_store.id in r.params["A8Funds"]
-                    and "Article 8" in comp_store.information["Exclusion"]
-                    and not (
-                        sec_store.information["Labeled ESG Type"]
-                        in [
-                            "Labeled Green",
-                            "Labeled Social",
-                            "Labeled Sustainable",
-                            "Labeled Sustainable Linked",
-                        ]
-                        and comp_store.information["BCLASS_Level4"].class_name
-                        in r.params["carve_out_sectors"]
-                    )
-                ):
-                    sec_data["SCLASS_Level1"] = "Excluded"
-                    sec_data["SCLASS_Level2"] = "Exclusion"
-                    sec_data["SCLASS_Level3"] = "Exclusion"
-                    sec_data["SCLASS_Level4"] = "Excluded Sector"
-                    sec_data["SCLASS_Level4-P"] = "Excluded Sector"
-                elif (
-                    port_store.id in r.params["A9Funds"]
-                    and "Article 9" in comp_store.information["Exclusion"]
-                    and not (
-                        sec_store.information["Labeled ESG Type"]
-                        in [
-                            "Labeled Green",
-                            "Labeled Social",
-                            "Labeled Sustainable",
-                            "Labeled Sustainable Linked",
-                        ]
-                        and comp_store.information["BCLASS_Level4"].class_name
-                        in r.params["carve_out_sectors"]
-                    )
-                ):
-                    sec_data["SCLASS_Level1"] = "Excluded"
-                    sec_data["SCLASS_Level2"] = "Exclusion"
-                    sec_data["SCLASS_Level3"] = "Exclusion"
-                    sec_data["SCLASS_Level4"] = "Excluded Sector"
-                    sec_data["SCLASS_Level4-P"] = "Excluded Sector"
 
                 if "INTELSAT" in sec_store.information["Security_Name"]:
                     sec_data["SCLASS_Level1"] = "Preferred"
@@ -439,12 +432,12 @@ def isin_lookup(isin_list: list, local_configs: str = "") -> pd.DataFrame:
     else:
         configs_local = None
         c = configs_overwrite
-    with open("quantkit\\params_temp.json", "w") as f:
+    with open("quantkit//params_temp.json", "w") as f:
         json.dump(c, f)
 
     # run framework
-    df = risk_framework("quantkit\\params_temp.json")
-    os.remove("quantkit\\params_temp.json")
+    df = risk_framework("quantkit//params_temp.json")
+    os.remove("quantkit//params_temp.json")
     return df
 
 
@@ -509,12 +502,12 @@ def compare_unadjusted(isin_list: list = [], local_configs: str = "") -> pd.Data
         else:
             configs_local = None
             c = configs_overwrite
-        with open("quantkit\\params_temp.json", "w") as f:
+        with open("quantkit//params_temp.json", "w") as f:
             json.dump(c, f)
 
         # run framework
         r = runner_risk_framework.Runner()
-        r.init(local_configs="quantkit\\params_temp.json")
+        r.init(local_configs="quantkit//params_temp.json")
         r.run()
 
     else:
@@ -564,7 +557,7 @@ def compare_unadjusted(isin_list: list = [], local_configs: str = "") -> pd.Data
         data.append(sec_data)
 
     if isin_list:
-        os.remove("quantkit\\params_temp.json")
+        os.remove("quantkit//params_temp.json")
     return pd.DataFrame(data)
 
 
