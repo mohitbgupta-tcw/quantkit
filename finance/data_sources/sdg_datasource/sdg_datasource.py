@@ -28,22 +28,30 @@ class SDGDataSource(ds.DataSources):
         super().__init__(params, **kwargs)
         self.sdg = dict()
 
-    def load(self) -> None:
+    def load(
+        self,
+        as_of_date: str,
+    ) -> None:
         """
         load data and transform dataframe
+
+        Parameters
+        ----------
+        as_of_date: str,
+            date to pull from API
         """
         logging.log("Loading SDG Data")
         query = f"""
         WITH date_table_sdga AS (
             SELECT issuer_key, MAX(last_as_of_date) AS max_load_date
             FROM tcw_core_qa.esg_iss.fact_esg_issuer_sdga
-            WHERE last_as_of_date <= CAST('09/30/2023' AS DATE)
+            WHERE last_as_of_date <= CAST('{as_of_date}' AS DATE)
             GROUP BY issuer_key
         ),
         date_table_sdgaimpact AS (
             SELECT issuer_key, MAX(last_as_of_date) AS max_load_date
             FROM tcw_core_qa.esg_iss.fact_esg_issuer_sdg_impact_rating
-            WHERE last_as_of_date <= CAST('09/30/2023' AS DATE)
+            WHERE last_as_of_date <= CAST('{as_of_date}' AS DATE)
             GROUP BY issuer_key
         ), 
         full_query AS (
@@ -91,9 +99,9 @@ class SDGDataSource(ds.DataSources):
                 AND date_table_sdgaimpact.max_load_date = sdgaimpact.last_as_of_date
         )
 
-        SELECT DISTINCT(issuer_id), *
+        SELECT DISTINCT(issuer_key), *
         FROM full_query
-        ORDER BY issuer_key
+        ORDER BY issuer_id
         """
         self.datasource.load(query=query)
         self.transform_df()

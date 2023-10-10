@@ -274,7 +274,9 @@ class Runner(object):
         - if company doesn't have data, attach all nan's
         """
         # load SDG data
-        self.sdg_datasource.load()
+        self.sdg_datasource.load(
+            as_of_date=self.params["as_of_date"],
+        )
         self.sdg_datasource.iter()
 
     def iter_bloomberg(self) -> None:
