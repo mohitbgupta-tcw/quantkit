@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - bug in snowflake utils
 ### Changed
+- SDG datasource to use Snowflake data instead of Excel file
 ### Removed
 
 ## [1.3.0] - 2023-10-06
