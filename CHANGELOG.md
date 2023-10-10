@@ -154,6 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.3.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.1
 [1.3.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.0
 [1.2.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.1
 [1.2.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.0
