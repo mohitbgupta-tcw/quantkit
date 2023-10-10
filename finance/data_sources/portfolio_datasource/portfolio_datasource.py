@@ -408,6 +408,13 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["ISS ISSUERID"].fillna("NoISSUERID", inplace=True)
 
+        self.datasource.df["Portfolio_Weight"] = self.datasource.df[
+            "Portfolio_Weight"
+        ].astype(float)
+        self.datasource.df["Base Mkt Val"] = self.datasource.df["Base Mkt Val"].astype(
+            float
+        )
+
         if self.params.get("transformation"):
             for sec, trans in self.params["transformation"].items():
                 for col, col_value in trans.items():

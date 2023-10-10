@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- handyman function to save PAI raw datapoints
 ### Fixed
 - bug in snowflake utils
 ### Changed
