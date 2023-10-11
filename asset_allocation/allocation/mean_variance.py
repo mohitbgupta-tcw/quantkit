@@ -114,7 +114,7 @@ class MeanVariance(allocation_base.Allocation):
         risk_engine,
         return_engine,
         weights_constraint: dict = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(asset_list, risk_engine, return_engine)
         self.risk_metrics = pd.DataFrame(

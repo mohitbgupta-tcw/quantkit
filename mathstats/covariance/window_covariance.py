@@ -29,20 +29,20 @@ class WindowCovariance(streaming_base.StreamingBase):
             num_ind_variables=num_ind_variables,
             window_size=window_size,
             ddof=0,
-            **kwargs
+            **kwargs,
         )
         self._mean_sample = rolling_mean.RollingMean(
             num_ind_variables=num_ind_variables,
             window_size=window_size,
             ddof=ddof,
-            **kwargs
+            **kwargs,
         )
         self._pair_mean = [
             rolling_mean.RollingMean(
                 num_ind_variables=num_ind_variables,
                 window_size=window_size,
                 ddof=ddof,
-                **kwargs
+                **kwargs,
             )
             for _i in range(num_ind_variables)
         ]

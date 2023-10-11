@@ -115,7 +115,7 @@ class RiskParity(allocation_base.Allocation):
         return_engine,
         portfolio_leverage: float = 1.0,
         verbose: bool = False,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(asset_list, risk_engine, return_engine)
         self.risk_budgets = np.ones(self.num_total_assets) / self.num_total_assets
@@ -127,7 +127,7 @@ class RiskParity(allocation_base.Allocation):
         self,
         selected_assets: Union[list, np.array],
         risk_budgets: np.array = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         - initialize optimizer

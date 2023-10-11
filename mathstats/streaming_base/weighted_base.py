@@ -45,7 +45,7 @@ class WeightedBase(object):
         batch_weight: float,
         adjustment: float = 1,
         index=None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         - Append new vector to matrix

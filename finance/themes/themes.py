@@ -178,7 +178,7 @@ class Theme(object):
         min_revenue: float,
         capex: float,
         capex_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if MSCI or ISS revenue is bigger than revenue threshold
@@ -217,7 +217,7 @@ class Theme(object):
         min_revenue: float,
         capex: float,
         capex_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if MSCI or ISS revenue is bigger than revenue threshold
@@ -260,7 +260,7 @@ class Theme(object):
         iss_key: bool,
         iss_rev: float,
         revenue_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if ISS revenue is bigger than revenue threshold
@@ -297,7 +297,7 @@ class Theme(object):
         industry: str,
         msci_rev: float,
         revenue_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if MSCI revenue is bigger than revenue threshold
@@ -334,7 +334,7 @@ class Theme(object):
         msci_rev: float,
         iss_rev: float,
         revenue_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if MSCI revenue is bigger than revenue threshold
@@ -384,7 +384,7 @@ class Theme(object):
         min_revenue: float,
         capex: float,
         capex_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         (
@@ -443,7 +443,7 @@ class Theme(object):
         inclusions: list,
         social_inclusion: float,
         si_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Checks if a company's industry is in inclusion list
@@ -480,7 +480,7 @@ class Theme(object):
         inclusions: list,
         social_inclusion: float,
         si_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check is MSCI revenue is bigger than minimum revenue threshold
@@ -530,7 +530,7 @@ class Theme(object):
         sf_threshold: float,
         social_connect: float,
         sc_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if
@@ -590,7 +590,7 @@ class Theme(object):
         acc_threshold: float,
         trailing_rd_sales: float,
         sales_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if
@@ -639,7 +639,7 @@ class Theme(object):
         acc_threshold: float,
         trailing_rd_sales: float,
         sales_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if
@@ -704,7 +704,7 @@ class Theme(object):
         acc_threshold: float,
         trailing_rd_sales: float,
         sales_threshold: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if
@@ -787,7 +787,7 @@ class Theme(object):
         msci_rev: float,
         iss_rev: float,
         capex: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if a company should be assigned to RENEWENERGY theme
@@ -823,7 +823,7 @@ class Theme(object):
                 msci_rev=msci_rev,
                 iss_rev=iss_rev,
                 capex=capex,
-                **self.params["RENEWENERGY"]
+                **self.params["RENEWENERGY"],
             )
         ):
             return True
@@ -836,7 +836,7 @@ class Theme(object):
         msci_rev: float,
         iss_rev: float,
         capex: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if a company should be assigned to MOBILITY theme
@@ -870,7 +870,7 @@ class Theme(object):
             msci_rev=msci_rev,
             iss_rev=iss_rev,
             capex=capex,
-            **self.params["MOBILITY"]
+            **self.params["MOBILITY"],
         ):
             return True
         return False
@@ -904,7 +904,7 @@ class Theme(object):
             iss_key=iss_key,
             msci_rev=msci_rev,
             iss_rev=iss_rev,
-            **self.params["CIRCULARITY"]
+            **self.params["CIRCULARITY"],
         ):
             return True
         return False
@@ -1002,7 +1002,7 @@ class Theme(object):
             iss_key=iss_key,
             msci_rev=msci_rev,
             iss_rev=iss_rev,
-            **self.params["SMARTCITIES"]
+            **self.params["SMARTCITIES"],
         ):
             return True
         return False
@@ -1040,7 +1040,7 @@ class Theme(object):
         orphan_drug_rev: float,
         acc_to_health: float,
         trailing_rd_sales: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if a company should be assigned to HEALTH theme
@@ -1071,7 +1071,7 @@ class Theme(object):
             orphan_drug_rev=orphan_drug_rev,
             acc_to_health=acc_to_health,
             trailing_rd_sales=trailing_rd_sales,
-            **self.params["HEALTH"]
+            **self.params["HEALTH"],
         ):
             return True
         return False
@@ -1111,7 +1111,7 @@ class Theme(object):
         iss_rev: float,
         social_fin: float,
         social_connect: float,
-        **kwargs
+        **kwargs,
     ) -> bool:
         """
         Check if a company should be assigned to INCLUSION theme
@@ -1144,7 +1144,7 @@ class Theme(object):
             iss_rev=iss_rev,
             social_fin=social_fin,
             social_connect=social_connect,
-            **self.params["INCLUSION"]
+            **self.params["INCLUSION"],
         ):
             return True
         return False
@@ -1205,7 +1205,7 @@ class Theme(object):
             industry=industry,
             msci_rev=msci_rev,
             social_inclusion=social_inclusion,
-            **self.params["AFFORDABLE"]
+            **self.params["AFFORDABLE"],
         ):
             return True
         return False
