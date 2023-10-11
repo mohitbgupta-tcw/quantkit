@@ -34,7 +34,7 @@ class Snowflake(object):
         schema: str,
         account: str = "tcw",
         host: str = "tcw.west-us-2.azure.snowflakecomputing.com",
-        **kwargs
+        **kwargs,
     ) -> None:
         self.account = account
         self.user = user
