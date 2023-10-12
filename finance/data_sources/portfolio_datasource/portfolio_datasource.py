@@ -90,9 +90,9 @@ class PortfolioDataSource(ds.DataSources):
     def load(
         self,
         as_of_date: str,
-        pfs: list,
         equity_benchmark: list,
         fixed_income_benchmark: list,
+        pfs: list = [],
     ) -> None:
         """
         load data and transform dataframe
@@ -101,12 +101,12 @@ class PortfolioDataSource(ds.DataSources):
         ----------
         as_of_date: str,
             date to pull from API
-        pfs: list
-            list of all portfolios to pull from API
         equity_benchmark: list
             list of all equity benchmarks to pull from API
         fixed_income_benchmark: list
             list of all equity benchmarks to pull from API
+        pfs: list, optional
+            list of all portfolios to pull from API
         """
         logging.log("Loading Portfolio Data")
 
@@ -119,6 +119,8 @@ class PortfolioDataSource(ds.DataSources):
         e_benchmark = (
             ", ".join(f"'{b}'" for b in equity_benchmark) if equity_benchmark else "''"
         )
+
+        and_clause = f"""AND pos.portfolio_number in ({pf})""" if pfs else ""
 
         query = f"""
         SELECT *
@@ -191,11 +193,12 @@ class PortfolioDataSource(ds.DataSources):
             LEFT JOIN tcw_core_dev.reference.report_sectors_map_vw rs 
                 ON sec.sector_key_tclass = rs.sector_key 
                 AND rs.report_scheme = '7. ESG - Primary Summary'
+            JOIN tcw_core_dev.tcw.portfolio_vw strat 
+                ON pos.portfolio_key = strat.portfolio_key 
+                AND pos.as_of_date = strat.as_of_date 
+                AND strat.is_active = 1
             WHERE pos.as_of_date = '{as_of_date}'
-            AND pos.portfolio_number in (
-                {pf}
-            )
-            AND pos.source_system = 'SMS' -- temp fix
+            {and_clause}
             UNION
             --Benchmark Holdings
             SELECT  
