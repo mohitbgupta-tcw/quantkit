@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 ### Fixed
 ### Changed
+- Change Snowflake schema from _DEV to _QA
 ### Removed
 
 ## [1.3.1] - 2023-10-10

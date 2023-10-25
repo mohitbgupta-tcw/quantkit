@@ -183,17 +183,17 @@ class PortfolioDataSource(ds.DataSources):
                 null AS "OAS",
                 (
                     SELECT MAX(ISIN) 
-                    FROM tcw_core_dev.esg_iss.dim_issuer_iss iss 
+                    FROM tcw_core_qa.esg_iss.dim_issuer_iss iss 
                     WHERE iss.issuer_id = sec.issuer_id_iss
                 ) AS "Issuer ISIN"
-            FROM tcw_core_dev.tcw.position_vw pos
-            LEFT JOIN tcw_core_dev.tcw.security_vw sec 
+            FROM tcw_core_qa.tcw.position_vw pos
+            LEFT JOIN tcw_core_qa.tcw.security_vw sec 
                 ON pos.security_key = sec.security_key
                 AND pos.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_dev.reference.report_sectors_map_vw rs 
+            LEFT JOIN tcw_core_qa.reference.report_sectors_map_vw rs 
                 ON sec.sector_key_tclass = rs.sector_key 
                 AND rs.report_scheme = '7. ESG - Primary Summary'
-            JOIN tcw_core_dev.tcw.portfolio_vw strat 
+            JOIN tcw_core_qa.tcw.portfolio_vw strat 
                 ON pos.portfolio_key = strat.portfolio_key 
                 AND pos.as_of_date = strat.as_of_date 
                 AND strat.is_active = 1
@@ -312,14 +312,14 @@ class PortfolioDataSource(ds.DataSources):
                 null AS "OAS",
                 (
                     SELECT MAX(ISIN) 
-                    FROM tcw_core_dev.esg_iss.dim_issuer_iss iss 
+                    FROM tcw_core_qa.esg_iss.dim_issuer_iss iss 
                     WHERE iss.issuer_id = sec.issuer_id_iss
                 ) AS "Issuer ISIN"
-            FROM tcw_core_dev.benchmark.benchmark_position_vw bench
-            LEFT JOIN tcw_core_dev.tcw.security_vw sec 
+            FROM tcw_core_qa.benchmark.benchmark_position_vw bench
+            LEFT JOIN tcw_core_qa.tcw.security_vw sec 
                 ON bench.security_key = sec.security_key
                 AND bench.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_dev.reference.report_sectors_map_vw rs 
+            LEFT JOIN tcw_core_qa.reference.report_sectors_map_vw rs 
                 ON bench.core_sector_key = rs.sector_key 
                 AND rs.report_scheme = '7. ESG - Primary Summary'
             WHERE bench.as_of_date = '{as_of_date}'
