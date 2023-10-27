@@ -169,7 +169,7 @@ portfolio_type = {
 
 
 sclass_4_mapping = {
-    "RENEWENERGY": "Renewable Energy, Storage, and Green Hydrogen",
+    "RENEWENERGY": "Clean Energy",
     "MOBILITY": "Sustainable Mobility",
     "CIRCULARITY": "Circular Economy",
     "CCADAPT": "Climate Change Adaptation and Risk Management",
@@ -181,10 +181,10 @@ sclass_4_mapping = {
     "INCLUSION": "Financial & Digital Inclusion",
     "NUTRITION": "Nutrition",
     "AFFORDABLE": "Affordable & Inclusive Housing",
-    "LOWCARBON": "Low-Carbon Energy, Power, and Non-Green Hydrogen",
+    "LOWCARBON": "Low-Carbon Energy",
     "PIVOTTRANSPORT": "Pivoting Transportation",
     "MATERIALS": "Materials in Transition",
-    "CARBONACCOUNT": "Carbon Accounting, Removal, & Green Finance",
+    "CARBONACCOUNT": "Carbon Accounting & Green Finance",
     "AGRIFORESTRY": "Improving Agriculture & Forestry",
     "REALASSETS": "Transitioning Real Assets & Infrastructure",
 }
