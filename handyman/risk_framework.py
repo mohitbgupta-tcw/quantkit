@@ -584,7 +584,7 @@ def print_esg_characteristics_pdf(
     """
     df = snowflake_utils.load_from_snowflake(
         database="SANDBOX_ESG",
-        schema="TIM_SCHEMA",
+        schema="ESG_SCORES_THEMES",
         table_name="Sustainability_Framework_Detailed",
         local_configs=local_configs,
     )

@@ -150,7 +150,7 @@ class Runner(loader.Runner):
         if self.params["sustainable_universe"]:
             df = snowflake_utils.load_from_snowflake(
                 database="SANDBOX_ESG",
-                schema="TIM_SCHEMA",
+                schema="ESG_SCORES_THEMES",
                 table_name="Sustainability_Framework_Detailed",
                 local_configs=self.local_configs,
             )
