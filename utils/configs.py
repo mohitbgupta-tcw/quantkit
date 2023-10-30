@@ -1,5 +1,7 @@
 import json
 import os
+import datetime
+from pandas.tseries.offsets import BDay
 import quantkit.utils.util_functions as util_functions
 
 
@@ -27,5 +29,11 @@ def read_configs(local_configs: str = "") -> dict:
             configs_local = json.load(f_in)
 
         configs = util_functions.replace_dictionary(configs_local, configs)
+
+    if not "as_of_date" in configs:
+        today = datetime.datetime.today()
+        last_bday = today - BDay(1)
+        as_of_date = last_bday.strftime("%m/%d/%Y")
+        configs["as_of_date"] = as_of_date
 
     return configs
