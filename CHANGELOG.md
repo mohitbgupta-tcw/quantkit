@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change Theme long labels
 - Change Schema for detailed df
 - Use Securitized Mapping Table for collat types instead of hard coded lists
+- set default date to last business day, make overwriteable in configs file
 ### Removed
 
 ## [1.3.1] - 2023-10-10
