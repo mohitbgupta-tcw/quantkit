@@ -34,6 +34,10 @@ class SecuritizedDataSource(ds.DataSources):
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.securitized_mapping = dict()
+        self.green = list()
+        self.social = list()
+        self.sustainable = list()
+        self.clo = list()
 
     def load(self) -> None:
         """
@@ -59,8 +63,18 @@ class SecuritizedDataSource(ds.DataSources):
         Iterate over securitized mapping and add to dictionary
         """
         for index, row in self.df.iterrows():
+            label = row["G/S/S"]
             collat_type = row["ESG Collat Type"]
             self.securitized_mapping[collat_type] = row.to_dict()
+
+            if label == "Green":
+                self.green.append(collat_type)
+            elif label == "Social":
+                self.social.append(collat_type)
+            elif label == "Sustainable":
+                self.sustainable.append(collat_type)
+            elif label == "CLO":
+                self.clo.append(collat_type)
 
     @property
     def df(self) -> pd.DataFrame:

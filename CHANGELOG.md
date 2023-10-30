@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change Snowflake schema from _DEV to _QA
 - Change Theme long labels
 - Change Schema for detailed df
+- Use Securitized Mapping Table for collat types instead of hard coded lists
 ### Removed
 
 ## [1.3.1] - 2023-10-10
