@@ -307,7 +307,7 @@ class PortfolioDataSource(ds.DataSources):
                             END
                         )
                     END
-                )*100  AS "Portfolio_Weight",
+                )  AS "Portfolio_Weight",
                 bench.market_value AS "Base Mkt Val",
                 null AS "OAS",
                 (
