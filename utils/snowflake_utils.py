@@ -111,7 +111,7 @@ def overwrite_history(
     df_history = load_from_snowflake(
         database="SANDBOX_ESG",
         schema="ESG_SCORES_THEMES",
-        table_name="Sustainability_Framework_Detailed_History",
+        table_name="Sustainability_Framework_Detailed_History_Monthly",
         local_configs=local_configs,
     )
     df_history = pd.concat([df_history, df_new])
@@ -124,7 +124,7 @@ def overwrite_history(
         df_history,
         database="SANDBOX_ESG",
         schema="ESG_SCORES_THEMES",
-        table_name="Sustainability_Framework_Detailed_History",
+        table_name="Sustainability_Framework_Detailed_History_Monthly",
         local_configs=local_configs,
     )
 
