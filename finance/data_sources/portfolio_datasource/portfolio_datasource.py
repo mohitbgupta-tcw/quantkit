@@ -197,6 +197,7 @@ class PortfolioDataSource(ds.DataSources):
                 ON pos.portfolio_key = strat.portfolio_key 
                 AND pos.as_of_date = strat.as_of_date 
                 AND strat.is_active = 1
+                AND strat.portfolio_type_1 IN ('Trading', 'Reporting')
             WHERE pos.as_of_date = '{as_of_date}'
             {and_clause}
             UNION

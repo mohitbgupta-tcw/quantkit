@@ -63,6 +63,14 @@
             "US5899295P94": {
                 "Sector Level 1": "Securitized", 
                 "Sector Level 2": "Residential MBS"
+            },
+            "USP93077AC28": {
+                "Sector Level 1": "Corporate", 
+                "Sector Level 2": "Utility"
+            },
+            "US742651DX72": {
+                "Sector Level 1": "Government Related", 
+                "Sector Level 2": "Quasi Sovereign"
             }
         }
     },

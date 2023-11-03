@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Snowflake util function to update daily DataFrame
+- Run Framework on all portfolios
 ### Fixed
 ### Changed
 ### Removed

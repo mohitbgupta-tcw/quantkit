@@ -111,15 +111,62 @@ def overwrite_history(
     df_history = load_from_snowflake(
         database="SANDBOX_ESG",
         schema="ESG_SCORES_THEMES",
-        table_name="Sustainability_Framework_Detailed_history",
+        table_name="Sustainability_Framework_Detailed_History",
         local_configs=local_configs,
     )
     df_history = pd.concat([df_history, df_new])
+    df_history = df_history.sort_values(
+        ["As Of Date", "Portfolio ISIN", "Portfolio Weight"],
+        ascending=[True, True, False],
+    )
 
     write_to_snowflake(
         df_history,
         database="SANDBOX_ESG",
         schema="ESG_SCORES_THEMES",
-        table_name="Sustainability_Framework_Detailed_history",
+        table_name="Sustainability_Framework_Detailed_History",
+        local_configs=local_configs,
+    )
+
+
+def overwrite_daily(
+    local_configs: str = "",
+) -> None:
+    """
+    Overwrite the daily history DataFrame in Snowflake by appending newest data
+    keep track of the last 60 trading days
+
+    Parameters
+    ----------
+    local_configs: str, optional
+        path to a local configarations file
+    """
+    df_new = load_from_snowflake(
+        database="SANDBOX_ESG",
+        schema="ESG_SCORES_THEMES",
+        table_name="Sustainability_Framework_Detailed",
+        local_configs=local_configs,
+    )
+    df_history = load_from_snowflake(
+        database="SANDBOX_ESG",
+        schema="ESG_SCORES_THEMES",
+        table_name="Sustainability_Framework_Detailed_History_Daily",
+        local_configs=local_configs,
+    )
+    df_history = pd.concat([df_history, df_new])
+    dates = sorted(list(df_history["As Of Date"].unique()), reverse=True)
+    dates = dates[:60]
+
+    df_history = df_history[df_history["As Of Date"].isin(dates)]
+    df_history = df_history.sort_values(
+        ["As Of Date", "Portfolio ISIN", "Portfolio Weight"],
+        ascending=[True, True, False],
+    )
+
+    write_to_snowflake(
+        df_history,
+        database="SANDBOX_ESG",
+        schema="ESG_SCORES_THEMES",
+        table_name="Sustainability_Framework_Detailed_History_Daily",
         local_configs=local_configs,
     )
