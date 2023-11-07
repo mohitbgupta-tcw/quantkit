@@ -61,11 +61,13 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         "Issuer_Country"
                     ].information["Country"],
                     "Portfolio Weight": h["Portfolio_Weight"],
+                    "Base Mkt Valt": h["Base Mkt Val"],
                     "OAS": h["OAS"],
                     "CARBON_EMISSIONS_SCOPE_12_INTEN": comp_store.msci_information[
                         "CARBON_EMISSIONS_SCOPE_12_INTEN"
                     ],
                     "Labeled ESG Type": sec_store.information["Labeled ESG Type"],
+                    "TCW ESG": sec_store.information["TCW ESG"],
                     "Sector Level 2": sec_store.information["Sector Level 2"],
                     "ESG Collateral Type": sec_store.information["ESG Collateral Type"][
                         "ESG Collat Type"

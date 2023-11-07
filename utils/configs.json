@@ -316,9 +316,10 @@
         "load": true
     },
     "adjustment_datasource": {
-        "source": 1,
-        "file": "C:/Users/bastit/Documents/Risk_Score/Input/Themes.xlsx",
-        "sheet_name": "Analyst Adjustment",
+        "source": 3,
+        "table_name": "ADJUSTMENTS",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
         "load": true
     },
     "securitized_datasource": {
