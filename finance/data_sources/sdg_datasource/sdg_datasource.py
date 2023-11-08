@@ -99,7 +99,7 @@ class SDGDataSource(ds.DataSources):
                 AND date_table_sdgaimpact.max_load_date = sdgaimpact.last_as_of_date
         )
 
-        SELECT DISTINCT(issuer_key), *
+        SELECT DISTINCT(issuer_key) AS iss_key, *
         FROM full_query
         ORDER BY issuer_id
         """

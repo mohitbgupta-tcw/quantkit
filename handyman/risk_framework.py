@@ -61,7 +61,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                         "Issuer_Country"
                     ].information["Country"],
                     "Portfolio Weight": h["Portfolio_Weight"],
-                    "Base Mkt Valt": h["Base Mkt Val"],
+                    "Base Mkt Val": h["Base Mkt Val"],
                     "OAS": h["OAS"],
                     "CARBON_EMISSIONS_SCOPE_12_INTEN": comp_store.msci_information[
                         "CARBON_EMISSIONS_SCOPE_12_INTEN"

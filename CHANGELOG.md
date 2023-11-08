@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Run Framework on all portfolios
 ### Fixed
 ### Changed
+- Snowflake datasource and util functions to use snowflake.connector
 ### Removed
 
 ## [1.3.2] - 2023-10-30
