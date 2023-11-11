@@ -71,6 +71,14 @@
             "US742651DX72": {
                 "Sector Level 1": "Government Related", 
                 "Sector Level 2": "Quasi Sovereign"
+            },
+            "JP3705200008": {
+                "Sector Level 1": "Corporate", 
+                "Sector Level 2": "Industrial"
+            },
+            "USP4R53VAB95": {
+                "Sector Level 1": "Corporate", 
+                "Sector Level 2": "Utility"
             }
         }
     },
