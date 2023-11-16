@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Fixed
+### Changed
+### Removed
+
+## [1.3.3] 2023-11-16
+### Added
 - Snowflake util function to update daily DataFrame
 - Run Framework on all portfolios
 - Add Local Authority to carveout list
@@ -172,6 +178,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.3.3]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.3
 [1.3.2]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.2
 [1.3.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.1
 [1.3.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.0
