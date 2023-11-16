@@ -40,6 +40,7 @@ carve_out_sectors = [
     "Oil & Gas Storage & Transportation",
     "Oil Field Services",
     "Government Owned, No Guarantee",
+    "Local Authority",
 ]
 
 portfolio_benchmark = {
@@ -151,7 +152,7 @@ portfolio_type = {
     "6757": "equity",
     "6784": "equity",
     "16719": "equity_a9",
-    "3730": "equity",
+    "3730": "em_a9",
     "714": "fixed_income",
     "16703": "equity",
     "3237": "fixed_income",
@@ -169,7 +170,7 @@ portfolio_type = {
 
 
 sclass_4_mapping = {
-    "RENEWENERGY": "Renewable Energy, Storage, and Green Hydrogen",
+    "RENEWENERGY": "Clean Energy",
     "MOBILITY": "Sustainable Mobility",
     "CIRCULARITY": "Circular Economy",
     "CCADAPT": "Climate Change Adaptation and Risk Management",
@@ -181,10 +182,10 @@ sclass_4_mapping = {
     "INCLUSION": "Financial & Digital Inclusion",
     "NUTRITION": "Nutrition",
     "AFFORDABLE": "Affordable & Inclusive Housing",
-    "LOWCARBON": "Low-Carbon Energy, Power, and Non-Green Hydrogen",
+    "LOWCARBON": "Low-Carbon Energy",
     "PIVOTTRANSPORT": "Pivoting Transportation",
     "MATERIALS": "Materials in Transition",
-    "CARBONACCOUNT": "Carbon Accounting, Removal, & Green Finance",
+    "CARBONACCOUNT": "Carbon Accounting & Green Finance",
     "AGRIFORESTRY": "Improving Agriculture & Forestry",
     "REALASSETS": "Transitioning Real Assets & Infrastructure",
 }

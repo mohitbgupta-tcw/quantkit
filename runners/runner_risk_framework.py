@@ -142,7 +142,12 @@ class Runner(loader.Runner):
             - SClass
         """
         for sec, sec_store in self.portfolio_datasource.securitized.items():
-            sec_store.calculate_securitized_score()
+            sec_store.calculate_securitized_score(
+                green=self.securitized_datasource.green,
+                social=self.securitized_datasource.social,
+                sustainable=self.securitized_datasource.sustainable,
+                clo=self.securitized_datasource.clo,
+            )
             sec_store.iter_analyst_adjustment(self.theme_datasource.themes)
             sec_store.calculate_risk_overall_score()
             sec_store.update_sclass()

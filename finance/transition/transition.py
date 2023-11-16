@@ -9,7 +9,7 @@ def OilandGas(
     capex: float,
     climate_rev: float,
     biofuel_rev: float,
-    **kwargs
+    **kwargs,
 ) -> bool:
     """
     Check Transition target for oil and gas companies
@@ -98,7 +98,7 @@ def IndGases(
     sbti_approved_target: int,
     climate_rev: float,
     company_name: str,
-    **kwargs
+    **kwargs,
 ) -> bool:
     """
     Check Transition target for industrial gases companies
@@ -144,7 +144,7 @@ def Utilities(
     sbti_approved_target: int,
     capex: float,
     climate_rev: float,
-    **kwargs
+    **kwargs,
 ) -> bool:
     """
     Check Transition target for utilities companies
@@ -239,7 +239,7 @@ def Target_AAC(
     reduction_target: str,
     sbti_approved_target: int,
     sbti_commited_target: int,
-    **kwargs
+    **kwargs,
 ) -> bool:
     """
     Check Transition target for Target AAC companies
@@ -272,7 +272,7 @@ def Target_AACN(
     reduction_target: str,
     sbti_approved_target: int,
     sbti_commited_target: int,
-    **kwargs
+    **kwargs,
 ) -> bool:
     """
     Check Transition target for Target AACN companies
@@ -305,7 +305,7 @@ def Target_AC(
     reduction_target: str,
     sbti_approved_target: int,
     sbti_commited_target: int,
-    **kwargs
+    **kwargs,
 ) -> bool:
     """
     Check Transition target for Target AC companies

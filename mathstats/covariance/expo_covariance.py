@@ -57,7 +57,7 @@ class ExponentialWeightedCovariance(simple_covariance.Covariance):
                 new_vector=vector_calc,
                 batch_weight=(1 - batch_weight),
                 adjustment=batch_weight,
-                **kwargs
+                **kwargs,
             )
 
     @property

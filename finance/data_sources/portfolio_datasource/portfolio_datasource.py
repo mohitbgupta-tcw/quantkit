@@ -89,24 +89,27 @@ class PortfolioDataSource(ds.DataSources):
 
     def load(
         self,
-        as_of_date: str,
-        pfs: list,
+        start_date: str,
+        end_date: str,
         equity_benchmark: list,
         fixed_income_benchmark: list,
+        pfs: list = [],
     ) -> None:
         """
         load data and transform dataframe
 
         Parameters
         ----------
-        as_of_date: str,
-            date to pull from API
-        pfs: list
-            list of all portfolios to pull from API
+        start_date: str,
+            start date to pull from API
+        end_date: str,
+            end date to pull from API
         equity_benchmark: list
             list of all equity benchmarks to pull from API
         fixed_income_benchmark: list
             list of all equity benchmarks to pull from API
+        pfs: list, optional
+            list of all portfolios to pull from API
         """
         logging.log("Loading Portfolio Data")
 
@@ -119,6 +122,8 @@ class PortfolioDataSource(ds.DataSources):
         e_benchmark = (
             ", ".join(f"'{b}'" for b in equity_benchmark) if equity_benchmark else "''"
         )
+
+        and_clause = f"""AND pos.portfolio_number in ({pf})""" if pfs else ""
 
         query = f"""
         SELECT *
@@ -181,31 +186,29 @@ class PortfolioDataSource(ds.DataSources):
                 null AS "OAS",
                 (
                     SELECT MAX(ISIN) 
-                    FROM tcw_core_dev.esg_iss.dim_issuer_iss iss 
+                    FROM tcw_core_qa.esg_iss.dim_issuer_iss iss 
                     WHERE iss.issuer_id = sec.issuer_id_iss
                 ) AS "Issuer ISIN"
-            FROM tcw_core_dev.tcw.position_vw pos
-            LEFT JOIN tcw_core_dev.tcw.security_vw sec 
+            FROM tcw_core_qa.tcw.position_vw pos
+            LEFT JOIN tcw_core_qa.tcw.security_vw sec 
                 ON pos.security_key = sec.security_key
                 AND pos.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_dev.reference.report_sectors_map_vw rs 
+            LEFT JOIN tcw_core_qa.reference.report_sectors_map_vw rs 
                 ON sec.sector_key_tclass = rs.sector_key 
                 AND rs.report_scheme = '7. ESG - Primary Summary'
-            WHERE pos.as_of_date = '{as_of_date}'
-            AND pos.portfolio_number in (
-                {pf}
-            )
-            AND pos.source_system = 'SMS' -- temp fix
+            JOIN tcw_core_qa.tcw.portfolio_vw strat 
+                ON pos.portfolio_key = strat.portfolio_key 
+                AND pos.as_of_date = strat.as_of_date 
+                AND strat.is_active = 1
+                AND strat.portfolio_type_1 IN ('Trading', 'Reporting')
+            WHERE pos.as_of_date >= '{start_date}'
+            AND pos.as_of_date <= '{end_date}'
+            {and_clause}
             UNION
             --Benchmark Holdings
             SELECT  
                 bench.as_of_date AS "As Of Date",
                 CASE 
-                    WHEN bench.benchmark_name IN (
-                        'JPM CEMBI BROAD DIVERSE',
-                        'JPM EMBI GLOBAL DIVERSIFI'
-                    ) 
-                    THEN 'JPM EM Custom Index (50/50)'
                     WHEN bench.benchmark_name IN (
                         'S & P 500 INDEX'
                     ) 
@@ -217,11 +220,6 @@ class PortfolioDataSource(ds.DataSources):
                     ELSE bench.benchmark_name 
                 END AS "Portfolio",
                 CASE 
-                    WHEN bench.benchmark_name IN (
-                        'JPM CEMBI BROAD DIVERSE',
-                        'JPM EMBI GLOBAL DIVERSIFI'
-                    ) 
-                    THEN 'JPM EM Custom Index (50/50)' 
                     WHEN bench.benchmark_name IN (
                         'S & P 500 INDEX'
                     ) 
@@ -281,45 +279,28 @@ class PortfolioDataSource(ds.DataSources):
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
                 sec.issuer_id_bbg AS "BBG ISSUERID",
-                (
-                    CASE 
-                        WHEN bench.benchmark_name IN (
-                            'JPM CEMBI BROAD DIVERSE',
-                            'JPM EMBI GLOBAL DIVERSIFI'
-                        ) 
-                        THEN (
-                            CASE 
-                                WHEN bench.market_value_percentage IS null 
-                                THEN bench.market_value / SUM(bench.market_value) 
-                                    OVER(partition BY bench.benchmark_name) 
-                                ELSE  bench.market_value_percentage 
-                            END
-                        )*0.5 
-                        ELSE (
-                            CASE 
-                                WHEN bench.market_value_percentage IS null 
-                                THEN bench.market_value / SUM(bench.market_value)
-                                    OVER(partition BY bench.benchmark_name) 
-                                ELSE bench.MARKET_VALUE_PERCENTAGE 
-                            END
-                        )
-                    END
-                )*100  AS "Portfolio_Weight",
+                CASE 
+                    WHEN bench.market_value_percentage IS null 
+                    THEN bench.market_value / SUM(bench.market_value)
+                        OVER(partition BY bench.benchmark_name) 
+                    ELSE bench.MARKET_VALUE_PERCENTAGE 
+                END AS "Portfolio_Weight",
                 bench.market_value AS "Base Mkt Val",
                 null AS "OAS",
                 (
                     SELECT MAX(ISIN) 
-                    FROM tcw_core_dev.esg_iss.dim_issuer_iss iss 
+                    FROM tcw_core_qa.esg_iss.dim_issuer_iss iss 
                     WHERE iss.issuer_id = sec.issuer_id_iss
                 ) AS "Issuer ISIN"
-            FROM tcw_core_dev.benchmark.benchmark_position_vw bench
-            LEFT JOIN tcw_core_dev.tcw.security_vw sec 
+            FROM tcw_core_qa.benchmark.benchmark_position_vw bench
+            LEFT JOIN tcw_core_qa.tcw.security_vw sec 
                 ON bench.security_key = sec.security_key
                 AND bench.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_dev.reference.report_sectors_map_vw rs 
+            LEFT JOIN tcw_core_qa.reference.report_sectors_map_vw rs 
                 ON bench.core_sector_key = rs.sector_key 
                 AND rs.report_scheme = '7. ESG - Primary Summary'
-            WHERE bench.as_of_date = '{as_of_date}'
+            WHERE bench.as_of_date >= '{start_date}'
+            AND bench.as_of_date <= '{end_date}'
             AND (
                 universe_type_code = 'STATS' 
                 AND benchmark_name IN (
@@ -330,7 +311,7 @@ class PortfolioDataSource(ds.DataSources):
                 )
             )
         ) 
-        ORDER BY "Portfolio" ASC
+        ORDER BY "Portfolio" ASC, "As Of Date" ASC, "Portfolio_Weight" DESC
         """
         self.datasource.load(query=query)
         self.transform_df()
@@ -344,6 +325,15 @@ class PortfolioDataSource(ds.DataSources):
         - replace NA's of MSCI ISSUERID by running MSCI API
         - reaplace transformation values
         """
+        df_em = self.datasource.df[
+            self.datasource.df["Portfolio"].isin(
+                ["JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI"]
+            )
+        ]
+        df_em["Portfolio"] = df_em["Portfolio Name"] = "JPM EM Custom Index (50/50)"
+        df_em["Portfolio_Weight"] = df_em["Portfolio_Weight"] * 0.5
+        self.datasource.df = pd.concat([self.datasource.df, df_em])
+
         self.datasource.df.replace("N/A", np.nan, inplace=True)
         self.datasource.df = self.datasource.df.fillna(value=np.nan)
 
@@ -377,9 +367,6 @@ class PortfolioDataSource(ds.DataSources):
                 self.datasource.df["ISIN"].map(replace_df)
             )
 
-        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
-            "BCLASS_Level4"
-        ].str.title()
         self.datasource.df["BCLASS_Level2"] = self.datasource.df[
             "BCLASS_Level2"
         ].fillna("Unassigned BCLASS")
@@ -389,6 +376,9 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["BCLASS_Level4"] = self.datasource.df[
             "BCLASS_Level4"
         ].fillna("Unassigned BCLASS")
+        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
+            "BCLASS_Level4"
+        ].str.title()
 
         sec_isins = list(
             self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]
@@ -407,6 +397,13 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["MSCI ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["ISS ISSUERID"].fillna("NoISSUERID", inplace=True)
+
+        self.datasource.df["Portfolio_Weight"] = self.datasource.df[
+            "Portfolio_Weight"
+        ].astype(float)
+        self.datasource.df["Base Mkt Val"] = self.datasource.df["Base Mkt Val"].astype(
+            float
+        )
 
         if self.params.get("transformation"):
             for sec, trans in self.params["transformation"].items():
@@ -507,16 +504,18 @@ class PortfolioDataSource(ds.DataSources):
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
             ].to_dict()
-            self.portfolios[pf].holdings[isin] = self.portfolios[pf].holdings.get(
-                isin,
-                {
+            if isin in self.portfolios[pf].holdings:
+                self.portfolios[pf].holdings[isin]["holding_measures"][
+                    "Portfolio_Weight"
+                ] += holding_measures["Portfolio_Weight"]
+                self.portfolios[pf].holdings[isin]["holding_measures"][
+                    "Base Mkt Val"
+                ] += holding_measures["Base Mkt Val"]
+            else:
+                self.portfolios[pf].holdings[isin] = {
                     "object": security_store,
-                    "holding_measures": [],
-                },
-            )
-            self.portfolios[pf].holdings[isin]["holding_measures"].append(
-                holding_measures
-            )
+                    "holding_measures": holding_measures,
+                }
 
             # attach portfolio to security
             security_store.portfolio_store[pf] = self.portfolios[pf]

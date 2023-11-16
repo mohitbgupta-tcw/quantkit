@@ -1,4 +1,4 @@
-from snowflake.snowpark.session import Session
+import snowflake.connector
 import pandas as pd
 
 
@@ -34,7 +34,7 @@ class Snowflake(object):
         schema: str,
         account: str = "tcw",
         host: str = "tcw.west-us-2.azure.snowflakecomputing.com",
-        **kwargs
+        **kwargs,
     ) -> None:
         self.account = account
         self.user = user
@@ -62,6 +62,6 @@ class Snowflake(object):
         query: str
             SQL query for data
         """
-        session = Session.builder.configs(self.connection_parameters).create()
-        df_table = session.sql(query)
-        self.df = pd.DataFrame(df_table.collect())
+        conn = snowflake.connector.connect(**self.connection_parameters)
+        cur = conn.cursor()
+        self.df = cur.execute(query).fetch_pandas_all()

@@ -198,7 +198,8 @@ class Runner(object):
         - create portfolio objects
         """
         self.portfolio_datasource.load(
-            as_of_date=self.params["as_of_date"],
+            start_date=self.params["as_of_date"],
+            end_date=self.params["as_of_date"],
             pfs=self.params["portfolios"],
             equity_benchmark=self.params["equity_benchmark"],
             fixed_income_benchmark=self.params["fixed_income_benchmark"],
@@ -274,7 +275,9 @@ class Runner(object):
         - if company doesn't have data, attach all nan's
         """
         # load SDG data
-        self.sdg_datasource.load()
+        self.sdg_datasource.load(
+            as_of_date=self.params["as_of_date"],
+        )
         self.sdg_datasource.iter()
 
     def iter_bloomberg(self) -> None:

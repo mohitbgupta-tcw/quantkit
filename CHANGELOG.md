@@ -11,6 +11,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 ### Removed
 
+## [1.3.3] 2023-11-16
+### Added
+- Snowflake util function to update daily DataFrame
+- Run Framework on all portfolios
+- Add Local Authority to carveout list
+### Fixed
+### Changed
+- Snowflake datasource and util functions to use snowflake.connector
+- add up weight and base mkt value for same security in portfolio instead of duplicating security
+- add start date and end date to portfolio datasource load
+
+### Removed
+
+## [1.3.2] - 2023-10-30
+### Added
+### Fixed
+### Changed
+- Change Snowflake schema from _DEV to _QA
+- Change Theme long labels
+- Change Schema for detailed df
+- Use Securitized Mapping Table for collat types instead of hard coded lists
+- set default date to last business day, make overwriteable in configs file
+### Removed
+
+## [1.3.1] - 2023-10-10
+### Added
+- handyman function to save PAI raw datapoints
+### Fixed
+- bug in snowflake utils
+### Changed
+- SDG datasource to use Snowflake data instead of Excel file
+### Removed
+
 ## [1.3.0] - 2023-10-06
 ### Added
 ### Fixed
@@ -145,6 +178,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.3.3]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.3
+[1.3.2]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.2
+[1.3.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.1
 [1.3.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.0
 [1.2.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.1
 [1.2.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.2.0

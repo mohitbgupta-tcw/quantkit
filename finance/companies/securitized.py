@@ -18,32 +18,23 @@ class SecuritizedStore(headstore.HeadStore):
         super().__init__(isin, row_data, **kwargs)
         self.type = "securitized"
 
-    def calculate_securitized_score(self) -> None:
+    def calculate_securitized_score(
+        self, green: list, social: list, sustainable: list, clo: list
+    ) -> None:
         """
         Calculation of Securitized Score (on security level)
+
+        Parameters
+        ----------
+        green: list
+            list of esg collat types considered green
+        social: list
+            list of esg collat types considered social
+        sustainable: list
+            list of esg collat types considered sustainable
+        clo: list
+            list of esg collat types considered clo
         """
-        collat_type_1 = [
-            "LEED Platinum",
-            "LEED Gold",
-            "LEED Silver",
-            "LEED Certified",
-            "LEED (Multi Property)",
-            "BREEAM Very Good",
-        ]
-        collat_type_2 = [
-            "TCW Criteria",
-            "Small Business Loan",
-            "FFELP Student Loan",
-            "Affordable Manufactured Housing",
-            "Re-Performing Loans",
-            "Sustainable Agency Multifamily",
-        ]
-        collat_type_3 = [
-            "Low WACI (Q1) Only",
-            "Exclusionary Language, 2-4",
-            "Exclusionary Language, 5-9",
-            "Exclusionary Language, 10+",
-        ]
         for sec, sec_store in self.securities.items():
             if (
                 not pd.isna(sec_store.information["Labeled ESG Type"])
@@ -57,10 +48,7 @@ class SecuritizedStore(headstore.HeadStore):
             elif " TBA " in sec_store.information["Security_Name"]:
                 sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
-            elif (
-                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
-                in collat_type_3
-            ):
+            elif sec_store.information["ESG Collateral Type"]["ESG Collat Type"] in clo:
                 sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif (
@@ -70,8 +58,7 @@ class SecuritizedStore(headstore.HeadStore):
                 sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
             elif (
-                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
-                in collat_type_1
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"] in green
                 and sec_store.information["Labeled ESG Type"] != "Labeled Green"
                 and sec_store.information["TCW ESG"] == "TCW Green"
             ):
@@ -79,9 +66,18 @@ class SecuritizedStore(headstore.HeadStore):
                 sec_store.scores["Securitized_Score"] = 2
             elif (
                 sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
-                in collat_type_2
+                in social
                 and sec_store.information["Labeled ESG Type"] != "Labeled Social"
                 and sec_store.information["TCW ESG"] == "TCW Social"
+                and not "TBA " in sec_store.information["Security_Name"]
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
+                sec_store.scores["Securitized_Score"] = 2
+            elif (
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
+                in sustainable
+                and sec_store.information["Labeled ESG Type"] != "Labeled Sustainable"
+                and sec_store.information["TCW ESG"] == "TCW Sustainable"
                 and not "TBA " in sec_store.information["Security_Name"]
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 2

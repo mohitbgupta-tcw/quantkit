@@ -1,7 +1,8 @@
-import quantkit.data_sources.snowflake as snowflake
+import quantkit.data_sources.snowflake as snowflake_ds
 import quantkit.utils.configs as configs
 import pandas as pd
-from snowflake.snowpark.session import Session
+import snowflake.connector
+from snowflake.connector.pandas_tools import write_pandas
 
 
 def load_from_snowflake(
@@ -35,7 +36,7 @@ def load_from_snowflake(
 
     params = configs.read_configs(local_configs=local_configs)
     snowflake_params = params["API_settings"]["snowflake_parameters"]
-    sf = snowflake.Snowflake(schema=schema, database=database, **snowflake_params)
+    sf = snowflake_ds.Snowflake(schema=schema, database=database, **snowflake_params)
 
     if not query:
         from_table = f"""{database}.{schema}."{table_name}" """
@@ -54,9 +55,10 @@ def write_to_snowflake(
     schema: str,
     table_name: str,
     local_configs: str = "",
+    overwrite: bool = True,
 ) -> None:
     """
-    Write DataFrame to Snowflake
+    (Over)Write DataFrame to Snowflake
 
     Parameters
     ----------
@@ -70,6 +72,8 @@ def write_to_snowflake(
         Snowflake table
     local_configs: str, optional
         path to a local configarations file
+    overwrite: bool, optional
+        overwrite table, if true overwrite, if false append
     """
 
     params = configs.read_configs(local_configs=local_configs)
@@ -84,39 +88,56 @@ def write_to_snowflake(
         "database": database,
         "schema": schema,
     }
-
-    session = Session.builder.configs(connection_parameters).create()
-    session.write_pandas(
-        df, table_name=table_name, auto_create_table=True, overwrite=True
+    conn = snowflake.connector.connect(**connection_parameters)
+    success, nchunks, nrows, _ = write_pandas(
+        conn, df, table_name, auto_create_table=True, overwrite=overwrite
     )
 
 
-def overwrite_history(
+def append_to_monthly_history(
+    df: pd.DataFrame,
     local_configs: str = "",
 ) -> None:
     """
-    Overwrite the history DataFrame in Snowflake by appending newest data
+    Overwrite the monthly history DataFrame in Snowflake
+    by appending newest data
 
     Parameters
     ----------
+    df: pd.DataFrame
+        Month-End DataFrame
     local_configs: str, optional
         path to a local configarations file
     """
-    df_new = load_from_snowflake(
-        schema="TIM_SCHEMA",
-        table_name="Sustainability_Framework_Detailed",
-        local_configs=local_configs,
-    )
-    df_history = load_from_snowflake(
-        schema="TIM_SCHEMA",
-        table_name="Sustainability_Framework_Detailed_history",
-        local_configs=local_configs,
-    )
-    df_history = pd.concat([df_history, df_new])
-
     write_to_snowflake(
-        df_history,
-        schema="TIM_SCHEMA",
-        table_name="Sustainability_Framework_Detailed_history",
+        df,
+        database="SANDBOX_ESG",
+        schema="ESG_SCORES_THEMES",
+        table_name="Sustainability_Framework_Detailed_History_Monthly",
         local_configs=local_configs,
+        overwrite=False,
+    )
+
+
+def append_to_daily_history(
+    df: pd.DataFrame,
+    local_configs: str = "",
+) -> None:
+    """
+    Overwrite the daily history DataFrame in Snowflake by appending newest data
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Day-End DataFrame
+    local_configs: str, optional
+        path to a local configarations file
+    """
+    write_to_snowflake(
+        df,
+        database="SANDBOX_ESG",
+        schema="ESG_SCORES_THEMES",
+        table_name="Sustainability_Framework_Detailed_History_Daily",
+        local_configs=local_configs,
+        overwrite=False,
     )

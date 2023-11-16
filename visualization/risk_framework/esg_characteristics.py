@@ -1348,7 +1348,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Labeled Bonds by Country ",
-                        html.A("(% labeled Bonds)", className="mv"),
+                        html.A("(% Labeled Bonds)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
@@ -1380,7 +1380,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Labeled Bonds by Sector ",
-                        html.A("(% labeled Bonds)", className="mv"),
+                        html.A("(% Labeled Bonds)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
@@ -1508,7 +1508,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Labeled Bond Detail by Industry ",
-                        html.A("(% labeled Bonds)", className="mv"),
+                        html.A("(% Labeled Bonds)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
@@ -1540,7 +1540,7 @@ class ESGCharacteristics(visualizor.PDFCreator):
                 html.H6(
                     [
                         "Labeled Bond Detail by Industry ",
-                        html.A("(% labeled Bonds)", className="mv"),
+                        html.A("(% Labeled Bonds)", className="mv"),
                     ],
                     className="subtitle padded",
                 ),
