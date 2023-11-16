@@ -4,7 +4,8 @@ import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource a
 
 
 def historical_portfolio_holdings(
-    as_of_date: str,
+    start_date: str,
+    end_date: str,
     portfolios: list = None,
     equity_benchmark: list = None,
     fixed_income_benchmark: list = None,
@@ -35,22 +36,16 @@ def historical_portfolio_holdings(
         Portfolio Holdings
     """
     params = configs.read_configs(local_configs=local_configs)
-    params["as_of_date"] = as_of_date
-    if portfolios:
-        params["portfolios"] = portfolios
-    if equity_benchmark:
-        params["equity_benchmark"] = equity_benchmark
-    if fixed_income_benchmark:
-        params["fixed_income_benchmark"] = fixed_income_benchmark
 
     api_settings = params["API_settings"]
     pd = portfolio_datasource.PortfolioDataSource(
         params=params["portfolio_datasource"], api_settings=api_settings
     )
     pd.load(
-        as_of_date=params["as_of_date"],
-        pfs=params["portfolios"],
-        equity_benchmark=params["equity_benchmark"],
-        fixed_income_benchmark=params["fixed_income_benchmark"],
+        start_date=start_date,
+        end_date=end_date,
+        pfs=portfolios,
+        equity_benchmark=equity_benchmark,
+        fixed_income_benchmark=fixed_income_benchmark,
     )
     return pd.df

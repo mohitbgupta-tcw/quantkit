@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Snowflake datasource and util functions to use snowflake.connector
 - add up weight and base mkt value for same security in portfolio instead of duplicating security
+- add start date and end date to portfolio datasource load
+
 ### Removed
 
 ## [1.3.2] - 2023-10-30

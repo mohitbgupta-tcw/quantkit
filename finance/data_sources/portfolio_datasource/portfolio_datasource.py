@@ -89,7 +89,8 @@ class PortfolioDataSource(ds.DataSources):
 
     def load(
         self,
-        as_of_date: str,
+        start_date: str,
+        end_date: str,
         equity_benchmark: list,
         fixed_income_benchmark: list,
         pfs: list = [],
@@ -99,8 +100,10 @@ class PortfolioDataSource(ds.DataSources):
 
         Parameters
         ----------
-        as_of_date: str,
-            date to pull from API
+        start_date: str,
+            start date to pull from API
+        end_date: str,
+            end date to pull from API
         equity_benchmark: list
             list of all equity benchmarks to pull from API
         fixed_income_benchmark: list
@@ -198,7 +201,8 @@ class PortfolioDataSource(ds.DataSources):
                 AND pos.as_of_date = strat.as_of_date 
                 AND strat.is_active = 1
                 AND strat.portfolio_type_1 IN ('Trading', 'Reporting')
-            WHERE pos.as_of_date = '{as_of_date}'
+            WHERE pos.as_of_date >= '{start_date}'
+            AND pos.as_of_date <= '{end_date}'
             {and_clause}
             UNION
             --Benchmark Holdings
@@ -295,7 +299,8 @@ class PortfolioDataSource(ds.DataSources):
             LEFT JOIN tcw_core_qa.reference.report_sectors_map_vw rs 
                 ON bench.core_sector_key = rs.sector_key 
                 AND rs.report_scheme = '7. ESG - Primary Summary'
-            WHERE bench.as_of_date = '{as_of_date}'
+            WHERE bench.as_of_date >= '{start_date}'
+            AND bench.as_of_date <= '{end_date}'
             AND (
                 universe_type_code = 'STATS' 
                 AND benchmark_name IN (
@@ -306,7 +311,7 @@ class PortfolioDataSource(ds.DataSources):
                 )
             )
         ) 
-        ORDER BY "Portfolio" ASC
+        ORDER BY "Portfolio" ASC, "As Of Date" ASC, "Portfolio_Weight" DESC
         """
         self.datasource.load(query=query)
         self.transform_df()
@@ -362,9 +367,6 @@ class PortfolioDataSource(ds.DataSources):
                 self.datasource.df["ISIN"].map(replace_df)
             )
 
-        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
-            "BCLASS_Level4"
-        ].str.title()
         self.datasource.df["BCLASS_Level2"] = self.datasource.df[
             "BCLASS_Level2"
         ].fillna("Unassigned BCLASS")
@@ -374,6 +376,9 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["BCLASS_Level4"] = self.datasource.df[
             "BCLASS_Level4"
         ].fillna("Unassigned BCLASS")
+        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
+            "BCLASS_Level4"
+        ].str.title()
 
         sec_isins = list(
             self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]
