@@ -40,6 +40,7 @@ carve_out_sectors = [
     "Oil & Gas Storage & Transportation",
     "Oil Field Services",
     "Government Owned, No Guarantee",
+    "Local Authority",
 ]
 
 portfolio_benchmark = {
@@ -151,7 +152,7 @@ portfolio_type = {
     "6757": "equity",
     "6784": "equity",
     "16719": "equity_a9",
-    "3730": "equity",
+    "3730": "em_a9",
     "714": "fixed_income",
     "16703": "equity",
     "3237": "fixed_income",

@@ -206,11 +206,6 @@ class PortfolioDataSource(ds.DataSources):
                 bench.as_of_date AS "As Of Date",
                 CASE 
                     WHEN bench.benchmark_name IN (
-                        'JPM CEMBI BROAD DIVERSE',
-                        'JPM EMBI GLOBAL DIVERSIFI'
-                    ) 
-                    THEN 'JPM EM Custom Index (50/50)'
-                    WHEN bench.benchmark_name IN (
                         'S & P 500 INDEX'
                     ) 
                     THEN 'S&P 500 INDEX'
@@ -221,11 +216,6 @@ class PortfolioDataSource(ds.DataSources):
                     ELSE bench.benchmark_name 
                 END AS "Portfolio",
                 CASE 
-                    WHEN bench.benchmark_name IN (
-                        'JPM CEMBI BROAD DIVERSE',
-                        'JPM EMBI GLOBAL DIVERSIFI'
-                    ) 
-                    THEN 'JPM EM Custom Index (50/50)' 
                     WHEN bench.benchmark_name IN (
                         'S & P 500 INDEX'
                     ) 
@@ -285,30 +275,12 @@ class PortfolioDataSource(ds.DataSources):
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
                 sec.issuer_id_bbg AS "BBG ISSUERID",
-                (
-                    CASE 
-                        WHEN bench.benchmark_name IN (
-                            'JPM CEMBI BROAD DIVERSE',
-                            'JPM EMBI GLOBAL DIVERSIFI'
-                        ) 
-                        THEN (
-                            CASE 
-                                WHEN bench.market_value_percentage IS null 
-                                THEN bench.market_value / SUM(bench.market_value) 
-                                    OVER(partition BY bench.benchmark_name) 
-                                ELSE  bench.market_value_percentage 
-                            END
-                        )*0.5 
-                        ELSE (
-                            CASE 
-                                WHEN bench.market_value_percentage IS null 
-                                THEN bench.market_value / SUM(bench.market_value)
-                                    OVER(partition BY bench.benchmark_name) 
-                                ELSE bench.MARKET_VALUE_PERCENTAGE 
-                            END
-                        )
-                    END
-                )  AS "Portfolio_Weight",
+                CASE 
+                    WHEN bench.market_value_percentage IS null 
+                    THEN bench.market_value / SUM(bench.market_value)
+                        OVER(partition BY bench.benchmark_name) 
+                    ELSE bench.MARKET_VALUE_PERCENTAGE 
+                END AS "Portfolio_Weight",
                 bench.market_value AS "Base Mkt Val",
                 null AS "OAS",
                 (
@@ -348,6 +320,15 @@ class PortfolioDataSource(ds.DataSources):
         - replace NA's of MSCI ISSUERID by running MSCI API
         - reaplace transformation values
         """
+        df_em = self.datasource.df[
+            self.datasource.df["Portfolio"].isin(
+                ["JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI"]
+            )
+        ]
+        df_em["Portfolio"] = df_em["Portfolio Name"] = "JPM EM Custom Index (50/50)"
+        df_em["Portfolio_Weight"] = df_em["Portfolio_Weight"] * 0.5
+        self.datasource.df = pd.concat([self.datasource.df, df_em])
+
         self.datasource.df.replace("N/A", np.nan, inplace=True)
         self.datasource.df = self.datasource.df.fillna(value=np.nan)
 
@@ -518,16 +499,18 @@ class PortfolioDataSource(ds.DataSources):
             holding_measures = row[
                 ["Portfolio_Weight", "Base Mkt Val", "OAS"]
             ].to_dict()
-            self.portfolios[pf].holdings[isin] = self.portfolios[pf].holdings.get(
-                isin,
-                {
+            if isin in self.portfolios[pf].holdings:
+                self.portfolios[pf].holdings[isin]["holding_measures"][
+                    "Portfolio_Weight"
+                ] += holding_measures["Portfolio_Weight"]
+                self.portfolios[pf].holdings[isin]["holding_measures"][
+                    "Base Mkt Val"
+                ] += holding_measures["Base Mkt Val"]
+            else:
+                self.portfolios[pf].holdings[isin] = {
                     "object": security_store,
-                    "holding_measures": [],
-                },
-            )
-            self.portfolios[pf].holdings[isin]["holding_measures"].append(
-                holding_measures
-            )
+                    "holding_measures": holding_measures,
+                }
 
             # attach portfolio to security
             security_store.portfolio_store[pf] = self.portfolios[pf]

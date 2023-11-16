@@ -9,9 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Snowflake util function to update daily DataFrame
 - Run Framework on all portfolios
+- Add Local Authority to carveout list
 ### Fixed
 ### Changed
 - Snowflake datasource and util functions to use snowflake.connector
+- add up weight and base mkt value for same security in portfolio instead of duplicating security
 ### Removed
 
 ## [1.3.2] - 2023-10-30

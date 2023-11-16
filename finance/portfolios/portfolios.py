@@ -75,13 +75,17 @@ class PortfolioStore(object):
         for s in self.holdings:
             t = self.holdings[s]["object"].parent_store.type
             if t == "company":
-                for h in self.holdings[s]["holding_measures"]:
-                    total_mkt_value += h["Base Mkt Val"]
-                    initial_weight += h["Portfolio_Weight"]
+                total_mkt_value += self.holdings[s]["holding_measures"]["Base Mkt Val"]
+                initial_weight += self.holdings[s]["holding_measures"][
+                    "Portfolio_Weight"
+                ]
             elif t == "sovereign":
-                for h in self.holdings[s]["holding_measures"]:
-                    total_mkt_value_sov += h["Base Mkt Val"]
-                    initial_weight_sov += h["Portfolio_Weight"]
+                total_mkt_value_sov += self.holdings[s]["holding_measures"][
+                    "Base Mkt Val"
+                ]
+                initial_weight_sov += self.holdings[s]["holding_measures"][
+                    "Portfolio_Weight"
+                ]
 
         self.total_market_value_corp = total_mkt_value / exchange_rate
         self.initial_weight_corp = initial_weight
@@ -158,23 +162,23 @@ class PortfolioStore(object):
             energy = self.holdings[s]["object"].parent_store.msci_information[
                 "ENERGY_CONSUMP_INTEN_EUR"
             ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
 
-                if (
-                    not (pd.isna(nace_code) or pd.isna(energy) or weight == 0)
-                    and t == "company"
-                    and nace_code == nace_section_code
-                ):
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "NACE_SECTION_CODE": nace_code,
-                            "ENERGY_CONSUMP_INTEN_EUR": energy,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
+            weight = self.holdings[s]["holding_measures"]["Portfolio_Weight"]
+
+            if (
+                not (pd.isna(nace_code) or pd.isna(energy) or weight == 0)
+                and t == "company"
+                and nace_code == nace_section_code
+            ):
+                total_weight += weight
+                data.append(
+                    {
+                        "ISIN": s,
+                        "NACE_SECTION_CODE": nace_code,
+                        "ENERGY_CONSUMP_INTEN_EUR": energy,
+                        "Portfolio_Weight": weight,
+                    }
+                )
 
         impact = 0
         for s in data:
@@ -257,18 +261,18 @@ class PortfolioStore(object):
             value = self.holdings[s]["object"].parent_store.msci_information[
                 "CTRY_GHG_INTEN_GDP_EUR"
             ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
 
-                if not (pd.isna(value) or weight == 0) and t == "sovereign":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "CTRY_GHG_INTEN_GDP_EUR": value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
+            weight = self.holdings[s]["holding_measures"]["Portfolio_Weight"]
+
+            if not (pd.isna(value) or weight == 0) and t == "sovereign":
+                total_weight += weight
+                data.append(
+                    {
+                        "ISIN": s,
+                        "CTRY_GHG_INTEN_GDP_EUR": value,
+                        "Portfolio_Weight": weight,
+                    }
+                )
 
         impact = 0
         for s in data:
@@ -300,22 +304,22 @@ class PortfolioStore(object):
             value2 = self.holdings[s]["object"].parent_store.msci_information[
                 "GOVERNMENT_UN_SANCTIONS"
             ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
 
-                if (
-                    not (pd.isna(value1) or pd.isna(value2) or weight == 0)
-                    and t == "sovereign"
-                ):
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "GOVERNMENT_EU_SANCTIONS": value1,
-                            "GOVERNMENT_UN_SANCTIONS": value2,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
+            weight = self.holdings[s]["holding_measures"]["Portfolio_Weight"]
+
+            if (
+                not (pd.isna(value1) or pd.isna(value2) or weight == 0)
+                and t == "sovereign"
+            ):
+                total_weight += weight
+                data.append(
+                    {
+                        "ISIN": s,
+                        "GOVERNMENT_EU_SANCTIONS": value1,
+                        "GOVERNMENT_UN_SANCTIONS": value2,
+                        "Portfolio_Weight": weight,
+                    }
+                )
 
         impact = 0
         for s in data:
@@ -390,22 +394,19 @@ class PortfolioStore(object):
             value = self.holdings[s]["object"].parent_store.msci_information[
                 impact_column
             ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
 
-                if (
-                    not (pd.isna(evic) or pd.isna(value) or weight == 0)
-                    and t == "company"
-                ):
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            "EVIC_EUR": evic,
-                            impact_column: value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
+            weight = self.holdings[s]["holding_measures"]["Portfolio_Weight"]
+
+            if not (pd.isna(evic) or pd.isna(value) or weight == 0) and t == "company":
+                total_weight += weight
+                data.append(
+                    {
+                        "ISIN": s,
+                        "EVIC_EUR": evic,
+                        impact_column: value,
+                        "Portfolio_Weight": weight,
+                    }
+                )
 
         impact = 0
         for s in data:
@@ -452,18 +453,18 @@ class PortfolioStore(object):
             value = self.holdings[s]["object"].parent_store.msci_information[
                 impact_column
             ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
 
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            impact_column: value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
+            weight = self.holdings[s]["holding_measures"]["Portfolio_Weight"]
+
+            if not (pd.isna(value) or weight == 0) and t == "company":
+                total_weight += weight
+                data.append(
+                    {
+                        "ISIN": s,
+                        impact_column: value,
+                        "Portfolio_Weight": weight,
+                    }
+                )
 
         impact = 0
         for s in data:
@@ -505,18 +506,18 @@ class PortfolioStore(object):
             value = self.holdings[s]["object"].parent_store.msci_information[
                 impact_column
             ]
-            for h in self.holdings[s]["holding_measures"]:
-                weight = h["Portfolio_Weight"]
 
-                if not (pd.isna(value) or weight == 0) and t == "company":
-                    total_weight += weight
-                    data.append(
-                        {
-                            "ISIN": s,
-                            impact_column: value,
-                            "Portfolio_Weight": weight,
-                        }
-                    )
+            weight = self.holdings[s]["holding_measures"]["Portfolio_Weight"]
+
+            if not (pd.isna(value) or weight == 0) and t == "company":
+                total_weight += weight
+                data.append(
+                    {
+                        "ISIN": s,
+                        impact_column: value,
+                        "Portfolio_Weight": weight,
+                    }
+                )
 
         impact = 0
         for s in data:
