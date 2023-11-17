@@ -50,11 +50,9 @@ class TransitionDataSource(ds.DataSources):
 
     def transform_df(self) -> None:
         """
-        - Title BCLASS (REITs -> Reits)
+        None
         """
-        self.datasource.df["BCLASS_LEVEL4"] = self.datasource.df[
-            "BCLASS_LEVEL4"
-        ].str.title()
+        pass
 
     def iter(self, gics: dict, bclass: dict) -> None:
         """
