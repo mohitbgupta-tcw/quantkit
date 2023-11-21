@@ -388,14 +388,15 @@ class PortfolioDataSource(ds.DataSources):
             .dropna()
             .unique()
         )
-        msci_d = msci_data_loader.create_msci_mapping("ISIN", sec_isins)[
-            ["Client_ID", "ISSUERID"]
-        ]
-        msci_d = dict(zip(msci_d["Client_ID"], msci_d["ISSUERID"]))
-        msci_d.pop("Cash", None)
-        self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
-            "MSCI ISSUERID"
-        ].fillna(self.datasource.df["ISIN"].map(msci_d))
+        if sec_isins:
+            msci_d = msci_data_loader.create_msci_mapping("ISIN", sec_isins)[
+                ["Client_ID", "ISSUERID"]
+            ]
+            msci_d = dict(zip(msci_d["Client_ID"], msci_d["ISSUERID"]))
+            msci_d.pop("Cash", None)
+            self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
+                "MSCI ISSUERID"
+            ].fillna(self.datasource.df["ISIN"].map(msci_d))
 
         self.datasource.df["MSCI ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)

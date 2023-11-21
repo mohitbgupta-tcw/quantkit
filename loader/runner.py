@@ -14,6 +14,7 @@ import quantkit.finance.data_sources.transition_datasource.transition_datasource
 import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as ads
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
+from copy import deepcopy
 
 
 class Runner(object):
@@ -306,7 +307,7 @@ class Runner(object):
 
         # load parent issuer data
         parent_tickers = self.ticker_parent_issuer_datasource.tickers()
-        tickers = self.portfolio_datasource.all_tickers
+        tickers = deepcopy(self.portfolio_datasource.all_tickers)
         tickers += parent_tickers
 
         # load quandl data
