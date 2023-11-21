@@ -411,8 +411,14 @@ class SecurityStore(object):
         quandl_dict_prices: dict,
     ) -> None:
         """
+        - Overwrite Parent
         - Add ESG Collateral Type
         - Attach BClass Level4 to parent
+        - Attach Sector Level 2
+        - Attach Analyst Adjustment
+        - Attach Bloomberg information
+        - Attach ISS information
+        - Attach Quandl information
 
         Parameters
         ----------

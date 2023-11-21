@@ -69,6 +69,14 @@ class QuandlDataSource(ds.DataSources):
             )
         self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
 
+        if self.params.get("duplication"):
+            for new_ticker, original_ticker in self.params["duplication"].items():
+                df_add = self.datasource.df[
+                    self.datasource.df["ticker"] == original_ticker
+                ]
+                df_add["ticker"] = new_ticker
+                self.datasource.df = pd.concat([self.datasource.df, df_add])
+
     def iter(self) -> None:
         """
         Attach bloomberg information to dict
