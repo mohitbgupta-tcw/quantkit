@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import quantkit.loader.runner as loader
 import quantkit.utils.logging as logging
 import quantkit.data_sources.snowflake as snowflake
@@ -8,7 +9,7 @@ import quantkit.asset_allocation.strategies.momentum as momentum
 import quantkit.asset_allocation.strategies.pick_all as pick_all
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.utils.snowflake_utils as snowflake_utils
-import numpy as np
+import quantkit.asset_allocation.universe.universe as universe_datasource
 
 
 class Runner(loader.Runner):
@@ -25,9 +26,6 @@ class Runner(loader.Runner):
         """
         super().init(local_configs)
 
-        # connect quandl datasource
-        self.universe = dict()
-
         self.annualize_factor = mapping_configs.annualize_factor_d.get(
             self.params["quandl_datasource_prices"]["frequency"], 252
         )
@@ -37,6 +35,11 @@ class Runner(loader.Runner):
 
         self.strategies = dict()
 
+        # connect portfolio datasource
+        self.portfolio_datasource = universe_datasource.Universe(
+            params=self.params["universe_datasource"], api_settings=self.api_settings
+        )
+
         # iterate over dataframes and create objects
         logging.log("Start Iterating")
         self.iter()
@@ -45,7 +48,7 @@ class Runner(loader.Runner):
         """
         iterate over DataFrames and create connected objects
         """
-        self.iter_portfolios()
+        self.iter_parent_issuers()
         self.create_universe()
         self.iter_msci()
         self.iter_quandl()
@@ -58,42 +61,13 @@ class Runner(loader.Runner):
         self.iter_muni()
         self.init_strategies()
 
-    def init_strategies(self) -> None:
+    def create_universe(self) -> None:
         """
-        Initialize all strategies defined in params file
-        Each strategy should have at least the following parameters:
-            - type: str
-                strategy name
-            - return_engine: str
-                return calculator
-            - risk_engine: str
-                risk calculator
-            - allocation_models: list
-                list of all weighting strategies
+        - Load Portfolio Data from snowflake
+        - create universe based on indexes from params file
         """
-        for strategy in self.params["strategies"]:
-            strat_params = self.params["strategies"][strategy]
-            strat_params["frequency"] = self.params["quandl_datasource_prices"][
-                "frequency"
-            ]
-            strat_params["universe"] = self.portfolio_datasource.all_tickers
-            strat_params["rebalance_dates"] = self.rebalance_dates
-            strat_params["trans_cost"] = self.params["trans_cost"]
-            strat_params["weight_constraint"] = self.params[
-                "default_weights_constraint"
-            ]
-            if strat_params["type"] == "momentum":
-                self.strategies[strategy] = momentum.Momentum(strat_params)
-            elif strat_params["type"] == "pick_all":
-                self.strategies[strategy] = pick_all.PickAll(strat_params)
-
-    def iter_holdings(self) -> None:
-        super().iter_holdings()
-        # filter for securities that match msci ticker
-        for s, sec_store in self.portfolio_datasource.securities.items():
-            ticker = sec_store.information["Ticker Cd"]
-            if ticker in self.portfolio_datasource.all_tickers:
-                self.universe[ticker] = sec_store
+        self.portfolio_datasource.load()
+        self.portfolio_datasource.iter()
 
     def iter_quandl(self) -> None:
         """
@@ -102,6 +76,10 @@ class Runner(loader.Runner):
         - create price DataFrame
         - create return DataFrame with sorted universe in columns
         """
+        # load quandl data
+        self.params["quandl_datasource"][
+            "duplication"
+        ] = self.ticker_parent_issuer_datasource.parent_issuers
         super().iter_quandl()
 
         # price data
@@ -112,12 +90,14 @@ class Runner(loader.Runner):
         # return data
         self.return_data = self.price_data.pct_change(1)
 
-        # filter universe for companies that have quandl data
-        self.portfolio_datasource.all_tickers = list(
-            set(self.return_data.columns)
-            & set(self.quandl_datasource.df["ticker"])
-            & set(self.portfolio_datasource.all_tickers)
-        )
+        # check if all securities have data
+        quandl = list(self.price_data.columns)
+        all_tickers = self.portfolio_datasource.all_tickers
+        not_quandl = list(set(all_tickers) - set(quandl))
+        if not_quandl:
+            raise KeyError(
+                f"The following identifiers were not recognized: {not_quandl}"
+            )
 
         # order return data
         self.return_data = self.return_data[self.portfolio_datasource.all_tickers]
@@ -142,25 +122,33 @@ class Runner(loader.Runner):
         # initialize market caps
         self.market_caps = np.ones(shape=len(self.portfolio_datasource.all_tickers))
 
-    def create_universe(self) -> None:
+    def init_strategies(self) -> None:
         """
-        - Load Portfolio Data from snowflake
-        - create universe based on indexes from params file
+        Initialize all strategies defined in params file
+        Each strategy should have at least the following parameters:
+            - type: str
+                strategy name
+            - return_engine: str
+                return calculator
+            - risk_engine: str
+                risk calculator
+            - allocation_models: list
+                list of all weighting strategies
         """
-        if self.params["sustainable_universe"]:
-            df = snowflake_utils.load_from_snowflake(
-                database="SANDBOX_ESG",
-                schema="ESG_SCORES_THEMES",
-                table_name="Sustainability_Framework_Detailed",
-                local_configs=self.local_configs,
-            )
-            # all tickers in index which are labeled green or blue
-            self.portfolio_datasource.all_tickers = list(
-                df[
-                    (df["Portfolio ISIN"].isin(self.params["universe"]))
-                    & (df["SCLASS_Level2"].isin(["Transition", "Sustainable Theme"]))
-                ]["Ticker"].unique()
-            )
+        for strategy, strat_params in self.params["strategies"].items():
+            strat_params["frequency"] = self.params["quandl_datasource_prices"][
+                "frequency"
+            ]
+            strat_params["universe"] = self.portfolio_datasource.all_tickers
+            strat_params["rebalance_dates"] = self.rebalance_dates
+            strat_params["trans_cost"] = self.params["trans_cost"]
+            strat_params["weight_constraint"] = self.params[
+                "default_weights_constraint"
+            ]
+            if strat_params["type"] == "momentum":
+                self.strategies[strategy] = momentum.Momentum(strat_params)
+            elif strat_params["type"] == "pick_all":
+                self.strategies[strategy] = pick_all.PickAll(strat_params)
 
     def run_strategies(self) -> None:
         """

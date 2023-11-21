@@ -27,6 +27,7 @@ class DataSources(object):
         self.table_name = params["table_name"] if "table_name" in params else ""
         self.database = params["database"] if "database" in params else ""
         self.schema = params["schema"] if "schema" in params else ""
+        self.api_settings = api_settings
 
         # ignore datasource if load is False
         if not params["load"]:

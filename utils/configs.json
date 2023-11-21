@@ -344,6 +344,13 @@
         "schema": "ESG",
         "load": true
     },
+    "ticker_parent_issuer_datasource": {
+        "source": 3,
+        "table_name": "TICKER_PARENT_MAPPING",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
+        "load": false
+    },
     "theme_calculation": {
         "ALL_exclusions" : ["Casinos & Gaming", "Distillers & Vintners", "Brewers", "Tobacco", "Gaming"],
         "RENEWENERGY": {
