@@ -215,6 +215,8 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             .groupby(["As Of Date"])
             .max()[self.all_tickers]
         )
+        if self.params["custom_universe"]:
+            self.universe_df.loc[:, :] = True
 
         # fundamental dates -> date + 3 months
         self.index_dates = list(self.df["As Of Date"].unique())
