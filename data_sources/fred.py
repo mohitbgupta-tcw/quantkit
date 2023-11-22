@@ -11,7 +11,7 @@ class FRED(object):
     Parameters
     ----------
     key: str
-        quandl api key
+        fred api key
     tickers: list
         list of ticker names from FRED
     """

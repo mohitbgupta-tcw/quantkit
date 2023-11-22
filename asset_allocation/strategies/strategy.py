@@ -30,6 +30,8 @@ class Strategy(object):
         risk engine used to forecast cov matrix
     frequency: str
         frequency of return data
+    rebelance: str
+        rebalance frequency
     rebalance_dates: list
         list of rebalancing dates
     trans_cost: float
@@ -46,6 +48,7 @@ class Strategy(object):
         return_engine,
         risk_engine,
         frequency: str,
+        rebalance: str,
         rebalance_dates: list,
         trans_cost: float,
         allocation_models: list,
@@ -55,6 +58,8 @@ class Strategy(object):
         risk_return_engine_kwargs = dict(
             frequency=frequency, ddof=1, geo_base=1, adjust=True, half_life=12, span=36
         )
+        self.waiting_period = mapping_configs.annualize_factor_d[rebalance]
+        self.rebalance = rebalance
         self.rebalance_dates = rebalance_dates
         self.all_portfolios = pd.DataFrame(columns=["portfolio_name", "return"])
         self.universe = universe
@@ -180,6 +185,7 @@ class Strategy(object):
         self,
         date: datetime.date,
         price_return: np.array,
+        index_comp: np.array,
         annualize_factor: int = 1.0,
     ) -> None:
         """
@@ -191,10 +197,13 @@ class Strategy(object):
             date of snapshot
         price_return: np.array
             zero base price return of universe
+        index_comp: np.array
+            index components for date
         annualize_factor: int, optional
             factor depending on data frequency
         """
         self.latest_return = price_return
+        self.index_comp = index_comp
 
     def get_risk_budgets(self, date: datetime.date) -> dict:
         """
@@ -274,9 +283,7 @@ class Strategy(object):
         next_portfolio_allocation = allocation_pd.loc[date].values
         return portfolio_allocation, next_portfolio_allocation
 
-    def backtest(
-        self, date: datetime.date, market_caps: np.array, waiting_period: int = 12
-    ) -> None:
+    def backtest(self, date: datetime.date, market_caps: np.array) -> None:
         """
         - Calculate optimal allocation for each weighting strategy
         - Calculate allocation returns
@@ -294,7 +301,7 @@ class Strategy(object):
             return
 
         # need enough data points for cov to be calculated
-        if date < self.rebalance_dates[waiting_period]:
+        if date < self.rebalance_dates[self.waiting_period]:
             self.portfolio_risk_engine = simple_vol.SimpleVol(
                 universe=self.universe,
                 **self.portfolio_risk_return_engine_kwargs,

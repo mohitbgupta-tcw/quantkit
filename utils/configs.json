@@ -97,7 +97,7 @@
         "schema": "ESG",
         "load": true
     },
-    "quandl_datasource": {
+    "fundamentals_datasource": {
         "type": "fundamental",
         "source": 5,
         "table": "SHARADAR/SF1",
@@ -109,7 +109,7 @@
         },
         "load": false
     },
-    "quandl_datasource_prices": {
+    "prices_datasource": {
         "type": "price",
         "source": 5,
         "frequency": "DAY",

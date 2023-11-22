@@ -35,7 +35,6 @@ class Runner(loader.Runner):
         self.iter_bloomberg()
         self.iter_sdg()
         self.iter_msci()
-        self.iter_quandl()
         self.iter_adjustment()
         self.iter_exclusion()
         self.iter_holdings()

@@ -2,13 +2,10 @@ import pandas as pd
 import numpy as np
 import quantkit.loader.runner as loader
 import quantkit.utils.logging as logging
-import quantkit.data_sources.snowflake as snowflake
-import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
 import quantkit.asset_allocation.strategies.pick_all as pick_all
 import quantkit.utils.mapping_configs as mapping_configs
-import quantkit.utils.snowflake_utils as snowflake_utils
 import quantkit.asset_allocation.universe.universe as universe_datasource
 
 
@@ -27,10 +24,10 @@ class Runner(loader.Runner):
         super().init(local_configs)
 
         self.annualize_factor = mapping_configs.annualize_factor_d.get(
-            self.params["quandl_datasource_prices"]["frequency"], 252
+            self.params["prices_datasource"]["frequency"], 252
         )
         self.rebalance_window = mapping_configs.rebalance_window_d.get(
-            self.params["rebalance"]
+            self.params["prices_datasource"]["rebalance"]
         )
 
         self.strategies = dict()
@@ -51,7 +48,8 @@ class Runner(loader.Runner):
         self.iter_parent_issuers()
         self.create_universe()
         self.iter_msci()
-        self.iter_quandl()
+        self.iter_prices()
+        self.iter_fundamentals()
         self.iter_holdings()
         self.iter_securities()
         self.iter_cash()
@@ -69,59 +67,6 @@ class Runner(loader.Runner):
         self.portfolio_datasource.load()
         self.portfolio_datasource.iter()
 
-    def iter_quandl(self) -> None:
-        """
-        - iterate over quandl data
-            - attach quandl information to company in self.quandl_information
-        - create price DataFrame
-        - create return DataFrame with sorted universe in columns
-        """
-        # load quandl data
-        self.params["quandl_datasource"][
-            "duplication"
-        ] = self.ticker_parent_issuer_datasource.parent_issuers
-        super().iter_quandl()
-
-        # price data
-        self.price_data = self.quandl_datasource_prices.df.pivot(
-            index="date", columns="ticker", values="closeadj"
-        )
-
-        # return data
-        self.return_data = self.price_data.pct_change(1)
-
-        # check if all securities have data
-        quandl = list(self.price_data.columns)
-        all_tickers = self.portfolio_datasource.all_tickers
-        not_quandl = list(set(all_tickers) - set(quandl))
-        if not_quandl:
-            raise KeyError(
-                f"The following identifiers were not recognized: {not_quandl}"
-            )
-
-        # order return data
-        self.return_data = self.return_data[self.portfolio_datasource.all_tickers]
-
-        # rebalance dates -> last trading day of month
-        self.rebalance_dates = list(
-            self.return_data.groupby(
-                pd.Grouper(
-                    freq=mapping_configs.pandas_translation[self.params["rebalance"]]
-                )
-            )
-            .tail(1)
-            .index
-        )
-
-        # fundamental dates -> date + 3 months
-        self.fundamental_dates = list(
-            self.quandl_datasource.df["release_date"].sort_values().unique()
-        )
-        self.next_fundamental_date = 0
-
-        # initialize market caps
-        self.market_caps = np.ones(shape=len(self.portfolio_datasource.all_tickers))
-
     def init_strategies(self) -> None:
         """
         Initialize all strategies defined in params file
@@ -136,11 +81,10 @@ class Runner(loader.Runner):
                 list of all weighting strategies
         """
         for strategy, strat_params in self.params["strategies"].items():
-            strat_params["frequency"] = self.params["quandl_datasource_prices"][
-                "frequency"
-            ]
+            strat_params["frequency"] = self.params["prices_datasource"]["frequency"]
+            strat_params["rebalance"] = self.params["prices_datasource"]["rebalance"]
             strat_params["universe"] = self.portfolio_datasource.all_tickers
-            strat_params["rebalance_dates"] = self.rebalance_dates
+            strat_params["rebalance_dates"] = self.prices_datasource.rebalance_dates
             strat_params["trans_cost"] = self.params["trans_cost"]
             strat_params["weight_constraint"] = self.params[
                 "default_weights_constraint"
@@ -154,28 +98,51 @@ class Runner(loader.Runner):
         """
         Run and backtest all strategies
         """
-        for date, row in self.return_data.iterrows():
+        for date, row in self.prices_datasource.return_data.iterrows():
             r_array = np.array(row)
 
             # assign new market weights each quarter
-            if date >= self.fundamental_dates[self.next_fundamental_date]:
-                df = self.quandl_datasource.df.pivot(
+            if (
+                date
+                >= self.fundamentals_datasource.fundamental_dates[
+                    self.fundamentals_datasource.next_fundamental_date
+                ]
+            ):
+                df = self.fundamentals_datasource.df.pivot(
                     index="release_date", columns="ticker", values="marketcap"
                 )
-                df = df.loc[self.fundamental_dates[self.next_fundamental_date]]
+                df = df.loc[
+                    self.fundamentals_datasource.fundamental_dates[
+                        self.fundamentals_datasource.next_fundamental_date
+                    ]
+                ]
 
                 df = df[self.portfolio_datasource.all_tickers]
-                self.market_caps = np.array(df)
-                self.next_fundamental_date += 1
+                self.fundamentals_datasource.market_caps = np.array(df)
+                self.fundamentals_datasource.next_fundamental_date += 1
+
+            # assign new market index data
+            if (
+                date
+                >= self.portfolio_datasource.index_dates[
+                    self.portfolio_datasource.next_index_date
+                ]
+            ):
+                df = self.portfolio_datasource.universe_df
+                df = df.loc[
+                    self.portfolio_datasource.index_dates[
+                        self.portfolio_datasource.next_index_date
+                    ]
+                ]
+
+                df = df[self.portfolio_datasource.all_tickers]
+                self.index_components = np.array(df)
+                self.portfolio_datasource.next_index_date += 1
 
             # assign returns to strategies and backtest
             for strat, strat_obj in self.strategies.items():
-                strat_obj.assign(date, r_array)
-                strat_obj.backtest(
-                    date,
-                    self.market_caps,
-                    mapping_configs.annualize_factor_d[self.params["rebalance"]],
-                )
+                strat_obj.assign(date, r_array, self.index_components)
+                strat_obj.backtest(date, self.fundamentals_datasource.market_caps)
 
     def run(self) -> None:
         """

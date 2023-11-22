@@ -1,11 +1,14 @@
+import quantkit.finance.securities.securities as securitites
 import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as portfolio_datasource
 import quantkit.utils.snowflake_utils as snowflake_utils
 import quantkit.utils.logging as logging
+import pandas as pd
 
 
 class Universe(portfolio_datasource.PortfolioDataSource):
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
+        self.tickers = dict()
 
     def load(
         self,
@@ -128,6 +131,10 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         Transformations for custom universe and sustainable universe
         """
         super().transform_df()
+        self.datasource.df["As Of Date"] = pd.to_datetime(
+            self.datasource.df["As Of Date"]
+        )
+        self.datasource.df.sort_values(["As Of Date", "Ticker Cd"], ascending=True)
         self.datasource.df = self.datasource.df[
             ~self.datasource.df["Security_Name"].str.contains("DUMMY")
         ]
@@ -173,3 +180,42 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             self.datasource.df = self.datasource.df[
                 self.datasource.df["ISIN"].isin(sust_universe)
             ]
+
+    def create_security_store(
+        self, security_isin: str, security_information: dict
+    ) -> None:
+        """
+        create security store
+
+        Parameters
+        ----------
+        security isin: str
+            isin of security
+        security_information: dict
+            dictionary of information about the security
+        """
+        if not security_isin in self.securities:
+            security_store = securitites.SecurityStore(
+                isin=security_isin, information=security_information
+            )
+            ticker = security_information["Ticker Cd"]
+            self.securities[security_isin] = security_store
+            self.tickers[ticker] = security_store
+
+    def iter(self) -> None:
+        """
+        - portfolio iter
+        - Create universe df (holdings for each day)
+        - Create universe dates
+        """
+        super().iter()
+        df = self.datasource.df[["As Of Date", "Ticker Cd"]]
+        self.universe_df = (
+            pd.get_dummies(df, columns=["Ticker Cd"], prefix="", prefix_sep="")
+            .groupby(["As Of Date"])
+            .max()[self.all_tickers]
+        )
+
+        # fundamental dates -> date + 3 months
+        self.index_dates = list(self.df["As Of Date"].unique())
+        self.next_index_date = 0
