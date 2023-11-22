@@ -4,7 +4,8 @@ import quantkit.finance.data_sources.regions_datasource.regions_datasource as rd
 import quantkit.finance.data_sources.category_datasource.category_database as cd
 import quantkit.finance.data_sources.msci_datasource.msci_datasource as mscids
 import quantkit.finance.data_sources.bloomberg_datasource.bloomberg_datasource as blds
-import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
+import quantkit.finance.data_sources.prices_datasource.prices_datasource as priceds
+import quantkit.finance.data_sources.fundamentals_datasource.fundamentals_datasource as fundds
 import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as pod
 import quantkit.finance.data_sources.sdg_datasource.sdg_datasource as sdgp
 import quantkit.finance.data_sources.sector_datasource.sector_database as secdb
@@ -14,6 +15,7 @@ import quantkit.finance.data_sources.transition_datasource.transition_datasource
 import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as ads
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
+from copy import deepcopy
 
 
 class Runner(object):
@@ -118,12 +120,13 @@ class Runner(object):
             params=self.params["bloomberg_datasource"], api_settings=self.api_settings
         )
 
-        # connect quandl datasource
-        self.quandl_datasource = quds.QuandlDataSource(
-            params=self.params["quandl_datasource"], api_settings=self.api_settings
+        # connect fundamental and price datasource
+        self.fundamentals_datasource = fundds.FundamentalsDataSource(
+            params=self.params["fundamentals_datasource"],
+            api_settings=self.api_settings,
         )
-        self.quandl_datasource_prices = quds.QuandlDataSource(
-            params=self.params["quandl_datasource_prices"],
+        self.prices_datasource = priceds.PricesDataSource(
+            params=self.params["prices_datasource"],
             api_settings=self.api_settings,
         )
 
@@ -278,8 +281,6 @@ class Runner(object):
     def iter_sdg(self) -> None:
         """
         iterate over SDG data
-        - attach sdg information to company in self.sdg_information
-        - if company doesn't have data, attach all nan's
         """
         # load SDG data
         self.sdg_datasource.load(
@@ -290,34 +291,38 @@ class Runner(object):
     def iter_bloomberg(self) -> None:
         """
         iterate over bloomberg data
-        - attach bloomberg information to company in self.bloomberg_information
-        - if company doesn't have data, attach all nan's
         """
         # load bloomberg data
         self.bloomberg_datasource.load()
         self.bloomberg_datasource.iter()
 
-    def iter_quandl(self) -> None:
+    def iter_prices(self) -> None:
         """
-        iterate over quandl data
-        - attach quandl information to company in self.quandl_information
-        - if company doesn't have data, attach all nan's
+        iterate over price data
         """
+        self.params["prices_datasource"]["filters"][
+            "ticker"
+        ] = self.portfolio_datasource.all_tickers
+        self.prices_datasource.load()
+        self.prices_datasource.iter(self.portfolio_datasource.all_tickers)
 
+    def iter_fundamentals(self) -> None:
+        """
+        iterate over fundamental data
+        """
         # load parent issuer data
         parent_tickers = self.ticker_parent_issuer_datasource.tickers()
-        tickers = self.portfolio_datasource.all_tickers
+        tickers = deepcopy(self.portfolio_datasource.all_tickers)
         tickers += parent_tickers
+        tickers = list(set(tickers))
 
-        # load quandl data
-        self.params["quandl_datasource"]["filters"]["ticker"] = tickers
-        self.params["quandl_datasource_prices"]["filters"]["ticker"] = list(
-            set(self.portfolio_datasource.all_tickers)
-        )
-        self.quandl_datasource_prices.load()
-        self.quandl_datasource.load()
-        self.quandl_datasource.iter()
-        self.quandl_datasource_prices.iter()
+        # load fundamental data
+        self.params["fundamentals_datasource"]["filters"]["ticker"] = tickers
+        self.params["fundamentals_datasource"][
+            "duplication"
+        ] = self.ticker_parent_issuer_datasource.parent_issuers
+        self.fundamentals_datasource.load()
+        self.fundamentals_datasource.iter(self.portfolio_datasource.all_tickers)
 
     def iter_securities(self) -> None:
         """
@@ -328,7 +333,8 @@ class Runner(object):
         - Attach Analyst Adjustment
         - Attach Bloomberg information
         - Attach ISS information
-        - Attach Quandl information
+        - Attach Fundamental information
+        - Attach Price information
         """
         for sec, sec_store in self.portfolio_datasource.securities.items():
             sec_store.iter(
@@ -339,8 +345,8 @@ class Runner(object):
                 sec_adjustment_dict=self.adjustment_datasource.security_isins,
                 bloomberg_dict=self.bloomberg_datasource.bloomberg,
                 sdg_dict=self.sdg_datasource.sdg,
-                quandl_dict_fundamental=self.quandl_datasource.quandl,
-                quandl_dict_prices=self.quandl_datasource_prices.quandl,
+                dict_fundamental=self.fundamentals_datasource.tickers,
+                dict_prices=self.prices_datasource.tickers,
             )
 
     def iter_sovereigns(self) -> None:

@@ -8,8 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - JPM CEMBI BROAD DIVERSE and PM EMBI GLOBAL DIVERSIFI added to portfolio df
+- Universe Datasource in asset allocation tool
+- Allow custom universe
+- Make universe change over time 
 ### Fixed
 ### Changed
+- Split QuandlDataSource into PricesDataSource and FundamentalsDataSource
 ### Removed
 
 ## [1.3.3] 2023-11-16
