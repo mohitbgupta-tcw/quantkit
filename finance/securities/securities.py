@@ -29,6 +29,7 @@ class SecurityStore(object):
         self.information = information
         self.portfolio_store = dict()
         self.scores = dict()
+        self.allocation_df = pd.DataFrame()
 
         self.scores["Securitized_Score"] = 0
         self.scores["Securitized_Score_unadjusted"] = 0

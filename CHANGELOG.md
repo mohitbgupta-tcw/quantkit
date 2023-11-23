@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Universe Datasource in asset allocation tool
 - Allow custom universe
 - Make universe change over time 
+- Allocation history per strategy attached to each security
 ### Fixed
 ### Changed
 - Split QuandlDataSource into PricesDataSource and FundamentalsDataSource
