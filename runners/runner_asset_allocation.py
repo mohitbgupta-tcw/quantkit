@@ -144,6 +144,18 @@ class Runner(loader.Runner):
                 strat_obj.assign(date, r_array, self.index_components)
                 strat_obj.backtest(date, self.fundamentals_datasource.market_caps)
 
+        for strat, strat_obj in self.strategies.items():
+            for allo, allo_obj in strat_obj.allocation_engines_d.items():
+                allocation_df = pd.DataFrame.from_dict(
+                    allo_obj.allocations_history,
+                    orient="index",
+                    columns=self.portfolio_datasource.all_tickers,
+                )
+                for sec in allocation_df.columns:
+                    self.portfolio_datasource.tickers[sec].allocation_df[
+                        f"{strat}_{allo}"
+                    ] = allocation_df[sec]
+
     def run(self) -> None:
         """
         run calculations
