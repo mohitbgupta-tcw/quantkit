@@ -4,6 +4,7 @@ import pandas as pd
 from pandas.tseries.offsets import MonthEnd
 import numpy as np
 from copy import deepcopy
+import datetime
 
 
 class FundamentalsDataSource(ds.DataSources):
@@ -31,6 +32,7 @@ class FundamentalsDataSource(ds.DataSources):
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.tickers = dict()
+        self.current_loc = 0
 
     def load(self) -> None:
         """
@@ -107,10 +109,29 @@ class FundamentalsDataSource(ds.DataSources):
         self.fundamental_dates = list(
             self.datasource.df["release_date"].sort_values().unique()
         )
-        self.next_fundamental_date = 0
 
         # initialize market caps
-        self.market_caps = np.ones(shape=len(tickers_ordered))
+        self.marketcaps = self.datasource.df.pivot(
+            index="release_date", columns="ticker", values="marketcap"
+        )[tickers_ordered].to_numpy()
+
+    def outgoing_row(self, date: datetime.date) -> np.array:
+        """
+        Return current market caps universe
+
+        Parameters
+        ----------
+        date: datetimte.date
+            date
+
+        Returns
+        -------
+        np.array
+            current market caps of universe
+        """
+        if date >= self.fundamental_dates[self.current_loc + 1]:
+            self.current_loc += 1
+        return self.marketcaps[self.current_loc]
 
     @property
     def df(self) -> pd.DataFrame:

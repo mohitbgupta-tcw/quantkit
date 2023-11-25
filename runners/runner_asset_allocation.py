@@ -46,7 +46,7 @@ class Runner(loader.Runner):
         iterate over DataFrames and create connected objects
         """
         self.iter_parent_issuers()
-        self.create_universe()
+        self.iter_portfolios()
         self.iter_msci()
         self.iter_prices()
         self.iter_fundamentals()
@@ -58,14 +58,6 @@ class Runner(loader.Runner):
         self.iter_securitized()
         self.iter_muni()
         self.init_strategies()
-
-    def create_universe(self) -> None:
-        """
-        - Load Portfolio Data from snowflake
-        - create universe based on indexes from params file
-        """
-        self.portfolio_datasource.load()
-        self.portfolio_datasource.iter()
 
     def init_strategies(self) -> None:
         """
@@ -100,50 +92,15 @@ class Runner(loader.Runner):
         """
         for date, row in self.prices_datasource.return_data.iterrows():
             r_array = np.array(row)
-
-            # assign new market weights each quarter
-            if (
-                date
-                >= self.fundamentals_datasource.fundamental_dates[
-                    self.fundamentals_datasource.next_fundamental_date
-                ]
-            ):
-                df = self.fundamentals_datasource.df.pivot(
-                    index="release_date", columns="ticker", values="marketcap"
-                )
-                df = df.loc[
-                    self.fundamentals_datasource.fundamental_dates[
-                        self.fundamentals_datasource.next_fundamental_date
-                    ]
-                ]
-
-                df = df[self.portfolio_datasource.all_tickers]
-                self.fundamentals_datasource.market_caps = np.array(df)
-                self.fundamentals_datasource.next_fundamental_date += 1
-
-            # assign new market index data
-            if (
-                date
-                >= self.portfolio_datasource.index_dates[
-                    self.portfolio_datasource.next_index_date
-                ]
-            ):
-                df = self.portfolio_datasource.universe_df
-                df = df.loc[
-                    self.portfolio_datasource.index_dates[
-                        self.portfolio_datasource.next_index_date
-                    ]
-                ]
-
-                df = df[self.portfolio_datasource.all_tickers]
-                self.index_components = np.array(df)
-                self.portfolio_datasource.next_index_date += 1
+            market_caps = self.fundamentals_datasource.outgoing_row(date)
+            index_components = self.portfolio_datasource.outgoing_row(date)
 
             # assign returns to strategies and backtest
             for strat, strat_obj in self.strategies.items():
-                strat_obj.assign(date, r_array, self.index_components)
-                strat_obj.backtest(date, self.fundamentals_datasource.market_caps)
+                strat_obj.assign(date, r_array, index_components)
+                strat_obj.backtest(date, market_caps)
 
+        # assign weights to security objects
         for strat, strat_obj in self.strategies.items():
             for allo, allo_obj in strat_obj.allocation_engines_d.items():
                 allocation_df = pd.DataFrame.from_dict(

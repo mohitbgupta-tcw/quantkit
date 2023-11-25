@@ -3,16 +3,17 @@ import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource a
 import quantkit.utils.snowflake_utils as snowflake_utils
 import quantkit.utils.logging as logging
 import pandas as pd
+import numpy as np
+import datetime
 
 
 class Universe(portfolio_datasource.PortfolioDataSource):
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
         self.tickers = dict()
+        self.current_loc = 0
 
-    def load(
-        self,
-    ) -> None:
+    def load(self, **kwargs) -> None:
         if self.params["custom_universe"]:
             logging.log("Loading Portfolio Data")
             secs = ", ".join(f"'{sec}'" for sec in self.params["custom_universe"])
@@ -215,9 +216,36 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             .groupby(["As Of Date"])
             .max()[self.all_tickers]
         )
+        self.universe_df = (
+            self.universe_df.reset_index()
+            .groupby(
+                [self.universe_df.index.year, self.universe_df.index.month],
+                as_index=False,
+            )
+            .last()
+            .set_index("As Of Date")
+        )
         if self.params["custom_universe"]:
             self.universe_df.loc[:, :] = True
+        self.universe_matrix = self.universe_df.to_numpy()
 
         # fundamental dates -> date + 3 months
-        self.index_dates = list(self.df["As Of Date"].unique())
-        self.next_index_date = 0
+        self.universe_dates = list(self.universe_df.index.unique())
+
+    def outgoing_row(self, date: datetime.date) -> np.array:
+        """
+        Return current consitutents of index universe
+
+        Parameters
+        ----------
+        date: datetimte.date
+            date
+
+        Returns
+        -------
+        np.array
+            current constitutents of universe
+        """
+        if date >= self.universe_dates[self.current_loc + 1]:
+            self.current_loc += 1
+        return self.universe_matrix[self.current_loc]
