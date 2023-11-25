@@ -4,7 +4,8 @@ import quantkit.finance.data_sources.regions_datasource.regions_datasource as rd
 import quantkit.finance.data_sources.category_datasource.category_database as cd
 import quantkit.finance.data_sources.msci_datasource.msci_datasource as mscids
 import quantkit.finance.data_sources.bloomberg_datasource.bloomberg_datasource as blds
-import quantkit.finance.data_sources.quandl_datasource.quandl_datasource as quds
+import quantkit.finance.data_sources.prices_datasource.prices_datasource as priceds
+import quantkit.finance.data_sources.fundamentals_datasource.fundamentals_datasource as fundds
 import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as pod
 import quantkit.finance.data_sources.sdg_datasource.sdg_datasource as sdgp
 import quantkit.finance.data_sources.sector_datasource.sector_database as secdb
@@ -14,6 +15,7 @@ import quantkit.finance.data_sources.transition_datasource.transition_datasource
 import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as ads
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
+from copy import deepcopy
 
 
 class Runner(object):
@@ -30,96 +32,102 @@ class Runner(object):
         # read params file
         self.local_configs = local_configs
         self.params = configs.read_configs(local_configs)
-        api_settings = self.params["API_settings"]
+        self.api_settings = self.params["API_settings"]
 
         # connect themes datasource
         self.theme_datasource = thd.ThemeDataSource(
             params=self.params["theme_datasource"],
             theme_calculations=self.params["theme_calculation"],
-            api_settings=api_settings,
+            api_settings=self.api_settings,
         )
 
         # connect regions datasource
         self.region_datasource = rd.RegionsDataSource(
-            params=self.params["regions_datasource"], api_settings=api_settings
+            params=self.params["regions_datasource"], api_settings=self.api_settings
         )
 
         # connect portfolio datasource
         self.portfolio_datasource = pod.PortfolioDataSource(
-            params=self.params["portfolio_datasource"], api_settings=api_settings
+            params=self.params["portfolio_datasource"], api_settings=self.api_settings
         )
 
         # connect category datasource
         self.category_datasource = cd.CategoryDataSource(
-            params=self.params["category_datasource"], api_settings=api_settings
+            params=self.params["category_datasource"], api_settings=self.api_settings
         )
 
         # connect sector datasource
         self.sector_datasource = secdb.SectorDataSource(
-            params=self.params["sector_datasource"], api_settings=api_settings
+            params=self.params["sector_datasource"], api_settings=self.api_settings
         )
 
         # connect BCLASS datasource
         self.bclass_datasource = secdb.BClassDataSource(
             params=self.params["bclass_datasource"],
             transition_params=self.params["transition_parameters"],
-            api_settings=api_settings,
+            api_settings=self.api_settings,
         )
 
         # connect GICS datasource
         self.gics_datasource = secdb.GICSDataSource(
             params=self.params["gics_datasource"],
             transition_params=self.params["transition_parameters"],
-            api_settings=api_settings,
+            api_settings=self.api_settings,
         )
 
         # connect transition datasource
         self.transition_datasource = trd.TransitionDataSource(
-            params=self.params["transition_datasource"], api_settings=api_settings
+            params=self.params["transition_datasource"], api_settings=self.api_settings
         )
 
         # connect parent issuer datasource
         self.parent_issuer_datasource = pis.ParentIssuerSource(
-            params=self.params["parent_issuer_datasource"], api_settings=api_settings
+            params=self.params["parent_issuer_datasource"],
+            api_settings=self.api_settings,
+        )
+        self.ticker_parent_issuer_datasource = pis.TickerParentIssuerSource(
+            params=self.params["ticker_parent_issuer_datasource"],
+            api_settings=self.api_settings,
         )
 
         # connect SDG datasource
         self.sdg_datasource = sdgp.SDGDataSource(
-            params=self.params["sdg_datasource"], api_settings=api_settings
+            params=self.params["sdg_datasource"], api_settings=self.api_settings
         )
 
         # connect securitized mapping datasource
         self.securitized_datasource = securidb.SecuritizedDataSource(
-            params=self.params["securitized_datasource"], api_settings=api_settings
+            params=self.params["securitized_datasource"], api_settings=self.api_settings
         )
 
         # connect exclusion datasource
         self.exclusion_datasource = exd.ExclusionsDataSource(
-            params=self.params["exclusion_datasource"], api_settings=api_settings
+            params=self.params["exclusion_datasource"], api_settings=self.api_settings
         )
 
         # connect analyst adjustment datasource
         self.adjustment_datasource = ads.AdjustmentDataSource(
-            params=self.params["adjustment_datasource"], api_settings=api_settings
+            params=self.params["adjustment_datasource"], api_settings=self.api_settings
         )
 
         # connect msci datasource
         self.msci_datasource = mscids.MSCIDataSource(
-            params=self.params["msci_datasource"], api_settings=api_settings
+            params=self.params["msci_datasource"], api_settings=self.api_settings
         )
 
         # connect bloomberg datasource
         self.bloomberg_datasource = blds.BloombergDataSource(
-            params=self.params["bloomberg_datasource"], api_settings=api_settings
+            params=self.params["bloomberg_datasource"], api_settings=self.api_settings
         )
 
-        # connect quandl datasource
-        self.quandl_datasource = quds.QuandlDataSource(
-            params=self.params["quandl_datasource"], api_settings=api_settings
+        # connect fundamental and price datasource
+        self.fundamentals_datasource = fundds.FundamentalsDataSource(
+            params=self.params["fundamentals_datasource"],
+            api_settings=self.api_settings,
         )
-        self.quandl_datasource_prices = quds.QuandlDataSource(
-            params=self.params["quandl_datasource_prices"],
-            api_settings=api_settings,
+        self.prices_datasource = priceds.PricesDataSource(
+            params=self.params["prices_datasource"],
+            api_settings=self.api_settings,
         )
 
     def iter_themes(self) -> None:
@@ -251,6 +259,8 @@ class Runner(object):
         """
         self.parent_issuer_datasource.load()
         self.parent_issuer_datasource.iter()
+        self.ticker_parent_issuer_datasource.load()
+        self.ticker_parent_issuer_datasource.iter()
 
     def iter_msci(self) -> None:
         """
@@ -271,8 +281,6 @@ class Runner(object):
     def iter_sdg(self) -> None:
         """
         iterate over SDG data
-        - attach sdg information to company in self.sdg_information
-        - if company doesn't have data, attach all nan's
         """
         # load SDG data
         self.sdg_datasource.load(
@@ -283,36 +291,50 @@ class Runner(object):
     def iter_bloomberg(self) -> None:
         """
         iterate over bloomberg data
-        - attach bloomberg information to company in self.bloomberg_information
-        - if company doesn't have data, attach all nan's
         """
         # load bloomberg data
         self.bloomberg_datasource.load()
         self.bloomberg_datasource.iter()
 
-    def iter_quandl(self) -> None:
+    def iter_prices(self) -> None:
         """
-        iterate over quandl data
-        - attach quandl information to company in self.quandl_information
-        - if company doesn't have data, attach all nan's
+        iterate over price data
         """
-        # load quandl data
-        self.params["quandl_datasource"]["filters"]["ticker"] = list(
-            set(self.portfolio_datasource.all_tickers)
-        )
-        self.params["quandl_datasource_prices"]["filters"]["ticker"] = list(
-            set(self.portfolio_datasource.all_tickers)
-        )
-        self.quandl_datasource_prices.load()
-        self.quandl_datasource.load()
-        self.quandl_datasource.iter()
-        self.quandl_datasource_prices.iter()
+        self.params["prices_datasource"]["filters"][
+            "ticker"
+        ] = self.portfolio_datasource.all_tickers
+        self.prices_datasource.load()
+        self.prices_datasource.iter(self.portfolio_datasource.all_tickers)
+
+    def iter_fundamentals(self) -> None:
+        """
+        iterate over fundamental data
+        """
+        # load parent issuer data
+        parent_tickers = self.ticker_parent_issuer_datasource.tickers()
+        tickers = deepcopy(self.portfolio_datasource.all_tickers)
+        tickers += parent_tickers
+        tickers = list(set(tickers))
+
+        # load fundamental data
+        self.params["fundamentals_datasource"]["filters"]["ticker"] = tickers
+        self.params["fundamentals_datasource"][
+            "duplication"
+        ] = self.ticker_parent_issuer_datasource.parent_issuers
+        self.fundamentals_datasource.load()
+        self.fundamentals_datasource.iter(self.portfolio_datasource.all_tickers)
 
     def iter_securities(self) -> None:
         """
-        - create Company object for each security with key ISIN
-        - create Security object with key Security ISIN
-        - attach analyst adjustment based on sec isin
+        - Overwrite Parent
+        - Add ESG Collateral Type
+        - Attach BClass Level4 to parent
+        - Attach Sector Level 2
+        - Attach Analyst Adjustment
+        - Attach Bloomberg information
+        - Attach ISS information
+        - Attach Fundamental information
+        - Attach Price information
         """
         for sec, sec_store in self.portfolio_datasource.securities.items():
             sec_store.iter(
@@ -323,8 +345,8 @@ class Runner(object):
                 sec_adjustment_dict=self.adjustment_datasource.security_isins,
                 bloomberg_dict=self.bloomberg_datasource.bloomberg,
                 sdg_dict=self.sdg_datasource.sdg,
-                quandl_dict_fundamental=self.quandl_datasource.quandl,
-                quandl_dict_prices=self.quandl_datasource_prices.quandl,
+                dict_fundamental=self.fundamentals_datasource.tickers,
+                dict_prices=self.prices_datasource.tickers,
             )
 
     def iter_sovereigns(self) -> None:

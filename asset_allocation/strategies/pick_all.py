@@ -68,7 +68,7 @@ class PickAll(strategy.Strategy):
             array of indexes
         """
         ss = np.arange(self.num_total_assets)
-        return ss[~np.isnan(self.latest_return)]
+        return ss[~np.isnan(self.latest_return) & self.index_comp]
 
     @property
     def return_metrics_optimizer(self) -> np.array:

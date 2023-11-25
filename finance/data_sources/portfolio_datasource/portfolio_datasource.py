@@ -325,6 +325,12 @@ class PortfolioDataSource(ds.DataSources):
         - replace NA's of MSCI ISSUERID by running MSCI API
         - reaplace transformation values
         """
+        self.datasource.df["Portfolio_Weight"] = self.datasource.df[
+            "Portfolio_Weight"
+        ].astype(float)
+        self.datasource.df["Base Mkt Val"] = self.datasource.df["Base Mkt Val"].astype(
+            float
+        )
         df_em = self.datasource.df[
             self.datasource.df["Portfolio"].isin(
                 ["JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI"]
@@ -376,34 +382,25 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["BCLASS_Level4"] = self.datasource.df[
             "BCLASS_Level4"
         ].fillna("Unassigned BCLASS")
-        self.datasource.df["BCLASS_Level4"] = self.datasource.df[
-            "BCLASS_Level4"
-        ].str.title()
 
         sec_isins = list(
             self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]
             .dropna()
             .unique()
         )
-        msci_d = msci_data_loader.create_msci_mapping("ISIN", sec_isins)[
-            ["Client_ID", "ISSUERID"]
-        ]
-        msci_d = dict(zip(msci_d["Client_ID"], msci_d["ISSUERID"]))
-        msci_d.pop("Cash", None)
-        self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
-            "MSCI ISSUERID"
-        ].fillna(self.datasource.df["ISIN"].map(msci_d))
+        if sec_isins:
+            msci_d = msci_data_loader.create_msci_mapping("ISIN", sec_isins)[
+                ["Client_ID", "ISSUERID"]
+            ]
+            msci_d = dict(zip(msci_d["Client_ID"], msci_d["ISSUERID"]))
+            msci_d.pop("Cash", None)
+            self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
+                "MSCI ISSUERID"
+            ].fillna(self.datasource.df["ISIN"].map(msci_d))
 
         self.datasource.df["MSCI ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["ISS ISSUERID"].fillna("NoISSUERID", inplace=True)
-
-        self.datasource.df["Portfolio_Weight"] = self.datasource.df[
-            "Portfolio_Weight"
-        ].astype(float)
-        self.datasource.df["Base Mkt Val"] = self.datasource.df["Base Mkt Val"].astype(
-            float
-        )
 
         if self.params.get("transformation"):
             for sec, trans in self.params["transformation"].items():
