@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Changed
 - Split QuandlDataSource into PricesDataSource and FundamentalsDataSource
+- Use numpy array for date iterations
 ### Removed
 
 ## [1.3.3] 2023-11-16
