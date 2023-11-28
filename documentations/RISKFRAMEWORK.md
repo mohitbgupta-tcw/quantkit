@@ -191,7 +191,7 @@ df_detailed = risk_framework.risk_framework(local_configs=local_configs)
 
 ```
 
-For selectively running the framework on specific ISINs, users can utilize the isin_lookup() function within the risk_framework package. This function yields a DataFrame containing pertinent information about the provided securities.
+For selectively running the framework on specific ISINs, users can utilize the `isin_lookup()` function within the risk_framework package. This function yields a DataFrame containing pertinent information about the provided securities.
 
 ```python
 
