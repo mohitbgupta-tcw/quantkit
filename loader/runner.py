@@ -19,7 +19,7 @@ from copy import deepcopy
 
 
 class Runner(object):
-    def init(self, local_configs: str = "") -> None:
+    def init(self, local_configs: str = "", runner_type: str = None) -> None:
         """
         initialize datsources
 
@@ -27,17 +27,20 @@ class Runner(object):
         ----------
         local_configs: str, optional
             path to a local configarations file
+        runner_type: str, optional
+            runner type to include configs for, p.e. "risk_framework", "asset_allocation", "pai"
         """
 
         # read params file
         self.local_configs = local_configs
-        self.params = configs.read_configs(local_configs)
+        self.params = configs.read_configs(local_configs, runner_type)
         self.api_settings = self.params["API_settings"]
 
         # connect themes datasource
+        theme_calculations = self.params.get("theme_calculation", dict())
         self.theme_datasource = thd.ThemeDataSource(
             params=self.params["theme_datasource"],
-            theme_calculations=self.params["theme_calculation"],
+            theme_calculations=theme_calculations,
             api_settings=self.api_settings,
         )
 
@@ -61,17 +64,18 @@ class Runner(object):
             params=self.params["sector_datasource"], api_settings=self.api_settings
         )
 
+        transition_params = self.params.get("transition_parameters", dict())
         # connect BCLASS datasource
         self.bclass_datasource = secdb.BClassDataSource(
             params=self.params["bclass_datasource"],
-            transition_params=self.params["transition_parameters"],
+            transition_params=transition_params,
             api_settings=self.api_settings,
         )
 
         # connect GICS datasource
         self.gics_datasource = secdb.GICSDataSource(
             params=self.params["gics_datasource"],
-            transition_params=self.params["transition_parameters"],
+            transition_params=transition_params,
             api_settings=self.api_settings,
         )
 

@@ -21,7 +21,7 @@ class Runner(loader.Runner):
         local_configs: str, optional
             path to a local configarations file
         """
-        super().init(local_configs)
+        super().init(local_configs, "asset_allocation")
 
         self.annualize_factor = mapping_configs.annualize_factor_d.get(
             self.params["prices_datasource"]["frequency"], 252

@@ -6,27 +6,28 @@ from snowflake.connector.pandas_tools import write_pandas
 
 
 def load_from_snowflake(
-    database: str,
-    schema: str,
-    table_name: str,
+    database: str = None,
+    schema: str = None,
+    table_name: str = None,
     query: str = None,
     local_configs: str = "",
 ) -> pd.DataFrame:
     """
     Load DataFrame from Snowflake
+    Either the database, schema, and tablename must be provided, or a query has to be inputted.
 
     Parameters
     ----------
-    database: str
+    database: str, optional
         Snowflake database
-    schema: str
+    schema: str, optional
         Snowflake schema
-    table_name: str
+    table_name: str, optional
         Snowflake table
-    local_configs: str, optional
-        path to a local configarations file
     query: str, optional
         query to be run to snowflake server
+    local_configs: str, optional
+        path to a local configarations file
 
     Returns
     -------
