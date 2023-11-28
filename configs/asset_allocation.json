@@ -1,0 +1,90 @@
+{
+    "universe_datasource": {
+        "source": 3,
+        "table_name": "POSITION_VW",
+        "database": "TCW_CORE_QA",
+        "schema": "TCW",
+        "load": true,
+        "start_date": "01/01/2018",
+        "end_date": "11/20/2023",
+        "custom_universe": [],
+        "equity_universe": ["S & P 500 INDEX"],
+        "fixed_income_universe": [],
+        "tcw_universe": [""],
+        "sustainable": false,
+        "non_puplic": ["US8110651010", "BMG982941046", "US12650T1043", "US82669G1040", "US33616C1009", "BMG9319H1025", "US9130171096", "US72766Q1058", "US54911Q1076", "US26138E1091"],
+        "transformation": {
+            "US90130A3095": {"Ticker Cd": "FOXA"},
+            "US90130A4085": {"Ticker Cd": "FOX"},
+            "US5024131071": {"Ticker Cd": "LHX"},
+            "US25470F1049": {"Ticker Cd": "WBD"},
+            "US78486Q1013": {"Ticker Cd": "SIVBQ"},
+            "US98311A1051": {"Ticker Cd": "WH"},
+            "US44267D1072": {"Ticker Cd": "HHH"},
+            "US03836W1036": {"Ticker Cd": "WTRG"},
+            "US7415034039": {"Ticker Cd": "BKNG"},
+            "APARTMENT INVESTMENT & MGMT - ": {
+                "Ticker Cd": "AIV", 
+                "ISIN": "US03748R7474"
+            }
+        }
+    },    
+    "default_weights_constraint": [0.001, 0.15],
+    "trans_cost": 0.01,
+    "prices_datasource": {
+        "rebalance": "MONTH",
+        "source": 3,
+        "table_name": "PRICES",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
+        "load": true
+    },
+    "fundamentals_datasource": {
+        "source": 3,
+        "table_name": "FUNDAMENTAL_DATA",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
+        "load": true
+    },
+    "msci_datasource": {
+        "source": 4,
+        "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "historical": false,
+        "filters": {
+            "issuer_identifier_type": "ISSUER_ID",
+            "issuer_identifier_list": [],
+            "parent_child": "inherit_missing_values",
+            "factor_name_list": [
+                "ISSUER_NAME",	
+                "ISSUERID",	
+                "ISSUER_TICKER",	
+                "ISSUER_CUSIP",	
+                "ISSUER_SEDOL",	
+                "ISSUER_ISIN",	
+                "ISSUER_CNTRY_DOMICILE",
+                "GICS_SUB_IND",	
+                "PARENT_ULTIMATE_ISSUERID"
+            ]
+        }
+    },
+    "ticker_parent_issuer_datasource": {
+        "load": true
+    },
+    "strategies": {
+        "momentum90": {
+            "type": "momentum",
+            "window_size": 63,
+            "return_engine": "cumprod",
+            "risk_engine": "log_normal",
+            "top_n": 50,
+            "allocation_models": ["equal_weight", "market_weight", "min_variance", "constrained_min_variance", "mean_variance", "constrained_mean_variance", "risk_parity"]
+        },
+        "pick_all": {
+            "type": "pick_all",
+            "window_size": 63,
+            "return_engine": "log_normal",
+            "risk_engine": "log_normal",
+            "allocation_models": ["equal_weight", "market_weight"]
+        }
+    }
+}
