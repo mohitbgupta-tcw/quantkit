@@ -15,7 +15,7 @@ class Runner(loader.Runner):
         local_configs: str, optional
             path to a local configarations file
         """
-        super().init(local_configs)
+        super().init(local_configs, "risk_framework")
 
         # iterate over dataframes and create objects
         logging.log("Start Iterating")

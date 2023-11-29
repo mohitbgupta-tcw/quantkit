@@ -139,13 +139,16 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         self.datasource.df = self.datasource.df[
             ~self.datasource.df["Security_Name"].str.contains("DUMMY")
         ]
+        self.datasource.df = self.datasource.df.dropna(subset="Ticker Cd")
         self.datasource.df = self.datasource.df[
             ~self.datasource.df["Ticker Cd"].str.contains("_x")
         ]
         self.datasource.df = self.datasource.df[
             ~self.datasource.df["ISIN"].isin(self.params["non_puplic"])
         ]
-
+        self.datasource.df = self.datasource.df[
+            ~self.datasource.df["ISIN"].isin(self.params["missing_data"])
+        ]
         if self.params["custom_universe"]:
             self.datasource.df = self.datasource.df.drop_duplicates(
                 subset=["ISIN", "As Of Date"]

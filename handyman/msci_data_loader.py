@@ -47,7 +47,9 @@ def create_msci_mapping(
 
 
 def run_msci_api(
-    issuer_identifier_type: str, issuer_identifier_list: list
+    issuer_identifier_type: str,
+    issuer_identifier_list: list,
+    factor_name_list: list = None,
 ) -> pd.DataFrame:
     """
     For a specified list of securities, load MSCI ESG data through API
@@ -58,6 +60,8 @@ def run_msci_api(
         Issuer Identifier Type, should either be 'ISIN' or 'ISSUERID'
     issuer_identifier_list
         list of identifiers of corresponding type
+    factor_name_list: list, optional
+        factors to pull from MSCI, if not specified pull pre-defined data
 
     Returns
     -------
@@ -68,11 +72,8 @@ def run_msci_api(
     api_key = "b769e9c4-16c4-45f8-89a5-6f555587a640"
     api_secret = "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
 
-    filters = {
-        "issuer_identifier_type": issuer_identifier_type,
-        "issuer_identifier_list": issuer_identifier_list,
-        "parent_child": "inherit_missing_values",
-        "factor_name_list": [
+    if not factor_name_list:
+        factor_name_list = [
             "ISSUER_NAME",
             "ISSUER_TICKER",
             "ISSUER_CUSIP",
@@ -177,7 +178,13 @@ def run_msci_api(
             "ACCESS_TO_HLTHCRE_SCORE",
             "CARBON_EMISSIONS_SCOPE_12_INTEN",
             "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",
-        ],
+        ]
+
+    filters = {
+        "issuer_identifier_type": issuer_identifier_type,
+        "issuer_identifier_list": issuer_identifier_list,
+        "parent_child": "inherit_missing_values",
+        "factor_name_list": factor_name_list,
     }
 
     url = "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"

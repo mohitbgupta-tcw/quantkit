@@ -22,14 +22,19 @@ class Industry(object):
         Industry name
     transition_risk: str
         transition risk decided by analyst, can either be 'High" or 'Low'
-    Q_Low: float
+    Q_Low: float, optional
         Lowest Quantile (used for transition score). Companies with carbon intensity below this value will be marked as good
-    Q_High: float
+    Q_High: float, optional
         Highest Quantile (used for transition score). Companies with carbon intensity over this value will be marked as bad
     """
 
     def __init__(
-        self, name: str, transition_risk: str, Q_Low: float, Q_High: float, **kwargs
+        self,
+        name: str,
+        transition_risk: str,
+        Q_Low: float = 0,
+        Q_High: float = 1,
+        **kwargs,
     ) -> None:
         self.name = name
         self.transition_risk = transition_risk

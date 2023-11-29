@@ -1,4 +1,4 @@
-# quantkit
+# QuantKit
 
 ## Table of Contents
 <!-- TABLE OF CONTENTS -->
@@ -30,7 +30,7 @@
 
 ## About the Project
 ---
-The quantkit project aims to combine data operations such as data pulling through API usage, data transformations and validations with high-level calculations such as risk measurement. The SIG's team risk framework calculation is build on top of quantkit. Quantkit aims to make quantitative research easier by giving easy-to-use functions to retrieve and play around with data from various data sources, such as MSCI, Quandl and Snowflake databases.
+QuantKit is a powerful Python package designed to streamline the process of quantitative research and analysis by seamlessly integrating data operations and high-level calculations. This comprehensive toolkit empowers users to effortlessly pull data from diverse sources, including MSCI, Quandl, FRED, and Snowflake databases, using intuitive and easy-to-use functions. By combining data retrieval, transformation, and validation with sophisticated risk measurement and asset allocation capabilities, QuantKit provides a unified solution for quantitative researchers and data scientists. Whether you are a seasoned professional or a novice in the field, QuantKit is your go-to tool to expedite and enhance the quantitative research process.
 
 ### Built With
 [![python][python]][python-url]
@@ -58,55 +58,60 @@ The quantkit project aims to combine data operations such as data pulling throug
 ---
 
 ### Prerequisites
-- IDE: the following steps are performed in Visual Studio Code (VSC). The use of every other IDE works as well, but different steps may be required. 
-- Install Anaconda: It is recommended, but not needed, to install anaconda from [here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). Make sure to select the version for your operating system. In the window below, add anaconda to your PATH environmental variable and finish the setup.
+- IDE: The outlined procedures are executed within Visual Studio Code (VSC). While alternative Integrated Development Environments (IDEs) can also be employed, it is important to note that variations in the steps may be necessary.
+- Install Anaconda: It is advisable, though not mandatory, to install Anaconda from [this link](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). Ensure that you choose the appropriate version for your operating system. In the provided window, include Anaconda in your PATH environmental variable and complete the setup.
+
 ![Anaconda](img/anaconda.png)  
-- Create Environment: create a project specific environment through anaconda. Open a command line and type the following command. You can close the command line after.
+- Create Environment: Generate an environment specific to your project using Anaconda. Launch a command line and enter the following command. You may close the command line afterward.
 ```shell
 > conda create -n "quantkit" python=3.10 ipython -y
 ```
-- git: a working version of git installed on your computer is required. Please request access to [the quantkit folder](https://gitlab.com/tcw-group/quant-research/quantkit) in gitlab, if not already provided.
+- Git: A functional installation of Git on your computer is essential. If access to the [the quantkit folder](https://gitlab.com/tcw-group/quant-research/quantkit) on GitLab has not been granted, kindly request it.
 
 ### Installation
-- Open VSC (or your IDE of choice) 
-- Activate Environment: In VSC, open a new window. Open the folder you want quantkit to be installed in. On the top, go to Terminal > New Terminal. In the terminal, type the following command:
+- Open VSC (or your preferred Integrated Development Environment - IDE)
+- Activate Environment: Within Visual Studio Code (VSC), initiate a new window and open the folder where you intend to install QuantKit. Navigate to the top menu, select Terminal > New Terminal. Within the terminal, input the following command:
 ```shell
 > conda activate quantkit
 ```
-- Select python Interpreter: Press CTRL+SHIFT+P on your keyboard. A window will open from the top. Type Python: Select Interpreter and click it. Choose your conda quantkit environment.
-- Head to the gitlab folder of [quantkit](https://gitlab.com/tcw-group/quant-research/quantkit) and clone the repo: Clone > Clone with HTTPS > Copy URL
-- In a terminal in VSC, type the following command:  
+- Select Python Interpreter: Press CTRL+SHIFT+P on your keyboard to open a window from the top. Type "Python: Select Interpreter" and select it. From the options, choose your Conda QuantKit environment.
+- Head to the GitLab folder of [QuantKit](https://gitlab.com/tcw-group/quant-research/quantkit) and clone the repository by selecting Clone > Clone with HTTPS > Copy URL
+- In a terminal within Visual Studio Code (VSC), enter the following command:
 ```shell
 > git clone copied_path_from_step_above
 ```
-- This clones the repository to your machine. Activate the development branch by typing the following commands into the terminal:
+- This action clones the repository to your local machine. Activate the development branch by entering the following commands in the terminal:
 ```shell
 > cd quantkit
 > git checkout develop
 ```
-- install the requirements: in the terminal, type the following command. Make sure the quantkit environment is still activated.
+- Install the requirements: In the terminal, input the following command, ensuring that the QuantKit environment is still activated.
 ```shell
 > pip install -r requirements.txt
 ```
-- ATTENTION: please do not make changes to the development branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
+- ATTENTION: Kindly refrain from making modifications to the development branch and pushing them directly. If you wish to contribute and make changes to the code, please adhere to the guidelines outlined in the [CONTRIBUTING](CONTRIBUTING.md) document.
 
 ### Configarations
-The configarations file includes all the settings a user can change. It is located in quantkit > utils > configs.json.
+The configuration file encompasses all user-adjustable settings and is located in quantkit > configs > configs.json.
 
 #### Local configs file
-It is recommended to use a local configs.json file and not overwriting the parameters in the original file. To do so, open Notepad on your machine, type in `{}`, and save it as configs.json on your local system outside of the quantkit folder.
+
+It is advisable to utilize a local configs.json file and refrain from overwriting parameters in the original file. To accomplish this, open Notepad on your machine, input `{}`, and save it as configs.json on your local system, located outside of the QuantKit folder. Reference the aforementioned configs file when executing the functions of QuantKit.
+
 
 #### The configs file
-The user is able to change keys for API usage, thresholds for calculations, datasources, etc. First, make sure the settings and pathes in the original configs file are right. If you need to make changes to the configs file, please do so to the local file you created in the step above. For example, to change the portfolio_datasource, copy over the portfolio_datasource part you want to change into your local file.
-The source numeration works as follows:
+The user has the flexibility to modify keys for API usage, thresholds for calculations, data sources, and more. Initially, ensure that the settings and paths in the original configs file are accurate. If adjustments are necessary, please make them in the local file you created in the previous step. For instance, to modify the `portfolio_datasource`, copy the relevant portion you wish to change into your local file.
+The source enumeration operates according to the following scheme:
 1. Excel
 2. CSV
 3. Snowflake
 4. MSCI API
 5. Quandl API
 6. JSON
+7. SQL-Server
+8. FRED
 
-So, if you want to change the portfolio_datasource to Excel, enter the following paramaters to your local file:
+Therefore, if you wish to alter the `portfolio_datasource` to Excel, input the following parameters into your local file:
 
 ```json
     "portfolio_datasource": {
@@ -117,7 +122,7 @@ So, if you want to change the portfolio_datasource to Excel, enter the following
     }
 ```
 
-If you want to make changes to the calanderdate in the quandl_datasource only, you can do that by adding the following to your configs file:
+If you intend to make modifications solely to the `calanderdate` in the `fundamentals_datasource`, you can achieve this by adding the following to your configs file:
 
 ```json
     "quandl_datasource": {
@@ -127,7 +132,7 @@ If you want to make changes to the calanderdate in the quandl_datasource only, y
     }
 ```
 
-There is no need to copy over all other settings for the datasource. Lastly, if you want to use the snowflake API, it is required to put your credentials into your local configs file in the following way.
+There is no necessity to duplicate all other settings for the datasource. Finally, if you intend to utilize the Snowflake API, it is mandatory to insert your credentials into your local configs file in the following manner:
 
 ```json
     "API_settings": {
@@ -138,194 +143,222 @@ There is no need to copy over all other settings for the datasource. Lastly, if 
     }
 ```
 
-#### Changes to the Input data
-To change the input data, just change the file linked to in the parameters file. For example, if you want to add a portfolio to the portfolio datasource and you linked it to an Excel file, just add the portfolio to that Excel file. If the data is in snowflake, follow this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/quantkit/quantkit/snowflake.ipynb) to change the data. 
-
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
 ### ML Azure Environment
 ---
 ### Prerequisites
-- ML Azure access: make sure you have access to ML Azure and can run code in there.
+- ML Azure Access: Ensure that you have the necessary access to ML Azure and can successfully execute code within the platform.
 ### Installation
-- Head to the gitlab folder of [quantkit](https://gitlab.com/tcw-group/quant-research/quantkit) and clone the repo: Clone > Clone with HTTPS > Copy URL
-- in ML Azure, open the folder you want the quantkit code to be in, right click the folder and click Open Terminal
-- In the terminal type the following command:
+- Head to the GitLab folder of [QuantKit](https://gitlab.com/tcw-group/quant-research/quantkit) and clone the repository by selecting Clone > Clone with HTTPS > Copy URL
+- In ML Azure, navigate to the folder where you want the QuantKit code to reside, right-click on the folder, and select "Open Terminal."
+- In the terminal, enter the following command:
 ```shell
 > git clone copied_path_from_step_above
 ```
-- This clones the repository to your machine. Activate the develop branch by typing the following commands into the terminal:
+- This action clones the repository to your machine. Activate the develop branch by typing the following commands into the terminal:
 ```shell
 > cd quantkit
 > git checkout develop
 ```
-- You might be asked to add an excemption for this directory in order to run the command above. Copy and run the command provided in the error message and run the checkout again after.
-- Create a notebook inside your top folder on the same level as quantkit.
-- Select Python 3.8 - ML Azure as your default kernel in the right top corner. 
-- install the requirements: In a cell, type in the following command:
+- You might encounter a request to add an exemption for this directory to execute the command above. Copy and execute the command provided in the error message, then rerun the `checkout` command afterward.
+- Create a notebook within your top folder, situated on the same level as QuantKit.
+- Select "Python 3.8 - ML Azure" as your default kernel in the right top corner.
+- Install the requirements by typing the following command into a cell:
 ```shell
 pip install -r "quantkit/requirements.txt"
 ```
-- ATTENTION: please do not make changes to the develop branch and push them. If you want to contribute and make changes to the code, please follow the guidelines in [CONTRIBUTING](CONTRIBUTING.md).
+- ATTENTION: Kindly refrain from making modifications to the development branch and pushing them directly. If you wish to contribute and make changes to the code, please adhere to the guidelines outlined in the [CONTRIBUTING](CONTRIBUTING.md) document.
 
 ### Configarations
 
-See configarations section in Local Environment.
+Refer to the Configurations section in the Local Environment for further details.
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
 ## Update Version
 ---
-As the framework develops, there will be changes to the code base too. To get the newest version of the code, you need to pull from the gitlab repository.
+As the frameworks evolve, changes to the code base are anticipated. To acquire the latest version of the code, you must pull from the GitLab repository.
 
 ### Local Environment
-- In VSC, open a Terminal from your working folder und run the following commands:
+- In Visual Studio Code (VSC), open a Terminal from your working folder and execute the following commands:
 ```shell
 > cd quantkit
 > git pull
 ```
 
 ### ML Azure Environment
-- In ML Azure, open a Terminal from your working folder und run the following commands:
+- In ML Azure, open a Terminal from your working folder and execute the following commands:
 ```shell
 > cd quantkit
 > git pull
 ```
-- You are prompted to enter User Name and Password to your git account linked to gitlab.
+- You will be prompted to enter your User Name and Password for your Git account linked to GitLab.
 
 ## Usage
 ---
-Quantkit users can use and run the package in two ways. For more details, please see this [demo notebook](https://ml.azure.com/fileexplorerAzNB?wsid=/subscriptions/9e6414f9-fa32-459d-87f7-26856c9ebc31/resourceGroups/rg-sub-ae-shared-dev-001-esgmlws/providers/Microsoft.MachineLearningServices/workspaces/mlw-sub-ae-shared-dev-001-esgmlws&tid=b730b432-2098-413f-bd4a-014acdf7c72e&activeFilePath=Users/Tim.Bastian/quantkit/demo.ipynb). Please see the configarations section on top first to set up the parameters in a right way.
+The QuantKit package provides user-friendly functions in the `handyman` folder for executing crucial functionalities such as API usage.
 
-### The Object Method
-The experienced user can make use of the objects structure itself created in the code. First, initialize a runner object in the following way.
-
-```python
-import quantkit.runners.runner_risk_framework as runner
-
-local_configs = "path\\to\\your\\configs.json"
-
-r = runner.Runner()
-r.init(local_configs=local_configs) 
-r.run()
-```
-This connects to all the databases and runs the calculations. To access the datapoints, we can "look" into the objects. First, we access a portfolio object.
+### FRED API
 
 ```python
-r.portfolio_datasource.portfolios[16705].holdings
-```
-This query returns all the holdings of portfolio 16705 in a dictionary.
 
-```shell
-{'Cash': {
-    'object': <quantkit.finance.securities.securities.SecurityStore at 0x2257288cf10>,
-    'holding_measures': [{
-      'Portfolio_Weight': 1.741434,
-      'Base Mkt Val': 215827.45,
-      'OAS': 0.0
-      }]
-    },
- 'US72352L1061': {
-    'object': <quantkit.finance.securities.securities.EquityStore at 0x225737bc0a0>,
-    'holding_measures': [{
-      'Portfolio_Weight': 2.449617,
-      'Base Mkt Val': 303597.25,
-      'OAS': 0.0
-    }]
-  },
- ...
-}
+import quantkit.handyman.fred_data_loader as fred_data_loader 
+fred_data_loader.run_fred_api(["CPILFESL"])
+
 ```
-The portfolio holdings above showcase another object type, the security object. To see information about a security, run the following line.
+
+### MSCI API
 
 ```python
-r.portfolio_datasource.securities["US88160R1014"].information
+
+import quantkit.handyman.msci_data_loader as msci_data_loader 
+
+factor_name_list = [
+    "ISSUER_NAME", 
+    "ISSUER_TICKER", 
+    "ISSUER_CUSIP", 
+    "ISSUER_SEDOL", 
+    "ISSUER_ISIN", 
+    "ISSUER_CNTRY_DOMICILE",
+    "IVA_COMPANY_RATING",
+]
+
+msci_data_loader.run_msci_api("ISIN", ["US88160R1014", "US0378331005"], factor_name_list=factor_name_list)
+
 ```
 
-This returns a dictionary of information about the security including p.e. issuer name, seucrity isin, ticker and SClass Levels.
-```shell
-{'ISSUER_CUSIP': '88160R101',
- 'ISSUER_SEDOL': 'B616C79',
- 'ISSUER_ISIN': 'US88160R1014',
- 'ISSUER_CNTRY_DOMICILE': 'US',
- 'ISSUERID': 'IID000000002594878',
- 'IssuerName': 'TESLA, INC.',
- 'ISIN': 'US88160R1014',
- 'Ticker': 'TSLA',
- 'issID': 601399.0,
- 'IssuerLEI': '54930043XZGB27CTOV49',
- 'Security ISIN': 'US88160R1014',
- 'Security Type': 'Equity',
- 'ESG_Collateral_Type': {'G/S/S': 'Unknown',
-  'ESG Collat Type': 'Unknown',
-  'Sustainability Theme - Primary': 'Unknown',
-  'Sustainability Theme - Secondary ': 'Unknown',
-  'Sclass_Level3': 'Unknown',
-  'Primary': 'Unknown',
-  'Secondary': 'Unknown'},
- 'Labeled_ESG_Type': nan,
- 'TCW_ESG': nan,
- 'Issuer_ESG': 'No',
- 'Security_Name': 'TESLA INC',
- 'SClass_Level1': 'Preferred',
- 'SClass_Level2': 'Sustainable Theme',
- 'SClass_Level3': 'Multi-Thematic',
- 'SClass_Level4': 'Planet',
- 'SClass_Level4-P': 'MOBILITY',
- 'SClass_Level5': 'Unknown'}
-```
-Other callable objects include
-- Company objects
-```python
-r.portfolio_datasource.companies["US88160R1014"]
-```
-- Industry objects
-```python
-r.gics_datasource.industries["Biotechnology"]
-r.bclass_datasource.industries["Consumer Cyclical"]
-```
-- Theme objects
-```python
-r.theme_datasource.themes["BIODIVERSITY"]
-```
+### Quandl API
 
-- Region objects
-```python
-r.region_datasource.regions["DE"]
-```
-
-### The handyman Folder
-The handyman folder is an easy-to-use alternative if the user is just interested in the output and not the objects. It provides functions to run the framework and get relevant data back without going through the objects. To run the risk framework and return a detailed DataFrame, simply run the risk_framework() function provided in the risk_framework package.
+#### Fundamental Data
 
 ```python
-import quantkit.handyman.risk_framework as risk_framework
 
-local_configs = "path\\to\\your\\configs.json"
+import quantkit.handyman.quandl_data_loader as quandl_data_loader     
 
-# run risk framework
-df_detailed = risk_framework.risk_framework(local_configs=local_configs)
+quandl_data_loader.get_quandl_fundamental_data(
+    ["AAPL", "TSLA"],
+    start_date="2018-01-01",
+    end_date="2023-01-01"    
+)
+
 ```
-To only run the framework on specific isins, the user can make use of the isin_lookup() function in the risk_framework package. This returns a DataFrame with relevant information about the inputted securities.
+
+#### Price Data
 
 ```python
-# isin lookup
-isins = ["US88160R1014", "US0378331005"]
-df_isin = risk_framework.isin_lookup(isin_list=isins, local_configs=local_configs)
+
+import quantkit.handyman.quandl_data_loader as quandl_data_loader     
+
+quandl_data_loader.get_quandl_price_data(
+    ["AAPL", "TSLA"],
+    start_date="2018-01-01",
+    end_date="2023-01-01"    
+)
+
 ```
+
+### Historical Portfolio Holdings
+
+Ensure that you incorporate Snowflake credentials into your local configs file.
+
+```python
+
+import quantkit.handyman.portfolios as portfolios     
+
+local_configs = "path\\to\\your\\local\\configs.json"
+
+portfolios.historical_portfolio_holdings(
+    start_date="01/31/2018",
+    end_date="01/01/2023",
+    portfolios=["3750"],
+    equity_benchmark=["S & P 500 INDEX"],
+    fixed_income_benchmark=["BB HIGH YIELD 2% CAP"],
+    local_configs=local_configs,
+)
+
+```
+
+### Snowflake API
+
+The `snowflake_utils` folder facilitates easy data retrieval from Snowflake and data submission to Snowflake. Users can interact with the API in two ways: by crafting a query or by pulling all data from a table in a schema.
+
+#### Pulling All Data from Table
+
+```python
+
+import quantkit.utils.snowflake_utils as snowflake_utils
+
+local_configs = "path\\to\\your\\local\\configs.json"
+
+snowflake_utils.load_from_snowflake(
+        database="SANDBOX_ESG",
+        schema="ESG_SCORES_THEMES",
+        table_name="Sustainability_Framework_Detailed",
+        local_configs=local_configs,
+)
+
+```
+
+#### Pulling Data using Query
+
+```python
+
+import quantkit.utils.snowflake_utils as snowflake_utils
+
+local_configs = "path\\to\\your\\local\\configs.json"
+query = """
+SELECT "Portfolio ISIN", "Security ISIN", "ESRM Score", "Transition Score", "Governance Score"
+FROM SANDBOX_ESG.ESG_SCORES_THEMES."Sustainability_Framework_Detailed"
+WHERE "Portfolio ISIN" = 'S&P 500 INDEX'
+"""
+
+snowflake_utils.load_from_snowflake(
+        query=query,
+        local_configs=local_configs,
+)
+
+```
+
+#### Writing Data to Snowflake
+
+```python
+
+import quantkit.utils.snowflake_utils as snowflake_utils
+
+local_configs = "path\\to\\your\\local\\configs.json"
+
+snowflake_utils.write_to_snowflake(
+    df,
+    database,
+    schema,
+    table_name,
+    local_configs = local_configs,
+)
+
+```
+
+### Project Specific Functionality
+
+Explore the following links for additional information on various use cases:
+- [Risk Framework](documentations/RISKFRAMEWORK.md)
+- [Asset Allocation]()
+- [PAI](documentations/PAI.md)
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
 ## Roadmap
 ---
-- [ ] add functions to handyman folder
+- [ ] add functionality to handyman folder
 
-See the [open issues](https://gitlab.com/tcw-group/quant-research/quantkit/-/issues) for a full list of proposed features (and known issues).
+
+Refer to the [open issues](https://gitlab.com/tcw-group/quant-research/quantkit/-/issues) for a comprehensive list of proposed features and known issues.
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
 ## Contributing
 ---
-For contributing guidelines, please check [CONTRIBUTING](CONTRIBUTING.md).
+For contributing guidelines, please review [CONTRIBUTING](CONTRIBUTING.md).
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>
 
