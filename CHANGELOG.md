@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Documentation for Risk Framework, PAI and Asset Allocation
+- Relative Value Strategy
 ### Fixed
 ### Changed
 - README

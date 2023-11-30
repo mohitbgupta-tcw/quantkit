@@ -84,10 +84,6 @@ class Strategy(object):
             self.return_engine = simple_return.SimpleExp(
                 universe=universe, **risk_return_engine_kwargs, **kwargs
             )
-        elif return_engine == "simple":
-            self.return_engine = simple_return.SimpleExp(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
         elif return_engine == "cumprod":
             self.return_engine = cumprod_return.CumProdReturn(
                 universe=universe, **risk_return_engine_kwargs, **kwargs

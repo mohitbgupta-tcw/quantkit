@@ -5,7 +5,7 @@ import quantkit.utils.logging as logging
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
 import quantkit.asset_allocation.strategies.pick_all as pick_all
-import quantkit.asset_allocation.strategies.robo_dianne as robo_dianne
+import quantkit.asset_allocation.strategies.relative_value as relative_value
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.universe.universe as universe_datasource
 
@@ -86,8 +86,8 @@ class Runner(loader.Runner):
                 self.strategies[strategy] = momentum.Momentum(strat_params)
             elif strat_params["type"] == "pick_all":
                 self.strategies[strategy] = pick_all.PickAll(strat_params)
-            elif strat_params["type"] == "robo_dianne":
-                self.strategies[strategy] = robo_dianne.RoboDianne(strat_params)
+            elif strat_params["type"] == "relative_value":
+                self.strategies[strategy] = relative_value.RelativeValue(strat_params)
 
     def run_strategies(self) -> None:
         """

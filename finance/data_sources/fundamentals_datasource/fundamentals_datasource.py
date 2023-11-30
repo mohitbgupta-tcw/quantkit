@@ -112,7 +112,7 @@ class FundamentalsDataSource(ds.DataSources):
         )
 
         # initialize kpi's
-        funds = ["marketcap", "divyield", "roe", "fcfps"]
+        funds = ["marketcap", "divyield", "roe", "fcfps", "pe", "ps", "pb"]
         for fund in funds:
             self.fundamentals[fund] = self.datasource.df.pivot(
                 index="release_date", columns="ticker", values=fund

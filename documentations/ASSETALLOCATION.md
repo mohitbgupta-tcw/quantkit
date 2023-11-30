@@ -1,4 +1,5 @@
 # Asset Allocation
+The Asset Allocation package in QuantKit is a comprehensive tool designed to streamline your investment process. This powerful tool integrates various data sources, supports flexible security universes, and offers a diverse range of strategies through a well-organized signals repository. Utilizing advanced portfolio optimization techniques such as Mean Variance Optimization and Risk Parity, our package empowers users to make informed decisions while benefiting from advanced backtesting capabilities. Get ready to elevate your investment strategy with this versatile and user-friendly asset allocation solution.
 
 ![AssetAllocation](../img/asset_allocation.png)  
 
@@ -24,7 +25,7 @@ Before executing the Asset Allocation functionality, ensure proper configuration
 
 ### Datasources
 
-The asset allocation tool uses a variaty of datasources.
+The asset allocation tool employs a diverse range of data sources, significantly augmenting the integrated API library. By incorporating various financial and market data providers, the tool ensures users have access to comprehensive and up-to-date information, enabling them to make well-informed investment decisions. 
 
 - Fundamental Data: Quandl
 - Price Data: Quandl
@@ -83,7 +84,7 @@ To change the datasource, make the following changes in your configs file as adv
 </details>
 
 ### Universe
-The first step is to define an appropriate trading universe of securities. Users have various options to designate this universe by incorporating different settings in the configuration file. Additionally, users can set a start and end date to run the universe.
+The initial step involves defining a suitable trading universe of securities. Users have a multitude of options to customize this universe by incorporating diverse settings within the configuration file. Furthermore, users can establish a start and end date for the trading universe, ensuring a tailored and targeted investment experience.
 
 - Backtesting Timeframe: Define the months for which universe data should be retrieved.
 
@@ -139,7 +140,7 @@ The first step is to define an appropriate trading universe of securities. Users
 
 ```
 
-- Sustainable Universe, optional: Users have the choice to narrow down the universe to TCW's sustainable universe by incorporating blue and green tagged securities. Defaults to false.
+- Sustainable Universe, optional: Users have the choice to narrow down the universe to TCW's sustainable universe by incorporating blue and green tagged securities. Defaults to `false`.
 
 ```shell
 
@@ -188,14 +189,14 @@ def outgoing_row(self, date: datetime.date) -> np.array:
 
 ### Strategies
 
-Strategies are essential for every asset allocation tool. The quantkit asset allocation tool currently is limited to the following strategies. The parameters for the strategies can be set in the `strategies` section of the configs file.
+The development of strategies and signal generation is crucial for every asset allocation tool. These components play a vital role in guiding investment decisions and optimizing portfolio performance. By incorporating a diverse range of strategies and robust signal generation mechanisms, an asset allocation tool can empower users to make well-informed decisions and achieve their financial objectives. The quantkit asset allocation tool currently is limited to the following strategies. The parameters for the strategies can be set in the `strategies` section of the configs file.
 
 <details>
   <summary><b>For Nerds</b></summary>
 
 Every strategy needs the following functions:
 
-- An `assign` function that assigns returns to return, risk and portfolio engines.
+- A function called `assign` that is responsible for allocating historical returns to return-, risk-, and portfolio engine.
 ```python
 
     def assign(
@@ -219,7 +220,7 @@ Every strategy needs the following functions:
 
 ```
 
-A `selected_securites` function that returns an array of the index of all selected securities for that strategy and date. The developer should make sure that no securities with missing return data should be selected.
+A `selected_securities` function that returns an array containing the indices of all selected securities for a specific strategy and date. Developers must ensure that no securities with missing return data are included in the selection.
 
 ```python
 
@@ -258,7 +259,7 @@ A `return_metrics_optimizer` function that forecasts the returns for that partic
 
 #### Momentum
 
-The momentum strategy follows the motto "Buy Low, Sell High." The strategy picks the `top_n` securities in a rolling window of `window_size` based on cumulative returns.
+The momentum strategy adheres to the principle of "Buy Low, Sell High." This approach selects the `top_n` securities within a rolling window of `window_size`, based on their cumulative returns. By identifying and capitalizing on these high-performing assets, the momentum strategy aims to optimize investment outcomes and generate consistent returns.
 
 ```shell
 
@@ -320,9 +321,64 @@ Momentum selects the `top_n` securities based on cumulative returns. We are sort
 
 </details>
 
+#### Relative Value
+
+The Relative Value strategy aims to identify value stocks by filtering the investment universe based on fundamental measures and multiples in comparison to the index. This approach seeks to uncover undervalued assets with strong potential for growth, enabling investors to capitalize on market inefficiencies and generate favorable returns.
+
+
+```shell
+
+    "strategies": {
+        "relative_value": {
+            "type": "relative_value",
+            "market_cap_threshold": 1000000000,
+            "div_yield_threshold": 0.0,
+            "roe_threshold": 0.17,
+            "freecashflow_threshold": 0.0,
+            "window_size": 63,
+            "return_engine": "log_normal",
+            "risk_engine": "log_normal",
+            "allocation_models": ["equal_weight", "market_weight"]
+        }
+    }
+
+```
+
+<details>
+  <summary><b>For Nerds</b></summary>
+
+Relative value filters the investment universe using measures such as market cap thresholds, dividend thresholds, and free cash flow thresholds, as defined in the configuration file.
+
+```python
+
+    @property
+    def selected_securities(self) -> np.array:
+        """
+        Index (position in universe_tickers as integer) of selected securities
+
+        Returns
+        -------
+        np.array
+            array of indexes
+        """
+        ss = np.arange(self.num_total_assets)
+        return ss[
+            ~np.isnan(self.latest_return)
+            & self.index_comp
+            & (self.market_caps > self.market_cap_threshold)
+            & (self.divyield > self.div_yield_threshold)
+            & (self.roe > self.roe_threshold)
+            & (self.fcfps > self.freecashflow_threshold)
+        ]
+
+```
+
+
+</details>
+
 #### Pick All
 
-Pick all available securities in universe.
+The strategy straightforwardly selects all available securities within the investment universe, providing a comprehensive approach to asset allocation and ensuring that no potential opportunities are overlooked.
 
 ```shell
 
@@ -365,10 +421,121 @@ The strategy picks all securities available for that month without missing data.
 
 ### Return and Risk Calculation
 
+For strategy development, accurately forecasting risk and returns is crucial to ensure optimal investment decisions and portfolio performance. The asset allocation tool offers several options to achieve this. Understanding risk and return dynamics is essential because it enables investors to identify potential opportunities, manage risk exposure, and allocate assets effectively, ultimately leading to more informed decisions and improved financial outcomes.
 
+The asset allocation tool employs an online algorithm implementation for both risk and return calculations. This means that the mean and variance are updated with every incoming data point. This dynamic approach allows the tool to continuously adapt to new information effectively, ensuring that the most recent market trends and data are taken into account when making investment decisions.
+
+#### Simple Mean/ Covariance
+
+First, one option is to use simple historical mean returns to forecast future returns. This approach is appealing due to its simplicity and ease of implementation. By relying on historical data, investors can gain insights into past performance trends and make informed decisions. However, this method may not always be the most accurate predictor of future returns, as it assumes that past performance is indicative of future results, which may not always hold true. Market conditions and other factors can change, potentially leading to deviations from historical patterns. 
+
+To utilize the simple mean in your strategy, configure the engines by setting them to `simple`.
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "return_engine": "simple",
+            "risk_engine": "simple"
+        }
+    }
+
+```
+
+<details>
+  <summary><b>For Nerds</b></summary>
+
+The simple mean online algorithm operates as follows:
+
+![](https://latex.codecogs.com/svg.image?\overline{x}_t=\overline{x}_{t-1}&plus;\frac{x_t-\overline{x}_{t-1}}{t})
+
+The simple covariance online algorithm operates as follows:
+
+![](https://latex.codecogs.com/svg.image?\text{Cov}_t=\text{Cov}_{t-1}&plus;(x_t-\overline{x}_{t-1})*(x_t-\overline{x_{t}}))
+
+</details>
+
+#### Logarithmic Mean/ Covariance
+
+Another option is to use logarithmic historical mean returns to forecast returns into the future. This approach is based on the idea that the logarithm of returns follows a normal distribution. Instead of using the entire history, this method employs a rolling window to capture more recent trends. 
+
+To utilize the logarithmic mean and risk in your strategy, configure the engines by setting them to `log_normal`.
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "return_engine": "log_normal",
+            "risk_engine": "log_normal"
+        }
+    }
+
+```
+
+#### Exponentially Weighted Mean/ Covariance
+
+Next, the tool allows using exponential weighted logarithmic historical mean returns to forecast returns into the future, both rolling and on full history. This approach assigns greater importance to more recent data points, allowing the model to adapt more quickly to changing market conditions. The advantage of this method is that it can provide a more responsive and accurate representation of current trends, potentially leading to better investment decisions. However, the downside is that it may be more sensitive to short-term fluctuations and could overlook longer-term trends. As with any forecasting method, it is essential to consider the specific investment objectives and risk tolerance when choosing the most appropriate approach.
+
+To utilize the exponential mean and risk in your strategy, configure the engines by setting them to `ewma` or `ewma_rolling`.
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "half_life": 12,
+            "return_engine": "ewma",
+            "risk_engine": "ewma"
+        }
+    }
+
+```
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "span": 36,
+            "return_engine": "ewma_rolling",
+            "risk_engine": "ewma_rolling"
+        }
+    }
+
+```
+
+<details>
+  <summary><b>For Nerds</b></summary>
+
+There is an adjusted and unadjusted version of exponential mean calculation.
+[See here chapter 9](https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf) and [here](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.ewm.html) for more details..
+
+</details>
+
+#### Cumulative Returns
+
+Another option is to use cumulative historical returns to forecast returns into the future. This approach considers the total returns over a specified period, providing a comprehensive view of an asset's performance. The advantage of this method is that it captures the overall growth or decline of an asset, potentially offering a more stable basis for forecasting. However, the downside is that it may not be as responsive to short-term fluctuations and could overlook more recent trends that may impact future performance. 
+To utilize the exponential mean and risk in your strategy, configure the engines by setting them to `cumprod`.
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "window_size": 63,
+            "return_engine": "cumprod"
+        }
+    }
+
+```
 
 ### Optimizers
 
+Once a universe has been selected, the asset allocation tool offers various portfolio optimization options through different weighting strategies. These strategies include equal weight, market weight, mean variance optimization, minimum variance, and risk parity. Each approach has its unique advantages and considerations, allowing users to tailor their portfolio construction to align with their specific investment objectives and risk tolerance.
+
+Begin by establishing weight constraints for constrained strategies, ensuring that the portfolio optimization process adheres to the desired risk and allocation parameters.
 
 - Weight Constraints, optional: The allowable range of weights that an asset can take on in constrained weighting strategies at any point in time.
 
@@ -378,9 +545,36 @@ The strategy picks all securities available for that month without missing data.
 
 ```
 
+To utilize the various weighting strategies, assign them within the `allocation_models` section of your configuration file.
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "allocation_models": [
+                "equal_weight", 
+                "market_weight", 
+                "min_variance", 
+                "constrained_min_variance", 
+                "mean_variance", 
+                "constrained_mean_variance", 
+                "risk_parity"
+                ]
+        }
+    }
+
+```
+
+<details>
+  <summary><b>For Nerds</b></summary>
+
+![AssetAllocation](../img/optimizers.png)  
+
+</details>
+
 ### Backtesting
 
-After assigning the returns to the optimizers, the asset allocation package calculates a portfolio return based on the selected assets. This allows a regirous backtesting capability.  First, the user can set the following parameters: 
+After assigning the returns to the optimizers, the asset allocation package computes a portfolio return based on the chosen assets. This enables a rigorous backtesting capability, allowing users to thoroughly evaluate the performance of their investment strategies and make well-informed decisions.  First, the user can set the following parameters: 
 
 - Rebalance Period: Can either be set to "DAY", "MONTH", "QUARTER",  "YEAR"
 
