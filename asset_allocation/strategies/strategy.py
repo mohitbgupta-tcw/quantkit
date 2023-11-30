@@ -187,6 +187,7 @@ class Strategy(object):
         price_return: np.array,
         index_comp: np.array,
         annualize_factor: int = 1.0,
+        **kwargs,
     ) -> None:
         """
         Transform and assign returns to the actual calculator

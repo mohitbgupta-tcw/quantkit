@@ -5,6 +5,7 @@ import quantkit.utils.logging as logging
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
 import quantkit.asset_allocation.strategies.pick_all as pick_all
+import quantkit.asset_allocation.strategies.robo_dianne as robo_dianne
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.universe.universe as universe_datasource
 
@@ -85,6 +86,8 @@ class Runner(loader.Runner):
                 self.strategies[strategy] = momentum.Momentum(strat_params)
             elif strat_params["type"] == "pick_all":
                 self.strategies[strategy] = pick_all.PickAll(strat_params)
+            elif strat_params["type"] == "robo_dianne":
+                self.strategies[strategy] = robo_dianne.RoboDianne(strat_params)
 
     def run_strategies(self) -> None:
         """
@@ -92,12 +95,24 @@ class Runner(loader.Runner):
         """
         for date, row in self.prices_datasource.return_data.iterrows():
             r_array = np.array(row)
-            market_caps = self.fundamentals_datasource.outgoing_row(date)
+            current_fundamentals = self.fundamentals_datasource.outgoing_row(date)
+            market_caps = current_fundamentals["marketcap"]
+            divyield = current_fundamentals["divyield"]
+            roe = current_fundamentals["roe"]
+            fcfps = current_fundamentals["fcfps"]
             index_components = self.portfolio_datasource.outgoing_row(date)
 
             # assign returns to strategies and backtest
             for strat, strat_obj in self.strategies.items():
-                strat_obj.assign(date, r_array, index_components)
+                strat_obj.assign(
+                    date=date,
+                    price_return=r_array,
+                    index_comp=index_components,
+                    market_caps=market_caps,
+                    divyield=divyield,
+                    roe=roe,
+                    fcfps=fcfps,
+                )
                 strat_obj.backtest(date, market_caps)
 
         # assign weights to security objects

@@ -26,7 +26,9 @@ class PickAll(strategy.Strategy):
         self,
         date: datetime.date,
         price_return: np.array,
+        index_comp: np.array,
         annualize_factor: int = 1.0,
+        **kwargs,
     ) -> None:
         """
         Transform and assign returns to the actual calculator
@@ -37,10 +39,12 @@ class PickAll(strategy.Strategy):
             date of snapshot
         price_return: np.array
             zero base price return of universe
+        index_comp: np.array
+            index components for date
         annualize_factor: int, optional
             factor depending on data frequency
         """
-        super().assign(date, price_return, annualize_factor)
+        super().assign(date, price_return, index_comp, annualize_factor)
 
         self.return_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
