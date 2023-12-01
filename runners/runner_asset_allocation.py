@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import quantkit.loader.runner as loader
+import quantkit.runners.runner as loader
 import quantkit.utils.logging as logging
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
@@ -51,6 +51,7 @@ class Runner(loader.Runner):
         self.iter_msci()
         self.iter_prices()
         self.iter_fundamentals()
+        self.iter_marketmuliples()
         self.iter_holdings()
         self.iter_securities()
         self.iter_cash()
@@ -95,25 +96,30 @@ class Runner(loader.Runner):
         """
         for date, row in self.prices_datasource.return_data.iterrows():
             r_array = np.array(row)
+            current_multiples = self.marketmultiple_datasource.outgoing_row(date)
             current_fundamentals = self.fundamentals_datasource.outgoing_row(date)
-            market_caps = current_fundamentals["marketcap"]
-            divyield = current_fundamentals["divyield"]
-            roe = current_fundamentals["roe"]
-            fcfps = current_fundamentals["fcfps"]
             index_components = self.portfolio_datasource.outgoing_row(date)
+
+            assign_dict = {
+                "date": date,
+                "price_return": r_array,
+                "index_comp": index_components,
+                "market_caps": current_fundamentals["marketcap"],
+                "divyield": current_fundamentals["divyield"],
+                "roe": current_fundamentals["roe"],
+                "fcfps": current_fundamentals["fcfps"],
+                "pe": current_fundamentals["pe"],
+                "ps": current_fundamentals["ps"],
+                "pb": current_fundamentals["pb"],
+                "spx_pe": current_multiples["SPX_PE"],
+                "spx_pb": current_multiples["SPX_PB"],
+                "spx_ps": current_multiples["SPX_PS"],
+            }
 
             # assign returns to strategies and backtest
             for strat, strat_obj in self.strategies.items():
-                strat_obj.assign(
-                    date=date,
-                    price_return=r_array,
-                    index_comp=index_components,
-                    market_caps=market_caps,
-                    divyield=divyield,
-                    roe=roe,
-                    fcfps=fcfps,
-                )
-                strat_obj.backtest(date, market_caps)
+                strat_obj.assign(**assign_dict)
+                strat_obj.backtest(date, current_fundamentals["marketcap"])
 
         # assign weights to security objects
         for strat, strat_obj in self.strategies.items():

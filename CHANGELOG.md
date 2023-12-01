@@ -9,12 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Documentation for Risk Framework, PAI and Asset Allocation
 - Relative Value Strategy
+- Market Multiple Datasource
 ### Fixed
 ### Changed
 - README
 - Snowflake pull function uses either query or database/schema/tablename
 - MSCI Dataloader allow specified factors
 - Specific Configs files for risk_framework, asset_allocation, pai
+- Move main runner into runners folder
 ### Removed
 
 ## [1.4.0] - 2023-11-24

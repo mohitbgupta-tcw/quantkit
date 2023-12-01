@@ -153,7 +153,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 <details>
   <summary><b>For Nerds</b></summary>
 The developer can find the code in quantkit > asset_allocation > universe. <br>
-Upon initialization, a universe dataframe (r.portfolio_datasource.universe_df) is generated, indicating whether the security is held in the universe for a specified date (the last day of the month). In the case of the custom universe, we assume a consistent universe over time.
+Upon initialization, a universe dataframe (r.portfolio_datasource.universe_df) is generated, indicating whether the security is held in the universe for a specified date. In the case of the custom universe, we assume a consistent universe over time.
 
 | As Of Date | AAPL | MSFT | XOM | META | JNJ | BRK.B | AMZN | JPM | GOOGL |
 :------------|:-----|:-----|:----|:-----|:----|:------|:-----|:----|:------|

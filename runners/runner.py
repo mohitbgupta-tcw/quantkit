@@ -1,20 +1,21 @@
 import quantkit.utils.configs as configs
 import quantkit.utils.logging as logging
-import quantkit.finance.data_sources.regions_datasource.regions_datasource as rd
-import quantkit.finance.data_sources.category_datasource.category_database as cd
-import quantkit.finance.data_sources.msci_datasource.msci_datasource as mscids
-import quantkit.finance.data_sources.bloomberg_datasource.bloomberg_datasource as blds
-import quantkit.finance.data_sources.prices_datasource.prices_datasource as priceds
-import quantkit.finance.data_sources.fundamentals_datasource.fundamentals_datasource as fundds
-import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as pod
-import quantkit.finance.data_sources.sdg_datasource.sdg_datasource as sdgp
-import quantkit.finance.data_sources.sector_datasource.sector_database as secdb
-import quantkit.finance.data_sources.exclusions_datasource.exclusions_database as exd
-import quantkit.finance.data_sources.themes_datasource.themes_datasource as thd
-import quantkit.finance.data_sources.transition_datasource.transition_datasource as trd
-import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as ads
-import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securidb
-import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pis
+import quantkit.finance.data_sources.regions_datasource.regions_datasource as regions_datasource
+import quantkit.finance.data_sources.category_datasource.category_database as category_database
+import quantkit.finance.data_sources.msci_datasource.msci_datasource as msci_datasource
+import quantkit.finance.data_sources.bloomberg_datasource.bloomberg_datasource as bloomberg_datasource
+import quantkit.finance.data_sources.prices_datasource.prices_datasource as prices_datasource
+import quantkit.finance.data_sources.fundamentals_datasource.fundamentals_datasource as fundamentals_datasource
+import quantkit.finance.data_sources.marketmultiple_datasource.marketmultiple_datasource as marketmultiple_datasource
+import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as portfolio_datasource
+import quantkit.finance.data_sources.sdg_datasource.sdg_datasource as sdg_datasource
+import quantkit.finance.data_sources.sector_datasource.sector_database as sector_database
+import quantkit.finance.data_sources.exclusions_datasource.exclusions_database as exclusions_database
+import quantkit.finance.data_sources.themes_datasource.themes_datasource as themes_datasource
+import quantkit.finance.data_sources.transition_datasource.transition_datasource as transition_datasourced
+import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as adjustment_database
+import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securitized_datasource
+import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pi_datasource
 from copy import deepcopy
 
 
@@ -38,100 +39,106 @@ class Runner(object):
 
         # connect themes datasource
         theme_calculations = self.params.get("theme_calculation", dict())
-        self.theme_datasource = thd.ThemeDataSource(
+        self.theme_datasource = themes_datasource.ThemeDataSource(
             params=self.params["theme_datasource"],
             theme_calculations=theme_calculations,
             api_settings=self.api_settings,
         )
 
         # connect regions datasource
-        self.region_datasource = rd.RegionsDataSource(
+        self.region_datasource = regions_datasource.RegionsDataSource(
             params=self.params["regions_datasource"], api_settings=self.api_settings
         )
 
         # connect portfolio datasource
-        self.portfolio_datasource = pod.PortfolioDataSource(
+        self.portfolio_datasource = portfolio_datasource.PortfolioDataSource(
             params=self.params["portfolio_datasource"], api_settings=self.api_settings
         )
 
         # connect category datasource
-        self.category_datasource = cd.CategoryDataSource(
+        self.category_datasource = category_database.CategoryDataSource(
             params=self.params["category_datasource"], api_settings=self.api_settings
         )
 
         # connect sector datasource
-        self.sector_datasource = secdb.SectorDataSource(
+        self.sector_datasource = sector_database.SectorDataSource(
             params=self.params["sector_datasource"], api_settings=self.api_settings
         )
 
         transition_params = self.params.get("transition_parameters", dict())
         # connect BCLASS datasource
-        self.bclass_datasource = secdb.BClassDataSource(
+        self.bclass_datasource = sector_database.BClassDataSource(
             params=self.params["bclass_datasource"],
             transition_params=transition_params,
             api_settings=self.api_settings,
         )
 
         # connect GICS datasource
-        self.gics_datasource = secdb.GICSDataSource(
+        self.gics_datasource = sector_database.GICSDataSource(
             params=self.params["gics_datasource"],
             transition_params=transition_params,
             api_settings=self.api_settings,
         )
 
         # connect transition datasource
-        self.transition_datasource = trd.TransitionDataSource(
+        self.transition_datasource = transition_datasourced.TransitionDataSource(
             params=self.params["transition_datasource"], api_settings=self.api_settings
         )
 
         # connect parent issuer datasource
-        self.parent_issuer_datasource = pis.ParentIssuerSource(
+        self.parent_issuer_datasource = pi_datasource.ParentIssuerSource(
             params=self.params["parent_issuer_datasource"],
             api_settings=self.api_settings,
         )
-        self.ticker_parent_issuer_datasource = pis.TickerParentIssuerSource(
+        self.ticker_parent_issuer_datasource = pi_datasource.TickerParentIssuerSource(
             params=self.params["ticker_parent_issuer_datasource"],
             api_settings=self.api_settings,
         )
 
         # connect SDG datasource
-        self.sdg_datasource = sdgp.SDGDataSource(
+        self.sdg_datasource = sdg_datasource.SDGDataSource(
             params=self.params["sdg_datasource"], api_settings=self.api_settings
         )
 
         # connect securitized mapping datasource
-        self.securitized_datasource = securidb.SecuritizedDataSource(
+        self.securitized_datasource = securitized_datasource.SecuritizedDataSource(
             params=self.params["securitized_datasource"], api_settings=self.api_settings
         )
 
         # connect exclusion datasource
-        self.exclusion_datasource = exd.ExclusionsDataSource(
+        self.exclusion_datasource = exclusions_database.ExclusionsDataSource(
             params=self.params["exclusion_datasource"], api_settings=self.api_settings
         )
 
         # connect analyst adjustment datasource
-        self.adjustment_datasource = ads.AdjustmentDataSource(
+        self.adjustment_datasource = adjustment_database.AdjustmentDataSource(
             params=self.params["adjustment_datasource"], api_settings=self.api_settings
         )
 
         # connect msci datasource
-        self.msci_datasource = mscids.MSCIDataSource(
+        self.msci_datasource = msci_datasource.MSCIDataSource(
             params=self.params["msci_datasource"], api_settings=self.api_settings
         )
 
         # connect bloomberg datasource
-        self.bloomberg_datasource = blds.BloombergDataSource(
+        self.bloomberg_datasource = bloomberg_datasource.BloombergDataSource(
             params=self.params["bloomberg_datasource"], api_settings=self.api_settings
         )
 
         # connect fundamental and price datasource
-        self.fundamentals_datasource = fundds.FundamentalsDataSource(
+        self.fundamentals_datasource = fundamentals_datasource.FundamentalsDataSource(
             params=self.params["fundamentals_datasource"],
             api_settings=self.api_settings,
         )
-        self.prices_datasource = priceds.PricesDataSource(
+        self.prices_datasource = prices_datasource.PricesDataSource(
             params=self.params["prices_datasource"],
             api_settings=self.api_settings,
+        )
+        self.marketmultiple_datasource = (
+            marketmultiple_datasource.MarketMultipleDataSource(
+                params=self.params["marketmultiple_datasource"],
+                api_settings=self.api_settings,
+            )
         )
 
     def iter_themes(self) -> None:
@@ -327,6 +334,13 @@ class Runner(object):
         ] = self.ticker_parent_issuer_datasource.parent_issuers
         self.fundamentals_datasource.load()
         self.fundamentals_datasource.iter(self.portfolio_datasource.all_tickers)
+
+    def iter_marketmuliples(self) -> None:
+        """
+        iterate over market multiple data
+        """
+        self.marketmultiple_datasource.load()
+        self.marketmultiple_datasource.iter()
 
     def iter_securities(self) -> None:
         """

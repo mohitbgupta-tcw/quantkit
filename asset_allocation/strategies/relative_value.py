@@ -43,6 +43,12 @@ class RelativeValue(strategy.Strategy):
         divyield: np.array,
         roe: np.array,
         fcfps: np.array,
+        pe: np.array,
+        pb: np.array,
+        ps: np.array,
+        spx_pe: float,
+        spx_pb: float,
+        spx_ps: float,
         annualize_factor: int = 1.0,
         **kwargs,
     ) -> None:
@@ -65,6 +71,18 @@ class RelativeValue(strategy.Strategy):
             roe of assets in universe
         fcfps: np.array
             fcfps of assets in universe
+        pe: np.array
+            pe of assets in universe
+        pb: np.array
+            pb of assets in universe
+        ps: np.array
+            ps of assets in universe
+        spx_pe: float
+            SPY PE ratio
+        spx_pb: float
+            SPY PB ratio
+        spx_ps: float
+            SPY PS ratio
         annualize_factor: int, optional
             factor depending on data frequency
         """
@@ -73,6 +91,12 @@ class RelativeValue(strategy.Strategy):
         self.divyield = divyield
         self.roe = roe
         self.fcfps = fcfps
+        self.pe = pe
+        self.pb = pb
+        self.ps = ps
+        self.spx_pe = spx_pe
+        self.spx_pb = spx_pb
+        self.spx_ps = spx_ps
 
         self.return_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
@@ -107,6 +131,9 @@ class RelativeValue(strategy.Strategy):
             & (self.divyield > self.div_yield_threshold)
             & (self.roe > self.roe_threshold)
             & (self.fcfps > self.freecashflow_threshold)
+            & (self.pe < self.spx_pe)
+            & (self.pb < self.spx_pb)
+            & (self.ps < self.spx_ps)
         ]
 
     @property

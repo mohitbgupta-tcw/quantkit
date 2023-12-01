@@ -1,5 +1,5 @@
 import pandas as pd
-import quantkit.loader.runner as loader
+import quantkit.runners.runner as loader
 import quantkit.utils.logging as logging
 
 

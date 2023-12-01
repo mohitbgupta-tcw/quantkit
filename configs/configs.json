@@ -48,6 +48,7 @@
     },
     "fundamentals_datasource": {
         "source": 5,
+        "type": "fundamental",
         "table": "SHARADAR/SF1",
         "filters": {
             "ticker": [],
@@ -59,12 +60,22 @@
     },
     "prices_datasource": {
         "source": 5,
+        "type": "prices",
         "frequency": "DAY",
         "table": "SHARADAR/SEP",
         "filters": {
             "ticker": [],
             "paginate": true,
             "date": {"gte": "2023-01-01"}
+        },
+        "load": true
+    },
+    "marketmultiple_datasource": {
+        "source": 5,
+        "type": "market",
+        "table": ["MULTPL/SP500_PSR_QUARTER", "MULTPL/SP500_PBV_RATIO_QUARTER", "MULTPL/SP500_PE_RATIO_MONTH"],
+        "filters": {
+            "start_date": "2023-01-01"
         },
         "load": true
     },
