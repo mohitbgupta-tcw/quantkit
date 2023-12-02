@@ -67,7 +67,7 @@ class FundamentalsDataSource(ds.DataSources):
             by=["date", "ticker"], ascending=True, ignore_index=True
         )
         self.datasource.df["release_date"] = (
-            self.datasource.df["date"] + pd.DateOffset(months=3) + MonthEnd(0)
+            self.datasource.df["date"] + pd.DateOffset(months=1) + MonthEnd(0)
         )
         self.datasource.df["release_date"] = pd.to_datetime(
             self.datasource.df["release_date"]
@@ -132,7 +132,10 @@ class FundamentalsDataSource(ds.DataSources):
         dict
             current fundamentals of universe
         """
-        if date >= self.fundamental_dates[self.current_loc + 1]:
+        while (
+            self.current_loc < len(self.fundamental_dates) - 1
+            and date >= self.fundamental_dates[self.current_loc + 1]
+        ):
             self.current_loc += 1
         return_dict = dict()
         for fund in self.fundamentals:

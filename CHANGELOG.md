@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Relative Value Strategy
 - Market Multiple Datasource
 ### Fixed
+- MSCI Datasource empty return
 ### Changed
 - README
 - Snowflake pull function uses either query or database/schema/tablename

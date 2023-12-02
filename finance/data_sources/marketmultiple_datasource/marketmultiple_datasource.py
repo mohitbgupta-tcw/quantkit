@@ -50,8 +50,8 @@ class MarketMultipleDataSource(ds.DataSources):
         - Fill NaN's with prior values
         - order by date
         """
-        self.datasource.df["release_date"] = (
-            self.datasource.df.index + pd.DateOffset(months=3) + MonthEnd(0)
+        self.datasource.df["release_date"] = self.datasource.df.index + pd.DateOffset(
+            months=1
         )
         self.datasource.df["release_date"] = pd.to_datetime(
             self.datasource.df["release_date"]
@@ -90,7 +90,10 @@ class MarketMultipleDataSource(ds.DataSources):
         dict
             current fundamentals of universe
         """
-        if date >= self.dates[self.current_loc + 1]:
+        while (
+            self.current_loc < len(self.dates) - 1
+            and date >= self.dates[self.current_loc + 1]
+        ):
             self.current_loc += 1
         return_dict = dict()
         for kpi in self.multiples:
