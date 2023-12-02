@@ -84,10 +84,6 @@ class Strategy(object):
             self.return_engine = simple_return.SimpleExp(
                 universe=universe, **risk_return_engine_kwargs, **kwargs
             )
-        elif return_engine == "simple":
-            self.return_engine = simple_return.SimpleExp(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
         elif return_engine == "cumprod":
             self.return_engine = cumprod_return.CumProdReturn(
                 universe=universe, **risk_return_engine_kwargs, **kwargs
@@ -187,6 +183,7 @@ class Strategy(object):
         price_return: np.array,
         index_comp: np.array,
         annualize_factor: int = 1.0,
+        **kwargs,
     ) -> None:
         """
         Transform and assign returns to the actual calculator

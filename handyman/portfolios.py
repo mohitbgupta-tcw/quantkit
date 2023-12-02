@@ -16,13 +16,10 @@ def historical_portfolio_holdings(
 
     Parameters
     ----------
-    local_configs: str, optional
-        path to a local configarations file
-
-    Returns
-    -------
-    as_of_date: str
-        as of date in string format mm/dd/yyyy
+    start_date: str
+        start date in string format mm/dd/yyyy
+    end_date: str
+        end date in string format mm/dd/yyyy
     portfolios: list, optional
         list of portfolios to run holdings for
         if not specified run default portfolios
@@ -32,6 +29,12 @@ def historical_portfolio_holdings(
     fixed_income_benchmark: list, optional
         list of fixed income benchmarks to run holdings for
         if not specified run default benchmarks
+    local_configs: str, optional
+        path to a local configarations file
+
+
+    Returns
+    -------
     pd.DataFrame
         Portfolio Holdings
     """

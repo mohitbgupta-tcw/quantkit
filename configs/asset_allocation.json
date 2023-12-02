@@ -101,20 +101,5 @@
         "load": true
     },
     "strategies": {
-        "momentum90": {
-            "type": "momentum",
-            "window_size": 63,
-            "return_engine": "cumprod",
-            "risk_engine": "log_normal",
-            "top_n": 50,
-            "allocation_models": ["equal_weight", "market_weight", "min_variance", "constrained_min_variance", "mean_variance", "constrained_mean_variance", "risk_parity"]
-        },
-        "pick_all": {
-            "type": "pick_all",
-            "window_size": 63,
-            "return_engine": "log_normal",
-            "risk_engine": "log_normal",
-            "allocation_models": ["equal_weight", "market_weight"]
-        }
     }
 }

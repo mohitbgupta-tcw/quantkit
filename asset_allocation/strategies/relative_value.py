@@ -4,12 +4,11 @@ import numpy as np
 import datetime
 
 
-class Momentum(strategy.Strategy):
+class RelativeValue(strategy.Strategy):
     """
-    "Buy Low, Sell High."
+    Roboter Version of D's value trading strategy
 
-    Base class for Simple Momentum Strategy
-    Idea: Take top n securities based on cumulative returns in window_size
+    Idea: Filter down universe based on specified kpi's
 
     Parameters
     ----------
@@ -19,20 +18,37 @@ class Momentum(strategy.Strategy):
             - window_size: lookback period in trading days, int
             - return_engine: "cumprod", str
             - risk_engine: str
-            - top_n: number of stocks to pick, int
             - allocation_models: weighting strategies, list
+            - market_cap_threshold: int
+            - div_yield_threshold: float
+            - roe_threshold: float
+            - freecashflow_threshold: float
+
     """
 
     def __init__(self, params: dict) -> None:
         super().__init__(**params)
         self.window_size = params["window_size"]
-        self.top_n = params["top_n"]
+        self.market_cap_threshold = params["market_cap_threshold"]
+        self.div_yield_threshold = params["div_yield_threshold"]
+        self.roe_threshold = params["roe_threshold"]
+        self.freecashflow_threshold = params["freecashflow_threshold"]
 
     def assign(
         self,
         date: datetime.date,
         price_return: np.array,
         index_comp: np.array,
+        market_caps: np.array,
+        divyield: np.array,
+        roe: np.array,
+        fcfps: np.array,
+        pe: np.array,
+        pb: np.array,
+        ps: np.array,
+        spx_pe: float,
+        spx_pb: float,
+        spx_ps: float,
         annualize_factor: int = 1.0,
         **kwargs,
     ) -> None:
@@ -47,10 +63,40 @@ class Momentum(strategy.Strategy):
             zero base price return of universe
         index_comp: np.array
             index components for date
+        market_caps: np.array
+            market caps of assets in universe
+        divyield: np.array
+            dividend yields of assets in universe
+        roe: np.array
+            roe of assets in universe
+        fcfps: np.array
+            fcfps of assets in universe
+        pe: np.array
+            pe of assets in universe
+        pb: np.array
+            pb of assets in universe
+        ps: np.array
+            ps of assets in universe
+        spx_pe: float
+            SPY PE ratio
+        spx_pb: float
+            SPY PB ratio
+        spx_ps: float
+            SPY PS ratio
         annualize_factor: int, optional
             factor depending on data frequency
         """
         super().assign(date, price_return, index_comp, annualize_factor)
+        self.market_caps = market_caps
+        self.divyield = divyield
+        self.roe = roe
+        self.fcfps = fcfps
+        self.pe = pe
+        self.pb = pb
+        self.ps = ps
+        self.spx_pe = spx_pe
+        self.spx_pb = spx_pb
+        self.spx_ps = spx_ps
 
         self.return_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
@@ -70,27 +116,25 @@ class Momentum(strategy.Strategy):
     @property
     def selected_securities(self) -> np.array:
         """
-        Index (position in universe_tickers as integer) of top n momentum securities
+        Index (position in universe_tickers as integer) of selected securities
 
         Returns
         -------
         np.array
             array of indexes
         """
-        nan_sum = np.isnan(self.latest_return).sum()
-        top_n = min(self.top_n, self.num_total_assets - nan_sum)
-        neg_sort = (-self.return_metrics_intuitive).argsort()
-
-        selected_assets = 0
-        i = 0
-        a = list()
-
-        while selected_assets < top_n:
-            if self.index_comp[neg_sort[i]]:
-                a.append(neg_sort[i])
-                selected_assets += 1
-            i += 1
-        return np.array(a)
+        ss = np.arange(self.num_total_assets)
+        return ss[
+            ~np.isnan(self.latest_return)
+            & self.index_comp
+            & (self.market_caps > self.market_cap_threshold)
+            & (self.divyield > self.div_yield_threshold)
+            & (self.roe > self.roe_threshold)
+            & (self.fcfps > self.freecashflow_threshold)
+            & (self.pe < self.spx_pe)
+            & (self.pb < self.spx_pb)
+            & (self.ps < self.spx_ps)
+        ]
 
     @property
     def return_metrics_optimizer(self) -> np.array:

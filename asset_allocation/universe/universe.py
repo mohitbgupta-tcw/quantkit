@@ -219,15 +219,6 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             .groupby(["As Of Date"])
             .max()[self.all_tickers]
         )
-        self.universe_df = (
-            self.universe_df.reset_index()
-            .groupby(
-                [self.universe_df.index.year, self.universe_df.index.month],
-                as_index=False,
-            )
-            .last()
-            .set_index("As Of Date")
-        )
         if self.params["custom_universe"]:
             self.universe_df.loc[:, :] = True
         self.universe_matrix = self.universe_df.to_numpy()
@@ -249,6 +240,9 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         np.array
             current constitutents of universe
         """
-        if date >= self.universe_dates[self.current_loc + 1]:
+        while (
+            self.current_loc < len(self.universe_dates) - 1
+            and date >= self.universe_dates[self.current_loc + 1]
+        ):
             self.current_loc += 1
         return self.universe_matrix[self.current_loc]

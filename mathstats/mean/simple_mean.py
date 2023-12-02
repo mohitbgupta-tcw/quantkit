@@ -10,6 +10,7 @@ class SimpleMean(object):
     Calculation in Incremental way:
 
         previous average + (incoming variables - previous average) / number of variables
+        \overline{x}_t =  \overline{x}_{t-1}+\frac{x_t-\overline{x}_{t-1}}{t}
 
     see https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf chapter 1
 
