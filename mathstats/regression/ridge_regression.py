@@ -40,7 +40,7 @@ class RidgeLR(ols_regression.OrdinaryLR):
         super().__init__(num_ind_variables, num_dep_variables, window_size)
         self.alpha = alpha
 
-    def calculate_vector(self, mask_current: np.array) -> np.array:
+    def calculate_vector(self, mask_current: np.ndarray) -> np.ndarray:
         """
         Calculate regression specific vector
 

@@ -25,8 +25,8 @@ class PickAll(strategy.Strategy):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
-        index_comp: np.array,
+        price_return: np.ndarray,
+        index_comp: np.ndarray,
         annualize_factor: int = 1.0,
         **kwargs,
     ) -> None:
@@ -62,7 +62,7 @@ class PickAll(strategy.Strategy):
             )
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of selected securities
 
@@ -75,7 +75,7 @@ class PickAll(strategy.Strategy):
         return ss[~np.isnan(self.latest_return) & self.index_comp]
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted DAILY returns from return engine in order of selected_securities
 

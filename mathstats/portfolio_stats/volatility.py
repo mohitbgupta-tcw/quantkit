@@ -2,7 +2,7 @@ import numpy as np
 
 
 # Risk related statistics
-def portfolio_vol(weights: np.array, cov_matrix: np.array) -> float:
+def portfolio_vol(weights: np.ndarray, cov_matrix: np.ndarray) -> float:
     r"""
     Calculate portfolio volatility
 
@@ -26,7 +26,9 @@ def portfolio_vol(weights: np.array, cov_matrix: np.array) -> float:
     return np.sqrt(weights.T @ marginal_risk)
 
 
-def marginal_risk_contribution(weights: np.array, cov_matrix: np.array) -> np.array:
+def marginal_risk_contribution(
+    weights: np.ndarray, cov_matrix: np.ndarray
+) -> np.ndarray:
     r"""
     Calculate marginal risk for each security in portfolio
 

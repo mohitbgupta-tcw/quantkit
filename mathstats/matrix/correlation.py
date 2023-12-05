@@ -3,7 +3,7 @@ import numpy as np
 from typing import Union
 
 
-def cov_to_corr(covariance: Union[np.array, pd.DataFrame]) -> np.array:
+def cov_to_corr(covariance: Union[np.ndarray, pd.DataFrame]) -> np.ndarray:
     """
     Converting covariance matrix to correlation matrix
 
@@ -25,9 +25,9 @@ def cov_to_corr(covariance: Union[np.array, pd.DataFrame]) -> np.array:
 
 
 def corr_to_cov(
-    correlation: Union[np.array, pd.DataFrame],
-    standard_deviations: Union[np.array, pd.DataFrame],
-) -> np.array:
+    correlation: Union[np.ndarray, pd.DataFrame],
+    standard_deviations: Union[np.ndarray, pd.DataFrame],
+) -> np.ndarray:
     """
     Converting correlation matrix and new vector of standard deviations to covariance matrix
 

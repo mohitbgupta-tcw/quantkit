@@ -40,7 +40,7 @@ class RollingCumProd(simple_cumprod.SimpleCumProd):
         )
 
     @property
-    def windowed_outgoing_row(self) -> np.array:
+    def windowed_outgoing_row(self) -> np.ndarray:
         """
         Return the outgoing row (FIFO - first in first out)
         of the rolling window
@@ -55,7 +55,7 @@ class RollingCumProd(simple_cumprod.SimpleCumProd):
     def update(
         self,
         incoming_variables: Union[np.ndarray, pd.Series],
-        outgoing_variables: np.array,
+        outgoing_variables: np.ndarray,
         **kwargs,
     ) -> None:
         """

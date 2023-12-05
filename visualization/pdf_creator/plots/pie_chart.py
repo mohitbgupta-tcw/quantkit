@@ -29,9 +29,9 @@ class PieChart(object):
 
     def __init__(
         self,
-        labels: Union[list, np.array, pd.Series],
-        values: Union[list, np.array, pd.Series],
-        color: Union[list, np.array, pd.Series],
+        labels: Union[list, np.ndarray, pd.Series],
+        values: Union[list, np.ndarray, pd.Series],
+        color: Union[list, np.ndarray, pd.Series],
         hole: float = 0,
         title: str = "",
         height: int = 350,

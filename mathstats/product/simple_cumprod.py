@@ -26,7 +26,7 @@ class SimpleCumProd(object):
         self.total_iterations = 0
 
     @property
-    def cumprod(self) -> np.array:
+    def cumprod(self) -> np.ndarray:
         """
         Returns
         -------
@@ -37,10 +37,10 @@ class SimpleCumProd(object):
 
     def calculate_cumprod(
         self,
-        prev_prod: np.array,
-        incoming_variables: np.array,
-        outgoing_variables: np.array,
-    ) -> np.array:
+        prev_prod: np.ndarray,
+        incoming_variables: np.ndarray,
+        outgoing_variables: np.ndarray,
+    ) -> np.ndarray:
         """
         Calculate the cumulative product
 

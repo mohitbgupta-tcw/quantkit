@@ -92,7 +92,7 @@ class CVXPYOptimizer(BaseOptimizer):
         return cvx.Maximize(objective)
 
     @staticmethod
-    def _sum(x: np.array) -> np.array:
+    def _sum(x: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -107,7 +107,7 @@ class CVXPYOptimizer(BaseOptimizer):
         return cvx.sum(x)
 
     @staticmethod
-    def _sqrt(x: np.array) -> np.array:
+    def _sqrt(x: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -122,7 +122,7 @@ class CVXPYOptimizer(BaseOptimizer):
         return cvx.sqrt(x)
 
     @staticmethod
-    def _multiply(x: np.array, y: np.array) -> np.array:
+    def _multiply(x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -139,7 +139,7 @@ class CVXPYOptimizer(BaseOptimizer):
         return cvx.multiply(x, y)
 
     @staticmethod
-    def _quad_form(w: np.array, X: np.array) -> np.array:
+    def _quad_form(w: np.ndarray, X: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -156,7 +156,7 @@ class CVXPYOptimizer(BaseOptimizer):
         return cvx.quad_form(w, X)
 
     @staticmethod
-    def _norm(X: np.array) -> np.array:
+    def _norm(X: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -171,7 +171,7 @@ class CVXPYOptimizer(BaseOptimizer):
         return cvx.norm(X)
 
     @staticmethod
-    def _log(x: np.array) -> np.array:
+    def _log(x: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------

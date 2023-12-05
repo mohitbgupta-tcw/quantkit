@@ -19,7 +19,7 @@ class ReturnMetrics(object):
         self.universe_size = len(universe)
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted returns from return engine
 
@@ -31,7 +31,7 @@ class ReturnMetrics(object):
         raise NotImplementedError
 
     @property
-    def return_metrics_intuitive(self) -> np.array:
+    def return_metrics_intuitive(self) -> np.ndarray:
         """
         return metrics for plotting needs to be human interpretable
 
@@ -45,7 +45,7 @@ class ReturnMetrics(object):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
+        price_return: np.ndarray,
         annualize_factor: int = None,
         **kwargs,
     ) -> None:
@@ -65,10 +65,10 @@ class ReturnMetrics(object):
 
     def get_portfolio_return(
         self,
-        allocation: np.array,
-        this_returns: np.array,
-        indexes: np.array,
-        next_allocation: np.array = None,
+        allocation: np.ndarray,
+        this_returns: np.ndarray,
+        indexes: np.ndarray,
+        next_allocation: np.ndarray = None,
         trans_cost: float = 0.0,
         **kwargs,
     ) -> pd.DataFrame:

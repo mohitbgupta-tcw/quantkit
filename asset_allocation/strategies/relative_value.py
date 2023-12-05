@@ -37,15 +37,15 @@ class RelativeValue(strategy.Strategy):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
-        index_comp: np.array,
-        market_caps: np.array,
-        divyield: np.array,
-        roe: np.array,
-        fcfps: np.array,
-        pe: np.array,
-        pb: np.array,
-        ps: np.array,
+        price_return: np.ndarray,
+        index_comp: np.ndarray,
+        market_caps: np.ndarray,
+        divyield: np.ndarray,
+        roe: np.ndarray,
+        fcfps: np.ndarray,
+        pe: np.ndarray,
+        pb: np.ndarray,
+        ps: np.ndarray,
         spx_pe: float,
         spx_pb: float,
         spx_ps: float,
@@ -114,7 +114,7 @@ class RelativeValue(strategy.Strategy):
             )
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of selected securities
 
@@ -137,7 +137,7 @@ class RelativeValue(strategy.Strategy):
         ]
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted DAILY returns from return engine of top n momentum securities
         in order of selected_securities

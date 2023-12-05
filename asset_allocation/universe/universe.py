@@ -226,7 +226,7 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         # fundamental dates -> date + 3 months
         self.universe_dates = list(self.universe_df.index.unique())
 
-    def outgoing_row(self, date: datetime.date) -> np.array:
+    def outgoing_row(self, date: datetime.date) -> np.ndarray:
         """
         Return current consitutents of index universe
 

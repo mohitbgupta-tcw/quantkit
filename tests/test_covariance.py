@@ -10,6 +10,7 @@ import quantkit.mathstats.covariance.window_covariance as window_covariance
 import quantkit.mathstats.covariance.expo_covariance as expo_covariance
 import quantkit.mathstats.product.simple_cumprod as simple_cumprod
 import quantkit.mathstats.product.rolling_cumprod as rolling_cumprod
+import quantkit.mathstats.matrix.correlation as correlation
 
 
 def test_integer_dataset():
@@ -20,6 +21,7 @@ def test_integer_dataset():
     - Test quantkit geometric mean calculation - compare to scipy.stats.gmean()
     - Test quantkit exponential weighted mean calculation - compare to pd.ewm()
     - Test quantkit simple cumprod calculation - compare to np.cumprod()
+    - Test quantkit correlation - compare to np.corrcoef
     """
     data = np.random.randint(low=1, high=10, size=(4, 4))
     cov_model = simple_covariance.Covariance(min_observations=2, num_ind_variables=4)
@@ -40,6 +42,7 @@ def test_integer_dataset():
 
     df = pd.DataFrame(data)
     expected_cov = np.around(np.cov(data, rowvar=0), 6)
+    expected_corr = np.around(np.corrcoef(data, rowvar=0), 6)
     expected_mean = np.around(np.mean(data, axis=0), 6)
     expected_gmean = np.around(gmean(data), 6)
     expected_cumprod = np.around(np.cumprod(data, axis=0)[-1, :], 6)
@@ -60,6 +63,9 @@ def test_integer_dataset():
         np.around(expo_model_unadjusted.results["mean"], 6), expected_ewa_unadjusted
     )
     assert np.array_equal(np.around(prod_model.cumprod, 6), expected_cumprod)
+    assert np.array_equal(
+        np.around(correlation.cov_to_corr(np.cov(data, rowvar=0)), 6), expected_corr
+    )
 
 
 def test_float_dataset():
@@ -69,6 +75,7 @@ def test_float_dataset():
     - Test quantkit simple mean calculation - compare to np.mean()
     - Test quantkit geometric mean with geobase calculation - compare to scipy.stats.gmean()
     - Test quantkit simple cumprod calculation - compare to np.cumprod()
+    - Test quantkit correlation - compare to np.corrcoef
     """
     data = np.random.uniform(-1, 1, [7, 5])
 
@@ -92,6 +99,7 @@ def test_float_dataset():
 
     df = pd.DataFrame(data)
     expected_cov = np.around(np.cov(data, rowvar=0), 6)
+    expected_corr = np.around(np.corrcoef(data, rowvar=0), 6)
     expected_mean = np.around(np.mean(data, axis=0), 6)
     expected_gmean = np.around(gmean(data + 1) - 1, 6)
     expected_cumprod = np.around(np.cumprod(data, axis=0)[-1, :], 6)
@@ -112,6 +120,9 @@ def test_float_dataset():
         np.around(expo_model_unadjusted.results["mean"], 6), expected_ewa_unadjusted
     )
     assert np.array_equal(np.around(prod_model.cumprod, 6), expected_cumprod)
+    assert np.array_equal(
+        np.around(correlation.cov_to_corr(np.cov(data, rowvar=0)), 6), expected_corr
+    )
 
 
 def test_rolling_integer_dataset():

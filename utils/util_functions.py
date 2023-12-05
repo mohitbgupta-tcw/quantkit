@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from typing import Union, Tuple
 import operator
 
@@ -17,6 +18,29 @@ def divide_chunks(l: list, n: int):
     # looping till length l
     for i in range(0, len(l), n):
         yield l[i : i + n]
+
+
+def bisect_list(l: Union[list, np.ndarray]):
+    """
+    Bisect a list, i.e. divide each list of list into 2 parts.
+
+    Parameters
+    ----------
+    l: list | np.array
+        list of list to be divided
+
+    Returns
+    -------
+    list | np.array
+        bisection
+    """
+    bisection = [
+        i[j:k]
+        for i in l
+        for j, k in ((0, len(i) // 2), (len(i) // 2, len(i)))
+        if len(i) > 1
+    ]
+    return bisection
 
 
 def iter_list(input_list: Union[list, set]) -> list:

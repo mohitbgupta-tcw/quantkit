@@ -61,7 +61,7 @@ class Covariance(streaming_base.StreamingBase):
         return self._results
 
     def update_demeaned(
-        self, vector_calc: np.array, batch_weight: int = 1, **kwargs
+        self, vector_calc: np.ndarray, batch_weight: int = 1, **kwargs
     ) -> None:
         """
         Update covariance calculation
@@ -83,7 +83,7 @@ class Covariance(streaming_base.StreamingBase):
             new_vector=vector_calc, batch_weight=batch_weight, **kwargs
         )
 
-    def update(self, batch_ind: np.array, batch_weight: float = 1, **kwargs) -> None:
+    def update(self, batch_ind: np.ndarray, batch_weight: float = 1, **kwargs) -> None:
         """
         Update the covariance matrix with new data streamed in
 

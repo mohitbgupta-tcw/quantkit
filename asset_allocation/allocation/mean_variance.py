@@ -37,10 +37,10 @@ class MeanVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
     def __init__(
         self,
         universe: list,
-        cov_matrix: np.array,
+        cov_matrix: np.ndarray,
         risk_averse_lambda: float = 1.0,
-        min_weights: Union[float, np.array] = 0.0,
-        max_weights: Union[float, np.array] = 1.0,
+        min_weights: Union[float, np.ndarray] = 0.0,
+        max_weights: Union[float, np.ndarray] = 1.0,
     ) -> None:
         super().__init__(universe)
         # PSD: positive semi-definite
@@ -129,7 +129,7 @@ class MeanVariance(allocation_base.Allocation):
             weights_constraint
         )
 
-    def update(self, selected_assets: Union[list, np.array], **kwargs) -> None:
+    def update(self, selected_assets: Union[list, np.ndarray], **kwargs) -> None:
         """
         - initialize optimizer
         - assign new forecasted cov matrix from risk engine to optimizer
@@ -155,7 +155,7 @@ class MeanVariance(allocation_base.Allocation):
         self.optimizer.exp_returns.value = return_metrics
 
     def allocate(
-        self, date: datetime.date, selected_assets: Union[list, np.array]
+        self, date: datetime.date, selected_assets: Union[list, np.ndarray]
     ) -> None:
         """
         Solve for optimal portfolio and save allocation

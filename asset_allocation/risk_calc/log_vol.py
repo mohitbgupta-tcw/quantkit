@@ -31,7 +31,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         )
 
     @property
-    def risk_metrics_optimizer(self) -> np.array:
+    def risk_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted log normal historical covariance matrix from risk engine
 
@@ -43,7 +43,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         return self.cov
 
     @property
-    def cov(self) -> np.array:
+    def cov(self) -> np.ndarray:
         """
         Forecaseted log normal historical covariance matrix from risk engine
 
@@ -55,7 +55,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         return self.cov_calculator.results["cov"]
 
     @property
-    def risk_metrics_intuitive(self) -> np.array:
+    def risk_metrics_intuitive(self) -> np.ndarray:
         """
         For descriptive statistics purpose, convert the statistics back to zero basis scale
         Returns simple historical covariance matrix
@@ -68,7 +68,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         return self.cov_calculator_intuitive.results["cov"]
 
     @property
-    def cov_intuitive(self) -> np.array:
+    def cov_intuitive(self) -> np.ndarray:
         """
         For descriptive statistics purpose, convert the statistics back to zero basis scale
         Returns simple historical covariance matrix
@@ -81,7 +81,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         return self.cov_calculator_intuitive.results["cov"]
 
     def assign(
-        self, date: datetime.date, price_return: np.array, annualize_factor: int = 1.0
+        self, date: datetime.date, price_return: np.ndarray, annualize_factor: int = 1.0
     ) -> None:
         """
         Transform to log scale and assign returns to the actual calculator
@@ -102,7 +102,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         self.cov_calculator.update(np.log(annualized_return + 1), index=date)
         self.cov_calculator_intuitive.update(annualized_return, index=date)
 
-    def get_portfolio_risk(self, allocation: np.array) -> float:
+    def get_portfolio_risk(self, allocation: np.ndarray) -> float:
         """
         calculate 0 basis return and risk
         descriptive statistics of log normal distribution is the same as the original distribution

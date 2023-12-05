@@ -34,7 +34,7 @@ class SimpleMean(object):
         self.total_iterations = 0
 
     @property
-    def mean(self) -> np.array:
+    def mean(self) -> np.ndarray:
         """
         Returns
         -------
@@ -44,7 +44,7 @@ class SimpleMean(object):
         return self._mean
 
     @property
-    def gmean(self) -> np.array:
+    def gmean(self) -> np.ndarray:
         """
         Returns
         -------
@@ -55,11 +55,11 @@ class SimpleMean(object):
 
     def calculate_average(
         self,
-        prev_average: np.array,
-        incoming_variables: np.array,
-        outgoing_variables: np.array,
-        num_variables: Union[np.array, int],
-    ) -> np.array:
+        prev_average: np.ndarray,
+        incoming_variables: np.ndarray,
+        outgoing_variables: np.ndarray,
+        num_variables: Union[np.ndarray, int],
+    ) -> np.ndarray:
         """
         Calculate average
 

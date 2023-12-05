@@ -31,8 +31,8 @@ class Momentum(strategy.Strategy):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
-        index_comp: np.array,
+        price_return: np.ndarray,
+        index_comp: np.ndarray,
         annualize_factor: int = 1.0,
         **kwargs,
     ) -> None:
@@ -68,7 +68,7 @@ class Momentum(strategy.Strategy):
             )
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of top n momentum securities
 
@@ -93,7 +93,7 @@ class Momentum(strategy.Strategy):
         return np.array(a)
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted DAILY returns from return engine of top n momentum securities
         in order of selected_securities

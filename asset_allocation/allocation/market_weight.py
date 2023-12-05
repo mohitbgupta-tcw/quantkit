@@ -25,7 +25,7 @@ class MarketWeight(allocation_base.Allocation):
     def __init__(self, asset_list: list, risk_engine, return_engine, **kwargs) -> None:
         super().__init__(asset_list, risk_engine, return_engine)
 
-    def update(self, market_caps: np.array, **kwargs) -> None:
+    def update(self, market_caps: np.ndarray, **kwargs) -> None:
         """
         - assign market caps
 
@@ -38,7 +38,7 @@ class MarketWeight(allocation_base.Allocation):
         self.market_caps = market_caps.squeeze()
 
     def allocate(
-        self, date: datetime.date, selected_assets: Union[list, np.array]
+        self, date: datetime.date, selected_assets: Union[list, np.ndarray]
     ) -> None:
         """
         Solve for optimal portfolio and save allocation

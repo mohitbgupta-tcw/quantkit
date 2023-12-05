@@ -17,7 +17,7 @@ class RiskMetrics(object):
         self.universe_size = len(universe)
 
     @property
-    def risk_metrics_optimizer(self) -> np.array:
+    def risk_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted covariance matrix from risk engine
 
@@ -29,7 +29,7 @@ class RiskMetrics(object):
         raise NotImplementedError
 
     @property
-    def risk_metrics_intuitive(self) -> np.array:
+    def risk_metrics_intuitive(self) -> np.ndarray:
         """
         risk metrics for plotting needs to be human interpretable
 
@@ -41,7 +41,10 @@ class RiskMetrics(object):
         raise NotImplementedError
 
     def assign(
-        self, date: datetime.date, price_return: np.array, annualize_factor: int = None
+        self,
+        date: datetime.date,
+        price_return: np.ndarray,
+        annualize_factor: int = None,
     ) -> None:
         """
         Transform and assign returns to the actual calculator
