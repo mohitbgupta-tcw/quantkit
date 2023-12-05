@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MSCI Dataloader allow specified factors
 - Specific Configs files for risk_framework, asset_allocation, pai
 - Move main runner into runners folder
+- empty list portfolios = load nothing, ["all] = load all
 ### Removed
 
 ## [1.4.0] - 2023-11-24

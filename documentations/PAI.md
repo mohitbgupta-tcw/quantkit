@@ -86,11 +86,11 @@ Before executing the PAI functionality, ensure proper configuration of your loca
 
 ```
 
-- Portfolios, optional: For Portfolios, specify the portfolios on which the risk framework should be executed on. Defaults to "701", "702", "703", "704", "705", "706", "707", "708", "709", "710", "711", "712", "713", "714", "3237", "3704", "3720", "3730", "3735", "3738", "3750", "3775", "3798", "4790", "6283", "6293", "6717", "6739", "6741", "6748", "6751", "6757", "6781", "6784", "13727", "13751", "16703", "16705", "16706", "16719", "16720", "3666", "3667", "3668", "3669", "6293", "3778", "3234", "3660", "3659". If the user wishes to run it on all available TCW portfolios, enter an empty list [], and if the user wants to exclude all available TCW portfolios, enter [""].
+- Portfolios, optional: For Portfolios, specify the portfolios on which the PAI framework should be executed on. Defaults to "701", "702", "703", "704", "705", "706", "707", "708", "709", "710", "711", "712", "713", "714", "3237", "3704", "3720", "3730", "3735", "3738", "3750", "3775", "3798", "4790", "6283", "6293", "6717", "6739", "6741", "6748", "6751", "6757", "6781", "6784", "13727", "13751", "16703", "16705", "16706", "16719", "16720", "3666", "3667", "3668", "3669", "6293", "3778", "3234", "3660", "3659". If the user wishes to run it on all available TCW portfolios, enter ["all"], and if the user wants to exclude all available TCW portfolios, enter an empty list [].
 
 ```shell
 
-    "portfolios": [],
+    "portfolios": ["all"],
 
 ```
 

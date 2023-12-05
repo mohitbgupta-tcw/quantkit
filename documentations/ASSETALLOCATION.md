@@ -97,7 +97,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```
 
-- TCW Portfolios, optional: For TCW Portfolios, specify the portfolios on which the asset allocation framework should be executed on. Defaults to [""]. If the user wishes to run it on all available TCW portfolios, enter an empty list [], and if the user wants to exclude all available TCW portfolios, enter [""].
+- TCW Portfolios, optional: For TCW Portfolios, specify the portfolios on which the asset allocation framework should be executed on. Defaults to []. If the user wishes to run it on all available TCW portfolios, enter ["all"], and if the user wants to exclude all available TCW portfolios, enter an empty list [].
 
 ```shell
 

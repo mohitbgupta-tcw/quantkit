@@ -1,5 +1,5 @@
 {
-    "portfolios": [],   
+    "portfolios": ["all"],   
     "transition_parameters": {
         "Q_Low" : 0.10,
         "Q_High": 0.70, 
