@@ -53,7 +53,7 @@
         "filters": {
             "ticker": [],
             "dimension": "MRT",
-            "calendardate": {"gte": "2023-01-01"},
+            "calendardate": {"gte": "2018-01-01"},
             "paginate": true
         },
         "load": true
@@ -66,7 +66,7 @@
         "filters": {
             "ticker": [],
             "paginate": true,
-            "date": {"gte": "2023-01-01"}
+            "date": {"gte": "2018-01-01"}
         },
         "load": true
     },

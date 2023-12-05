@@ -86,21 +86,6 @@
     },    
     "default_weights_constraint": [0.001, 0.15],
     "trans_cost": 0.01,
-    "prices_datasource": {
-        "rebalance": "MONTH",
-        "source": 3,
-        "table_name": "PRICES",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-    "fundamentals_datasource": {
-        "source": 3,
-        "table_name": "FUNDAMENTAL_DATA",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
     "msci_datasource": {
         "source": 4,
         "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
