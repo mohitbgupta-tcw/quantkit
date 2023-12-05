@@ -26,7 +26,7 @@ class Allocation(object):
         self.allocations = None
         self.allocations_history = dict()
 
-    def update(self, selected_assets: Union[list, np.array]) -> None:
+    def update(self, selected_assets: Union[list, np.ndarray]) -> None:
         """
         - initialize optimizer
         - assign new forecasted cov matrix from risk engine to optimizer
@@ -40,7 +40,7 @@ class Allocation(object):
         raise NotImplementedError
 
     def allocate(
-        self, date: datetime.date, selected_assets: Union[list, np.array]
+        self, date: datetime.date, selected_assets: Union[list, np.ndarray]
     ) -> None:
         """
         Solve for optimal portfolio and save allocation

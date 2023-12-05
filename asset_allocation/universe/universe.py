@@ -140,12 +140,24 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             ~self.datasource.df["Security_Name"].str.contains("DUMMY")
         ]
         self.datasource.df = self.datasource.df[
+            ~self.datasource.df["Security_Name"].str.contains("MARKET VALUE ADJUSTMENT")
+        ]
+        self.datasource.df = self.datasource.df[
+            ~self.datasource.df["Security_Name"].str.contains("MKT VALUE ADJUST")
+        ]
+        self.datasource.df = self.datasource.df.dropna(subset="Ticker Cd")
+        self.datasource.df = self.datasource.df[
             ~self.datasource.df["Ticker Cd"].str.contains("_x")
         ]
         self.datasource.df = self.datasource.df[
             ~self.datasource.df["ISIN"].isin(self.params["non_puplic"])
         ]
-
+        self.datasource.df = self.datasource.df[
+            ~self.datasource.df["ISIN"].isin(self.params["missing_data"])
+        ]
+        self.datasource.df = self.datasource.df[
+            ~self.datasource.df["Ticker Cd"].isin(self.params["currencies"])
+        ]
         if self.params["custom_universe"]:
             self.datasource.df = self.datasource.df.drop_duplicates(
                 subset=["ISIN", "As Of Date"]
@@ -216,15 +228,6 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             .groupby(["As Of Date"])
             .max()[self.all_tickers]
         )
-        self.universe_df = (
-            self.universe_df.reset_index()
-            .groupby(
-                [self.universe_df.index.year, self.universe_df.index.month],
-                as_index=False,
-            )
-            .last()
-            .set_index("As Of Date")
-        )
         if self.params["custom_universe"]:
             self.universe_df.loc[:, :] = True
         self.universe_matrix = self.universe_df.to_numpy()
@@ -232,7 +235,7 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         # fundamental dates -> date + 3 months
         self.universe_dates = list(self.universe_df.index.unique())
 
-    def outgoing_row(self, date: datetime.date) -> np.array:
+    def outgoing_row(self, date: datetime.date) -> np.ndarray:
         """
         Return current consitutents of index universe
 
@@ -246,6 +249,9 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         np.array
             current constitutents of universe
         """
-        if date >= self.universe_dates[self.current_loc + 1]:
+        while (
+            self.current_loc < len(self.universe_dates) - 1
+            and date >= self.universe_dates[self.current_loc + 1]
+        ):
             self.current_loc += 1
         return self.universe_matrix[self.current_loc]

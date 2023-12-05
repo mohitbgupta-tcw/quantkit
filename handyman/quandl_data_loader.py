@@ -43,7 +43,7 @@ def get_quandl_fundamental_data(
         qopts = {"columns": columns}
         filters["qopts"] = qopts
 
-    quandl_object = quandl.Quandl(api_key, table, filters)
+    quandl_object = quandl.Quandl(api_key, "fundamental", table, filters)
     quandl_object.load()
     return quandl_object.df
 
@@ -89,6 +89,45 @@ def get_quandl_price_data(
         qopts = {"columns": columns}
         filters["qopts"] = qopts
 
-    quandl_object = quandl.Quandl(api_key, table, filters)
+    quandl_object = quandl.Quandl(api_key, "prices", table, filters)
+    quandl_object.load()
+    return quandl_object.df
+
+
+def get_quandl_market_data(
+    start_date: str = None,
+    end_date: str = None,
+    columns: list = [
+        "MULTPL/SP500_PSR_QUARTER",
+        "MULTPL/SP500_PBV_RATIO_QUARTER",
+        "MULTPL/SP500_PE_RATIO_MONTH",
+    ],
+) -> pd.DataFrame:
+    """
+    For a specified list of multiples, load Quandl market data through API
+
+    Parameters
+    ----------
+    start_date: str, optional
+        date in format "yyyy-mm-dd"
+    end_date: str, optional
+        date in format "yyyy-mm-dd"
+    columns: list, optional
+        subset of columns to pull from table
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of Quandl information
+    """
+    api_key = "MxE6oNePp886npLJ2CGs"
+    table = columns
+    filters = dict()
+    if start_date:
+        filters["start_date"] = start_date
+    if end_date:
+        filters["end_date"] = end_date
+
+    quandl_object = quandl.Quandl(api_key, "market", table, filters)
     quandl_object.load()
     return quandl_object.df

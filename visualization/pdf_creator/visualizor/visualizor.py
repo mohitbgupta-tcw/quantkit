@@ -187,8 +187,8 @@ class PDFCreator(object):
 
     def add_bar_chart(
         self,
-        x: Union[list, np.array, pd.Series],
-        y: Union[list, np.array, pd.Series],
+        x: Union[list, np.ndarray, pd.Series],
+        y: Union[list, np.ndarray, pd.Series],
         title: str = "",
         orientation: str = "h",
         height: int = 350,
@@ -225,8 +225,8 @@ class PDFCreator(object):
 
     def add_line_chart(
         self,
-        x: Union[list, np.array, pd.Series],
-        y: Union[list, np.array, pd.Series],
+        x: Union[list, np.ndarray, pd.Series],
+        y: Union[list, np.ndarray, pd.Series],
         title: str = "",
         height: int = 350,
         width: int = None,
@@ -258,9 +258,9 @@ class PDFCreator(object):
 
     def add_pie_chart(
         self,
-        labels: Union[list, np.array, pd.Series],
-        values: Union[list, np.array, pd.Series],
-        color: Union[list, np.array, pd.Series],
+        labels: Union[list, np.ndarray, pd.Series],
+        values: Union[list, np.ndarray, pd.Series],
+        color: Union[list, np.ndarray, pd.Series],
         hole: float = 0,
         title: str = "",
         height: int = 350,

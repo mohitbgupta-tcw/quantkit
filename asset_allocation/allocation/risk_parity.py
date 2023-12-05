@@ -39,8 +39,8 @@ class TraditionalRPOptimizer(portfolio_optimizer.PortfolioOptimizer):
     def __init__(
         self,
         universe: list,
-        cov_matrix: np.array,
-        risk_budgets: np.array,
+        cov_matrix: np.ndarray,
+        risk_budgets: np.ndarray,
         long_only: bool = True,
         leverage: float = None,
         verbose: bool = False,
@@ -125,8 +125,8 @@ class RiskParity(allocation_base.Allocation):
 
     def update(
         self,
-        selected_assets: Union[list, np.array],
-        risk_budgets: np.array = None,
+        selected_assets: Union[list, np.ndarray],
+        risk_budgets: np.ndarray = None,
         **kwargs,
     ) -> None:
         """
@@ -153,7 +153,7 @@ class RiskParity(allocation_base.Allocation):
         )
 
     def allocate(
-        self, date: datetime.date, selected_assets: Union[list, np.array]
+        self, date: datetime.date, selected_assets: Union[list, np.ndarray]
     ) -> None:
         """
         Solve for optimal portfolio and save allocation

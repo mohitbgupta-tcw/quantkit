@@ -33,6 +33,7 @@ class FundamentalsDataSource(ds.DataSources):
         super().__init__(params, **kwargs)
         self.tickers = dict()
         self.current_loc = 0
+        self.fundamentals = dict()
 
     def load(self) -> None:
         """
@@ -66,7 +67,7 @@ class FundamentalsDataSource(ds.DataSources):
             by=["date", "ticker"], ascending=True, ignore_index=True
         )
         self.datasource.df["release_date"] = (
-            self.datasource.df["date"] + pd.DateOffset(months=3) + MonthEnd(0)
+            self.datasource.df["date"] + pd.DateOffset(months=1) + MonthEnd(0)
         )
         self.datasource.df["release_date"] = pd.to_datetime(
             self.datasource.df["release_date"]
@@ -110,12 +111,14 @@ class FundamentalsDataSource(ds.DataSources):
             self.datasource.df["release_date"].sort_values().unique()
         )
 
-        # initialize market caps
-        self.marketcaps = self.datasource.df.pivot(
-            index="release_date", columns="ticker", values="marketcap"
-        )[tickers_ordered].to_numpy()
+        # initialize kpi's
+        funds = ["marketcap", "divyield", "roe", "fcfps", "pe", "ps", "pb"]
+        for fund in funds:
+            self.fundamentals[fund] = self.datasource.df.pivot(
+                index="release_date", columns="ticker", values=fund
+            )[tickers_ordered].to_numpy()
 
-    def outgoing_row(self, date: datetime.date) -> np.array:
+    def outgoing_row(self, date: datetime.date) -> dict:
         """
         Return current market caps universe
 
@@ -126,12 +129,18 @@ class FundamentalsDataSource(ds.DataSources):
 
         Returns
         -------
-        np.array
-            current market caps of universe
+        dict
+            current fundamentals of universe
         """
-        if date >= self.fundamental_dates[self.current_loc + 1]:
+        while (
+            self.current_loc < len(self.fundamental_dates) - 1
+            and date >= self.fundamental_dates[self.current_loc + 1]
+        ):
             self.current_loc += 1
-        return self.marketcaps[self.current_loc]
+        return_dict = dict()
+        for fund in self.fundamentals:
+            return_dict[fund] = self.fundamentals[fund][self.current_loc]
+        return return_dict
 
     @property
     def df(self) -> pd.DataFrame:

@@ -31,8 +31,10 @@ class Momentum(strategy.Strategy):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
+        price_return: np.ndarray,
+        index_comp: np.ndarray,
         annualize_factor: int = 1.0,
+        **kwargs,
     ) -> None:
         """
         Transform and assign returns to the actual calculator
@@ -43,10 +45,12 @@ class Momentum(strategy.Strategy):
             date of snapshot
         price_return: np.array
             zero base price return of universe
+        index_comp: np.array
+            index components for date
         annualize_factor: int, optional
             factor depending on data frequency
         """
-        super().assign(date, price_return, annualize_factor)
+        super().assign(date, price_return, index_comp, annualize_factor)
 
         self.return_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
@@ -64,7 +68,7 @@ class Momentum(strategy.Strategy):
             )
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of top n momentum securities
 
@@ -81,7 +85,7 @@ class Momentum(strategy.Strategy):
         i = 0
         a = list()
 
-        while selected_assets < top_n:
+        while selected_assets < top_n and i < self.num_total_assets:
             if self.index_comp[neg_sort[i]]:
                 a.append(neg_sort[i])
                 selected_assets += 1
@@ -89,7 +93,7 @@ class Momentum(strategy.Strategy):
         return np.array(a)
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted DAILY returns from return engine of top n momentum securities
         in order of selected_securities

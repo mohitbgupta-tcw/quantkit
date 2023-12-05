@@ -74,7 +74,7 @@ class WindowCovariance(streaming_base.StreamingBase):
         self._results["gmean"] = self.rolling_mean.gmean
         return self._results
 
-    def update(self, batch_ind: np.array, **kwargs) -> None:
+    def update(self, batch_ind: np.ndarray, **kwargs) -> None:
         """
         Updates the window covariance matrix with new streamed data
 

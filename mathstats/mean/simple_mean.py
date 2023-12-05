@@ -10,6 +10,7 @@ class SimpleMean(object):
     Calculation in Incremental way:
 
         previous average + (incoming variables - previous average) / number of variables
+        \overline{x}_t =  \overline{x}_{t-1}+\frac{x_t-\overline{x}_{t-1}}{t}
 
     see https://fanf2.user.srcf.net/hermes/doc/antiforgery/stats.pdf chapter 1
 
@@ -33,7 +34,7 @@ class SimpleMean(object):
         self.total_iterations = 0
 
     @property
-    def mean(self) -> np.array:
+    def mean(self) -> np.ndarray:
         """
         Returns
         -------
@@ -43,7 +44,7 @@ class SimpleMean(object):
         return self._mean
 
     @property
-    def gmean(self) -> np.array:
+    def gmean(self) -> np.ndarray:
         """
         Returns
         -------
@@ -54,11 +55,11 @@ class SimpleMean(object):
 
     def calculate_average(
         self,
-        prev_average: np.array,
-        incoming_variables: np.array,
-        outgoing_variables: np.array,
-        num_variables: Union[np.array, int],
-    ) -> np.array:
+        prev_average: np.ndarray,
+        incoming_variables: np.ndarray,
+        outgoing_variables: np.ndarray,
+        num_variables: Union[np.ndarray, int],
+    ) -> np.ndarray:
         """
         Calculate average
 

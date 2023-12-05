@@ -28,7 +28,7 @@ class LogReturn(return_metrics.ReturnMetrics):
         )
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted returns from return engine
 
@@ -40,7 +40,7 @@ class LogReturn(return_metrics.ReturnMetrics):
         return self.return_calculator.mean
 
     @property
-    def return_metrics_intuitive(self) -> np.array:
+    def return_metrics_intuitive(self) -> np.ndarray:
         """
         Forecaseted returns from return engine
 
@@ -51,7 +51,7 @@ class LogReturn(return_metrics.ReturnMetrics):
         """
         return self.return_metrics_optimizer
 
-    def get_portfolio_return(self, allocation: np.array, **kwargs) -> pd.DataFrame:
+    def get_portfolio_return(self, allocation: np.ndarray, **kwargs) -> pd.DataFrame:
         """
         Calculate 0 basis portfolio return
         Return a DataFrame with returns in frequency for each date in rebalance window
@@ -76,7 +76,7 @@ class LogReturn(return_metrics.ReturnMetrics):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
+        price_return: np.ndarray,
         annualize_factor: int = 1.0,
     ) -> None:
         """

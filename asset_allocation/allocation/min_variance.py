@@ -35,9 +35,9 @@ class MinVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
     def __init__(
         self,
         universe: list,
-        cov_matrix: np.array,
-        min_weights: Union[float, np.array] = 0.0,
-        max_weights: Union[float, np.array] = 1.0,
+        cov_matrix: np.ndarray,
+        min_weights: Union[float, np.ndarray] = 0.0,
+        max_weights: Union[float, np.ndarray] = 1.0,
     ) -> None:
         super().__init__(universe)
         # PSD: positive semi-definite
@@ -113,7 +113,7 @@ class MinimumVariance(allocation_base.Allocation):
         self.risk_metrics = np.ones(self.num_total_assets) * np.nan
         self.allocations = np.ones(self.num_total_assets) * np.nan
 
-    def update(self, selected_assets: Union[list, np.array], **kwargs) -> None:
+    def update(self, selected_assets: Union[list, np.ndarray], **kwargs) -> None:
         """
         - initialize optimizer
         - assign new forecasted cov matrix from risk engine to optimizer
@@ -132,7 +132,7 @@ class MinimumVariance(allocation_base.Allocation):
             max_weights=self.max_weights[selected_assets],
         )
 
-    def minimize_portfolio_variance(self, risk_metrics) -> np.array:
+    def minimize_portfolio_variance(self, risk_metrics) -> np.ndarray:
         r"""
         Minimum variance optimization in case of no existing short constraint
 
@@ -152,7 +152,7 @@ class MinimumVariance(allocation_base.Allocation):
         return np.sum(inv_cov, axis=0) / np.sum(inv_cov)
 
     def allocate(
-        self, date: datetime.date, selected_assets: Union[list, np.array]
+        self, date: datetime.date, selected_assets: Union[list, np.ndarray]
     ) -> None:
         """
         Solve for optimal portfolio and save allocation

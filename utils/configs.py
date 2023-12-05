@@ -6,7 +6,7 @@ import quantkit.utils.util_functions as util_functions
 from typing import Union
 
 
-def read_configs(local_configs: Union[str, dict] = "") -> dict:
+def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) -> dict:
     """
     read configs file from quantkit\\utils\\configs.json
     if there are local changes, overwrite existing configs file
@@ -15,14 +15,22 @@ def read_configs(local_configs: Union[str, dict] = "") -> dict:
     ----------
     local_configs: str | dict, optional
         path to a local configarations file or local configs as dict
+    runner_type: str, optional
+        runner type to include configs for, p.e. "risk_framework", "asset_allocation", "pai"
 
     Returns
     -------
     dict
         configs file as dictionary
     """
-    with open("quantkit/utils/configs.json") as f_in:
+    with open("quantkit/configs/configs.json") as f_in:
         configs = json.load(f_in)
+
+    if runner_type:
+        with open(f"quantkit/configs/{runner_type}.json") as runner_in:
+            configs_runner = json.load(runner_in)
+
+        configs = util_functions.replace_dictionary(configs_runner, configs)
 
     # local configs file exists
     if isinstance(local_configs, dict):

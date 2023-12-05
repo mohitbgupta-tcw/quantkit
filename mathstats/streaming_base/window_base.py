@@ -26,7 +26,7 @@ class WindowBase(object):
         self._indexes = deque(maxlen=window_size)
 
     @property
-    def values(self) -> np.array:
+    def values(self) -> np.ndarray:
         """
         Returns
         -------
@@ -37,7 +37,7 @@ class WindowBase(object):
         return self.matrix[ix_order]
 
     @property
-    def indexes(self) -> np.array:
+    def indexes(self) -> np.ndarray:
         """
         Returns
         -------
@@ -56,7 +56,7 @@ class WindowBase(object):
         return np.all(self.matrix + adjustment > 0, axis=0)
 
     def update(
-        self, new_vector: np.array, batch_weight: float = 1, index=None, **kwargs
+        self, new_vector: np.ndarray, batch_weight: float = 1, index=None, **kwargs
     ) -> None:
         """
         - Update window matrix with new vector
@@ -101,7 +101,7 @@ class WindowStream(WindowBase):
         super().__init__(window_shape=window_shape, window_size=window_size)
         self.curr_vector = np.zeros(curr_shape) * np.nan
 
-    def update(self, new_vector: np.array, batch_weight: int = 1, **kwargs) -> None:
+    def update(self, new_vector: np.ndarray, batch_weight: int = 1, **kwargs) -> None:
         """
         Sum vectors and update the window matrix of the new vector
 

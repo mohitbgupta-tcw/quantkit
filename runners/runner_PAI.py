@@ -1,5 +1,5 @@
 import pandas as pd
-import quantkit.loader.runner as loader
+import quantkit.runners.runner as loader
 import quantkit.utils.logging as logging
 
 
@@ -15,7 +15,7 @@ class Runner(loader.Runner):
         local_configs: str, optional
             path to a local configarations file
         """
-        super().init(local_configs)
+        super().init(local_configs, "pai")
 
         # iterate over dataframes and create objects
         self.iter()

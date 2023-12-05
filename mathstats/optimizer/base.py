@@ -43,7 +43,7 @@ class BaseOptimizer(object):
         self._constraints.append(new_constraint)
 
     @staticmethod
-    def _sum(x: np.array) -> np.array:
+    def _sum(x: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -58,7 +58,7 @@ class BaseOptimizer(object):
         return sum(x)
 
     @staticmethod
-    def _sqrt(x: np.array) -> np.array:
+    def _sqrt(x: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -73,7 +73,7 @@ class BaseOptimizer(object):
         return np.sqrt(x)
 
     @staticmethod
-    def _multiply(x: np.array, y: np.array) -> np.array:
+    def _multiply(x: np.ndarray, y: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -90,7 +90,7 @@ class BaseOptimizer(object):
         return np.multiply(x, y)
 
     @staticmethod
-    def _log(x: np.array) -> np.array:
+    def _log(x: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -105,7 +105,7 @@ class BaseOptimizer(object):
         return np.log(x)
 
     @staticmethod
-    def _quad_form(w: np.array, X: np.array) -> np.array:
+    def _quad_form(w: np.ndarray, X: np.ndarray) -> np.ndarray:
         """
         Parameters
         ----------
@@ -122,7 +122,7 @@ class BaseOptimizer(object):
         return w.T @ X @ w
 
     @staticmethod
-    def _norm(X: np.array) -> float:
+    def _norm(X: np.ndarray) -> float:
         """
         Parameters
         ----------

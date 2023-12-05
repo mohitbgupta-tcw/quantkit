@@ -1,42 +1,12 @@
-{   
-    "portfolios": ["701","702","703","704", "705","706","707","708","709", "710","711","712","713","714","3237","3704","3720","3730","3735","3738", "3750","3775", "3798", "4790","6283", "6293", "6717","6739","6741","6748","6751","6757","6781","6784","13727","13751","16703","16705","16706","16719", "16720", "3666", "3667", "3668", "3669", "6293", "3778", "3234", "3660", "3659"],
-    "equity_benchmark": ["JESG EMBI Global Diversified Index", "JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI", "MSCI WORLD", "Russell 1000", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "RUSSELL 3000 INDEX", "S & P 500 INDEX", "MSCI EAFE", "RUSSELL 2000", "RUSSELL 2000 VALUE", "RUSSELL MIDCAP", "Russell Midcap Value", "S&P 500 EX TOBACCO"],
-    "fixed_income_benchmark": ["BB HIGH YIELD 2% CAP", "BB INTERMEDIATE CORP", "BLOOMBER LONG GOVT/CREDIT", "BLOOMBERG AGGREGATE INDEX", "Pan Euro Credit", "Pan Euro High Yield"],
-
+{
+    "portfolios": ["all"],   
     "transition_parameters": {
         "Q_Low" : 0.10,
         "Q_High": 0.70, 
         "High_Threshold": 1500
 
     },
-    
-    "API_settings": {
-        "snowflake_parameters": {
-            "user": "",   
-            "password": "",    
-            "role": "APP-SNOWF-ESG_ADVANCED"
-            },
-    
-        "msci_parameters": {
-            "key": "b769e9c4-16c4-45f8-89a5-6f555587a640",
-            "secret" : "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
-        },
-    
-        "quandl_parameters": {
-            "key": "MxE6oNePp886npLJ2CGs"
-        },
-
-        "fred_parameters": {
-            "key": "eb4f46c42913c92951a8c64d545598ca"
-        }
-    },
-    
     "portfolio_datasource": {
-        "source": 3,
-        "table_name": "POSITION_VW",
-        "database": "TCW_CORE_QA",
-        "schema": "TCW",
-        "load": true,
         "transformation": {
             "XS2403443786": {"TCW ESG": "TCW Social"},
             "USU35914AA51": {
@@ -79,56 +49,20 @@
             "USP4R53VAB95": {
                 "Sector Level 1": "Corporate", 
                 "Sector Level 2": "Utility"
+            },
+            "US721283AB55" : {
+                "MSCI ISSUERID": "IID000000002680325"
             }
         }
     },
-
-    "category_datasource": {
-        "source": 3,
-        "table_name": "MATERIALITY_MAPPING" ,
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true 
-    },
-    "bloomberg_datasource": {
-        "source": 3,
-        "table_name": "BLOOMBERG_DATA",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
     "fundamentals_datasource": {
-        "type": "fundamental",
-        "source": 5,
-        "table": "SHARADAR/SF1",
-        "filters": {
-            "ticker": [],
-            "dimension": "MRT",
-            "calendardate": {"gte": "2023-01-01"},
-            "paginate": true
-        },
         "load": false
     },
     "prices_datasource": {
-        "type": "price",
-        "source": 5,
-        "frequency": "DAY",
-        "table": "SHARADAR/SEP",
-        "filters": {
-            "ticker": [],
-            "paginate": true,
-            "date": {"gte": "2023-01-01"}
-        },
         "load": false
     },
     "msci_datasource": {
-        "source": 4,
-        "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
-        "historical": false,
         "filters": {
-            "issuer_identifier_type": "ISSUER_ID",
-            "issuer_identifier_list": [],
-            "parent_child": "inherit_missing_values",
             "factor_name_list": [
                 "ISSUER_NAME",
                 "ISSUER_TICKER",
@@ -242,114 +176,7 @@
                 "GOVERNMENT_ADJUSTED_ESG_SCORE",
                 "GOVERNMENT_ESG_RATING"
             ]
-        },
-        "transformation": {
-            "CARBON_EMISSIONS_CDP_DISCLOSURE": {"Yes": 1, "No": 0}
-        },
-        "load": true
-    },
-
-    "sdg_datasource": {
-        "source": 3,
-        "table_name": "FACT_ESG_ISSUER_SDGA",
-        "database": "TCW_CORE_QA",
-        "schema": "ESG_ISS",
-        "load": true
-    },
-
-    "sector_datasource": {
-        "source": 3,
-        "table_name": "SECTOR_CODES",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-    "bclass_datasource": {
-        "source": 3,
-        "table_name": "BCLASS",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-    "gics_datasource": {
-        "source": 3,
-        "table_name": "GICS",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-    "exclusion_datasource": {
-        "source": 4,
-        "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
-        "historical": false,
-        "filters": {
-            "issuer_identifier_type": "ISSUER_ID",
-            "issuer_identifier_list": [],
-            "parent_child": "do_not_apply",
-            "factor_name_list": [
-                "ISSUER_ISIN",
-                "CWEAP_TIE",
-                "WEAP_MAX_REV_PCT",
-                "FIREARM_MAX_REV_PCT",
-                "TOB_MAX_REV_PCT",
-                "AE_MAX_REV_PCT",
-                "ALC_DIST_MAX_REV_PCT",
-                "ALC_PROD_MAX_REV_PCT",
-                "GAM_MAX_REV_PCT"
-            ]
-        },
-        "load": true
-    },
-    "regions_datasource": {
-        "source": 3,
-        "table_name": "REGIONS",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-
-    "theme_datasource": {
-        "source": 3,
-        "table_name": "THEMATIC_MAPPING",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-
-    "transition_datasource": {
-        "source": 3,
-        "table_name": "TRANSITION_MAPPING",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-    "adjustment_datasource": {
-        "source": 3,
-        "table_name": "ADJUSTMENTS",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-    "securitized_datasource": {
-        "source": 3,
-        "table_name": "SECURITIZED_MAPPING",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-    "parent_issuer_datasource": {
-        "source": 3,
-        "table_name": "PARENT_ISSUER_MAPPING",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
-    },
-    "ticker_parent_issuer_datasource": {
-        "source": 3,
-        "table_name": "TICKER_PARENT_MAPPING",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": false
+        }
     },
     "theme_calculation": {
         "ALL_exclusions" : ["Casinos & Gaming", "Distillers & Vintners", "Brewers", "Tobacco", "Gaming"],

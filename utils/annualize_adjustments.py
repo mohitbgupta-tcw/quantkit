@@ -4,8 +4,8 @@ from typing import Union
 
 
 def simple_annualization(
-    return_series: Union[pd.Series, np.array, float], annualization_factor: int
-) -> np.array:
+    return_series: Union[pd.Series, np.ndarray, float], annualization_factor: int
+) -> np.ndarray:
     """
     Approximated annualization of returns by simple multiplication of return series with annualization factor
 
@@ -29,8 +29,8 @@ def simple_annualization(
 
 
 def compound_annualization(
-    return_series: Union[pd.Series, np.array, float], annualization_factor: int
-) -> np.array:
+    return_series: Union[pd.Series, np.ndarray, float], annualization_factor: int
+) -> np.ndarray:
     """
     Exact annualization of returns by compounding
 
@@ -54,8 +54,8 @@ def compound_annualization(
 
 
 def volatility_annualize(
-    volatility_series: Union[pd.Series, np.array, float], annualization_factor: int
-) -> np.array:
+    volatility_series: Union[pd.Series, np.ndarray, float], annualization_factor: int
+) -> np.ndarray:
     """
     Exact annualization of volatility by compounding
 
@@ -79,8 +79,8 @@ def volatility_annualize(
 
 
 def volatility_de_annualize(
-    volatility_series: Union[pd.Series, np.array, float], annualization_factor: int
-) -> np.array:
+    volatility_series: Union[pd.Series, np.ndarray, float], annualization_factor: int
+) -> np.ndarray:
     """
     Exact de-annualization of volatility by compounding,
     i.e. from annual returns to monthly returns
@@ -105,8 +105,8 @@ def volatility_de_annualize(
 
 
 def covariance_annualize(
-    cov_matrix: Union[pd.DataFrame, np.array], annualization_factor: int
-) -> np.array:
+    cov_matrix: Union[pd.DataFrame, np.ndarray], annualization_factor: int
+) -> np.ndarray:
     """
     Exact annualization of covariance matrix by compounding
 

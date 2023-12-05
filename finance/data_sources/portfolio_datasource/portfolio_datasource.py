@@ -123,7 +123,9 @@ class PortfolioDataSource(ds.DataSources):
             ", ".join(f"'{b}'" for b in equity_benchmark) if equity_benchmark else "''"
         )
 
-        and_clause = f"""AND pos.portfolio_number in ({pf})""" if pfs else ""
+        and_clause = (
+            f"""AND pos.portfolio_number in ({pf})""" if not "all" in pfs else ""
+        )
 
         query = f"""
         SELECT *

@@ -33,7 +33,7 @@ class EqualWeight(allocation_base.Allocation):
         return
 
     def allocate(
-        self, date: datetime.date, selected_assets: Union[list, np.array]
+        self, date: datetime.date, selected_assets: Union[list, np.ndarray]
     ) -> None:
         """
         Solve for optimal portfolio and save allocation
