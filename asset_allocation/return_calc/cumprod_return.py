@@ -27,7 +27,7 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         )
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted returns from return engine
 
@@ -39,7 +39,7 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         return self.return_calculator.cumprod - 1
 
     @property
-    def return_metrics_intuitive(self) -> np.array:
+    def return_metrics_intuitive(self) -> np.ndarray:
         """
         Forecaseted returns from return engine
 
@@ -53,7 +53,7 @@ class CumProdReturn(return_metrics.ReturnMetrics):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
+        price_return: np.ndarray,
         annualize_factor=1.0,
     ) -> None:
         """

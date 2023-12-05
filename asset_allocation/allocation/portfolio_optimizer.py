@@ -35,8 +35,8 @@ class PortfolioOptimizer(convex_optimizer.CVXPYOptimizer):
 
     def add_weight_constraint(
         self,
-        min_weights: Union[float, np.array],
-        max_weights: Union[float, np.array] = None,
+        min_weights: Union[float, np.ndarray],
+        max_weights: Union[float, np.ndarray] = None,
     ) -> None:
         """
         Add weight constraint to optimizer

@@ -30,7 +30,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         )
 
     @property
-    def risk_metrics_optimizer(self) -> np.array:
+    def risk_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted simple historical covariance matrix from risk engine
 
@@ -42,7 +42,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         return self.cov
 
     @property
-    def risk_metrics_optimizer_window(self) -> np.array:
+    def risk_metrics_optimizer_window(self) -> np.ndarray:
         """
         Forecaseted rolling historical covariance matrix from risk engine
 
@@ -54,7 +54,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         return self.window_cov
 
     @property
-    def risk_metrics_intuitive(self) -> np.array:
+    def risk_metrics_intuitive(self) -> np.ndarray:
         """
         Forecaseted simple historical covariance matrix from risk engine
 
@@ -66,7 +66,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         return self.cov
 
     @property
-    def risk_metrics_intuitive_window(self) -> np.array:
+    def risk_metrics_intuitive_window(self) -> np.ndarray:
         """
         Forecaseted rolling historical covariance matrix from risk engine
 
@@ -78,7 +78,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         return self.window_cov
 
     @property
-    def cov(self) -> np.array:
+    def cov(self) -> np.ndarray:
         """
         Forecaseted simple historical covariance matrix from risk engine
 
@@ -90,7 +90,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         return self.cov_calculator.results["cov"]
 
     @property
-    def window_cov(self) -> np.array:
+    def window_cov(self) -> np.ndarray:
         """
         Forecaseted rolling historical covariance matrix from risk engine
 
@@ -126,7 +126,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         return np.sqrt(np.diag(self.window_cov_calculator.results["cov"]))
 
     def assign(
-        self, date: datetime.date, price_return: np.array, annualize_factor: int = 1.0
+        self, date: datetime.date, price_return: np.ndarray, annualize_factor: int = 1.0
     ) -> None:
         """
         Transform and assign returns to the actual calculator
@@ -148,7 +148,9 @@ class SimpleVol(risk_metrics.RiskMetrics):
         self.cov_calculator.update(annualized_return, index=date)
         self.window_cov_calculator.update(annualized_return, index=date)
 
-    def get_portfolio_risk(self, allocation: np.array, is_window: bool = True) -> float:
+    def get_portfolio_risk(
+        self, allocation: np.ndarray, is_window: bool = True
+    ) -> float:
         """
         calculate 0 basis portfolio risk
 

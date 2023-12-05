@@ -109,7 +109,7 @@ class OrdinaryLR(streaming_base.StreamingBase):
         self._results["r_squared"] = np.diag(_ryx.T @ _rxx @ _ryx) * _mask_current
         return self._results
 
-    def calculate_vector(self, mask_current: np.array) -> np.array:
+    def calculate_vector(self, mask_current: np.ndarray) -> np.ndarray:
         """
         Calculate regression specific vector
 

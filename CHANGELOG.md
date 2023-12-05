@@ -10,8 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation for Risk Framework, PAI and Asset Allocation
 - Relative Value Strategy
 - Market Multiple Datasource
+- Correlation test in test file
+- Hierarchical Risk Parity allocator
 ### Fixed
 - MSCI Datasource empty return
+- Numpy array value specification to np.ndarray
 ### Changed
 - README
 - Snowflake pull function uses either query or database/schema/tablename

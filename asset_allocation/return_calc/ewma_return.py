@@ -33,7 +33,7 @@ class LogEWMA(log_return.LogReturn):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
+        price_return: np.ndarray,
         annualize_factor: int = 1.0,
     ) -> None:
         """

@@ -8,6 +8,7 @@ import quantkit.asset_allocation.risk_calc.simple_vol as simple_vol
 import quantkit.asset_allocation.allocation.mean_variance as mean_variance
 import quantkit.asset_allocation.allocation.min_variance as min_variance
 import quantkit.asset_allocation.allocation.risk_parity as risk_parity
+import quantkit.asset_allocation.allocation.hrp as hrp
 import quantkit.asset_allocation.allocation.equal_weight as equal_weight
 import quantkit.asset_allocation.allocation.market_weight as market_weight
 import quantkit.utils.mapping_configs as mapping_configs
@@ -143,7 +144,14 @@ class Strategy(object):
                 this_allocation_engine = risk_parity.RiskParity(
                     **allocation_engine_kwargs
                 )
-
+            elif allocation_model == "hrp":
+                this_allocation_engine = hrp.HierarchicalRiskParity(
+                    **allocation_engine_kwargs
+                )
+            elif allocation_model == "constrained_hrp":
+                this_allocation_engine = hrp.HierarchicalRiskParity(
+                    weights_constraint=wc, **allocation_engine_kwargs
+                )
             elif allocation_model == "equal_weight":
                 this_allocation_engine = equal_weight.EqualWeight(
                     **allocation_engine_kwargs
@@ -180,8 +188,8 @@ class Strategy(object):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
-        index_comp: np.array,
+        price_return: np.ndarray,
+        index_comp: np.ndarray,
         annualize_factor: int = 1.0,
         **kwargs,
     ) -> None:
@@ -228,8 +236,8 @@ class Strategy(object):
 
     def get_portfolio_stats(
         self,
-        allocation: np.array,
-        next_allocation: np.array,
+        allocation: np.ndarray,
+        next_allocation: np.ndarray,
     ) -> pd.DataFrame:
         """
         Portfolio level stats
@@ -280,7 +288,7 @@ class Strategy(object):
         next_portfolio_allocation = allocation_pd.loc[date].values
         return portfolio_allocation, next_portfolio_allocation
 
-    def backtest(self, date: datetime.date, market_caps: np.array) -> None:
+    def backtest(self, date: datetime.date, market_caps: np.ndarray) -> None:
         """
         - Calculate optimal allocation for each weighting strategy
         - Calculate allocation returns
@@ -367,7 +375,7 @@ class Strategy(object):
         return w_consts_d
 
     @property
-    def return_metrics_intuitive(self) -> np.array:
+    def return_metrics_intuitive(self) -> np.ndarray:
         """
         All forecaseted returns from return engine
 
@@ -379,7 +387,7 @@ class Strategy(object):
         return self.return_engine.return_metrics_optimizer
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of all selected securities by that strategy
 

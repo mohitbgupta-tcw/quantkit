@@ -34,7 +34,7 @@ class Quantiles(object):
         """
         return np.median(np.array(self.streaming_base.values))
 
-    def quantiles(self, q: Union[float, np.array]) -> Union[float, np.array]:
+    def quantiles(self, q: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
         calculate q-th quantile from saved values
 

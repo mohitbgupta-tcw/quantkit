@@ -30,7 +30,7 @@ class SimpleExp(return_metrics.ReturnMetrics):
         )
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted returns from return engine
 
@@ -42,7 +42,7 @@ class SimpleExp(return_metrics.ReturnMetrics):
         return self.return_calculator.gmean
 
     @property
-    def return_metrics_intuitive(self) -> np.array:
+    def return_metrics_intuitive(self) -> np.ndarray:
         """
         Forecaseted returns from return engine
 
@@ -54,7 +54,7 @@ class SimpleExp(return_metrics.ReturnMetrics):
         return self.return_metrics_optimizer
 
     @property
-    def return_metrics_optimizer_window(self) -> np.array:
+    def return_metrics_optimizer_window(self) -> np.ndarray:
         """
         Forecaseted rolling historical return from return engine
 
@@ -78,7 +78,7 @@ class SimpleExp(return_metrics.ReturnMetrics):
         return self.return_metrics_optimizer_window
 
     def get_portfolio_return(
-        self, allocation: np.array, is_window: bool = False, **kwargs
+        self, allocation: np.ndarray, is_window: bool = False, **kwargs
     ) -> pd.DataFrame:
         """
         Calculate 0 basis portfolio return
@@ -113,7 +113,7 @@ class SimpleExp(return_metrics.ReturnMetrics):
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
+        price_return: np.ndarray,
         annualize_factor: int = 1.0,
     ) -> None:
         """

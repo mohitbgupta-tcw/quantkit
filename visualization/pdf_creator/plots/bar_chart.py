@@ -27,8 +27,8 @@ class BarChart(object):
 
     def __init__(
         self,
-        x: Union[list, np.array, pd.Series],
-        y: Union[list, np.array, pd.Series],
+        x: Union[list, np.ndarray, pd.Series],
+        y: Union[list, np.ndarray, pd.Series],
         title: str = "",
         orientation: str = "h",
         height: int = 350,

@@ -20,7 +20,7 @@ class WeightedBase(object):
         self._indexes = deque()
 
     @property
-    def values(self) -> np.array:
+    def values(self) -> np.ndarray:
         """
         Returns
         -------
@@ -30,7 +30,7 @@ class WeightedBase(object):
         return np.array(self._matrix)
 
     @property
-    def indexes(self) -> np.array:
+    def indexes(self) -> np.ndarray:
         """
         Returns
         -------
@@ -41,7 +41,7 @@ class WeightedBase(object):
 
     def update(
         self,
-        new_vector: np.array,
+        new_vector: np.ndarray,
         batch_weight: float,
         adjustment: float = 1,
         index=None,

@@ -34,7 +34,7 @@ class LogNormalEWMA(log_vol.LogNormalVol):
         self.decay_factor = decay.decay_factor(half_life)
 
     def assign(
-        self, date: datetime.date, price_return: np.array, annualize_factor: int = 1.0
+        self, date: datetime.date, price_return: np.ndarray, annualize_factor: int = 1.0
     ) -> None:
         """
         Transform to log scale and assign returns to the actual calculator

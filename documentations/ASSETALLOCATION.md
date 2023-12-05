@@ -165,7 +165,7 @@ When iterating over the trading dates, the `outgoing_row` function in the `unive
 
 ```python
 
-def outgoing_row(self, date: datetime.date) -> np.array:
+def outgoing_row(self, date: datetime.date) -> np.ndarray:
     """
     Return current consitutents of index universe
 
@@ -202,7 +202,7 @@ Every strategy needs the following functions:
     def assign(
         self,
         date: datetime.date,
-        price_return: np.array,
+        price_return: np.ndarray,
         annualize_factor: int = 1.0,
     ) -> None:
         """
@@ -225,7 +225,7 @@ A `selected_securities` function that returns an array containing the indices of
 ```python
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of selected securities
 
@@ -242,7 +242,7 @@ A `return_metrics_optimizer` function that forecasts the returns for that partic
 ```python
 
     @property
-    def return_metrics_optimizer(self) -> np.array:
+    def return_metrics_optimizer(self) -> np.ndarray:
         """
         Forecaseted returns for selected securities
 
@@ -292,7 +292,7 @@ Momentum selects the `top_n` securities based on cumulative returns. We are sort
 ```python
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of top n momentum securities
 
@@ -352,7 +352,7 @@ Relative value filters the investment universe using measures such as market cap
 ```python
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of selected securities
 
@@ -402,7 +402,7 @@ The strategy picks all securities available for that month without missing data.
 ```python
 
     @property
-    def selected_securities(self) -> np.array:
+    def selected_securities(self) -> np.ndarray:
         """
         Index (position in universe_tickers as integer) of selected securities
 
@@ -558,7 +558,9 @@ To utilize the various weighting strategies, assign them within the `allocation_
                 "constrained_min_variance", 
                 "mean_variance", 
                 "constrained_mean_variance", 
-                "risk_parity"
+                "risk_parity",
+                "hrp",
+                "constrained_hrp"
                 ]
         }
     }
@@ -612,10 +614,10 @@ The returns are calculated in the following way. `this_returns` is an array of d
 
     def get_portfolio_return(
         self,
-        allocation: np.array,
-        this_returns: np.array,
-        indexes: np.array,
-        next_allocation: np.array = None,
+        allocation: np.ndarray,
+        this_returns: np.ndarray,
+        indexes: np.ndarray,
+        next_allocation: np.ndarray = None,
         trans_cost: float = 0.0,
         **kwargs,
     ) -> pd.DataFrame:

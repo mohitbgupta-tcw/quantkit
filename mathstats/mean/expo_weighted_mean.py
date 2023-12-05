@@ -27,7 +27,7 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
         self.adjust = adjust
 
     @property
-    def mean(self) -> np.array:
+    def mean(self) -> np.ndarray:
         """
         Returns
         -------
@@ -39,7 +39,7 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
         return self._mean
 
     @property
-    def gmean(self) -> np.array:
+    def gmean(self) -> np.ndarray:
         """
         Returns
         -------
@@ -53,11 +53,11 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
 
     def calculate_adjusted(
         self,
-        prev_average: np.array,
+        prev_average: np.ndarray,
         incoming_variables: np.ndarray,
         batch_weight: int = 1,
         **kwargs,
-    ) -> np.array:
+    ) -> np.ndarray:
         """
         Calculate average on adjusted version.
 
@@ -84,11 +84,11 @@ class ExponentialWeightedMean(simple_mean.SimpleMean):
 
     def calculate_unadjusted(
         self,
-        prev_average: np.array,
+        prev_average: np.ndarray,
         incoming_variables: np.ndarray,
         batch_weight: int = 1,
         **kwargs,
-    ) -> np.array:
+    ) -> np.ndarray:
         """
         Calculate average on unadjusted version
 

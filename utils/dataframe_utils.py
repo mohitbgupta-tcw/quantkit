@@ -44,7 +44,7 @@ def group_mode(
     return df
 
 
-def nanprodwrapper(a, **kwargs) -> float:
+def nanprodwrapper(a: np.ndarray, **kwargs) -> float:
     """
     Calculate nanprod of an array.
     If all values are nan, return nan.
