@@ -277,7 +277,9 @@ The momentum strategy adheres to the principle of "Buy Low, Sell High." This app
                 "constrained_min_variance", 
                 "mean_variance", 
                 "constrained_mean_variance", 
-                "risk_parity"
+                "risk_parity",
+                "hrp",
+                "constrained_hrp"
             ]
         }
     }
