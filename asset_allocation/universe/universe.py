@@ -139,6 +139,12 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         self.datasource.df = self.datasource.df[
             ~self.datasource.df["Security_Name"].str.contains("DUMMY")
         ]
+        self.datasource.df = self.datasource.df[
+            ~self.datasource.df["Security_Name"].str.contains("MARKET VALUE ADJUSTMENT")
+        ]
+        self.datasource.df = self.datasource.df[
+            ~self.datasource.df["Security_Name"].str.contains("MKT VALUE ADJUST")
+        ]
         self.datasource.df = self.datasource.df.dropna(subset="Ticker Cd")
         self.datasource.df = self.datasource.df[
             ~self.datasource.df["Ticker Cd"].str.contains("_x")
@@ -148,6 +154,9 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         ]
         self.datasource.df = self.datasource.df[
             ~self.datasource.df["ISIN"].isin(self.params["missing_data"])
+        ]
+        self.datasource.df = self.datasource.df[
+            ~self.datasource.df["Ticker Cd"].isin(self.params["currencies"])
         ]
         if self.params["custom_universe"]:
             self.datasource.df = self.datasource.df.drop_duplicates(

@@ -131,6 +131,8 @@ class HierarchicalRiskParity(allocation_base.Allocation):
         D = \sqrt{\frac{1}{2} (1-Cor(X)}
     3) Euclidean Distance
     4) Quasi-Diagonalization
+    5) Bisection
+    6) Weight Calculation
 
 
     Parameters

@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Market Multiple Datasource
 - Correlation test in test file
 - Hierarchical Risk Parity allocator
+- TCW Equity Portfolio Adjustments
 ### Fixed
 - MSCI Datasource empty return
 - Numpy array value specification to np.ndarray
+- Momentum top_n bug
 ### Changed
 - README
 - Snowflake pull function uses either query or database/schema/tablename

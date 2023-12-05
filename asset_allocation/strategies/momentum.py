@@ -85,7 +85,7 @@ class Momentum(strategy.Strategy):
         i = 0
         a = list()
 
-        while selected_assets < top_n:
+        while selected_assets < top_n and i < self.num_total_assets:
             if self.index_comp[neg_sort[i]]:
                 a.append(neg_sort[i])
                 selected_assets += 1
