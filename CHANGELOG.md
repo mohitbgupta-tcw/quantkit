@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Fixed
+### Changed
+### Removed
+
+## [1.5.0] -2023-12-05
+### Added
 - Documentation for Risk Framework, PAI and Asset Allocation
 - Relative Value Strategy
 - Market Multiple Datasource
@@ -206,6 +212,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.5.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.4.0
 [1.4.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.4.0
 [1.3.3]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.3
 [1.3.2]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.3.2
