@@ -6,9 +6,9 @@ import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource a
 def historical_portfolio_holdings(
     start_date: str,
     end_date: str,
-    portfolios: list = None,
-    equity_benchmark: list = None,
-    fixed_income_benchmark: list = None,
+    portfolios: list = [],
+    equity_benchmark: list = [],
+    fixed_income_benchmark: list = [],
     local_configs: str = "",
 ) -> pd.DataFrame:
     """

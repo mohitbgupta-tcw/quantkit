@@ -266,6 +266,8 @@ The momentum strategy adheres to the principle of "Buy Low, Sell High." This app
     "strategies": {
         "momentum90": {
             "type": "momentum",
+            "stop_loss": null,
+            "stop_loss_threshold": 0.0,
             "window_size": 63,
             "return_engine": "cumprod",
             "risk_engine": "log_normal",
@@ -333,6 +335,8 @@ The Relative Value strategy aims to identify value stocks by filtering the inves
     "strategies": {
         "relative_value": {
             "type": "relative_value",
+            "stop_loss": "high_low",
+            "stop_loss_threshold": 0.1,
             "market_cap_threshold": 1000000000,
             "div_yield_threshold": 0.0,
             "roe_threshold": 0.17,
@@ -387,6 +391,8 @@ The strategy straightforwardly selects all available securities within the inves
     "strategies": {
         "pick_all": {
             "type": "pick_all",
+            "stop_loss": null,
+             "stop_loss_threshold": 0.0,
             "window_size": 63,
             "return_engine": "log_normal",
             "risk_engine": "log_normal",
@@ -528,6 +534,63 @@ To utilize the exponential mean and risk in your strategy, configure the engines
             "type": "xxx",
             "window_size": 63,
             "return_engine": "cumprod"
+        }
+    }
+
+```
+
+### Risk Management
+
+Risk management plays a pivotal role in strategy development. The asset allocation tool accommodates several stop-loss methods to effectively manage risk. These methods provide a safety net, limiting potential losses and ensuring that investment strategies align with the user's risk tolerance. By incorporating these stop-loss methods, the tool enhances the robustness of the investment process and helps users navigate volatile market conditions with confidence.
+
+#### No Stop-Loss
+
+If the user prefers not to implement any stop-loss thresholds, they can set the `stop_loss` parameter to `null`.
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "stop_loss": null,
+            "stop_loss_threshold": 0.0
+        }
+    }
+
+```
+
+#### Buy To Low
+
+Firstly, users have the option to implement a Buy-To-Low strategy. This approach compares the purchase price at the rebalance date against a predetermined threshold value percentage. If the current price falls below this threshold, the strategy triggers a sell order for that security, converting it to cash. The cash is then held until the next rebalance.
+
+To utilize this risk management approach, configure the `stop_loss` and `stop_loss_threshold` parameters within the strategy settings. 
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "stop_loss": "buy_low",
+            "stop_loss_threshold": 0.1
+        }
+    }
+
+```
+
+
+#### High To Low
+
+Secondly, users can implement a High-To-Low strategy. This approach monitors the highest price since purchasing the security at the rebalance date and compares it against a predetermined threshold value percentage. If the current price falls below this threshold, the strategy triggers a sell order for that security, converting it to cash. The cash is then held until the next rebalance, providing a proactive approach to risk management and protecting against further potential losses.
+
+To utilize this risk management approach, configure the `stop_loss` and `stop_loss_threshold` parameters within the strategy settings. 
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "stop_loss": "high_low",
+             "stop_loss_threshold": 0.1
         }
     }
 

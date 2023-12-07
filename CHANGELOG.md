@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Simple and Rolling Cumulative Sum
+- Stop-Loss Logic: High-to-Low, Buy-to-Low
 ### Fixed
 ### Changed
+- Rename testing file to test_mathstats
 ### Removed
 
 ## [1.5.0] -2023-12-05
