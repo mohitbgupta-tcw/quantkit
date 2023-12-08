@@ -139,9 +139,9 @@ class HierarchicalRiskParity(allocation_base.Allocation):
     ----------
     asset_list: list
         all assets to run optimization on
-    risk_engine: mstar_asset_allocation.risk_calc.risk_metrics
+    risk_engine: asset_allocation.risk_calc.risk_metrics
         risk engine used to forecast cov matrix
-    return_engine: mstar_asset_allocation.return_calc.return_metrics
+    return_engine: asset_allocation.return_calc.return_metrics
         return engine used to forecast returns
     portfolio_leverage: float, optional
         portfolio leverage

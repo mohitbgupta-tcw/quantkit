@@ -12,9 +12,9 @@ class Allocation(object):
     ----------
     asset_list: list
         all assets to run optimization on
-    risk_engine: mstar_asset_allocation.risk_calc.risk_metrics, optional
+    risk_engine: asset_allocation.risk_calc.risk_metrics, optional
         risk engine used to forecast cov matrix
-    return_engine: mstar_asset_allocation.return_calc.return_metrics, optional
+    return_engine: asset_allocation.return_calc.return_metrics, optional
         return engine used to forecast returns
     """
 

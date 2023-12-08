@@ -1,5 +1,5 @@
 import quantkit.asset_allocation.return_calc.return_metrics as return_metrics
-import quantkit.mathstats.product.rolling_cumprod as rolling_cumprod
+import quantkit.mathstats.sum.rolling_cumsum as rolling_cumsum
 import quantkit.utils.annualize_adjustments as annualize_adjustments
 import numpy as np
 import datetime
@@ -22,7 +22,7 @@ class CumProdReturn(return_metrics.ReturnMetrics):
     def __init__(self, universe: list, frequency: str = None, **kwargs) -> None:
         super().__init__(universe)
         self.frequency = frequency
-        self.return_calculator = rolling_cumprod.RollingCumProd(
+        self.return_calculator = rolling_cumsum.RollingCumSum(
             num_ind_variables=self.universe_size, **kwargs
         )
 
@@ -36,19 +36,21 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         np.array
             returns
         """
-        return self.return_calculator.cumprod - 1
+        return self.return_calculator.cumsum
 
     @property
     def return_metrics_intuitive(self) -> np.ndarray:
         """
-        Forecaseted returns from return engine
+        Forecaseted daily returns from return engine
 
         Returns
         -------
         np.array
             returns
         """
-        return self.return_metrics_optimizer
+        return annualize_adjustments.compound_annualization(
+            self.return_calculator.cumsum, 1 / self.return_calculator.window_size
+        )
 
     def assign(
         self,
@@ -76,5 +78,5 @@ class CumProdReturn(return_metrics.ReturnMetrics):
 
         outgoing_row = np.squeeze(self.return_calculator.windowed_outgoing_row)
         self.return_calculator.update(
-            (np.log(annualized_return + 1) + 1), outgoing_row, index=date
+            (np.log(annualized_return + 1)), outgoing_row, index=date
         )

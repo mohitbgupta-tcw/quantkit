@@ -104,6 +104,9 @@ class RelativeValue(strategy.Strategy):
         self.portfolio_return_engine.assign(
             date=date, price_return=price_return, annualize_factor=annualize_factor
         )
+        self.stop_loss.assign(
+            date=date, price_return=price_return, annualize_factor=annualize_factor
+        )
         # only calculate cov matrix on rebalance dates to save time
         if date in self.rebalance_dates:
             self.risk_engine.assign(
@@ -147,7 +150,4 @@ class RelativeValue(strategy.Strategy):
         np.array
             returns
         """
-        returns_topn = self.return_metrics_intuitive[self.selected_securities]
-        return annualize_adjustments.compound_annualization(
-            returns_topn, 1 / self.window_size
-        )
+        return self.return_metrics_intuitive[self.selected_securities]

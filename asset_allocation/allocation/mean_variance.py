@@ -100,9 +100,9 @@ class MeanVariance(allocation_base.Allocation):
     ----------
     asset_list: list
         all assets to run optimization on
-    risk_engine: mstar_asset_allocation.risk_calc.risk_metrics
+    risk_engine: asset_allocation.risk_calc.risk_metrics
         risk engine used to forecast cov matrix
-    return_engine: mstar_asset_allocation.return_calc.return_metrics
+    return_engine: asset_allocation.return_calc.return_metrics
         return engine used to forecast returns
     weight_constraint: dict
         dictionary of weight_constraints
@@ -142,7 +142,7 @@ class MeanVariance(allocation_base.Allocation):
         """
         risk_metrics = self.risk_engine.risk_metrics_optimizer
         risk_metrics = risk_metrics[np.ix_(selected_assets, selected_assets)]
-        return_metrics = self.return_engine.return_metrics_optimizer
+        return_metrics = self.return_engine.return_metrics_intuitive
         return_metrics = return_metrics[selected_assets]
 
         self.optimizer = MeanVarianceOptimizer(

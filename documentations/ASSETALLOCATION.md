@@ -266,6 +266,8 @@ The momentum strategy adheres to the principle of "Buy Low, Sell High." This app
     "strategies": {
         "momentum90": {
             "type": "momentum",
+            "stop_loss": null,
+            "stop_loss_threshold": 0.0,
             "window_size": 63,
             "return_engine": "cumprod",
             "risk_engine": "log_normal",
@@ -333,6 +335,8 @@ The Relative Value strategy aims to identify value stocks by filtering the inves
     "strategies": {
         "relative_value": {
             "type": "relative_value",
+            "stop_loss": "high_low",
+            "stop_loss_threshold": 0.1,
             "market_cap_threshold": 1000000000,
             "div_yield_threshold": 0.0,
             "roe_threshold": 0.17,
@@ -387,6 +391,8 @@ The strategy straightforwardly selects all available securities within the inves
     "strategies": {
         "pick_all": {
             "type": "pick_all",
+            "stop_loss": null,
+             "stop_loss_threshold": 0.0,
             "window_size": 63,
             "return_engine": "log_normal",
             "risk_engine": "log_normal",
@@ -533,6 +539,63 @@ To utilize the exponential mean and risk in your strategy, configure the engines
 
 ```
 
+### Risk Management
+
+Risk management plays a pivotal role in strategy development. The asset allocation tool accommodates several stop-loss methods to effectively manage risk. These methods provide a safety net, limiting potential losses and ensuring that investment strategies align with the user's risk tolerance. By incorporating these stop-loss methods, the tool enhances the robustness of the investment process and helps users navigate volatile market conditions with confidence.
+
+#### No Stop-Loss
+
+If the user prefers not to implement any stop-loss thresholds, they can set the `stop_loss` parameter to `null`.
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "stop_loss": null,
+            "stop_loss_threshold": 0.0
+        }
+    }
+
+```
+
+#### Buy To Low
+
+Firstly, users have the option to implement a Buy-To-Low strategy. This approach compares the purchase price at the rebalance date against a predetermined threshold value percentage. If the current price falls below this threshold, the strategy triggers a sell order for that security, converting it to cash. The cash is then held until the next rebalance.
+
+To utilize this risk management approach, configure the `stop_loss` and `stop_loss_threshold` parameters within the strategy settings. 
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "stop_loss": "buy_low",
+            "stop_loss_threshold": 0.1
+        }
+    }
+
+```
+
+
+#### High To Low
+
+Secondly, users can implement a High-To-Low strategy. This approach monitors the highest price since purchasing the security at the rebalance date and compares it against a predetermined threshold value percentage. If the current price falls below this threshold, the strategy triggers a sell order for that security, converting it to cash. The cash is then held until the next rebalance, providing a proactive approach to risk management and protecting against further potential losses.
+
+To utilize this risk management approach, configure the `stop_loss` and `stop_loss_threshold` parameters within the strategy settings. 
+
+```shell
+
+    "strategies": {
+        "xxx": {
+            "type": "xxx",
+            "stop_loss": "high_low",
+             "stop_loss_threshold": 0.1
+        }
+    }
+
+```
+
 ### Optimizers
 
 Once a universe has been selected, the asset allocation tool offers various portfolio optimization options through different weighting strategies. These strategies include equal weight, market weight, mean variance optimization, minimum variance, and risk parity. Each approach has its unique advantages and considerations, allowing users to tailor their portfolio construction to align with their specific investment objectives and risk tolerance.
@@ -618,6 +681,7 @@ The returns are calculated in the following way. `this_returns` is an array of d
         self,
         allocation: np.ndarray,
         this_returns: np.ndarray,
+        stopped_securities_matrix: np.ndarray,
         indexes: np.ndarray,
         next_allocation: np.ndarray = None,
         trans_cost: float = 0.0,
@@ -633,6 +697,8 @@ The returns are calculated in the following way. `this_returns` is an array of d
             current allocation
         this_returns: np.array
             forecasted returns per asset
+        stopped_securities_matrix: np.array
+            matrix of stopped securities per trading period
         indexes: np.array
             index column for returned DataFrame
             should be set to date range
@@ -647,6 +713,10 @@ The returns are calculated in the following way. `this_returns` is an array of d
             return: float
         """
         n_obs = len(this_returns)
+        traded_m = np.bitwise_not(stopped_securities_matrix) 
+        first_stop = (stopped_securities_matrix.cumsum(axis=0).cumsum(axis=0) == 1)  * trans_cost
+        
+        this_returns = this_returns * traded_m
         cumulative_returns = np.cumprod(this_returns + 1, axis=0)
         cumulative_returns = np.where(
             np.isnan(cumulative_returns), 0, cumulative_returns
@@ -656,6 +726,7 @@ The returns are calculated in the following way. `this_returns` is an array of d
         ending_allocation = (
             ending_allocation.T / np.nansum(ending_allocation, axis=1)
         ).T
+        stopped_ending = ending_allocation * traded_m
 
         actual_returns = allocation @ cumulative_returns.T
         actual_returns = np.insert(actual_returns, 0, 1)
@@ -666,8 +737,9 @@ The returns are calculated in the following way. `this_returns` is an array of d
         next_allocation_m[-1] = next_allocation
         trans_cost_m = np.zeros((n_obs, self.universe_size))
         trans_cost_m[-1] = trans_cost
+        trans_cost_m = np.max([trans_cost_m, first_stop], axis=0)
         if next_allocation is not None:
-            turnover = abs(next_allocation_m - ending_allocation)
+            turnover = abs(next_allocation_m - stopped_ending)
             this_trans_cost = (turnover * trans_cost_m).sum(axis=1)
             actual_returns -= this_trans_cost
 
