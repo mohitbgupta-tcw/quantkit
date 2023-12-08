@@ -2,6 +2,35 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
 import pandas as pd
 
+import seaborn as sns
+
+sns.set()
+sns.set_style()
+sns.despine()
+my_palette = [
+    "#2138ab",
+    "#8f99fb",
+    "#3c73a8",
+    "#4b57db",
+    "#8ab8fe",
+    "#9dbcd4",
+    "#ada587",
+    "#b59410",
+    "#e2ca76",
+    "#645403",
+    "#af6f09",
+    "#c9ae74",
+    "#6f7632",
+    "#154406",
+    "#598556",
+    "#536267",
+    "#d6b4fc",
+    "#703be7",
+    "#856798",
+    "#9e43a2",
+]
+sns.set_palette(my_palette)
+
 
 def strategy_returns(
     strategy_df: pd.DataFrame, excluded_allocations: list = []
