@@ -42,6 +42,8 @@ class StopLoss(object):
             frequency=frequency,
             window_size=mapping_configs.trading_days[rebalance],
         )
+        self.stopped_securities_matrix = list()
+        self.prev_stopped = np.full(shape=self.num_total_assets, fill_value=False)
 
     def assign(
         self,
@@ -71,8 +73,7 @@ class StopLoss(object):
     @property
     def stopped_securities(self) -> np.ndarray:
         """
-        Index (position in universe_tickers as integer) of all stopped out securities
-
+        Array with bool if security got stopped out
 
         Returns
         -------
@@ -80,3 +81,15 @@ class StopLoss(object):
             array of indexes
         """
         raise NotImplementedError()
+
+    def reset_engine(self) -> None:
+        """
+        Reset Stop Loss Engine
+        """
+        self.return_engine = cumprod_return.CumProdReturn(
+            universe=self.universe,
+            frequency=self.frequency,
+            window_size=mapping_configs.trading_days[self.rebalance],
+        )
+        self.stopped_securities_matrix = list()
+        self.prev_stopped = np.full(shape=self.num_total_assets, fill_value=False)

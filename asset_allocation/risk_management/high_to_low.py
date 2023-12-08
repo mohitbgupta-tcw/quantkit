@@ -30,7 +30,7 @@ class HighToLow(stop_loss.StopLoss):
         frequency: str,
         rebalance: str,
         rebalance_dates: list,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(
             universe, stop_threshold, frequency, rebalance, rebalance_dates, **kwargs
@@ -42,7 +42,7 @@ class HighToLow(stop_loss.StopLoss):
         date: datetime.date,
         price_return: np.ndarray,
         annualize_factor: int = 1,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Transform and assign returns to the actual calculator
@@ -57,32 +57,33 @@ class HighToLow(stop_loss.StopLoss):
         annualize_factor: int, optional
             factor depending on data frequency
         """
-        if date in self.rebalance_dates:
-            self.return_engine = cumprod_return.CumProdReturn(
-                universe=self.universe,
-                frequency=self.frequency,
-                window_size=mapping_configs.trading_days[self.rebalance],
-            )
-            self.highs = np.zeros(shape=self.num_total_assets)
-
         super().assign(date, price_return, annualize_factor, **kwargs)
         self.highs = np.nanmax(
             [self.highs, self.return_engine.return_metrics_optimizer], axis=0
         )
+        self.stopped_securities_matrix.append(self.stopped_securities)
 
     @property
     def stopped_securities(self) -> np.ndarray:
         """
-        Index (position in universe_tickers as integer) of all stopped out securities
-
+        Array with bool if security got stopped out
 
         Returns
         -------
         np.array
             array of indexes
         """
-        ss = np.arange(self.num_total_assets)
-        return ss[
-            self.return_engine.return_metrics_optimizer - self.highs
-            < self.stop_threshold
-        ]
+        stopped = np.logical_or(
+            (self.return_engine.return_metrics_optimizer - self.highs)
+            < self.stop_threshold,
+            self.prev_stopped,
+        )
+        self.prev_stopped = stopped
+        return stopped
+
+    def reset_engine(self) -> None:
+        """
+        Reset Stop Loss Engine
+        """
+        super().reset_engine()
+        self.highs = np.zeros(shape=self.num_total_assets)

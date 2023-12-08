@@ -28,7 +28,7 @@ class NoStop(stop_loss.StopLoss):
         frequency: str,
         rebalance: str,
         rebalance_dates: list,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(
             universe, stop_threshold, frequency, rebalance, rebalance_dates, **kwargs
@@ -39,7 +39,7 @@ class NoStop(stop_loss.StopLoss):
         date: datetime.date,
         price_return: np.ndarray,
         annualize_factor: int = 1,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Transform and assign returns to the actual calculator
@@ -54,18 +54,16 @@ class NoStop(stop_loss.StopLoss):
         annualize_factor: int, optional
             factor depending on data frequency
         """
-        pass
+        self.stopped_securities_matrix.append(self.stopped_securities)
 
     @property
     def stopped_securities(self) -> np.ndarray:
         """
-        Index (position in universe_tickers as integer) of all stopped out securities
-
+        Array with bool if security got stopped out
 
         Returns
         -------
         np.array
             array of indexes
         """
-        ss = np.arange(self.num_total_assets)
-        return np.array([])
+        return np.full(shape=self.num_total_assets, fill_value=False)

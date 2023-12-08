@@ -107,7 +107,10 @@ class SimpleExp(return_metrics.ReturnMetrics):
         this_returns = this_returns[:, 0, :]
 
         return super().get_portfolio_return(
-            allocation, this_returns, this_dates, **kwargs
+            allocation=allocation,
+            this_returns=this_returns,
+            indexes=this_dates,
+            **kwargs,
         )
 
     def assign(

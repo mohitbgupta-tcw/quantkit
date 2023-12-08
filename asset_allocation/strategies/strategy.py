@@ -291,6 +291,9 @@ class Strategy(object):
         """
         portfolio_return = self.portfolio_return_engine.get_portfolio_return(
             allocation,
+            stopped_securities_matrix=np.array(
+                self.stop_loss.stopped_securities_matrix
+            ),
             next_allocation=next_allocation,
             trans_cost=self.trans_cost,
         )
@@ -352,6 +355,8 @@ class Strategy(object):
                 **self.portfolio_risk_return_engine_kwargs,
                 **self.kwargs,
             )
+            # reset stop loss engine
+            self.stop_loss.reset_engine()
             return
 
         risk_budgets = self.get_risk_budgets(date)
@@ -388,6 +393,9 @@ class Strategy(object):
             **self.portfolio_risk_return_engine_kwargs,
             **self.kwargs,
         )
+
+        # reset stop loss engine
+        self.stop_loss.reset_engine()
 
     def get_weights_constraints_d(self, weight_constraint: list) -> dict:
         """

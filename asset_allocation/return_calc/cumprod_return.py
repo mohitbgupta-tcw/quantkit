@@ -1,5 +1,4 @@
 import quantkit.asset_allocation.return_calc.return_metrics as return_metrics
-import quantkit.mathstats.product.rolling_cumprod as rolling_cumprod
 import quantkit.mathstats.sum.rolling_cumsum as rolling_cumsum
 import quantkit.utils.annualize_adjustments as annualize_adjustments
 import numpy as np
