@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 ### Changed
 - Rename testing file to test_mathstats
+- Remove Sub-Folder for finance datsources
 ### Removed
 
 ## [1.5.0] -2023-12-05
