@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Simple and Rolling Cumulative Sum
 - Stop-Loss Logic: High-to-Low, Buy-to-Low
 - Add Factor Datasource
+- Add MSCI Issuerid to final df 
 ### Fixed
 ### Changed
 - Rename testing file to test_mathstats
+- Remove Sub-Folder for finance datsources
 ### Removed
 
 ## [1.5.0] -2023-12-05

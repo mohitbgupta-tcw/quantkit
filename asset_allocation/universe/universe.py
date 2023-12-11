@@ -1,5 +1,5 @@
 import quantkit.finance.securities.securities as securitites
-import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as portfolio_datasource
+import quantkit.finance.data_sources.portfolio_datasource as portfolio_datasource
 import quantkit.utils.snowflake_utils as snowflake_utils
 import quantkit.utils.logging as logging
 import pandas as pd

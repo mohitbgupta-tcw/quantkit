@@ -1,6 +1,6 @@
 import pandas as pd
 import quantkit.utils.configs as configs
-import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as portfolio_datasource
+import quantkit.finance.data_sources.portfolio_datasource as portfolio_datasource
 
 
 def historical_portfolio_holdings(
