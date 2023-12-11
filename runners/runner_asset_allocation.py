@@ -51,6 +51,7 @@ class Runner(loader.Runner):
         self.iter_msci()
         self.iter_prices()
         self.iter_fundamentals()
+        self.iter_factors()
         self.iter_marketmuliples()
         self.iter_holdings()
         self.iter_securities()
@@ -99,6 +100,7 @@ class Runner(loader.Runner):
             current_multiples = self.marketmultiple_datasource.outgoing_row(date)
             current_fundamentals = self.fundamentals_datasource.outgoing_row(date)
             index_components = self.portfolio_datasource.outgoing_row(date)
+            factors = self.factor_datasource.outgoing_row(date)
 
             assign_dict = {
                 "date": date,

@@ -16,6 +16,7 @@ import quantkit.finance.data_sources.transition_datasource.transition_datasource
 import quantkit.finance.data_sources.adjustment_datasource.adjustment_database as adjustment_database
 import quantkit.finance.data_sources.securitized_datasource.securitized_datasource as securitized_datasource
 import quantkit.finance.data_sources.parentissuer_datasource.pi_datasource as pi_datasource
+import quantkit.finance.data_sources.factor_datasource.factor_datasource as factor_datasource
 from copy import deepcopy
 
 
@@ -139,6 +140,12 @@ class Runner(object):
                 params=self.params["marketmultiple_datasource"],
                 api_settings=self.api_settings,
             )
+        )
+
+        # connect factors datasource
+        self.factor_datasource = factor_datasource.FactorsDataSource(
+            params=self.params["factor_datasource"],
+            api_settings=self.api_settings,
         )
 
     def iter_themes(self) -> None:
@@ -341,6 +348,13 @@ class Runner(object):
         """
         self.marketmultiple_datasource.load()
         self.marketmultiple_datasource.iter()
+
+    def iter_factors(self) -> None:
+        """
+        iterate over factor data
+        """
+        self.factor_datasource.load()
+        self.factor_datasource.iter()
 
     def iter_securities(self) -> None:
         """
