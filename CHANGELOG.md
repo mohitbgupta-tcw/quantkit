@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Simple and Rolling Cumulative Sum
 - Stop-Loss Logic: High-to-Low, Buy-to-Low
+- Add MSCI Issuerid to final df 
 ### Fixed
 ### Changed
 - Rename testing file to test_mathstats

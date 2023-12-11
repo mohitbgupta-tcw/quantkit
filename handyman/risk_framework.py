@@ -49,6 +49,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                 "Portfolio Name": port_store.name,
                 "Security ISIN": s,
                 "Issuer ISIN": comp_store.isin,
+                "MSCI ISSUERID": comp_store.msci_information["ISSUERID"],
                 "Security Name": sec_store.information["Security_Name"],
                 "Issuer Name": comp_store.msci_information["ISSUER_NAME"],
                 "Ticker": comp_store.msci_information["ISSUER_TICKER"],
