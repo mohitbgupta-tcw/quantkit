@@ -326,7 +326,12 @@ class Strategy(object):
         next_portfolio_allocation = allocation_pd.loc[date].values
         return portfolio_allocation, next_portfolio_allocation
 
-    def backtest(self, date: datetime.date, market_caps: np.ndarray) -> None:
+    def backtest(
+        self,
+        date: datetime.date,
+        market_caps: np.ndarray,
+        fama_french_factors: np.ndarray,
+    ) -> None:
         """
         - Calculate optimal allocation for each weighting strategy
         - Calculate allocation returns
@@ -337,8 +342,8 @@ class Strategy(object):
             snapshot date
         market_caps: np.array
             market caps of assets in universe
-        waiting_period: int, optional
-            waiting period before first covariance gets calculated
+        fama_french_factors: np.array
+            fama french factors for regression
         """
         if not date in self.rebalance_dates:
             return
@@ -380,6 +385,12 @@ class Strategy(object):
             ex_ante_portfolio_return["portfolio_name"] = f"ex_ante_{allocation_model}"
             self.all_portfolios = pd.concat(
                 [self.all_portfolios, ex_ante_portfolio_return], axis=0
+            )
+            cum_return = ((ex_ante_portfolio_return["return"] + 1).cumprod() - 1)[
+                -1:
+            ].to_numpy()
+            self.allocation_engines_d[allocation_model].run_factor_regression(
+                fama_french_factors, cum_return, date
             )
 
         # portfolio engine

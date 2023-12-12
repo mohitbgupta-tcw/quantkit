@@ -121,7 +121,7 @@ class Runner(loader.Runner):
             # assign returns to strategies and backtest
             for strat, strat_obj in self.strategies.items():
                 strat_obj.assign(**assign_dict)
-                strat_obj.backtest(date, current_fundamentals["marketcap"])
+                strat_obj.backtest(date, current_fundamentals["marketcap"], factors)
 
         # assign weights to security objects
         for strat, strat_obj in self.strategies.items():

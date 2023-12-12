@@ -16,6 +16,7 @@ import quantkit.finance.data_sources.transition_datasource as transition_datasou
 import quantkit.finance.data_sources.adjustment_datasource as adjustment_database
 import quantkit.finance.data_sources.securitized_datasource as securitized_datasource
 import quantkit.finance.data_sources.parent_issuer_datasource as pi_datasource
+import quantkit.finance.data_sources.factor_datasource as factor_datasource
 from copy import deepcopy
 
 

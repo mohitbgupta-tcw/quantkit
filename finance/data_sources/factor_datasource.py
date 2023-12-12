@@ -34,7 +34,6 @@ class FactorsDataSource(ds.DataSources):
             Conservative (Low Investment Firms) - Aggressive (High Investment Firms)
         RF: float
             Risk Free Rate
-
     """
 
     def __init__(self, params: dict, **kwargs) -> None:
@@ -62,7 +61,7 @@ class FactorsDataSource(ds.DataSources):
         """
         self.datasource.df["Date"] = pd.to_datetime(
             self.datasource.df["Date"], format="%Y%m"
-        ) + MonthEnd(0)
+        )
         self.datasource.df.set_index("Date", inplace=True)
 
     def iter(self) -> None:

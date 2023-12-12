@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import Union
 import datetime
+import quantkit.mathstats.regression.ols_regression as lr
 
 
 class Allocation(object):
@@ -25,6 +26,12 @@ class Allocation(object):
         self.return_engine = return_engine
         self.allocations = None
         self.allocations_history = dict()
+        self.factor_regressor = lr.OrdinaryLR(
+            window_size=12, num_dep_variables=1, num_ind_variables=5
+        )
+        self.ex_post_betas = pd.DataFrame(
+            columns=["Mkt-RF", "SMB", "HML", "RMW", "CMA", "r_squared"]
+        )
 
     def update(self, selected_assets: Union[list, np.ndarray]) -> None:
         """
@@ -86,3 +93,34 @@ class Allocation(object):
                 default_max_weights[ix] = this_max_weight
 
         return default_min_weights, default_max_weights
+
+    def run_factor_regression(
+        self, ind: np.ndarray, dep: np.ndarray, date: datetime.date
+    ) -> None:
+        r"""
+        Calculate ex-post beta for allocation
+
+        Calculation
+        -----------
+        $$ R_{t} - R_{Ft} = a + b*(R_{Mt} - R_{Ft}) + s*SMB_t + h*HML_t + r*RMW_t + c*CMA_t + e_t $$
+
+        Parameters
+        ----------
+        ind: np.array
+            independent variable, fama french factors
+        dep: np.array
+            dependent variable: portfolio return
+        date: datetime.date
+            snapshot date
+        """
+        rf = ind[-1] / 10
+        ind = ind[:-1]
+        dep = dep - rf
+        self.factor_regressor.update(ind, dep)
+        betas = pd.DataFrame(
+            self.factor_regressor.results.get("beta", np.ones(shape=(5, 1)) * np.nan).T,
+            index=[date],
+            columns=["Mkt-RF", "SMB", "HML", "RMW", "CMA"],
+        )
+        betas["r_squared"] = self.factor_regressor.results.get("r_squared", np.nan)
+        self.ex_post_betas = pd.concat([self.ex_post_betas, betas])
