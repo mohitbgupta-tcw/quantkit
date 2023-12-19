@@ -396,7 +396,7 @@ The strategy straightforwardly selects all available securities within the inves
             "window_size": 63,
             "return_engine": "log_normal",
             "risk_engine": "log_normal",
-            "allocation_models": ["equal_weight", "market_weight"]
+            "allocation_models": ["equal_weight", "market_weight", "original_weight"]
         }
     }
 
@@ -598,7 +598,7 @@ To utilize this risk management approach, configure the `stop_loss` and `stop_lo
 
 ### Optimizers
 
-Once a universe has been selected, the asset allocation tool offers various portfolio optimization options through different weighting strategies. These strategies include equal weight, market weight, mean variance optimization, minimum variance, and risk parity. Each approach has its unique advantages and considerations, allowing users to tailor their portfolio construction to align with their specific investment objectives and risk tolerance.
+Once a universe has been selected, the asset allocation tool offers various portfolio optimization options through different weighting strategies. These strategies include equal weight, market weight, original weight,mean variance optimization, minimum variance, and risk parity. Each approach has its unique advantages and considerations, allowing users to tailor their portfolio construction to align with their specific investment objectives and risk tolerance.
 
 Begin by establishing weight constraints for constrained strategies, ensuring that the portfolio optimization process adheres to the desired risk and allocation parameters.
 
@@ -619,6 +619,7 @@ To utilize the various weighting strategies, assign them within the `allocation_
             "allocation_models": [
                 "equal_weight", 
                 "market_weight", 
+                "original_weight",
                 "min_variance", 
                 "constrained_min_variance", 
                 "mean_variance", 

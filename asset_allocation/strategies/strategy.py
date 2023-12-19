@@ -11,6 +11,7 @@ import quantkit.asset_allocation.allocation.risk_parity as risk_parity
 import quantkit.asset_allocation.allocation.hrp as hrp
 import quantkit.asset_allocation.allocation.equal_weight as equal_weight
 import quantkit.asset_allocation.allocation.market_weight as market_weight
+import quantkit.asset_allocation.allocation.original_weight as original_weight
 import quantkit.asset_allocation.risk_management.buy_to_low as buy_to_low
 import quantkit.asset_allocation.risk_management.high_to_low as high_to_low
 import quantkit.asset_allocation.risk_management.no_stop as no_stop
@@ -167,6 +168,10 @@ class Strategy(object):
                 )
             elif allocation_model == "market_weight":
                 this_allocation_engine = market_weight.MarketWeight(
+                    **allocation_engine_kwargs
+                )
+            elif allocation_model == "original_weight":
+                this_allocation_engine = original_weight.OriginalWeight(
                     **allocation_engine_kwargs
                 )
             else:
@@ -329,8 +334,10 @@ class Strategy(object):
     def backtest(
         self,
         date: datetime.date,
+        index_comp: np.ndarray,
         market_caps: np.ndarray,
         fama_french_factors: np.ndarray,
+        **kwargs,
     ) -> None:
         """
         - Calculate optimal allocation for each weighting strategy
@@ -340,6 +347,8 @@ class Strategy(object):
         ----------
         date: datetime.date
             snapshot date
+        index_comp: np.array
+            index components for date
         market_caps: np.array
             market caps of assets in universe
         fama_french_factors: np.array
@@ -371,6 +380,7 @@ class Strategy(object):
                 selected_assets=self.selected_securities,
                 risk_budgets=this_risk_budget,
                 market_caps=market_caps,
+                weights=index_comp,
             )
             allocation_engine.allocate(date, self.selected_securities)
 
