@@ -79,6 +79,15 @@
         },
         "load": true
     },
+
+    "factor_datasource": {
+        "source": 3,
+        "table_name": "FAMA_FRENCH",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG",
+        "load": true
+    },
+
     "msci_datasource": {
         "source": 4,
         "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",

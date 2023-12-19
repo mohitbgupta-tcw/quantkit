@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Simple and Rolling Cumulative Sum
 - Stop-Loss Logic: High-to-Low, Buy-to-Low
+- Add Factor Datasource
+- Calculate Factor betas for each allocation in strategies
 - Add MSCI Issuerid to final df 
 ### Fixed
 ### Changed
