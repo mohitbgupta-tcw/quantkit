@@ -222,14 +222,14 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         - Create universe dates
         """
         super().iter()
-        df = self.datasource.df[["As Of Date", "Ticker Cd"]]
-        self.universe_df = (
-            pd.get_dummies(df, columns=["Ticker Cd"], prefix="", prefix_sep="")
-            .groupby(["As Of Date"])
-            .max()[self.all_tickers]
-        )
-        if self.params["custom_universe"]:
-            self.universe_df.loc[:, :] = True
+
+        self.universe_df = self.datasource.df.pivot_table(
+            index="As Of Date",
+            columns="Ticker Cd",
+            values="Portfolio_Weight",
+            aggfunc="sum",
+        )[self.all_tickers]
+
         self.universe_matrix = self.universe_df.to_numpy()
 
         # fundamental dates -> date + 3 months

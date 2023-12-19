@@ -116,12 +116,13 @@ class Runner(loader.Runner):
                 "spx_pe": current_multiples["SPX_PE"],
                 "spx_pb": current_multiples["SPX_PB"],
                 "spx_ps": current_multiples["SPX_PS"],
+                "fama_french_factors": factors,
             }
 
             # assign returns to strategies and backtest
             for strat, strat_obj in self.strategies.items():
                 strat_obj.assign(**assign_dict)
-                strat_obj.backtest(date, current_fundamentals["marketcap"], factors)
+                strat_obj.backtest(**assign_dict)
 
         # assign weights to security objects
         for strat, strat_obj in self.strategies.items():
