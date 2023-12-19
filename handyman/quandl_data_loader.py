@@ -91,7 +91,12 @@ def get_quandl_price_data(
 
     quandl_object = quandl.Quandl(api_key, "prices", table, filters)
     quandl_object.load()
-    return quandl_object.df
+    df = (
+        quandl_object.df.sort_values(by=["ticker", "date"], ascending=True)
+        .reset_index()
+        .drop("index", axis=1)
+    )
+    return df
 
 
 def get_quandl_market_data(

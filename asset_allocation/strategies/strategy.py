@@ -11,6 +11,9 @@ import quantkit.asset_allocation.allocation.risk_parity as risk_parity
 import quantkit.asset_allocation.allocation.hrp as hrp
 import quantkit.asset_allocation.allocation.equal_weight as equal_weight
 import quantkit.asset_allocation.allocation.market_weight as market_weight
+import quantkit.asset_allocation.risk_management.buy_to_low as buy_to_low
+import quantkit.asset_allocation.risk_management.high_to_low as high_to_low
+import quantkit.asset_allocation.risk_management.no_stop as no_stop
 import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 import numpy as np
@@ -25,10 +28,14 @@ class Strategy(object):
     ----------
     universe: list
         investment universe
-    return_engine: mstar_asset_allocation.return_calc.return_metrics
+    return_engine: asset_allocation.return_calc.return_metrics
         return engine used to forecast returns
-    risk_engine: mstar_asset_allocation.risk_calc.risk_metrics
+    risk_engine: asset_allocation.risk_calc.risk_metrics
         risk engine used to forecast cov matrix
+    stop_loss: str
+        Stop-Loss strategy, if none set to None
+    stop_loss_threshold: float,
+        Stop-Loss threshold percentage
     frequency: str
         frequency of return data
     rebelance: str
@@ -48,6 +55,8 @@ class Strategy(object):
         universe: list,
         return_engine,
         risk_engine,
+        stop_loss: str,
+        stop_loss_threshold: float,
         frequency: str,
         rebalance: str,
         rebalance_dates: list,
@@ -56,9 +65,6 @@ class Strategy(object):
         weight_constraint: list,
         **kwargs,
     ) -> None:
-        risk_return_engine_kwargs = dict(
-            frequency=frequency, ddof=1, geo_base=1, adjust=True, half_life=12, span=36
-        )
         self.waiting_period = mapping_configs.annualize_factor_d[rebalance]
         self.rebalance = rebalance
         self.rebalance_dates = rebalance_dates
@@ -68,6 +74,9 @@ class Strategy(object):
         self.trans_cost = np.ones(self.num_total_assets) * trans_cost
         self.kwargs = kwargs
 
+        risk_return_engine_kwargs = dict(
+            frequency=frequency, ddof=1, geo_base=1, adjust=True, half_life=12, span=36
+        )
         # return engine
         if return_engine == "log_normal":
             self.return_engine = log_return.LogReturn(
@@ -90,7 +99,7 @@ class Strategy(object):
                 universe=universe, **risk_return_engine_kwargs, **kwargs
             )
         else:
-            return_engine = None
+            self.return_engine = None
 
         # risk engine
         if risk_engine == "log_normal":
@@ -110,7 +119,7 @@ class Strategy(object):
                 universe=universe, **risk_return_engine_kwargs, **kwargs
             )
         else:
-            risk_engine = None
+            self.risk_engine = None
 
         # Allocation Engine
         allocation_engine_kwargs = dict(
@@ -185,6 +194,32 @@ class Strategy(object):
             **self.kwargs,
         )
 
+        # stop-loss
+        if stop_loss == "high_low":
+            self.stop_loss = high_to_low.HighToLow(
+                universe=self.universe,
+                stop_threshold=stop_loss_threshold,
+                frequency=frequency,
+                rebalance=rebalance,
+                rebalance_dates=rebalance_dates,
+            )
+        elif stop_loss == "buy_low":
+            self.stop_loss = buy_to_low.BuyToLow(
+                universe=self.universe,
+                stop_threshold=stop_loss_threshold,
+                frequency=frequency,
+                rebalance=rebalance,
+                rebalance_dates=rebalance_dates,
+            )
+        else:
+            self.stop_loss = no_stop.NoStop(
+                universe=self.universe,
+                stop_threshold=stop_loss_threshold,
+                frequency=frequency,
+                rebalance=rebalance,
+                rebalance_dates=rebalance_dates,
+            )
+
     def assign(
         self,
         date: datetime.date,
@@ -256,6 +291,9 @@ class Strategy(object):
         """
         portfolio_return = self.portfolio_return_engine.get_portfolio_return(
             allocation,
+            stopped_securities_matrix=np.array(
+                self.stop_loss.stopped_securities_matrix
+            ),
             next_allocation=next_allocation,
             trans_cost=self.trans_cost,
         )
@@ -288,7 +326,12 @@ class Strategy(object):
         next_portfolio_allocation = allocation_pd.loc[date].values
         return portfolio_allocation, next_portfolio_allocation
 
-    def backtest(self, date: datetime.date, market_caps: np.ndarray) -> None:
+    def backtest(
+        self,
+        date: datetime.date,
+        market_caps: np.ndarray,
+        fama_french_factors: np.ndarray,
+    ) -> None:
         """
         - Calculate optimal allocation for each weighting strategy
         - Calculate allocation returns
@@ -299,8 +342,8 @@ class Strategy(object):
             snapshot date
         market_caps: np.array
             market caps of assets in universe
-        waiting_period: int, optional
-            waiting period before first covariance gets calculated
+        fama_french_factors: np.array
+            fama french factors for regression
         """
         if not date in self.rebalance_dates:
             return
@@ -317,6 +360,8 @@ class Strategy(object):
                 **self.portfolio_risk_return_engine_kwargs,
                 **self.kwargs,
             )
+            # reset stop loss engine
+            self.stop_loss.reset_engine()
             return
 
         risk_budgets = self.get_risk_budgets(date)
@@ -341,6 +386,12 @@ class Strategy(object):
             self.all_portfolios = pd.concat(
                 [self.all_portfolios, ex_ante_portfolio_return], axis=0
             )
+            cum_return = ((ex_ante_portfolio_return["return"] + 1).cumprod() - 1)[
+                -1:
+            ].to_numpy()
+            self.allocation_engines_d[allocation_model].run_factor_regression(
+                fama_french_factors, cum_return, date
+            )
 
         # portfolio engine
         self.portfolio_risk_engine = simple_vol.SimpleVol(
@@ -353,6 +404,9 @@ class Strategy(object):
             **self.portfolio_risk_return_engine_kwargs,
             **self.kwargs,
         )
+
+        # reset stop loss engine
+        self.stop_loss.reset_engine()
 
     def get_weights_constraints_d(self, weight_constraint: list) -> dict:
         """
@@ -384,7 +438,7 @@ class Strategy(object):
         np.array
             returns
         """
-        return self.return_engine.return_metrics_optimizer
+        return self.return_engine.return_metrics_intuitive
 
     @property
     def selected_securities(self) -> np.ndarray:

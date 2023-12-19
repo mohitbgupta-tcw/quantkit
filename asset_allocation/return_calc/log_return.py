@@ -70,7 +70,10 @@ class LogReturn(return_metrics.ReturnMetrics):
         this_returns = np.exp(self.return_calculator.data_stream.values)
         this_dates = self.return_calculator.data_stream.indexes
         return super().get_portfolio_return(
-            allocation, this_returns, this_dates, **kwargs
+            allocation=allocation,
+            this_returns=this_returns,
+            indexes=this_dates,
+            **kwargs,
         )
 
     def assign(

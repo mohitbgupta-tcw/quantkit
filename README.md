@@ -342,7 +342,7 @@ snowflake_utils.write_to_snowflake(
 
 Explore the following links for additional information on various use cases:
 - [Risk Framework](documentations/RISKFRAMEWORK.md)
-- [Asset Allocation]()
+- [Asset Allocation](documentations/ASSETALLOCATION.md)
 - [PAI](documentations/PAI.md)
 
 <p align="right">(<a href="#quantkit">back to top</a>)</p>

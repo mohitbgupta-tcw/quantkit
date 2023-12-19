@@ -1,14 +1,14 @@
 import pandas as pd
 import quantkit.utils.configs as configs
-import quantkit.finance.data_sources.portfolio_datasource.portfolio_datasource as portfolio_datasource
+import quantkit.finance.data_sources.portfolio_datasource as portfolio_datasource
 
 
 def historical_portfolio_holdings(
     start_date: str,
     end_date: str,
-    portfolios: list = None,
-    equity_benchmark: list = None,
-    fixed_income_benchmark: list = None,
+    portfolios: list = [],
+    equity_benchmark: list = [],
+    fixed_income_benchmark: list = [],
     local_configs: str = "",
 ) -> pd.DataFrame:
     """

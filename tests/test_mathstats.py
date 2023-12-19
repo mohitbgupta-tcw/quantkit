@@ -8,6 +8,8 @@ from scipy.stats import gmean
 import quantkit.mathstats.covariance.simple_covariance as simple_covariance
 import quantkit.mathstats.covariance.window_covariance as window_covariance
 import quantkit.mathstats.covariance.expo_covariance as expo_covariance
+import quantkit.mathstats.sum.simple_cumsum as simple_cumsum
+import quantkit.mathstats.sum.rolling_cumsum as rolling_cumsum
 import quantkit.mathstats.product.simple_cumprod as simple_cumprod
 import quantkit.mathstats.product.rolling_cumprod as rolling_cumprod
 import quantkit.mathstats.matrix.correlation as correlation
@@ -20,6 +22,7 @@ def test_integer_dataset():
     - Test quantkit simple mean calculation - compare to np.mean()
     - Test quantkit geometric mean calculation - compare to scipy.stats.gmean()
     - Test quantkit exponential weighted mean calculation - compare to pd.ewm()
+    - Test quantkit simple cumsum calculation - compare to np.cumsum()
     - Test quantkit simple cumprod calculation - compare to np.cumprod()
     - Test quantkit correlation - compare to np.corrcoef
     """
@@ -31,6 +34,7 @@ def test_integer_dataset():
     expo_model_unadjusted = expo_covariance.ExponentialWeightedCovariance(
         num_ind_variables=4, min_observations=2, adjust=False
     )
+    sum_model = simple_cumsum.SimpleCumSum(num_ind_variables=4)
     prod_model = simple_cumprod.SimpleCumProd(num_ind_variables=4)
 
     for i in range(4):
@@ -38,6 +42,7 @@ def test_integer_dataset():
         cov_model.update(batch_ind)
         expo_model_adjusted.update(batch_ind, batch_weight=0.9)
         expo_model_unadjusted.update(batch_ind, batch_weight=0.9)
+        sum_model.update(batch_ind)
         prod_model.update(batch_ind)
 
     df = pd.DataFrame(data)
@@ -46,6 +51,7 @@ def test_integer_dataset():
     expected_mean = np.around(np.mean(data, axis=0), 6)
     expected_gmean = np.around(gmean(data), 6)
     expected_cumprod = np.around(np.cumprod(data, axis=0)[-1, :], 6)
+    expected_cumsum = np.around(np.cumsum(data, axis=0)[-1, :], 6)
     expected_ewa_adjusted = np.around(
         np.array(df.ewm(adjust=True, alpha=0.1).mean().tail(1)).squeeze(), 6
     )
@@ -62,6 +68,7 @@ def test_integer_dataset():
     assert np.array_equal(
         np.around(expo_model_unadjusted.results["mean"], 6), expected_ewa_unadjusted
     )
+    assert np.array_equal(np.around(sum_model.cumsum, 6), expected_cumsum)
     assert np.array_equal(np.around(prod_model.cumprod, 6), expected_cumprod)
     assert np.array_equal(
         np.around(correlation.cov_to_corr(np.cov(data, rowvar=0)), 6), expected_corr
@@ -74,6 +81,7 @@ def test_float_dataset():
     - Test quantkit simple covariance calculation - compare to np.cov()
     - Test quantkit simple mean calculation - compare to np.mean()
     - Test quantkit geometric mean with geobase calculation - compare to scipy.stats.gmean()
+    - Test quantkit simple cumsum calculation - compare to np.cumsum()
     - Test quantkit simple cumprod calculation - compare to np.cumprod()
     - Test quantkit correlation - compare to np.corrcoef
     """
@@ -82,6 +90,7 @@ def test_float_dataset():
     cov_model = simple_covariance.Covariance(
         min_observations=3, num_ind_variables=5, geo_base=1
     )
+    sum_model = simple_cumsum.SimpleCumSum(num_ind_variables=5)
     prod_model = simple_cumprod.SimpleCumProd(num_ind_variables=5)
     expo_model_adjusted = expo_covariance.ExponentialWeightedCovariance(
         num_ind_variables=5, min_observations=3, adjust=True
@@ -95,6 +104,7 @@ def test_float_dataset():
         cov_model.update(batch_ind)
         expo_model_adjusted.update(batch_ind, batch_weight=0.9)
         expo_model_unadjusted.update(batch_ind, batch_weight=0.9)
+        sum_model.update(batch_ind)
         prod_model.update(batch_ind)
 
     df = pd.DataFrame(data)
@@ -102,6 +112,7 @@ def test_float_dataset():
     expected_corr = np.around(np.corrcoef(data, rowvar=0), 6)
     expected_mean = np.around(np.mean(data, axis=0), 6)
     expected_gmean = np.around(gmean(data + 1) - 1, 6)
+    expected_cumsum = np.around(np.cumsum(data, axis=0)[-1, :], 6)
     expected_cumprod = np.around(np.cumprod(data, axis=0)[-1, :], 6)
     expected_ewa_adjusted = np.around(
         np.array(df.ewm(adjust=True, alpha=0.1).mean().tail(1)).squeeze(), 6
@@ -119,6 +130,7 @@ def test_float_dataset():
     assert np.array_equal(
         np.around(expo_model_unadjusted.results["mean"], 6), expected_ewa_unadjusted
     )
+    assert np.array_equal(np.around(sum_model.cumsum, 6), expected_cumsum)
     assert np.array_equal(np.around(prod_model.cumprod, 6), expected_cumprod)
     assert np.array_equal(
         np.around(correlation.cov_to_corr(np.cov(data, rowvar=0)), 6), expected_corr
@@ -131,6 +143,7 @@ def test_rolling_integer_dataset():
     - Test quantkit rolling covariance calculation - compare to pd.rolling(2).cov()
     - Test quantkit rolling mean calculation - compare to pd.rolling(2).mean()
     - Test quantkit rolling geometric mean calculation - compare to scipy.stats.gmean()
+    - Test quantkit rolling cumsum calculation - compare to pd.rolling(2).cumsum()
     - Test quantkit rolling cumprod calculation - compare to pd.rolling(2).cumprod()
     """
     data = np.random.randint(low=1, high=10, size=(5, 5))
@@ -138,27 +151,34 @@ def test_rolling_integer_dataset():
     cov_model = window_covariance.WindowCovariance(
         num_ind_variables=5, window_size=2, ddof=1
     )
+    sum_model = rolling_cumsum.RollingCumSum(num_ind_variables=5, window_size=2)
     prod_model = rolling_cumprod.RollingCumProd(num_ind_variables=5, window_size=2)
 
     quantkit_rolling_mean = []
     quantkit_geometric_mean = []
+    quantkit_cumsum = []
     quantkit_cumprod = []
     for i in range(len(data)):
         batch_ind = np.array(data[i])
         cov_model.update(batch_ind)
 
         outgoing_variable = prod_model.windowed_outgoing_row.squeeze()
+        sum_model.update(batch_ind, outgoing_variable)
         prod_model.update(batch_ind, outgoing_variable)
 
         if i > 0:
             quantkit_rolling_mean.append(np.around(cov_model.results["mean"], 6))
             quantkit_geometric_mean.append(np.around(cov_model.results["gmean"], 6))
+            quantkit_cumsum.append(np.around(sum_model.cumsum, 6))
             quantkit_cumprod.append(np.around(prod_model.cumprod, 6))
 
     df = pd.DataFrame(data)
     expected_cov = np.around(np.array(df.rolling(2).cov().tail(5)), 6)
     expected_mean = np.around(np.array(df.rolling(2).mean().dropna()), 6)
     expected_gmean = np.around(np.array(df.rolling(2).apply(gmean).dropna()), 6)
+    expected_cumsum = np.around(
+        np.array(df.rolling(window=2).agg(lambda x: x.sum()).dropna()), 6
+    )
     expected_cumprod = np.around(
         np.array(df.rolling(window=2).agg(lambda x: x.prod()).dropna()), 6
     )
@@ -166,6 +186,7 @@ def test_rolling_integer_dataset():
     assert np.array_equal(np.around(cov_model.results["cov"], 6), expected_cov)
     assert np.array_equal(quantkit_rolling_mean, expected_mean)
     assert np.array_equal(quantkit_geometric_mean, expected_gmean)
+    assert np.array_equal(quantkit_cumsum, expected_cumsum)
     assert np.array_equal(quantkit_cumprod, expected_cumprod)
 
 
@@ -174,6 +195,7 @@ def test_rolling_float_dataset():
     Use floats in range -1 to 1 and:
     - Test quantkit rolling covariance calculation - compare to pd.rolling(4).cov()
     - Test quantkit rolling mean calculation - compare to pd.rolling(4).mean()
+    - Test quantkit rolling cumsum calculation - compare to pd.rolling(4).cumsum()
     - Test quantkit rolling geometric mean with geobase calculation - compare to scipy.stats.gmean()
     """
     data = np.random.uniform(-1, 1, [7, 5])
@@ -181,21 +203,25 @@ def test_rolling_float_dataset():
     cov_model = window_covariance.WindowCovariance(
         num_ind_variables=5, window_size=4, ddof=1, geo_base=1
     )
+    sum_model = rolling_cumsum.RollingCumSum(num_ind_variables=5, window_size=2)
     prod_model = rolling_cumprod.RollingCumProd(num_ind_variables=5, window_size=4)
 
     quantkit_rolling_mean = []
     quantkit_geometric_mean = []
+    quantkit_cumsum = []
     quantkit_cumprod = []
     for i in range(len(data)):
         batch_ind = np.array(data[i])
         cov_model.update(batch_ind)
 
         outgoing_variable = prod_model.windowed_outgoing_row.squeeze()
+        sum_model.update(batch_ind, outgoing_variable)
         prod_model.update(batch_ind, outgoing_variable)
 
         if i > 2:
             quantkit_rolling_mean.append(np.around(cov_model.results["mean"], 6))
             quantkit_geometric_mean.append(np.around(cov_model.results["gmean"], 6))
+            quantkit_cumsum.append(np.around(sum_model.cumsum, 6))
             quantkit_cumprod.append(np.around(prod_model.cumprod, 6))
 
     df = pd.DataFrame(data)
@@ -204,6 +230,9 @@ def test_rolling_float_dataset():
     expected_gmean = np.around(
         np.array((df + 1).rolling(4).apply(gmean).dropna()) - 1, 6
     )
+    expected_cumsum = np.around(
+        np.array(df.rolling(window=4).agg(lambda x: x.sum()).dropna()), 6
+    )
     expected_cumprod = np.around(
         np.array(df.rolling(window=4).agg(lambda x: x.prod()).dropna()), 6
     )
@@ -211,6 +240,7 @@ def test_rolling_float_dataset():
     assert np.array_equal(np.around(cov_model.results["cov"], 6), expected_cov)
     assert np.array_equal(quantkit_rolling_mean, expected_mean)
     assert np.array_equal(quantkit_geometric_mean, expected_gmean)
+    assert np.array_equal(quantkit_cumsum, expected_cumsum)
     assert np.array_equal(quantkit_cumprod, expected_cumprod)
 
 
