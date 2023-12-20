@@ -233,7 +233,7 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         self.universe_matrix = self.universe_df.to_numpy()
 
         # fundamental dates -> date + 3 months
-        self.universe_dates = list(self.universe_df.index.unique())
+        self.dates = list(self.universe_df.index.unique())
 
     def outgoing_row(self, date: datetime.date) -> np.ndarray:
         """
@@ -250,8 +250,26 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             current constitutents of universe
         """
         while (
-            self.current_loc < len(self.universe_dates) - 1
-            and date >= self.universe_dates[self.current_loc + 1]
+            self.current_loc < len(self.dates) - 1
+            and date >= self.dates[self.current_loc + 1]
         ):
             self.current_loc += 1
         return self.universe_matrix[self.current_loc]
+
+    def is_valid(self, date: datetime.date) -> bool:
+        """
+        check if inputs are valid
+
+        Parameters
+        ----------
+        date: datetimte.date
+            date
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return date >= self.dates[0] and np.nansum(
+            self.universe_matrix[self.current_loc] > 0
+        )

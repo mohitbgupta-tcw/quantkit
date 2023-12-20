@@ -174,3 +174,15 @@ class SimpleVol(risk_metrics.RiskMetrics):
         )
         portfolio_risk = volatility.portfolio_vol(allocation, risk_metrics)
         return portfolio_risk
+
+    @property
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.window_cov_calculator.is_valid()

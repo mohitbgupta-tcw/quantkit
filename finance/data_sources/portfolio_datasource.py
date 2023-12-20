@@ -100,9 +100,9 @@ class PortfolioDataSource(ds.DataSources):
 
         Parameters
         ----------
-        start_date: str,
+        start_date: str
             start date to pull from API
-        end_date: str,
+        end_date: str
             end date to pull from API
         equity_benchmark: list
             list of all equity benchmarks to pull from API

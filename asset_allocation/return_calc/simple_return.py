@@ -28,6 +28,7 @@ class SimpleExp(return_metrics.ReturnMetrics):
         self.return_calculator_window = rolling_mean.RollingMean(
             num_ind_variables=self.universe_size, **kwargs
         )
+        self.kwargs = kwargs
 
     @property
     def return_metrics_optimizer(self) -> np.ndarray:
@@ -140,4 +141,26 @@ class SimpleExp(return_metrics.ReturnMetrics):
         outgoing_row = np.squeeze(self.return_calculator_window.windowed_outgoing_row)
         self.return_calculator_window.update(
             annualized_return, outgoing_row, index=date
+        )
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.return_calculator_window.is_valid()
+
+    def reset_engine(self) -> None:
+        """
+        Reset Return Engine
+        """
+        self.return_calculator = simple_mean.SimpleMean(
+            num_ind_variables=self.universe_size, **self.kwargs
+        )
+        self.return_calculator_window = rolling_mean.RollingMean(
+            num_ind_variables=self.universe_size, **self.kwargs
         )

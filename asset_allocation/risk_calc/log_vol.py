@@ -100,7 +100,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         )
         annualized_return = np.squeeze(annualized_return)
         self.cov_calculator.update(np.log(annualized_return + 1), index=date)
-        self.cov_calculator_intuitive.update(annualized_return, index=date)
+        # self.cov_calculator_intuitive.update(annualized_return, index=date)
 
     def get_portfolio_risk(self, allocation: np.ndarray) -> float:
         """
@@ -122,3 +122,14 @@ class LogNormalVol(risk_metrics.RiskMetrics):
             allocation, self.risk_metrics_intuitive
         )
         return portfolio_risk
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.cov_calculator.is_valid()

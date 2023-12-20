@@ -132,3 +132,14 @@ class ReturnMetrics(object):
             actual_returns -= this_trans_cost
 
         return pd.DataFrame(data=actual_returns, index=indexes, columns=["return"])
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        raise NotImplementedError

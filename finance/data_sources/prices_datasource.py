@@ -45,9 +45,16 @@ class PricesDataSource(ds.DataSources):
         super().__init__(params, **kwargs)
         self.tickers = dict()
 
-    def load(self) -> None:
+    def load(self, start_date: str = None, end_date: str = None, **kwargs) -> None:
         """
         load data and transform dataframe
+
+        Parameters
+        ----------
+        start_date, optional: str, optional
+            start date to pull from API
+        end_date: str, optional
+            end date to pull from API
         """
         logging.log(f"Loading Price Data")
         ticker = (
@@ -56,10 +63,14 @@ class PricesDataSource(ds.DataSources):
             else "''"
         )
         from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        start_query = f"""AND "date" >= '{start_date}'""" if start_date else ""
+        end_query = f"""AND "date" <= '{end_date}'""" if end_date else ""
         query = f"""
         SELECT * 
         FROM {from_table}
         WHERE "ticker" in ({ticker})
+        {start_query}
+        {end_query}
         """
 
         self.datasource.load(query=query)

@@ -69,7 +69,7 @@ class FactorsDataSource(ds.DataSources):
         - Save Factor Dates
         """
         # fundamental dates -> date + 3 months
-        self.factor_dates = list(self.datasource.df.index.sort_values().unique())
+        self.dates = list(self.datasource.df.index.sort_values().unique())
         self.factor_matrix = self.datasource.df.to_numpy()
 
     def outgoing_row(self, date: datetime.date) -> np.ndarray:
@@ -87,8 +87,8 @@ class FactorsDataSource(ds.DataSources):
             current factors
         """
         while (
-            self.current_loc < len(self.factor_dates) - 1
-            and date >= self.factor_dates[self.current_loc + 1]
+            self.current_loc < len(self.dates) - 1
+            and date >= self.dates[self.current_loc + 1]
         ):
             self.current_loc += 1
         return self.factor_matrix[self.current_loc]
@@ -102,3 +102,19 @@ class FactorsDataSource(ds.DataSources):
             df
         """
         return self.datasource.df
+
+    def is_valid(self, date: datetime.date) -> bool:
+        """
+        check if inputs are valid
+
+        Parameters
+        ----------
+        date: datetimte.date
+            date
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return date >= self.dates[0]

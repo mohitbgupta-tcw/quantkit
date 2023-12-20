@@ -55,9 +55,9 @@ class LogNormalEWMA(log_vol.LogNormalVol):
         self.cov_calculator.update(
             np.log(annualized_return + 1), batch_weight=self.decay_factor, index=date
         )
-        self.cov_calculator_intuitive.update(
-            annualized_return, batch_weight=self.decay_factor, index=date
-        )
+        # self.cov_calculator_intuitive.update(
+        #     annualized_return, batch_weight=self.decay_factor, index=date
+        # )
 
 
 class RollingLogNormalEWMA(LogNormalEWMA):

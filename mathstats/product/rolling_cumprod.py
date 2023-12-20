@@ -84,3 +84,14 @@ class RollingCumProd(simple_cumprod.SimpleCumProd):
         self.data_stream.update(
             np.expand_dims(incoming_variables, axis=0), incoming_variables, **kwargs
         )
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.total_iterations >= self.window_size

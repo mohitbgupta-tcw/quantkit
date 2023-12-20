@@ -8,6 +8,14 @@ import quantkit.asset_allocation.strategies.pick_all as pick_all
 import quantkit.asset_allocation.strategies.relative_value as relative_value
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.universe.universe as universe_datasource
+import quantkit.asset_allocation.return_calc.log_return as log_return
+import quantkit.asset_allocation.return_calc.ewma_return as ewma_return
+import quantkit.asset_allocation.return_calc.simple_return as simple_return
+import quantkit.asset_allocation.return_calc.cumprod_return as cumprod_return
+import quantkit.asset_allocation.return_calc.cumprod_return as cumprod_return
+import quantkit.asset_allocation.risk_calc.log_vol as log_vol
+import quantkit.asset_allocation.risk_calc.ewma_vol as ewma_vol
+import quantkit.asset_allocation.risk_calc.simple_vol as simple_vol
 
 
 class Runner(loader.Runner):
@@ -32,6 +40,8 @@ class Runner(loader.Runner):
         )
 
         self.strategies = dict()
+        self.return_engines = dict()
+        self.risk_engines = dict()
 
         # connect portfolio datasource
         self.portfolio_datasource = universe_datasource.Universe(
@@ -75,11 +85,101 @@ class Runner(loader.Runner):
             - allocation_models: list
                 list of all weighting strategies
         """
+        # portfolio engine
+        self.portfolio_risk_return_engine_kwargs = dict(
+            frequency=self.params["prices_datasource"]["frequency"],
+            ddof=1,
+            geo_base=1,
+            window_size=63,
+        )
+        # portfolio engines
+        self.portfolio_risk_engine = simple_vol.SimpleVol(
+            universe=self.portfolio_datasource.all_tickers,
+            **self.portfolio_risk_return_engine_kwargs,
+        )
+        self.portfolio_return_engine = simple_return.SimpleExp(
+            universe=self.portfolio_datasource.all_tickers,
+            **self.portfolio_risk_return_engine_kwargs,
+        )
+
         for strategy, strat_params in self.params["strategies"].items():
+            risk_return_engine_kwargs = dict(
+                frequency=self.params["prices_datasource"]["frequency"],
+                ddof=1,
+                geo_base=1,
+                adjust=True,
+                half_life=12,
+                span=36,
+            )
+            # return engine
+            return_engine = strat_params["return_engine"]
+            if return_engine == "log_normal":
+                self.return_engines[return_engine] = self.return_engines.get(
+                    return_engine,
+                    log_return.LogReturn(
+                        universe=self.portfolio_datasource.all_tickers,
+                        window_size=strat_params["window_size"],
+                        **risk_return_engine_kwargs,
+                    ),
+                )
+            elif return_engine == "ewma":
+                self.return_engines[return_engine] = ewma_return.LogEWMA(
+                    universe=self.portfolio_datasource.all_tickers,
+                    **risk_return_engine_kwargs,
+                )
+            elif return_engine == "ewma_rolling":
+                self.return_engines[return_engine] = ewma_return.RollingLogEWMA(
+                    universe=self.portfolio_datasource.all_tickers,
+                    **risk_return_engine_kwargs,
+                )
+            elif return_engine == "simple":
+                self.return_engines[return_engine] = simple_return.SimpleExp(
+                    universe=self.portfolio_datasource.all_tickers,
+                    window_size=strat_params["window_size"],
+                    **risk_return_engine_kwargs,
+                )
+            elif return_engine == "cumprod":
+                self.return_engines[return_engine] = cumprod_return.CumProdReturn(
+                    universe=self.portfolio_datasource.all_tickers,
+                    window_size=strat_params["window_size"],
+                    **risk_return_engine_kwargs,
+                )
+            strat_params["return_engine"] = self.return_engines[return_engine]
+
+            # risk engine
+            risk_engine = strat_params["risk_engine"]
+            if risk_engine == "log_normal":
+                self.risk_engines[risk_engine] = self.risk_engines.get(
+                    risk_engine,
+                    log_vol.LogNormalVol(
+                        universe=self.portfolio_datasource.all_tickers,
+                        window_size=strat_params["window_size"],
+                        **risk_return_engine_kwargs,
+                    ),
+                )
+            elif risk_engine == "ewma":
+                self.risk_engines[risk_engine] = ewma_vol.LogNormalEWMA(
+                    universe=self.portfolio_datasource.all_tickers,
+                    **risk_return_engine_kwargs,
+                )
+            elif risk_engine == "ewma_rolling":
+                self.risk_engines[risk_engine] = ewma_vol.RollingLogNormalEWMA(
+                    universe=self.portfolio_datasource.all_tickers,
+                    **risk_return_engine_kwargs,
+                )
+            elif risk_engine == "simple":
+                self.risk_engines[risk_engine] = simple_vol.SimpleVol(
+                    universe=self.portfolio_datasource.all_tickers,
+                    window_size=strat_params["window_size"],
+                    **risk_return_engine_kwargs,
+                )
+            strat_params["risk_engine"] = self.risk_engines[risk_engine]
+
+            strat_params["portfolio_return_engine"] = self.portfolio_return_engine
+
             strat_params["frequency"] = self.params["prices_datasource"]["frequency"]
             strat_params["rebalance"] = self.params["prices_datasource"]["rebalance"]
             strat_params["universe"] = self.portfolio_datasource.all_tickers
-            strat_params["rebalance_dates"] = self.prices_datasource.rebalance_dates
             strat_params["trans_cost"] = self.params["trans_cost"]
             strat_params["weight_constraint"] = self.params[
                 "default_weights_constraint"
@@ -119,10 +219,39 @@ class Runner(loader.Runner):
                 "fama_french_factors": factors,
             }
 
+            for return_engine, return_object in self.return_engines.items():
+                return_object.assign(
+                    date=date, price_return=r_array, annualize_factor=1
+                )
+
+            for risk_engine, risk_object in self.risk_engines.items():
+                risk_object.assign(date=date, price_return=r_array, annualize_factor=1)
+
+            self.portfolio_return_engine.assign(
+                date=date, price_return=r_array, annualize_factor=1
+            )
+
             # assign returns to strategies and backtest
             for strat, strat_obj in self.strategies.items():
                 strat_obj.assign(**assign_dict)
-                strat_obj.backtest(**assign_dict)
+
+            if date in self.prices_datasource.rebalance_dates:
+                logging.log(f"Optimizing {date.strftime('%Y-%m-%d')}")
+                for strat, strat_obj in self.strategies.items():
+                    if (
+                        self.marketmultiple_datasource.is_valid(date)
+                        and self.fundamentals_datasource.is_valid(date)
+                        and self.portfolio_datasource.is_valid(date)
+                        and self.factor_datasource.is_valid(date)
+                        and strat_obj.is_valid()
+                    ):
+                        strat_obj.backtest(**assign_dict)
+
+                    # reset stop loss engine
+                    strat_obj.stop_loss.reset_engine()
+
+                # reset portfolio engines
+                self.portfolio_return_engine.reset_engine()
 
         # assign weights to security objects
         for strat, strat_obj in self.strategies.items():
