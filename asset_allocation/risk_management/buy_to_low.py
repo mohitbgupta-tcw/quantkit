@@ -19,8 +19,6 @@ class BuyToLow(stop_loss.StopLoss):
         frequency of return data
     rebelance: str
         rebalance frequency
-    rebalance_dates: list
-        list of rebalancing dates
     """
 
     def __init__(
@@ -29,12 +27,9 @@ class BuyToLow(stop_loss.StopLoss):
         stop_threshold: float,
         frequency: str,
         rebalance: str,
-        rebalance_dates: list,
         **kwargs,
     ) -> None:
-        super().__init__(
-            universe, stop_threshold, frequency, rebalance, rebalance_dates, **kwargs
-        )
+        super().__init__(universe, stop_threshold, frequency, rebalance, **kwargs)
 
     def assign(
         self,

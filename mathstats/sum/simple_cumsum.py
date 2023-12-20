@@ -98,3 +98,14 @@ class SimpleCumSum(object):
             batch_weight=1,
             **kwargs,
         )
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.total_iterations > 0

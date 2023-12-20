@@ -18,8 +18,6 @@ class StopLoss(object):
         frequency of return data
     rebelance: str
         rebalance frequency
-    rebalance_dates: list
-        list of rebalancing dates
     """
 
     def __init__(
@@ -28,12 +26,10 @@ class StopLoss(object):
         stop_threshold: float,
         frequency: str,
         rebalance: str,
-        rebalance_dates: list,
         **kwargs,
     ) -> None:
         self.stop_threshold = np.log(1 - stop_threshold)
         self.rebalance = rebalance
-        self.rebalance_dates = rebalance_dates
         self.universe = universe
         self.num_total_assets = len(universe)
         self.frequency = frequency

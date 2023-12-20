@@ -8,7 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Original Weight Weighting scheme
+- Add Is Valid validation in risk and return engines
 ### Fixed
+- Fixed Monthly vs. Daily Bug in Covariance Matrix
 ### Changed
 ### Removed
 

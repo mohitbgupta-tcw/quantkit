@@ -41,8 +41,6 @@ class Strategy(object):
         frequency of return data
     rebelance: str
         rebalance frequency
-    rebalance_dates: list
-        list of rebalancing dates
     trans_cost: float
         transaction cost
     allocation_models: list
@@ -60,7 +58,6 @@ class Strategy(object):
         stop_loss_threshold: float,
         frequency: str,
         rebalance: str,
-        rebalance_dates: list,
         trans_cost: float,
         allocation_models: list,
         weight_constraint: list,
@@ -68,7 +65,6 @@ class Strategy(object):
     ) -> None:
         self.waiting_period = mapping_configs.annualize_factor_d[rebalance]
         self.rebalance = rebalance
-        self.rebalance_dates = rebalance_dates
         self.all_portfolios = pd.DataFrame(columns=["portfolio_name", "return"])
         self.universe = universe
         self.num_total_assets = len(universe)
@@ -206,7 +202,6 @@ class Strategy(object):
                 stop_threshold=stop_loss_threshold,
                 frequency=frequency,
                 rebalance=rebalance,
-                rebalance_dates=rebalance_dates,
             )
         elif stop_loss == "buy_low":
             self.stop_loss = buy_to_low.BuyToLow(
@@ -214,7 +209,6 @@ class Strategy(object):
                 stop_threshold=stop_loss_threshold,
                 frequency=frequency,
                 rebalance=rebalance,
-                rebalance_dates=rebalance_dates,
             )
         else:
             self.stop_loss = no_stop.NoStop(
@@ -222,7 +216,6 @@ class Strategy(object):
                 stop_threshold=stop_loss_threshold,
                 frequency=frequency,
                 rebalance=rebalance,
-                rebalance_dates=rebalance_dates,
             )
 
     def assign(
@@ -354,25 +347,6 @@ class Strategy(object):
         fama_french_factors: np.array
             fama french factors for regression
         """
-        if not date in self.rebalance_dates:
-            return
-
-        # need enough data points for cov to be calculated
-        if date < self.rebalance_dates[self.waiting_period]:
-            self.portfolio_risk_engine = simple_vol.SimpleVol(
-                universe=self.universe,
-                **self.portfolio_risk_return_engine_kwargs,
-                **self.kwargs,
-            )
-            self.portfolio_return_engine = simple_return.SimpleExp(
-                universe=self.universe,
-                **self.portfolio_risk_return_engine_kwargs,
-                **self.kwargs,
-            )
-            # reset stop loss engine
-            self.stop_loss.reset_engine()
-            return
-
         risk_budgets = self.get_risk_budgets(date)
         for allocation_name, allocation_engine in self.allocation_engines_d.items():
             this_risk_budget = risk_budgets.get(allocation_name)
@@ -462,3 +436,14 @@ class Strategy(object):
             array of indexes
         """
         raise NotImplementedError()
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.return_engine.is_valid() and self.risk_engine.is_valid()

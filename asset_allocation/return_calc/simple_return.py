@@ -141,3 +141,14 @@ class SimpleExp(return_metrics.ReturnMetrics):
         self.return_calculator_window.update(
             annualized_return, outgoing_row, index=date
         )
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.return_calculator_window.is_valid()

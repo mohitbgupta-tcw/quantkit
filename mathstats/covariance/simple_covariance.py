@@ -109,3 +109,14 @@ class Covariance(streaming_base.StreamingBase):
         self.update_demeaned(
             vector_calc=vector_calc, batch_weight=batch_weight, **kwargs
         )
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.total_iterations > 0

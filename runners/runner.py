@@ -321,7 +321,9 @@ class Runner(object):
         self.params["prices_datasource"]["filters"][
             "ticker"
         ] = self.portfolio_datasource.all_tickers
-        self.prices_datasource.load()
+        self.prices_datasource.load(
+            **self.params["prices_datasource"]["filters"]["date"]
+        )
         self.prices_datasource.iter(self.portfolio_datasource.all_tickers)
 
     def iter_fundamentals(self) -> None:
@@ -339,7 +341,9 @@ class Runner(object):
         self.params["fundamentals_datasource"][
             "duplication"
         ] = self.ticker_parent_issuer_datasource.parent_issuers
-        self.fundamentals_datasource.load()
+        self.fundamentals_datasource.load(
+            **self.params["fundamentals_datasource"]["filters"]["calendardate"]
+        )
         self.fundamentals_datasource.iter(self.portfolio_datasource.all_tickers)
 
     def iter_marketmuliples(self) -> None:

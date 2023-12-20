@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import datetime
 import quantkit.runners.runner as loader
 import quantkit.utils.logging as logging
 import quantkit.utils.mapping_configs as mapping_configs
@@ -79,7 +80,6 @@ class Runner(loader.Runner):
             strat_params["frequency"] = self.params["prices_datasource"]["frequency"]
             strat_params["rebalance"] = self.params["prices_datasource"]["rebalance"]
             strat_params["universe"] = self.portfolio_datasource.all_tickers
-            strat_params["rebalance_dates"] = self.prices_datasource.rebalance_dates
             strat_params["trans_cost"] = self.params["trans_cost"]
             strat_params["weight_constraint"] = self.params[
                 "default_weights_constraint"
@@ -122,7 +122,18 @@ class Runner(loader.Runner):
             # assign returns to strategies and backtest
             for strat, strat_obj in self.strategies.items():
                 strat_obj.assign(**assign_dict)
-                strat_obj.backtest(**assign_dict)
+
+            if date in self.prices_datasource.rebalance_dates:
+                logging.log(f"Optimizing {date.strftime('%Y-%m-%d')}")
+                for strat, strat_obj in self.strategies.items():
+                    if (
+                        self.marketmultiple_datasource.is_valid(date)
+                        and self.fundamentals_datasource.is_valid(date)
+                        and self.portfolio_datasource.is_valid(date)
+                        and self.factor_datasource.is_valid(date)
+                        and strat_obj.is_valid()
+                    ):
+                        strat_obj.backtest(**assign_dict)
 
         # assign weights to security objects
         for strat, strat_obj in self.strategies.items():

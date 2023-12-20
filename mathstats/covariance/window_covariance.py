@@ -101,3 +101,14 @@ class WindowCovariance(streaming_base.StreamingBase):
         self.rolling_mean.update(
             incoming_variables=batch_ind, outgoing_variables=outgoing_row, **kwargs
         )
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.total_iterations >= self.window_size
