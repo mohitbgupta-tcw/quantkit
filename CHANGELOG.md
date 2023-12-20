@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed Monthly vs. Daily Bug in Covariance Matrix
 ### Changed
+- Only update return and risk engine once, not in every strategy
 ### Removed
 
 ## [1.5.1] - 2023-12-18

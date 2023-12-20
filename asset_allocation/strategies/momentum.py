@@ -28,43 +28,6 @@ class Momentum(strategy.Strategy):
         self.window_size = params["window_size"]
         self.top_n = params["top_n"]
 
-    def assign(
-        self,
-        date: datetime.date,
-        price_return: np.ndarray,
-        index_comp: np.ndarray,
-        annualize_factor: int = 1.0,
-        **kwargs,
-    ) -> None:
-        """
-        Transform and assign returns to the actual calculator
-
-        Parameters
-        ----------
-        date: datetime.date
-            date of snapshot
-        price_return: np.array
-            zero base price return of universe
-        index_comp: np.array
-            index components for date
-        annualize_factor: int, optional
-            factor depending on data frequency
-        """
-        super().assign(date, price_return, index_comp, annualize_factor)
-
-        self.return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.portfolio_return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.stop_loss.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.risk_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-
     @property
     def selected_securities(self) -> np.ndarray:
         """

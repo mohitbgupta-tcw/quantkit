@@ -98,19 +98,6 @@ class RelativeValue(strategy.Strategy):
         self.spx_pb = spx_pb
         self.spx_ps = spx_ps
 
-        self.return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.portfolio_return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.stop_loss.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.risk_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-
     @property
     def selected_securities(self) -> np.ndarray:
         """
