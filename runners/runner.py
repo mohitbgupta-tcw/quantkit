@@ -372,6 +372,7 @@ class Runner(object):
         - Attach Fundamental information
         - Attach Price information
         """
+        logging.log("Iterate Securities")
         for sec, sec_store in self.portfolio_datasource.securities.items():
             sec_store.iter(
                 parent_issuer_dict=self.parent_issuer_datasource.parent_issuers,
