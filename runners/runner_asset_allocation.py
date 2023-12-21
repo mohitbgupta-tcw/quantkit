@@ -123,26 +123,38 @@ class Runner(loader.Runner):
                     ),
                 )
             elif return_engine == "ewma":
-                self.return_engines[return_engine] = ewma_return.LogEWMA(
-                    universe=self.portfolio_datasource.all_tickers,
-                    **risk_return_engine_kwargs,
+                self.return_engines[return_engine] = self.return_engines.get(
+                    return_engine,
+                    ewma_return.LogEWMA(
+                        universe=self.portfolio_datasource.all_tickers,
+                        **risk_return_engine_kwargs,
+                    ),
                 )
             elif return_engine == "ewma_rolling":
-                self.return_engines[return_engine] = ewma_return.RollingLogEWMA(
-                    universe=self.portfolio_datasource.all_tickers,
-                    **risk_return_engine_kwargs,
+                self.return_engines[return_engine] = self.return_engines.get(
+                    return_engine,
+                    ewma_return.RollingLogEWMA(
+                        universe=self.portfolio_datasource.all_tickers,
+                        **risk_return_engine_kwargs,
+                    ),
                 )
             elif return_engine == "simple":
-                self.return_engines[return_engine] = simple_return.SimpleExp(
-                    universe=self.portfolio_datasource.all_tickers,
-                    window_size=strat_params["window_size"],
-                    **risk_return_engine_kwargs,
+                self.return_engines[return_engine] = self.return_engines.get(
+                    return_engine,
+                    simple_return.SimpleExp(
+                        universe=self.portfolio_datasource.all_tickers,
+                        window_size=strat_params["window_size"],
+                        **risk_return_engine_kwargs,
+                    ),
                 )
             elif return_engine == "cumprod":
-                self.return_engines[return_engine] = cumprod_return.CumProdReturn(
-                    universe=self.portfolio_datasource.all_tickers,
-                    window_size=strat_params["window_size"],
-                    **risk_return_engine_kwargs,
+                self.return_engines[return_engine] = self.return_engines.get(
+                    return_engine,
+                    cumprod_return.CumProdReturn(
+                        universe=self.portfolio_datasource.all_tickers,
+                        window_size=strat_params["window_size"],
+                        **risk_return_engine_kwargs,
+                    ),
                 )
             strat_params["return_engine"] = self.return_engines[return_engine]
 
@@ -158,20 +170,29 @@ class Runner(loader.Runner):
                     ),
                 )
             elif risk_engine == "ewma":
-                self.risk_engines[risk_engine] = ewma_vol.LogNormalEWMA(
-                    universe=self.portfolio_datasource.all_tickers,
-                    **risk_return_engine_kwargs,
+                self.risk_engines[risk_engine] = self.risk_engines.get(
+                    risk_engine,
+                    ewma_vol.LogNormalEWMA(
+                        universe=self.portfolio_datasource.all_tickers,
+                        **risk_return_engine_kwargs,
+                    ),
                 )
             elif risk_engine == "ewma_rolling":
-                self.risk_engines[risk_engine] = ewma_vol.RollingLogNormalEWMA(
-                    universe=self.portfolio_datasource.all_tickers,
-                    **risk_return_engine_kwargs,
+                self.risk_engines[risk_engine] = self.risk_engines.get(
+                    risk_engine,
+                    ewma_vol.RollingLogNormalEWMA(
+                        universe=self.portfolio_datasource.all_tickers,
+                        **risk_return_engine_kwargs,
+                    ),
                 )
             elif risk_engine == "simple":
-                self.risk_engines[risk_engine] = simple_vol.SimpleVol(
-                    universe=self.portfolio_datasource.all_tickers,
-                    window_size=strat_params["window_size"],
-                    **risk_return_engine_kwargs,
+                self.risk_engines[risk_engine] = self.risk_engines.get(
+                    risk_engine,
+                    simple_vol.SimpleVol(
+                        universe=self.portfolio_datasource.all_tickers,
+                        window_size=strat_params["window_size"],
+                        **risk_return_engine_kwargs,
+                    ),
                 )
             strat_params["risk_engine"] = self.risk_engines[risk_engine]
 
