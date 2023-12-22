@@ -602,11 +602,15 @@ Once a universe has been selected, the asset allocation tool offers various port
 
 Begin by establishing weight constraints for constrained strategies, ensuring that the portfolio optimization process adheres to the desired risk and allocation parameters.
 
-- Weight Constraints, optional: The allowable range of weights that an asset can take on in constrained weighting strategies at any point in time.
+- Weight Constraints, optional: The allowable range of weights that an asset can take on in constrained weighting strategies at any point in time. The `weight_constraints` dictionary allows users to apply weight constraints to individual assets by specifying the asset's ticker and a list of constraints for that asset.
 
 ```shell
 
-    "default_weights_constraint": [0.001, 0.15]
+    "default_weights_constraint": [0.001, 0.15],
+    "weight_constraint": {
+        "AAPL": [0.01, 0.05],
+        "MSFT": [0.02, 0.03]
+    }
 
 ```
 

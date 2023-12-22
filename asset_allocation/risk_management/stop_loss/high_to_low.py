@@ -1,13 +1,13 @@
 import datetime
 import numpy as np
-import quantkit.asset_allocation.risk_management.stop_loss as stop_loss
+import quantkit.asset_allocation.risk_management.stop_loss.stop_loss as stop_loss
 import quantkit.asset_allocation.return_calc.cumprod_return as cumprod_return
 import quantkit.utils.mapping_configs as mapping_configs
 
 
-class BuyToLow(stop_loss.StopLoss):
+class HighToLow(stop_loss.StopLoss):
     """
-    Stop out Security if it falls more than x% since Rebalance Date
+    Stop out Security if it falls more than x% from High since Rebalance Date
 
     Parameters
     ----------
@@ -30,6 +30,7 @@ class BuyToLow(stop_loss.StopLoss):
         **kwargs,
     ) -> None:
         super().__init__(universe, stop_threshold, frequency, rebalance, **kwargs)
+        self.highs = np.zeros(shape=self.num_total_assets)
 
     def assign(
         self,
@@ -52,6 +53,9 @@ class BuyToLow(stop_loss.StopLoss):
             factor depending on data frequency
         """
         super().assign(date, price_return, annualize_factor, **kwargs)
+        self.highs = np.nanmax(
+            [self.highs, self.return_engine.return_metrics_optimizer], axis=0
+        )
         self.stopped_securities_matrix.append(self.stopped_securities)
 
     @property
@@ -65,8 +69,16 @@ class BuyToLow(stop_loss.StopLoss):
             array of indexes
         """
         stopped = np.logical_or(
-            self.return_engine.return_metrics_optimizer < self.stop_threshold,
+            (self.return_engine.return_metrics_optimizer - self.highs)
+            < self.stop_threshold,
             self.prev_stopped,
         )
         self.prev_stopped = stopped
         return stopped
+
+    def reset_engine(self) -> None:
+        """
+        Reset Stop Loss Engine
+        """
+        super().reset_engine()
+        self.highs = np.zeros(shape=self.num_total_assets)

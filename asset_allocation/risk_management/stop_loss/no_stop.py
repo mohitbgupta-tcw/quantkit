@@ -1,6 +1,6 @@
 import datetime
 import numpy as np
-import quantkit.asset_allocation.risk_management.stop_loss as stop_loss
+import quantkit.asset_allocation.risk_management.stop_loss.stop_loss as stop_loss
 
 
 class NoStop(stop_loss.StopLoss):

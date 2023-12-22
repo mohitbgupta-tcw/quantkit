@@ -5,9 +5,9 @@ import quantkit.asset_allocation.allocation.hrp as hrp
 import quantkit.asset_allocation.allocation.equal_weight as equal_weight
 import quantkit.asset_allocation.allocation.market_weight as market_weight
 import quantkit.asset_allocation.allocation.original_weight as original_weight
-import quantkit.asset_allocation.risk_management.buy_to_low as buy_to_low
-import quantkit.asset_allocation.risk_management.high_to_low as high_to_low
-import quantkit.asset_allocation.risk_management.no_stop as no_stop
+import quantkit.asset_allocation.risk_management.stop_loss.buy_to_low as buy_to_low
+import quantkit.asset_allocation.risk_management.stop_loss.high_to_low as high_to_low
+import quantkit.asset_allocation.risk_management.stop_loss.no_stop as no_stop
 import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 import numpy as np
@@ -40,8 +40,8 @@ class Strategy(object):
         transaction cost
     allocation_models: list
         list of weighting strategies
-    weight_constraint: list
-        list of lower and upper bound for weight constraints
+    weight_constraint: dict
+        list of lower and upper bound for each asset
     """
 
     def __init__(
@@ -56,7 +56,7 @@ class Strategy(object):
         rebalance: str,
         trans_cost: float,
         allocation_models: list,
-        weight_constraint: list,
+        weight_constraint: dict,
         **kwargs,
     ) -> None:
         self.rebalance = rebalance
@@ -76,7 +76,6 @@ class Strategy(object):
         )
         self.allocation_engines_d = dict()
 
-        wc = self.get_weights_constraints_d(weight_constraint)
         for allocation_model in allocation_models:
             if allocation_model == "mean_variance":
                 this_allocation_engine = mean_variance.MeanVariance(
@@ -85,7 +84,7 @@ class Strategy(object):
 
             elif allocation_model == "constrained_mean_variance":
                 this_allocation_engine = mean_variance.MeanVariance(
-                    weights_constraint=wc, **allocation_engine_kwargs
+                    weights_constraint=weight_constraint, **allocation_engine_kwargs
                 )
 
             elif allocation_model == "min_variance":
@@ -94,7 +93,7 @@ class Strategy(object):
                 )
             elif allocation_model == "constrained_min_variance":
                 this_allocation_engine = min_variance.MinimumVariance(
-                    weights_constraint=wc, **allocation_engine_kwargs
+                    weights_constraint=weight_constraint, **allocation_engine_kwargs
                 )
             elif allocation_model == "risk_parity":
                 this_allocation_engine = risk_parity.RiskParity(
@@ -106,7 +105,7 @@ class Strategy(object):
                 )
             elif allocation_model == "constrained_hrp":
                 this_allocation_engine = hrp.HierarchicalRiskParity(
-                    weights_constraint=wc, **allocation_engine_kwargs
+                    weights_constraint=weight_constraint, **allocation_engine_kwargs
                 )
             elif allocation_model == "equal_weight":
                 this_allocation_engine = equal_weight.EqualWeight(
@@ -311,26 +310,6 @@ class Strategy(object):
             self.allocation_engines_d[allocation_model].run_factor_regression(
                 fama_french_factors, cum_return, date
             )
-
-    def get_weights_constraints_d(self, weight_constraint: list) -> dict:
-        """
-        Initialize weight constraints for constrained strategies
-        weights are set in default_weights_constraint in config file
-
-        Parameters
-        ----------
-        weight_constraint : list
-            list of lower and upper bound for weight constraints
-
-        Returns
-        -------
-        dict
-            Dictionary which indicates weight range for each asset provided
-        """
-        w_consts_d = dict()
-        for this_id in self.universe:
-            w_consts_d[this_id] = weight_constraint
-        return w_consts_d
 
     @property
     def return_metrics_intuitive(self) -> np.ndarray:

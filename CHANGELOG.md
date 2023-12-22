@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Original Weight Weighting scheme
 - Add Is Valid validation in risk and return engines
 - Add Area Plot for weights
+- Allow user to set weight constraints on asset level
 ### Fixed
 - Fixed Monthly vs. Daily Bug in Covariance Matrix
 ### Changed
 - Only update return and risk engine once, not in every strategy
+- Move Stop-Loss functionality in seperate folder
 ### Removed
 
 ## [1.5.1] - 2023-12-18

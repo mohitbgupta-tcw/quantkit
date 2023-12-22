@@ -85,6 +85,7 @@
         }
     },    
     "default_weights_constraint": [0.001, 0.15],
+    "weight_constraint": {},
     "trans_cost": 0.01,
     "msci_datasource": {
         "source": 4,
