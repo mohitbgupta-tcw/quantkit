@@ -11,14 +11,16 @@ my_palette = [
     "#164863",
     "#706233",
     "#94A684",
+    "#756AB6",
     "#427D9D",
     "#B0926A",
-    "#AEC3AE",
     "#9BBEC8",
+    "#AC87C5",
     "#E1C78F",
     "#DDF2FD",
     "#FAE7C9",
     "#FFEEF4",
+    "#FFE5E5",
 ]
 sns.set_palette(my_palette)
 
