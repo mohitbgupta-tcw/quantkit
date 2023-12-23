@@ -5,6 +5,7 @@ import quantkit.mathstats.matrix.diagonalization as diagonalization
 import quantkit.mathstats.matrix.variance as variance
 import quantkit.asset_allocation.allocation.portfolio_optimizer as portfolio_optimizer
 import quantkit.utils.util_functions as util_functions
+import quantkit.asset_allocation.risk_management.allocation_limit.group_limit as group_limit
 import numpy as np
 from typing import Union
 import datetime
@@ -147,6 +148,13 @@ class HierarchicalRiskParity(allocation_base.Allocation):
         portfolio leverage
     verbose: bool, optional
         verbose flag for solver
+    scaling: dict, optional
+        dictionary to scale assets, must have the following components:
+        {
+            "limited_assets": [],
+            "limit": 0.35,
+            "allocate_to": []
+        }
     """
 
     def __init__(
@@ -157,6 +165,7 @@ class HierarchicalRiskParity(allocation_base.Allocation):
         portfolio_leverage: float = 1.0,
         verbose: bool = False,
         weights_constraint: dict = None,
+        scaling: dict = None,
         **kwargs,
     ) -> None:
         super().__init__(asset_list, risk_engine, return_engine)
@@ -167,6 +176,7 @@ class HierarchicalRiskParity(allocation_base.Allocation):
         self.min_weights, self.max_weights = self.get_weights_constraints(
             weights_constraint
         )
+        self.scaling = scaling
 
     def update(
         self,
@@ -210,6 +220,14 @@ class HierarchicalRiskParity(allocation_base.Allocation):
         self.optimizer.solve_problem()
         opt_allocation = self.optimizer.allocations
         allocation[selected_assets] = opt_allocation
+
+        if self.scaling:
+            allocation = group_limit.limit_group(
+                weights=allocation,
+                universe=self.asset_list,
+                max_allocation=self.max_weights,
+                **self.scaling,
+            )
 
         self.allocations = (date, allocation)
         self.allocations_history[date] = allocation

@@ -159,17 +159,32 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             ~self.datasource.df["Ticker Cd"].isin(self.params["currencies"])
         ]
         if self.params["custom_universe"]:
-            self.datasource.df = self.datasource.df.drop_duplicates(
-                subset=["ISIN", "As Of Date"]
-            )
-            self.datasource.df["Portfolio"] = "Test_Portfolio"
-            self.datasource.df["Portfolio Name"] = "Test_Portfolio"
-            self.datasource.df["Portfolio_Weight"] = 1 / len(
-                self.params["custom_universe"]
-            )
-            self.datasource.df["Ticker Cd"] = self.datasource.df["Ticker Cd"].replace(
-                to_replace="/", value=".", regex=True
-            )
+            if self.datasource.df.empty:
+                for sec in self.params["custom_universe"]:
+                    sec_dict = {
+                        "As Of Date": pd.bdate_range(
+                            start=self.params["start_date"], end=self.params["end_date"]
+                        ),
+                        "Portfolio": "Test_Portfolio",
+                        "Portfolio Name": "Test_Portfolio",
+                        "ISIN": sec,
+                        "Portfolio_Weight": 1 / len(self.params["custom_universe"]),
+                        "Ticker Cd": sec,
+                    }
+                    sec_df = pd.DataFrame(data=sec_dict)
+                    self.datasource.df = pd.concat([self.datasource.df, sec_df])
+            else:
+                self.datasource.df = self.datasource.df.drop_duplicates(
+                    subset=["ISIN", "As Of Date"]
+                )
+                self.datasource.df["Portfolio"] = "Test_Portfolio"
+                self.datasource.df["Portfolio Name"] = "Test_Portfolio"
+                self.datasource.df["Portfolio_Weight"] = 1 / len(
+                    self.params["custom_universe"]
+                )
+                self.datasource.df["Ticker Cd"] = self.datasource.df[
+                    "Ticker Cd"
+                ].replace(to_replace="/", value=".", regex=True)
 
         if self.params["sustainable"]:
             indices = (

@@ -102,6 +102,8 @@ class Runner(loader.Runner):
             **self.portfolio_risk_return_engine_kwargs,
         )
 
+        weight_constraint = self.get_weights_constraints_d()
+
         for strategy, strat_params in self.params["strategies"].items():
             risk_return_engine_kwargs = dict(
                 frequency=self.params["prices_datasource"]["frequency"],
@@ -202,15 +204,35 @@ class Runner(loader.Runner):
             strat_params["rebalance"] = self.params["prices_datasource"]["rebalance"]
             strat_params["universe"] = self.portfolio_datasource.all_tickers
             strat_params["trans_cost"] = self.params["trans_cost"]
-            strat_params["weight_constraint"] = self.params[
-                "default_weights_constraint"
-            ]
+            strat_params["weight_constraint"] = weight_constraint
+            strat_params["scaling"] = self.params["allocation_limit"]
             if strat_params["type"] == "momentum":
                 self.strategies[strategy] = momentum.Momentum(strat_params)
             elif strat_params["type"] == "pick_all":
                 self.strategies[strategy] = pick_all.PickAll(strat_params)
             elif strat_params["type"] == "relative_value":
                 self.strategies[strategy] = relative_value.RelativeValue(strat_params)
+
+    def get_weights_constraints_d(self) -> dict:
+        """
+        Initialize weight constraints for constrained strategies
+        weights are set in default_weights_constraint in config file
+
+        Parameters
+        ----------
+        weight_constraint : list
+            list of lower and upper bound for weight constraints
+
+        Returns
+        -------
+        dict
+            Dictionary which indicates weight range for each asset provided
+        """
+        weight_constraint = self.params["default_weights_constraint"]
+        w_consts_d = self.params["weight_constraint"]
+        for this_id in self.portfolio_datasource.all_tickers:
+            w_consts_d[this_id] = w_consts_d.get(this_id, weight_constraint)
+        return w_consts_d
 
     def run_strategies(self) -> None:
         """
