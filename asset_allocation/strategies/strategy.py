@@ -42,6 +42,13 @@ class Strategy(object):
         list of weighting strategies
     weight_constraint: dict
         list of lower and upper bound for each asset
+    scaling: dict
+        dictionary to scale assets, must have the following components:
+        {
+            "limited_assets": [],
+            "limit": 0.35,
+            "allocate_to": []
+        }
     """
 
     def __init__(
@@ -57,6 +64,7 @@ class Strategy(object):
         trans_cost: float,
         allocation_models: list,
         weight_constraint: dict,
+        scaling: dict,
         **kwargs,
     ) -> None:
         self.rebalance = rebalance
@@ -106,6 +114,12 @@ class Strategy(object):
             elif allocation_model == "constrained_hrp":
                 this_allocation_engine = hrp.HierarchicalRiskParity(
                     weights_constraint=weight_constraint, **allocation_engine_kwargs
+                )
+            elif allocation_model == "scaled_hrp":
+                this_allocation_engine = hrp.HierarchicalRiskParity(
+                    weights_constraint=weight_constraint,
+                    scaling=scaling,
+                    **allocation_engine_kwargs,
                 )
             elif allocation_model == "equal_weight":
                 this_allocation_engine = equal_weight.EqualWeight(
