@@ -114,9 +114,40 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             WHERE bench.as_of_date >= '{self.params["start_date"]}'
             AND bench.as_of_date <= '{self.params["end_date"]}'
             AND ISIN in ({secs})
-        ORDER BY "Portfolio" ASC,  "As Of Date" ASC, "Portfolio_Weight"  DESC
-        """
-            self.datasource.load(query=query)
+            ORDER BY "Portfolio" ASC,  "As Of Date" ASC, "Portfolio_Weight"  DESC
+            """
+            if self.params["skipp"]:
+                self.datasource.df = pd.DataFrame(
+                    columns=[
+                        "As Of Date",
+                        "Portfolio",
+                        "Portfolio Name",
+                        "ESG Collateral Type",
+                        "ISIN",
+                        "Issuer ESG",
+                        "Loan Category",
+                        "Labeled ESG Type",
+                        "Security_Name",
+                        "TCW ESG",
+                        "Ticker Cd",
+                        "Sector Level 1",
+                        "Sector Level 2",
+                        "JPM Sector",
+                        "BCLASS_Level2",
+                        "BCLASS_Level3",
+                        "BCLASS_Level4",
+                        "Country of Risk",
+                        "MSCI ISSUERID",
+                        "ISS ISSUERID",
+                        "BBG ISSUERID",
+                        "Portfolio_Weight",
+                        "Base Mkt Val",
+                        "OAS",
+                        "Issuer ISIN",
+                    ]
+                )
+            else:
+                self.datasource.load(query=query)
             self.transform_df()
         else:
             super().load(
@@ -132,6 +163,7 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         Transformations for custom universe and sustainable universe
         """
         super().transform_df()
+
         self.datasource.df["As Of Date"] = pd.to_datetime(
             self.datasource.df["As Of Date"]
         )
@@ -185,7 +217,6 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                 self.datasource.df["Ticker Cd"] = self.datasource.df[
                     "Ticker Cd"
                 ].replace(to_replace="/", value=".", regex=True)
-
         if self.params["sustainable"]:
             indices = (
                 self.params["equity_universe"]

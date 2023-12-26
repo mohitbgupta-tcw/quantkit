@@ -422,9 +422,7 @@ class PortfolioDataSource(ds.DataSources):
         """
         self.all_tickers = list(self.df["Ticker Cd"].unique())
         for index, row in (
-            self.df[["As Of Date", "Portfolio", "Portfolio Name"]]
-            .drop_duplicates()
-            .iterrows()
+            self.df[["Portfolio", "Portfolio Name"]].drop_duplicates().iterrows()
         ):
             pf = row["Portfolio"]
             pf_store = portfolios.PortfolioStore(pf=pf, name=row["Portfolio Name"])
@@ -432,7 +430,13 @@ class PortfolioDataSource(ds.DataSources):
                 ["As Of Date", "ISIN", "Portfolio_Weight", "Base Mkt Val", "OAS"]
             ]
             pf_store.add_holdings(holdings_df)
-            pf_store.add_as_of_date(row["As Of Date"])
+            as_of_date = (
+                self.df[self.df["Portfolio"] == pf]
+                .groupby("Portfolio")["As Of Date"]
+                .max()
+                .values[0]
+            )
+            pf_store.add_as_of_date(as_of_date)
             self.portfolios[pf] = pf_store
 
     def iter_holdings(
