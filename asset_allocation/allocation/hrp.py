@@ -115,7 +115,7 @@ class HRPOptimizer(portfolio_optimizer.PortfolioOptimizer):
                 weights[second_cluster] *= 1 - alpha
         weights = weights.round(16) + 0.0
         self.allocations = tuple(
-            np.abs(weights) / (np.sum(np.abs(weights)) * self.leverage)
+            np.abs(weights) / (np.sum(np.abs(weights))) * self.leverage
         )
 
 
@@ -168,15 +168,21 @@ class HierarchicalRiskParity(allocation_base.Allocation):
         scaling: dict = None,
         **kwargs,
     ) -> None:
-        super().__init__(asset_list, risk_engine, return_engine)
+        super().__init__(
+            asset_list,
+            risk_engine,
+            return_engine,
+            portfolio_leverage=portfolio_leverage,
+        )
         self.risk_budgets = np.ones(self.num_total_assets) / self.num_total_assets
         self.c_scalar = 1.0
-        self.portfolio_leverage = portfolio_leverage
         self.verbose = verbose
         self.min_weights, self.max_weights = self.get_weights_constraints(
             weights_constraint
         )
         self.scaling = scaling
+        if self.scaling:
+            self.scaling["limit"] *= self.portfolio_leverage
 
     def update(
         self,
@@ -225,7 +231,7 @@ class HierarchicalRiskParity(allocation_base.Allocation):
             allocation = group_limit.limit_group(
                 weights=allocation,
                 universe=self.asset_list,
-                max_allocation=self.max_weights,
+                max_allocation=self.max_weights * self.portfolio_leverage,
                 **self.scaling,
             )
 

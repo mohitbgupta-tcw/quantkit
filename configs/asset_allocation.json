@@ -86,6 +86,11 @@
     },    
     "default_weights_constraint": [0.001, 0.15],
     "weight_constraint": {},
+    "allocation_limit": {
+        "limited_assets": [],
+        "limit": 0.0,
+        "allocate_to": []
+    },
     "trans_cost": 0.01,
     "msci_datasource": {
         "source": 4,

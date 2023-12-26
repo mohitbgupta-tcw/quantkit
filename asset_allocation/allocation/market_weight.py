@@ -20,10 +20,24 @@ class MarketWeight(allocation_base.Allocation):
         risk engine used to forecast cov matrix
     return_engine: asset_allocation.return_calc.return_metrics
         return engine used to forecast returns
+    portfolio_leverage: float, optional
+        portfolio leverage
     """
 
-    def __init__(self, asset_list: list, risk_engine, return_engine, **kwargs) -> None:
-        super().__init__(asset_list, risk_engine, return_engine)
+    def __init__(
+        self,
+        asset_list: list,
+        risk_engine,
+        return_engine,
+        portfolio_leverage: float = 1.0,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            asset_list,
+            risk_engine,
+            return_engine,
+            portfolio_leverage=portfolio_leverage,
+        )
 
     def update(self, market_caps: np.ndarray, **kwargs) -> None:
         """
@@ -52,7 +66,7 @@ class MarketWeight(allocation_base.Allocation):
         """
         allocation = np.zeros(shape=self.num_total_assets)
         mc = self.market_caps[selected_assets]
-        opt_allocation = mc / np.nansum(mc)
+        opt_allocation = (mc / np.nansum(mc)) * self.portfolio_leverage
         allocation[selected_assets] = opt_allocation
 
         self.allocations = (date, allocation)

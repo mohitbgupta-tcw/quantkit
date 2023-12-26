@@ -63,5 +63,5 @@ class PortfolioOptimizer(convex_optimizer.CVXPYOptimizer):
             np.array(self.weights.value).round(16) + 0.0
         )  # +0.0 removes signed zero
         self.allocations = tuple(
-            np.abs(solved_weights) / (np.sum(np.abs(solved_weights)) * self.leverage)
+            np.abs(solved_weights) / (np.sum(np.abs(solved_weights))) * self.leverage
         )

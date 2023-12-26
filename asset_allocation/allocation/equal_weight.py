@@ -21,10 +21,24 @@ class EqualWeight(allocation_base.Allocation):
         risk engine used to forecast cov matrix
     return_engine: asset_allocation.return_calc.return_metrics
         return engine used to forecast returns
+    portfolio_leverage: float, optional
+        portfolio leverage
     """
 
-    def __init__(self, asset_list: list, risk_engine, return_engine, **kwargs) -> None:
-        super().__init__(asset_list, risk_engine, return_engine)
+    def __init__(
+        self,
+        asset_list: list,
+        risk_engine,
+        return_engine,
+        portfolio_leverage: float = 1.0,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            asset_list,
+            risk_engine,
+            return_engine,
+            portfolio_leverage=portfolio_leverage,
+        )
 
     def update(self, **kwargs) -> None:
         """
@@ -47,7 +61,9 @@ class EqualWeight(allocation_base.Allocation):
         """
         asset_count = len(selected_assets)
         allocation = np.zeros(shape=self.num_total_assets)
-        opt_allocation = tuple(np.array([1 / asset_count] * asset_count))
+        opt_allocation = tuple(
+            np.array([1 / asset_count] * asset_count) * self.portfolio_leverage
+        )
         allocation[selected_assets] = opt_allocation
 
         self.allocations = (date, allocation)

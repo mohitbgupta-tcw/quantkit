@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Area Plot for weights
 - Allow user to set weight constraints on asset level
 - Scaled HRP
+- Leverage Functionality
 ### Fixed
 - Fixed Monthly vs. Daily Bug in Covariance Matrix
 ### Changed
