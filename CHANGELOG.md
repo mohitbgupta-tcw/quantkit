@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 ### Fixed
 ### Changed
+- run scaling in HRP Optimizer
 ### Removed
 
 ## [1.5.2] - 2023-12-26

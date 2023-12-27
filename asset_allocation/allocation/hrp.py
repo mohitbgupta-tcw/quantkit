@@ -34,6 +34,13 @@ class HRPOptimizer(portfolio_optimizer.PortfolioOptimizer):
         portfolio leverage
     verbose: bool, optional
         verbose flag for solver
+    scaling: dict, optional
+        dictionary to scale assets, must have the following components:
+        {
+            "limited_assets": [],
+            "limit": 0.35,
+            "allocate_to": []
+        }
     """
 
     def __init__(
@@ -45,11 +52,13 @@ class HRPOptimizer(portfolio_optimizer.PortfolioOptimizer):
         long_only: bool = True,
         leverage: float = None,
         verbose: bool = False,
+        scaling: dict = None,
     ) -> None:
         super().__init__(universe, long_only, leverage, verbose=verbose)
         self.cov_matrix = cov_matrix
         self.min_weights = min_weights
         self.max_weights = max_weights
+        self.scaling = scaling
 
         self.add_objective()
         self.add_constraints()
@@ -114,6 +123,15 @@ class HRPOptimizer(portfolio_optimizer.PortfolioOptimizer):
                 weights[first_cluster] *= alpha
                 weights[second_cluster] *= 1 - alpha
         weights = weights.round(16) + 0.0
+
+        if self.scaling:
+            weights = group_limit.limit_group(
+                weights=weights,
+                universe=self.universe,
+                max_allocation=self.max_weights,
+                **self.scaling,
+            )
+
         self.allocations = tuple(
             np.abs(weights) / (np.sum(np.abs(weights))) * self.leverage
         )
@@ -181,8 +199,6 @@ class HierarchicalRiskParity(allocation_base.Allocation):
             weights_constraint
         )
         self.scaling = scaling
-        if self.scaling:
-            self.scaling["limit"] *= self.portfolio_leverage
 
     def update(
         self,
@@ -207,6 +223,7 @@ class HierarchicalRiskParity(allocation_base.Allocation):
             max_weights=self.max_weights[selected_assets],
             leverage=self.portfolio_leverage,
             verbose=self.verbose,
+            scaling=self.scaling,
         )
 
     def allocate(
@@ -226,14 +243,6 @@ class HierarchicalRiskParity(allocation_base.Allocation):
         self.optimizer.solve_problem()
         opt_allocation = self.optimizer.allocations
         allocation[selected_assets] = opt_allocation
-
-        if self.scaling:
-            allocation = group_limit.limit_group(
-                weights=allocation,
-                universe=self.asset_list,
-                max_allocation=self.max_weights * self.portfolio_leverage,
-                **self.scaling,
-            )
 
         self.allocations = (date, allocation)
         self.allocations_history[date] = allocation

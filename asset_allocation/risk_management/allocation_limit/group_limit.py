@@ -5,11 +5,11 @@ from typing import Union
 
 def limit_group(
     weights: np.ndarray,
-    universe: list,
-    limited_assets: list,
+    universe: np.ndarray,
+    limited_assets: np.ndarray,
     limit: float,
-    max_allocation: list,
-    allocate_to: Union[list, str],
+    max_allocation: np.ndarray,
+    allocate_to: Union[np.ndarray, str],
 ) -> np.ndarray:
     """
     Reallocate weight from limited group to selected assets
@@ -18,30 +18,31 @@ def limit_group(
     ----------
     weights: np.array
         weight allocation
-    universe: list
-        investment universe
-    limited_assets: list
+    universe: np.array
+        investment universe as integers
+    limited_assets: np.arrays
         subset of universe which has weight upper bound
     limit: float
         upper bound for limited assets
     max_allocation: np.array
         maximum allocation per asset provided
-    allocate_to: list | str
-        where to allocate list to
+    allocate_to: np.array | str
+        where to allocate excess to
         set to "equal", if equal allocation to remaining assets
-        set to ordered list, if assigning to other assets
+        set to array, if assigning to other assets
     """
-    limited_pos = [universe.index(i) for i in limited_assets]
-    allocate_to_pos = [universe.index(i) for i in universe if i not in limited_assets]
-    total_limited_assets = np.nansum(weights[limited_pos])
+    total_limited_assets = np.nansum(weights[limited_assets])
     excess = np.nanmax([total_limited_assets - limit, 0])
-    weights[limited_pos] = weights[limited_pos] * (1 - excess / total_limited_assets)
+    weights[limited_assets] = weights[limited_assets] * (
+        1 - excess / total_limited_assets
+    )
 
-    if isinstance(allocate_to, list):
-        for asset in [universe.index(i) for i in allocate_to]:
+    if isinstance(allocate_to, np.ndarray):
+        for asset in allocate_to:
             allo = np.min([max_allocation[asset] - weights[asset], excess])
             weights[asset] += allo
             excess -= allo
     elif allocate_to == "equal":
+        allocate_to_pos = np.where(~np.in1d(universe, limited_assets))[0]
         weights[allocate_to_pos] += excess / len(allocate_to_pos)
     return weights
