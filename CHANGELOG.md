@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Fixed
+### Changed
+### Removed
+
+## [1.5.2] - 2023-12-26
+### Added
 - Original Weight Weighting scheme
 - Add Is Valid validation in risk and return engines
 - Add Area Plot for weights
@@ -18,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Only update return and risk engine once, not in every strategy
 - Move Stop-Loss functionality in seperate folder
+- Changed way of iterating portfolios and holdings
 ### Removed
 
 ## [1.5.1] - 2023-12-18
@@ -234,6 +241,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.5.2]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.5.2
 [1.5.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.5.1
 [1.5.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.5.0
 [1.4.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.4.0
