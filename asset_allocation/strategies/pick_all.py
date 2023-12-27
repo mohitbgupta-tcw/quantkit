@@ -22,48 +22,6 @@ class PickAll(strategy.Strategy):
     def __init__(self, params: dict) -> None:
         super().__init__(**params)
 
-    def assign(
-        self,
-        date: datetime.date,
-        price_return: np.ndarray,
-        index_comp: np.ndarray,
-        annualize_factor: int = 1.0,
-        **kwargs,
-    ) -> None:
-        """
-        Transform and assign returns to the actual calculator
-
-        Parameters
-        ----------
-        date: datetime.date
-            date of snapshot
-        price_return: np.array
-            zero base price return of universe
-        index_comp: np.array
-            index components for date
-        annualize_factor: int, optional
-            factor depending on data frequency
-        """
-        super().assign(date, price_return, index_comp, annualize_factor)
-
-        self.return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.portfolio_return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.stop_loss.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        # only calculate cov matrix on rebalance dates to save time
-        if date in self.rebalance_dates:
-            self.risk_engine.assign(
-                date=date, price_return=price_return, annualize_factor=annualize_factor
-            )
-            self.portfolio_risk_engine.assign(
-                date=date, price_return=price_return, annualize_factor=annualize_factor
-            )
-
     @property
     def selected_securities(self) -> np.ndarray:
         """
@@ -75,7 +33,7 @@ class PickAll(strategy.Strategy):
             array of indexes
         """
         ss = np.arange(self.num_total_assets)
-        return ss[~np.isnan(self.latest_return) & self.index_comp]
+        return ss[(~np.isnan(self.latest_return)) & (self.index_comp > 0)]
 
     @property
     def return_metrics_optimizer(self) -> np.ndarray:

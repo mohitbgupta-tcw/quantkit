@@ -1,13 +1,12 @@
 import datetime
 import numpy as np
-import quantkit.asset_allocation.risk_management.stop_loss as stop_loss
 import quantkit.asset_allocation.return_calc.cumprod_return as cumprod_return
 import quantkit.utils.mapping_configs as mapping_configs
 
 
-class BuyToLow(stop_loss.StopLoss):
+class StopLoss(object):
     """
-    Stop out Security if it falls more than x% since Rebalance Date
+    Base class to calculate Stop Loss Levels
 
     Parameters
     ----------
@@ -19,8 +18,6 @@ class BuyToLow(stop_loss.StopLoss):
         frequency of return data
     rebelance: str
         rebalance frequency
-    rebalance_dates: list
-        list of rebalancing dates
     """
 
     def __init__(
@@ -29,23 +26,30 @@ class BuyToLow(stop_loss.StopLoss):
         stop_threshold: float,
         frequency: str,
         rebalance: str,
-        rebalance_dates: list,
         **kwargs,
     ) -> None:
-        super().__init__(
-            universe, stop_threshold, frequency, rebalance, rebalance_dates, **kwargs
+        self.stop_threshold = np.log(1 - stop_threshold)
+        self.rebalance = rebalance
+        self.universe = universe
+        self.num_total_assets = len(universe)
+        self.frequency = frequency
+        self.return_engine = cumprod_return.CumProdReturn(
+            universe=universe,
+            frequency=frequency,
+            window_size=mapping_configs.trading_days[rebalance],
         )
+        self.stopped_securities_matrix = list()
+        self.prev_stopped = np.full(shape=self.num_total_assets, fill_value=False)
 
     def assign(
         self,
         date: datetime.date,
         price_return: np.ndarray,
-        annualize_factor: int = 1,
+        annualize_factor: int = 1.0,
         **kwargs,
     ) -> None:
         """
         Transform and assign returns to the actual calculator
-        On rebalance date, reset return engine
 
         Parameters
         ----------
@@ -56,8 +60,11 @@ class BuyToLow(stop_loss.StopLoss):
         annualize_factor: int, optional
             factor depending on data frequency
         """
-        super().assign(date, price_return, annualize_factor, **kwargs)
-        self.stopped_securities_matrix.append(self.stopped_securities)
+        self.latest_return = price_return
+
+        self.return_engine.assign(
+            date=date, price_return=price_return, annualize_factor=annualize_factor
+        )
 
     @property
     def stopped_securities(self) -> np.ndarray:
@@ -69,9 +76,16 @@ class BuyToLow(stop_loss.StopLoss):
         np.array
             array of indexes
         """
-        stopped = np.logical_or(
-            self.return_engine.return_metrics_optimizer < self.stop_threshold,
-            self.prev_stopped,
+        raise NotImplementedError()
+
+    def reset_engine(self) -> None:
+        """
+        Reset Stop Loss Engine
+        """
+        self.return_engine = cumprod_return.CumProdReturn(
+            universe=self.universe,
+            frequency=self.frequency,
+            window_size=mapping_configs.trading_days[self.rebalance],
         )
-        self.prev_stopped = stopped
-        return stopped
+        self.stopped_securities_matrix = list()
+        self.prev_stopped = np.full(shape=self.num_total_assets, fill_value=False)

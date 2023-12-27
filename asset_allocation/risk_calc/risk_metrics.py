@@ -59,3 +59,15 @@ class RiskMetrics(object):
             factor depending on data frequency
         """
         raise NotImplementedError
+
+    @property
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        raise NotImplementedError

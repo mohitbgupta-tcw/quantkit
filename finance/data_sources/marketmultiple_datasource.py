@@ -109,3 +109,19 @@ class MarketMultipleDataSource(ds.DataSources):
             df
         """
         return self.datasource.df
+
+    def is_valid(self, date: datetime.date) -> bool:
+        """
+        check if inputs are valid
+
+        Parameters
+        ----------
+        date: datetimte.date
+            date
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return date >= self.dates[0]

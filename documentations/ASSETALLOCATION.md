@@ -269,6 +269,7 @@ The momentum strategy adheres to the principle of "Buy Low, Sell High." This app
             "stop_loss": null,
             "stop_loss_threshold": 0.0,
             "window_size": 63,
+            "portfolio_leverage": 1,
             "return_engine": "cumprod",
             "risk_engine": "log_normal",
             "top_n": 50,
@@ -341,6 +342,7 @@ The Relative Value strategy aims to identify value stocks by filtering the inves
             "div_yield_threshold": 0.0,
             "roe_threshold": 0.17,
             "freecashflow_threshold": 0.0,
+            "portfolio_leverage": 1,
             "window_size": 63,
             "return_engine": "log_normal",
             "risk_engine": "log_normal",
@@ -392,11 +394,12 @@ The strategy straightforwardly selects all available securities within the inves
         "pick_all": {
             "type": "pick_all",
             "stop_loss": null,
-             "stop_loss_threshold": 0.0,
+            "stop_loss_threshold": 0.0,
             "window_size": 63,
+            "portfolio_leverage": 1,
             "return_engine": "log_normal",
             "risk_engine": "log_normal",
-            "allocation_models": ["equal_weight", "market_weight"]
+            "allocation_models": ["equal_weight", "market_weight", "original_weight"]
         }
     }
 
@@ -596,17 +599,35 @@ To utilize this risk management approach, configure the `stop_loss` and `stop_lo
 
 ```
 
-### Optimizers
+#### Holding Limit for assets
 
-Once a universe has been selected, the asset allocation tool offers various portfolio optimization options through different weighting strategies. These strategies include equal weight, market weight, mean variance optimization, minimum variance, and risk parity. Each approach has its unique advantages and considerations, allowing users to tailor their portfolio construction to align with their specific investment objectives and risk tolerance.
-
-Begin by establishing weight constraints for constrained strategies, ensuring that the portfolio optimization process adheres to the desired risk and allocation parameters.
-
-- Weight Constraints, optional: The allowable range of weights that an asset can take on in constrained weighting strategies at any point in time.
+The user can impose an upper limit on asset classes deemed risky and then distribute the excess weight either equally by setting `allocate_to` to 'equal' or by specifying a list that reflects descending importance.
 
 ```shell
 
-    "default_weights_constraint": [0.001, 0.15]
+    "allocation_limit": {
+        "limited_assets": ["SP500", "Nasdaq", "REITs", "Commodities", "Gold"],
+        "limit": 0.35,
+        "allocate_to": ["MBSIdx", "Treasuries"]
+    }
+
+```
+
+### Optimizers
+
+Once a universe has been selected, the asset allocation tool offers various portfolio optimization options through different weighting strategies. These strategies include equal weight, market weight, original weight,mean variance optimization, minimum variance, and risk parity. Each approach has its unique advantages and considerations, allowing users to tailor their portfolio construction to align with their specific investment objectives and risk tolerance.
+
+Begin by establishing weight constraints for constrained strategies, ensuring that the portfolio optimization process adheres to the desired risk and allocation parameters.
+
+- Weight Constraints, optional: The allowable range of weights that an asset can take on in constrained weighting strategies at any point in time. The `weight_constraints` dictionary allows users to apply weight constraints to individual assets by specifying the asset's ticker and a list of constraints for that asset.
+
+```shell
+
+    "default_weights_constraint": [0.001, 0.15],
+    "weight_constraint": {
+        "AAPL": [0.01, 0.05],
+        "MSFT": [0.02, 0.03]
+    }
 
 ```
 
@@ -619,6 +640,7 @@ To utilize the various weighting strategies, assign them within the `allocation_
             "allocation_models": [
                 "equal_weight", 
                 "market_weight", 
+                "original_weight",
                 "min_variance", 
                 "constrained_min_variance", 
                 "mean_variance", 

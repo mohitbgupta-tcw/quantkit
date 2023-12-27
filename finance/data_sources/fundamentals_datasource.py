@@ -35,9 +35,16 @@ class FundamentalsDataSource(ds.DataSources):
         self.current_loc = 0
         self.fundamentals = dict()
 
-    def load(self) -> None:
+    def load(self, start_date: str = None, end_date: str = None, **kwargs) -> None:
         """
         load data and transform dataframe
+
+        Parameters
+        ----------
+        start_date, optional: str, optional
+            start date to pull from API
+        end_date: str, optional
+            end date to pull from API
         """
         logging.log(f"Loading Fundamental Data")
         ticker = (
@@ -46,10 +53,14 @@ class FundamentalsDataSource(ds.DataSources):
             else "''"
         )
         from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
+        start_query = f"""AND "calendardate" >= '{start_date}'""" if start_date else ""
+        end_query = f"""AND "calendardate" <= '{end_date}'""" if end_date else ""
         query = f"""
         SELECT * 
         FROM {from_table}
         WHERE "ticker" in ({ticker})
+        {start_query}
+        {end_query}
         """
 
         self.datasource.load(query=query)
@@ -107,9 +118,7 @@ class FundamentalsDataSource(ds.DataSources):
         self.tickers[np.nan] = deepcopy(empty_fundamentals)
 
         # fundamental dates -> date + 3 months
-        self.fundamental_dates = list(
-            self.datasource.df["release_date"].sort_values().unique()
-        )
+        self.dates = list(self.datasource.df["release_date"].sort_values().unique())
 
         # initialize kpi's
         funds = ["marketcap", "divyield", "roe", "fcfps", "pe", "ps", "pb"]
@@ -133,8 +142,8 @@ class FundamentalsDataSource(ds.DataSources):
             current fundamentals of universe
         """
         while (
-            self.current_loc < len(self.fundamental_dates) - 1
-            and date >= self.fundamental_dates[self.current_loc + 1]
+            self.current_loc < len(self.dates) - 1
+            and date >= self.dates[self.current_loc + 1]
         ):
             self.current_loc += 1
         return_dict = dict()
@@ -151,3 +160,19 @@ class FundamentalsDataSource(ds.DataSources):
             df
         """
         return self.datasource.df
+
+    def is_valid(self, date: datetime.date) -> bool:
+        """
+        check if inputs are valid
+
+        Parameters
+        ----------
+        date: datetimte.date
+            date
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return date >= self.dates[0]

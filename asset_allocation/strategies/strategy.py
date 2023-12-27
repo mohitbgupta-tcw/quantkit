@@ -1,19 +1,13 @@
-import quantkit.asset_allocation.return_calc.log_return as log_return
-import quantkit.asset_allocation.return_calc.ewma_return as ewma_return
-import quantkit.asset_allocation.return_calc.simple_return as simple_return
-import quantkit.asset_allocation.return_calc.cumprod_return as cumprod_return
-import quantkit.asset_allocation.risk_calc.log_vol as log_vol
-import quantkit.asset_allocation.risk_calc.ewma_vol as ewma_vol
-import quantkit.asset_allocation.risk_calc.simple_vol as simple_vol
 import quantkit.asset_allocation.allocation.mean_variance as mean_variance
 import quantkit.asset_allocation.allocation.min_variance as min_variance
 import quantkit.asset_allocation.allocation.risk_parity as risk_parity
 import quantkit.asset_allocation.allocation.hrp as hrp
 import quantkit.asset_allocation.allocation.equal_weight as equal_weight
 import quantkit.asset_allocation.allocation.market_weight as market_weight
-import quantkit.asset_allocation.risk_management.buy_to_low as buy_to_low
-import quantkit.asset_allocation.risk_management.high_to_low as high_to_low
-import quantkit.asset_allocation.risk_management.no_stop as no_stop
+import quantkit.asset_allocation.allocation.original_weight as original_weight
+import quantkit.asset_allocation.risk_management.stop_loss.buy_to_low as buy_to_low
+import quantkit.asset_allocation.risk_management.stop_loss.high_to_low as high_to_low
+import quantkit.asset_allocation.risk_management.stop_loss.no_stop as no_stop
 import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 import numpy as np
@@ -32,6 +26,8 @@ class Strategy(object):
         return engine used to forecast returns
     risk_engine: asset_allocation.risk_calc.risk_metrics
         risk engine used to forecast cov matrix
+    portfolio_return_engine: asset_allocation.return_calc.return_metrics
+        portfolio return engine used to forecast returns
     stop_loss: str
         Stop-Loss strategy, if none set to None
     stop_loss_threshold: float,
@@ -40,14 +36,21 @@ class Strategy(object):
         frequency of return data
     rebelance: str
         rebalance frequency
-    rebalance_dates: list
-        list of rebalancing dates
     trans_cost: float
         transaction cost
     allocation_models: list
         list of weighting strategies
-    weight_constraint: list
-        list of lower and upper bound for weight constraints
+    weight_constraint: dict
+        list of lower and upper bound for each asset
+    portfolio_leverage: float
+        portfolio leverage
+    scaling: dict
+        dictionary to scale assets, must have the following components:
+        {
+            "limited_assets": [],
+            "limit": 0.35,
+            "allocate_to": []
+        }
     """
 
     def __init__(
@@ -55,81 +58,37 @@ class Strategy(object):
         universe: list,
         return_engine,
         risk_engine,
+        portfolio_return_engine,
         stop_loss: str,
         stop_loss_threshold: float,
         frequency: str,
         rebalance: str,
-        rebalance_dates: list,
         trans_cost: float,
         allocation_models: list,
-        weight_constraint: list,
+        weight_constraint: dict,
+        portfolio_leverage: float,
+        scaling: dict,
         **kwargs,
     ) -> None:
-        self.waiting_period = mapping_configs.annualize_factor_d[rebalance]
         self.rebalance = rebalance
-        self.rebalance_dates = rebalance_dates
         self.all_portfolios = pd.DataFrame(columns=["portfolio_name", "return"])
         self.universe = universe
         self.num_total_assets = len(universe)
         self.trans_cost = np.ones(self.num_total_assets) * trans_cost
-        self.kwargs = kwargs
-
-        risk_return_engine_kwargs = dict(
-            frequency=frequency, ddof=1, geo_base=1, adjust=True, half_life=12, span=36
-        )
-        # return engine
-        if return_engine == "log_normal":
-            self.return_engine = log_return.LogReturn(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        elif return_engine == "ewma":
-            self.return_engine = ewma_return.LogEWMA(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        elif return_engine == "ewma_rolling":
-            self.return_engine = ewma_return.RollingLogEWMA(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        elif return_engine == "simple":
-            self.return_engine = simple_return.SimpleExp(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        elif return_engine == "cumprod":
-            self.return_engine = cumprod_return.CumProdReturn(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        else:
-            self.return_engine = None
-
-        # risk engine
-        if risk_engine == "log_normal":
-            self.risk_engine = log_vol.LogNormalVol(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        elif risk_engine == "ewma":
-            self.risk_engine = ewma_vol.LogNormalEWMA(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        elif risk_engine == "ewma_rolling":
-            self.risk_engine = ewma_vol.RollingLogNormalEWMA(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        elif risk_engine == "simple":
-            self.risk_engine = simple_vol.SimpleVol(
-                universe=universe, **risk_return_engine_kwargs, **kwargs
-            )
-        else:
-            self.risk_engine = None
+        self.portfolio_leverage = portfolio_leverage
+        self.return_engine = return_engine
+        self.risk_engine = risk_engine
+        self.portfolio_return_engine = portfolio_return_engine
 
         # Allocation Engine
         allocation_engine_kwargs = dict(
             asset_list=universe,
             risk_engine=self.risk_engine,
             return_engine=self.return_engine,
+            portfolio_leverage=portfolio_leverage,
         )
         self.allocation_engines_d = dict()
 
-        wc = self.get_weights_constraints_d(weight_constraint)
         for allocation_model in allocation_models:
             if allocation_model == "mean_variance":
                 this_allocation_engine = mean_variance.MeanVariance(
@@ -138,7 +97,7 @@ class Strategy(object):
 
             elif allocation_model == "constrained_mean_variance":
                 this_allocation_engine = mean_variance.MeanVariance(
-                    weights_constraint=wc, **allocation_engine_kwargs
+                    weights_constraint=weight_constraint, **allocation_engine_kwargs
                 )
 
             elif allocation_model == "min_variance":
@@ -147,7 +106,7 @@ class Strategy(object):
                 )
             elif allocation_model == "constrained_min_variance":
                 this_allocation_engine = min_variance.MinimumVariance(
-                    weights_constraint=wc, **allocation_engine_kwargs
+                    weights_constraint=weight_constraint, **allocation_engine_kwargs
                 )
             elif allocation_model == "risk_parity":
                 this_allocation_engine = risk_parity.RiskParity(
@@ -159,7 +118,13 @@ class Strategy(object):
                 )
             elif allocation_model == "constrained_hrp":
                 this_allocation_engine = hrp.HierarchicalRiskParity(
-                    weights_constraint=wc, **allocation_engine_kwargs
+                    weights_constraint=weight_constraint, **allocation_engine_kwargs
+                )
+            elif allocation_model == "scaled_hrp":
+                this_allocation_engine = hrp.HierarchicalRiskParity(
+                    weights_constraint=weight_constraint,
+                    scaling=scaling,
+                    **allocation_engine_kwargs,
                 )
             elif allocation_model == "equal_weight":
                 this_allocation_engine = equal_weight.EqualWeight(
@@ -169,30 +134,16 @@ class Strategy(object):
                 this_allocation_engine = market_weight.MarketWeight(
                     **allocation_engine_kwargs
                 )
+            elif allocation_model == "original_weight":
+                this_allocation_engine = original_weight.OriginalWeight(
+                    **allocation_engine_kwargs
+                )
             else:
                 raise RuntimeError(
                     f"allocation_model { allocation_model } is not defined.."
                 )
 
             self.allocation_engines_d[allocation_model] = this_allocation_engine
-
-        # portfolio engine
-        self.portfolio_risk_return_engine_kwargs = dict(
-            frequency=frequency,
-            ddof=1,
-            geo_base=1,
-        )
-        # portfolio engine
-        self.portfolio_risk_engine = simple_vol.SimpleVol(
-            universe=self.universe,
-            **self.portfolio_risk_return_engine_kwargs,
-            **self.kwargs,
-        )
-        self.portfolio_return_engine = simple_return.SimpleExp(
-            universe=self.universe,
-            **self.portfolio_risk_return_engine_kwargs,
-            **self.kwargs,
-        )
 
         # stop-loss
         if stop_loss == "high_low":
@@ -201,7 +152,6 @@ class Strategy(object):
                 stop_threshold=stop_loss_threshold,
                 frequency=frequency,
                 rebalance=rebalance,
-                rebalance_dates=rebalance_dates,
             )
         elif stop_loss == "buy_low":
             self.stop_loss = buy_to_low.BuyToLow(
@@ -209,7 +159,6 @@ class Strategy(object):
                 stop_threshold=stop_loss_threshold,
                 frequency=frequency,
                 rebalance=rebalance,
-                rebalance_dates=rebalance_dates,
             )
         else:
             self.stop_loss = no_stop.NoStop(
@@ -217,7 +166,6 @@ class Strategy(object):
                 stop_threshold=stop_loss_threshold,
                 frequency=frequency,
                 rebalance=rebalance,
-                rebalance_dates=rebalance_dates,
             )
 
     def assign(
@@ -244,6 +192,9 @@ class Strategy(object):
         """
         self.latest_return = price_return
         self.index_comp = index_comp
+        self.stop_loss.assign(
+            date=date, price_return=price_return, annualize_factor=annualize_factor
+        )
 
     def get_risk_budgets(self, date: datetime.date) -> dict:
         """
@@ -296,6 +247,7 @@ class Strategy(object):
             ),
             next_allocation=next_allocation,
             trans_cost=self.trans_cost,
+            leverage=self.portfolio_leverage,
         )
         return portfolio_return
 
@@ -329,8 +281,10 @@ class Strategy(object):
     def backtest(
         self,
         date: datetime.date,
+        index_comp: np.ndarray,
         market_caps: np.ndarray,
         fama_french_factors: np.ndarray,
+        **kwargs,
     ) -> None:
         """
         - Calculate optimal allocation for each weighting strategy
@@ -340,30 +294,13 @@ class Strategy(object):
         ----------
         date: datetime.date
             snapshot date
+        index_comp: np.array
+            index components for date
         market_caps: np.array
             market caps of assets in universe
         fama_french_factors: np.array
             fama french factors for regression
         """
-        if not date in self.rebalance_dates:
-            return
-
-        # need enough data points for cov to be calculated
-        if date < self.rebalance_dates[self.waiting_period]:
-            self.portfolio_risk_engine = simple_vol.SimpleVol(
-                universe=self.universe,
-                **self.portfolio_risk_return_engine_kwargs,
-                **self.kwargs,
-            )
-            self.portfolio_return_engine = simple_return.SimpleExp(
-                universe=self.universe,
-                **self.portfolio_risk_return_engine_kwargs,
-                **self.kwargs,
-            )
-            # reset stop loss engine
-            self.stop_loss.reset_engine()
-            return
-
         risk_budgets = self.get_risk_budgets(date)
         for allocation_name, allocation_engine in self.allocation_engines_d.items():
             this_risk_budget = risk_budgets.get(allocation_name)
@@ -371,6 +308,7 @@ class Strategy(object):
                 selected_assets=self.selected_securities,
                 risk_budgets=this_risk_budget,
                 market_caps=market_caps,
+                weights=index_comp,
             )
             allocation_engine.allocate(date, self.selected_securities)
 
@@ -392,41 +330,6 @@ class Strategy(object):
             self.allocation_engines_d[allocation_model].run_factor_regression(
                 fama_french_factors, cum_return, date
             )
-
-        # portfolio engine
-        self.portfolio_risk_engine = simple_vol.SimpleVol(
-            universe=self.universe,
-            **self.portfolio_risk_return_engine_kwargs,
-            **self.kwargs,
-        )
-        self.portfolio_return_engine = simple_return.SimpleExp(
-            universe=self.universe,
-            **self.portfolio_risk_return_engine_kwargs,
-            **self.kwargs,
-        )
-
-        # reset stop loss engine
-        self.stop_loss.reset_engine()
-
-    def get_weights_constraints_d(self, weight_constraint: list) -> dict:
-        """
-        Initialize weight constraints for constrained strategies
-        weights are set in default_weights_constraint in config file
-
-        Parameters
-        ----------
-        weight_constraint : list
-            list of lower and upper bound for weight constraints
-
-        Returns
-        -------
-        dict
-            Dictionary which indicates weight range for each asset provided
-        """
-        w_consts_d = dict()
-        for this_id in self.universe:
-            w_consts_d[this_id] = weight_constraint
-        return w_consts_d
 
     @property
     def return_metrics_intuitive(self) -> np.ndarray:
@@ -452,3 +355,14 @@ class Strategy(object):
             array of indexes
         """
         raise NotImplementedError()
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.return_engine.is_valid() and self.risk_engine.is_valid()

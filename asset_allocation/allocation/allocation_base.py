@@ -17,13 +17,22 @@ class Allocation(object):
         risk engine used to forecast cov matrix
     return_engine: asset_allocation.return_calc.return_metrics, optional
         return engine used to forecast returns
+    portfolio_leverage: float, optional
+        portfolio leverage
     """
 
-    def __init__(self, asset_list: list, risk_engine=None, return_engine=None) -> None:
+    def __init__(
+        self,
+        asset_list: list,
+        risk_engine=None,
+        return_engine=None,
+        portfolio_leverage: float = 1.0,
+    ) -> None:
         self.asset_list = asset_list
         self.num_total_assets = len(asset_list)
         self.risk_engine = risk_engine
         self.return_engine = return_engine
+        self.portfolio_leverage = portfolio_leverage
         self.allocations = None
         self.allocations_history = dict()
         self.factor_regressor = lr.OrdinaryLR(

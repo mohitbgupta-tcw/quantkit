@@ -5,13 +5,9 @@ from typing import Union
 import datetime
 
 
-class EqualWeight(allocation_base.Allocation):
+class OriginalWeight(allocation_base.Allocation):
     """
-    Base class to calculate Equal Weight weighting scheme
-
-    Calculation
-    -----------
-    asset weight = 1 / number of assets
+    Base class to calculate Original Weight weighting scheme
 
     Parameters
     ----------
@@ -40,11 +36,16 @@ class EqualWeight(allocation_base.Allocation):
             portfolio_leverage=portfolio_leverage,
         )
 
-    def update(self, **kwargs) -> None:
+    def update(self, weights: np.ndarray, **kwargs) -> None:
         """
-        None
+        Assign original weight
+
+        Parameters
+        ----------
+        weights: np.array
+            original weighting scheme for snapshot
         """
-        return
+        self.original_weight = weights
 
     def allocate(
         self, date: datetime.date, selected_assets: Union[list, np.ndarray]
@@ -59,10 +60,13 @@ class EqualWeight(allocation_base.Allocation):
         selected_assets: list | np.array
             list of selected assets (their location in universe as integer)
         """
-        asset_count = len(selected_assets)
         allocation = np.zeros(shape=self.num_total_assets)
-        opt_allocation = tuple(
-            np.array([1 / asset_count] * asset_count) * self.portfolio_leverage
+        opt_allocation = (
+            np.divide(
+                self.original_weight[selected_assets],
+                np.nansum(self.original_weight[selected_assets]),
+            )
+            * self.portfolio_leverage
         )
         allocation[selected_assets] = opt_allocation
 

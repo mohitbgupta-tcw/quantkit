@@ -98,24 +98,6 @@ class RelativeValue(strategy.Strategy):
         self.spx_pb = spx_pb
         self.spx_ps = spx_ps
 
-        self.return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.portfolio_return_engine.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        self.stop_loss.assign(
-            date=date, price_return=price_return, annualize_factor=annualize_factor
-        )
-        # only calculate cov matrix on rebalance dates to save time
-        if date in self.rebalance_dates:
-            self.risk_engine.assign(
-                date=date, price_return=price_return, annualize_factor=annualize_factor
-            )
-            self.portfolio_risk_engine.assign(
-                date=date, price_return=price_return, annualize_factor=annualize_factor
-            )
-
     @property
     def selected_securities(self) -> np.ndarray:
         """
@@ -129,7 +111,7 @@ class RelativeValue(strategy.Strategy):
         ss = np.arange(self.num_total_assets)
         return ss[
             ~np.isnan(self.latest_return)
-            & self.index_comp
+            & (self.index_comp > 0)
             & (self.market_caps > self.market_cap_threshold)
             & (self.divyield > self.div_yield_threshold)
             & (self.roe > self.roe_threshold)

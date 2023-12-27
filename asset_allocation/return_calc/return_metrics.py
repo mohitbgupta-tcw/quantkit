@@ -71,6 +71,7 @@ class ReturnMetrics(object):
         indexes: np.ndarray,
         next_allocation: np.ndarray = None,
         trans_cost: float = 0.0,
+        leverage: float = 1.0,
         **kwargs,
     ) -> pd.DataFrame:
         """
@@ -92,6 +93,8 @@ class ReturnMetrics(object):
             next allocation, used to calculate turnover and transaction costs
         trans_cost: float, optional
             transaction cost in %
+        leverage: float, optional
+            portfolio leverage
 
         Returns
         -------
@@ -104,16 +107,17 @@ class ReturnMetrics(object):
             stopped_securities_matrix.cumsum(axis=0).cumsum(axis=0) == 1
         ) * trans_cost
 
-        this_returns = this_returns * traded_m
+        this_returns = this_returns * traded_m * leverage
         cumulative_returns = np.cumprod(this_returns + 1, axis=0)
         cumulative_returns = np.where(
             np.isnan(cumulative_returns), 0, cumulative_returns
         )
+        allocation = allocation / leverage
         ending_allocation = allocation * cumulative_returns
         # Normalize ending allocation
         ending_allocation = (
             ending_allocation.T / np.nansum(ending_allocation, axis=1)
-        ).T
+        ).T * leverage
         stopped_ending = ending_allocation * traded_m
 
         actual_returns = allocation @ cumulative_returns.T
@@ -132,3 +136,14 @@ class ReturnMetrics(object):
             actual_returns -= this_trans_cost
 
         return pd.DataFrame(data=actual_returns, index=indexes, columns=["return"])
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        raise NotImplementedError

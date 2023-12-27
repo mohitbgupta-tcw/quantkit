@@ -100,9 +100,9 @@ class PortfolioDataSource(ds.DataSources):
 
         Parameters
         ----------
-        start_date: str,
+        start_date: str
             start date to pull from API
-        end_date: str,
+        end_date: str
             end date to pull from API
         equity_benchmark: list
             list of all equity benchmarks to pull from API
@@ -422,9 +422,7 @@ class PortfolioDataSource(ds.DataSources):
         """
         self.all_tickers = list(self.df["Ticker Cd"].unique())
         for index, row in (
-            self.df[["As Of Date", "Portfolio", "Portfolio Name"]]
-            .drop_duplicates()
-            .iterrows()
+            self.df[["Portfolio", "Portfolio Name"]].drop_duplicates().iterrows()
         ):
             pf = row["Portfolio"]
             pf_store = portfolios.PortfolioStore(pf=pf, name=row["Portfolio Name"])
@@ -432,7 +430,13 @@ class PortfolioDataSource(ds.DataSources):
                 ["As Of Date", "ISIN", "Portfolio_Weight", "Base Mkt Val", "OAS"]
             ]
             pf_store.add_holdings(holdings_df)
-            pf_store.add_as_of_date(row["As Of Date"])
+            as_of_date = (
+                self.df[self.df["Portfolio"] == pf]
+                .groupby("Portfolio")["As Of Date"]
+                .max()
+                .values[0]
+            )
+            pf_store.add_as_of_date(as_of_date)
             self.portfolios[pf] = pf_store
 
     def iter_holdings(
@@ -451,9 +455,11 @@ class PortfolioDataSource(ds.DataSources):
             dictionary of msci information
         """
         logging.log("Iterate Holdings")
-        for index, row in self.df.iterrows():
+
+        grouped = self.df.groupby("ISIN")
+        for isin, group in grouped:
             sec_info = (
-                row[
+                group.tail(1)[
                     [
                         "ESG Collateral Type",
                         "ISIN",
@@ -480,9 +486,6 @@ class PortfolioDataSource(ds.DataSources):
                 .to_dict()
             )
 
-            pf = row["Portfolio"]  # portfolio id
-            isin = sec_info["ISIN"]  # security isin
-
             # get MSCI information
             msci_information = self.create_msci_information(sec_info, msci_dict)
 
@@ -493,31 +496,23 @@ class PortfolioDataSource(ds.DataSources):
             # create company object
             issuer = sec_info["Issuer ISIN"]
             self.create_parent_store(
-                sector_level_2=row["Sector Level 2"],
+                sector_level_2=sec_info["Sector Level 2"],
                 issuer_isin=issuer,
                 msci_information=msci_information,
                 security_store=security_store,
             )
 
-            # attach security object, portfolio weight, OAS to portfolio
-            holding_measures = row[
-                ["Portfolio_Weight", "Base Mkt Val", "OAS"]
-            ].to_dict()
-            if isin in self.portfolios[pf].holdings:
-                self.portfolios[pf].holdings[isin]["holding_measures"][
-                    "Portfolio_Weight"
-                ] += holding_measures["Portfolio_Weight"]
-                self.portfolios[pf].holdings[isin]["holding_measures"][
-                    "Base Mkt Val"
-                ] += holding_measures["Base Mkt Val"]
-            else:
-                self.portfolios[pf].holdings[isin] = {
-                    "object": security_store,
-                    "holding_measures": holding_measures,
+            # attach securities to portfolios
+            portfolio_rows = group.groupby("Portfolio").agg(
+                {
+                    "ISIN": "last",
+                    "As Of Date": "last",
+                    "Portfolio_Weight": "sum",
+                    "Base Mkt Val": "sum",
+                    "OAS": "last",
                 }
-
-            # attach portfolio to security
-            security_store.portfolio_store[pf] = self.portfolios[pf]
+            )
+            self.attach_securities(portfolio_rows, isin)
 
     def create_security_store(
         self, security_isin: str, security_information: dict
@@ -532,11 +527,10 @@ class PortfolioDataSource(ds.DataSources):
         security_information: dict
             dictionary of information about the security
         """
-        if not security_isin in self.securities:
-            security_store = securitites.SecurityStore(
-                isin=security_isin, information=security_information
-            )
-            self.securities[security_isin] = security_store
+        security_store = securitites.SecurityStore(
+            isin=security_isin, information=security_information
+        )
+        self.securities[security_isin] = security_store
 
     def create_parent_store(
         self,
@@ -623,6 +617,30 @@ class PortfolioDataSource(ds.DataSources):
             issuer_dict["ISSUER_ISIN"] = security_information["ISIN"]
             issuer_dict["ISSUER_NAME"] = security_information["Security_Name"]
         return issuer_dict
+
+    def attach_securities(self, portfolio_rows: pd.DataFrame, isin: str) -> None:
+        """
+        Attach security object, portfolio weight, OAS to portfolios
+
+        Parameters
+        ----------
+        portfolio_rows: pd.DataFrame
+            DataFrane of portfolios security is held in
+        isin: str
+            security isin
+        """
+        security_store = self.securities[isin]
+        for pf, row in portfolio_rows.iterrows():
+            holding_measures = row[
+                ["As Of Date", "Portfolio_Weight", "Base Mkt Val", "OAS"]
+            ].to_dict()
+            self.portfolios[pf].holdings[isin] = {
+                "object": security_store,
+                "holding_measures": holding_measures,
+            }
+
+        # attach portfolio to security
+        security_store.portfolio_store[pf] = self.portfolios[pf]
 
     @property
     def all_msci_ids(self):

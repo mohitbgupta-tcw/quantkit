@@ -80,3 +80,14 @@ class CumProdReturn(return_metrics.ReturnMetrics):
         self.return_calculator.update(
             (np.log(annualized_return + 1)), outgoing_row, index=date
         )
+
+    def is_valid(self):
+        """
+        check if inputs are valid
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return self.return_calculator.is_valid()

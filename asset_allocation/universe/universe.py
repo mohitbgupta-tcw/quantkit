@@ -114,9 +114,40 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             WHERE bench.as_of_date >= '{self.params["start_date"]}'
             AND bench.as_of_date <= '{self.params["end_date"]}'
             AND ISIN in ({secs})
-        ORDER BY "Portfolio" ASC,  "As Of Date" ASC, "Portfolio_Weight"  DESC
-        """
-            self.datasource.load(query=query)
+            ORDER BY "Portfolio" ASC,  "As Of Date" ASC, "Portfolio_Weight"  DESC
+            """
+            if self.params["skipp"]:
+                self.datasource.df = pd.DataFrame(
+                    columns=[
+                        "As Of Date",
+                        "Portfolio",
+                        "Portfolio Name",
+                        "ESG Collateral Type",
+                        "ISIN",
+                        "Issuer ESG",
+                        "Loan Category",
+                        "Labeled ESG Type",
+                        "Security_Name",
+                        "TCW ESG",
+                        "Ticker Cd",
+                        "Sector Level 1",
+                        "Sector Level 2",
+                        "JPM Sector",
+                        "BCLASS_Level2",
+                        "BCLASS_Level3",
+                        "BCLASS_Level4",
+                        "Country of Risk",
+                        "MSCI ISSUERID",
+                        "ISS ISSUERID",
+                        "BBG ISSUERID",
+                        "Portfolio_Weight",
+                        "Base Mkt Val",
+                        "OAS",
+                        "Issuer ISIN",
+                    ]
+                )
+            else:
+                self.datasource.load(query=query)
             self.transform_df()
         else:
             super().load(
@@ -132,6 +163,7 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         Transformations for custom universe and sustainable universe
         """
         super().transform_df()
+
         self.datasource.df["As Of Date"] = pd.to_datetime(
             self.datasource.df["As Of Date"]
         )
@@ -159,18 +191,32 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             ~self.datasource.df["Ticker Cd"].isin(self.params["currencies"])
         ]
         if self.params["custom_universe"]:
-            self.datasource.df = self.datasource.df.drop_duplicates(
-                subset=["ISIN", "As Of Date"]
-            )
-            self.datasource.df["Portfolio"] = "Test_Portfolio"
-            self.datasource.df["Portfolio Name"] = "Test_Portfolio"
-            self.datasource.df["Portfolio_Weight"] = 1 / len(
-                self.params["custom_universe"]
-            )
-            self.datasource.df["Ticker Cd"] = self.datasource.df["Ticker Cd"].replace(
-                to_replace="/", value=".", regex=True
-            )
-
+            if self.datasource.df.empty:
+                for sec in self.params["custom_universe"]:
+                    sec_dict = {
+                        "As Of Date": pd.bdate_range(
+                            start=self.params["start_date"], end=self.params["end_date"]
+                        ),
+                        "Portfolio": "Test_Portfolio",
+                        "Portfolio Name": "Test_Portfolio",
+                        "ISIN": sec,
+                        "Portfolio_Weight": 1 / len(self.params["custom_universe"]),
+                        "Ticker Cd": sec,
+                    }
+                    sec_df = pd.DataFrame(data=sec_dict)
+                    self.datasource.df = pd.concat([self.datasource.df, sec_df])
+            else:
+                self.datasource.df = self.datasource.df.drop_duplicates(
+                    subset=["ISIN", "As Of Date"]
+                )
+                self.datasource.df["Portfolio"] = "Test_Portfolio"
+                self.datasource.df["Portfolio Name"] = "Test_Portfolio"
+                self.datasource.df["Portfolio_Weight"] = 1 / len(
+                    self.params["custom_universe"]
+                )
+                self.datasource.df["Ticker Cd"] = self.datasource.df[
+                    "Ticker Cd"
+                ].replace(to_replace="/", value=".", regex=True)
         if self.params["sustainable"]:
             indices = (
                 self.params["equity_universe"]
@@ -222,18 +268,18 @@ class Universe(portfolio_datasource.PortfolioDataSource):
         - Create universe dates
         """
         super().iter()
-        df = self.datasource.df[["As Of Date", "Ticker Cd"]]
-        self.universe_df = (
-            pd.get_dummies(df, columns=["Ticker Cd"], prefix="", prefix_sep="")
-            .groupby(["As Of Date"])
-            .max()[self.all_tickers]
-        )
-        if self.params["custom_universe"]:
-            self.universe_df.loc[:, :] = True
+
+        self.universe_df = self.datasource.df.pivot_table(
+            index="As Of Date",
+            columns="Ticker Cd",
+            values="Portfolio_Weight",
+            aggfunc="sum",
+        )[self.all_tickers]
+
         self.universe_matrix = self.universe_df.to_numpy()
 
         # fundamental dates -> date + 3 months
-        self.universe_dates = list(self.universe_df.index.unique())
+        self.dates = list(self.universe_df.index.unique())
 
     def outgoing_row(self, date: datetime.date) -> np.ndarray:
         """
@@ -250,8 +296,26 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             current constitutents of universe
         """
         while (
-            self.current_loc < len(self.universe_dates) - 1
-            and date >= self.universe_dates[self.current_loc + 1]
+            self.current_loc < len(self.dates) - 1
+            and date >= self.dates[self.current_loc + 1]
         ):
             self.current_loc += 1
         return self.universe_matrix[self.current_loc]
+
+    def is_valid(self, date: datetime.date) -> bool:
+        """
+        check if inputs are valid
+
+        Parameters
+        ----------
+        date: datetimte.date
+            date
+
+        Returns
+        -------
+        bool
+            True if inputs are valid, false otherwise
+        """
+        return date >= self.dates[0] and np.nansum(
+            self.universe_matrix[self.current_loc] > 0
+        )
