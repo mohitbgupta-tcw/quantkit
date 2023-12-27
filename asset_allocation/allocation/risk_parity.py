@@ -117,10 +117,14 @@ class RiskParity(allocation_base.Allocation):
         verbose: bool = False,
         **kwargs,
     ) -> None:
-        super().__init__(asset_list, risk_engine, return_engine)
+        super().__init__(
+            asset_list,
+            risk_engine,
+            return_engine,
+            portfolio_leverage=portfolio_leverage,
+        )
         self.risk_budgets = np.ones(self.num_total_assets) / self.num_total_assets
         self.c_scalar = 1.0
-        self.portfolio_leverage = portfolio_leverage
         self.verbose = verbose
 
     def update(

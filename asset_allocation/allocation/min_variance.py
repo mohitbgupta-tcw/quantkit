@@ -30,6 +30,8 @@ class MinVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
         lower bound for weights
     max_weights: float | list, np.array
         upper bound for weights
+    leverage: float, optional
+        portfolio leverage, if leverage is None, solve for optimal leverage
     """
 
     def __init__(
@@ -38,8 +40,9 @@ class MinVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
         cov_matrix: np.ndarray,
         min_weights: Union[float, np.ndarray] = 0.0,
         max_weights: Union[float, np.ndarray] = 1.0,
+        leverage: float = None,
     ) -> None:
-        super().__init__(universe)
+        super().__init__(universe, leverage=leverage)
         # PSD: positive semi-definite
         self.cov_matrix = cvx.atoms.affine.wraps.psd_wrap(cov_matrix)
         self.min_weights = min_weights
@@ -96,6 +99,8 @@ class MinimumVariance(allocation_base.Allocation):
         return engine used to forecast returns
     weight_constraint: dict
         dictionary of weight_constraints
+    portfolio_leverage: float, optional
+        portfolio leverage
     """
 
     def __init__(
@@ -104,9 +109,15 @@ class MinimumVariance(allocation_base.Allocation):
         risk_engine,
         return_engine,
         weights_constraint: dict = None,
+        portfolio_leverage: float = 1.0,
         **kwargs,
     ) -> None:
-        super().__init__(asset_list, risk_engine, return_engine)
+        super().__init__(
+            asset_list,
+            risk_engine,
+            return_engine,
+            portfolio_leverage=portfolio_leverage,
+        )
         self.min_weights, self.max_weights = self.get_weights_constraints(
             weights_constraint
         )
@@ -130,6 +141,7 @@ class MinimumVariance(allocation_base.Allocation):
             cov_matrix=risk_metrics,
             min_weights=self.min_weights[selected_assets],
             max_weights=self.max_weights[selected_assets],
+            leverage=self.portfolio_leverage,
         )
 
     def minimize_portfolio_variance(self, risk_metrics) -> np.ndarray:

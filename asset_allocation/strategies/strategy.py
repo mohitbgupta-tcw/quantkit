@@ -42,6 +42,8 @@ class Strategy(object):
         list of weighting strategies
     weight_constraint: dict
         list of lower and upper bound for each asset
+    portfolio_leverage: float
+        portfolio leverage
     scaling: dict
         dictionary to scale assets, must have the following components:
         {
@@ -64,6 +66,7 @@ class Strategy(object):
         trans_cost: float,
         allocation_models: list,
         weight_constraint: dict,
+        portfolio_leverage: float,
         scaling: dict,
         **kwargs,
     ) -> None:
@@ -72,6 +75,7 @@ class Strategy(object):
         self.universe = universe
         self.num_total_assets = len(universe)
         self.trans_cost = np.ones(self.num_total_assets) * trans_cost
+        self.portfolio_leverage = portfolio_leverage
         self.return_engine = return_engine
         self.risk_engine = risk_engine
         self.portfolio_return_engine = portfolio_return_engine
@@ -81,6 +85,7 @@ class Strategy(object):
             asset_list=universe,
             risk_engine=self.risk_engine,
             return_engine=self.return_engine,
+            portfolio_leverage=portfolio_leverage,
         )
         self.allocation_engines_d = dict()
 
@@ -242,6 +247,7 @@ class Strategy(object):
             ),
             next_allocation=next_allocation,
             trans_cost=self.trans_cost,
+            leverage=self.portfolio_leverage,
         )
         return portfolio_return
 

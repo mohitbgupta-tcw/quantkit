@@ -7,6 +7,7 @@
         "load": true,
         "start_date": "01/01/2018",
         "end_date": "11/20/2023",
+        "skipp": false,
         "custom_universe": [],
         "equity_universe": ["S & P 500 INDEX"],
         "fixed_income_universe": [],
@@ -86,6 +87,11 @@
     },    
     "default_weights_constraint": [0.001, 0.15],
     "weight_constraint": {},
+    "allocation_limit": {
+        "limited_assets": [],
+        "limit": 0.0,
+        "allocate_to": []
+    },
     "trans_cost": 0.01,
     "msci_datasource": {
         "source": 4,

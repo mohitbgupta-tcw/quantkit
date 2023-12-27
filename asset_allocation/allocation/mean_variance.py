@@ -32,6 +32,8 @@ class MeanVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
         lower bound for weights
     max_weights: float | list, np.array
         upper bound for weights
+    leverage: float, optional
+        portfolio leverage, if leverage is None, solve for optimal leverage
     """
 
     def __init__(
@@ -41,6 +43,7 @@ class MeanVarianceOptimizer(portfolio_optimizer.PortfolioOptimizer):
         risk_averse_lambda: float = 1.0,
         min_weights: Union[float, np.ndarray] = 0.0,
         max_weights: Union[float, np.ndarray] = 1.0,
+        leverage: float = None,
     ) -> None:
         super().__init__(universe)
         # PSD: positive semi-definite
@@ -106,6 +109,8 @@ class MeanVariance(allocation_base.Allocation):
         return engine used to forecast returns
     weight_constraint: dict
         dictionary of weight_constraints
+    portfolio_leverage: float, optional
+        portfolio leverage
     """
 
     def __init__(
@@ -114,9 +119,15 @@ class MeanVariance(allocation_base.Allocation):
         risk_engine,
         return_engine,
         weights_constraint: dict = None,
+        portfolio_leverage: float = 1.0,
         **kwargs,
     ) -> None:
-        super().__init__(asset_list, risk_engine, return_engine)
+        super().__init__(
+            asset_list,
+            risk_engine,
+            return_engine,
+            portfolio_leverage=portfolio_leverage,
+        )
         self.risk_metrics = pd.DataFrame(
             np.ones((self.num_total_assets, self.num_total_assets)) * np.nan,
             columns=asset_list,

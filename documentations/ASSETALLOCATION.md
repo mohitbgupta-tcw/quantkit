@@ -269,6 +269,7 @@ The momentum strategy adheres to the principle of "Buy Low, Sell High." This app
             "stop_loss": null,
             "stop_loss_threshold": 0.0,
             "window_size": 63,
+            "portfolio_leverage": 1,
             "return_engine": "cumprod",
             "risk_engine": "log_normal",
             "top_n": 50,
@@ -341,6 +342,7 @@ The Relative Value strategy aims to identify value stocks by filtering the inves
             "div_yield_threshold": 0.0,
             "roe_threshold": 0.17,
             "freecashflow_threshold": 0.0,
+            "portfolio_leverage": 1,
             "window_size": 63,
             "return_engine": "log_normal",
             "risk_engine": "log_normal",
@@ -392,8 +394,9 @@ The strategy straightforwardly selects all available securities within the inves
         "pick_all": {
             "type": "pick_all",
             "stop_loss": null,
-             "stop_loss_threshold": 0.0,
+            "stop_loss_threshold": 0.0,
             "window_size": 63,
+            "portfolio_leverage": 1,
             "return_engine": "log_normal",
             "risk_engine": "log_normal",
             "allocation_models": ["equal_weight", "market_weight", "original_weight"]
@@ -592,6 +595,20 @@ To utilize this risk management approach, configure the `stop_loss` and `stop_lo
             "stop_loss": "high_low",
              "stop_loss_threshold": 0.1
         }
+    }
+
+```
+
+#### Holding Limit for assets
+
+The user can impose an upper limit on asset classes deemed risky and then distribute the excess weight either equally by setting `allocate_to` to 'equal' or by specifying a list that reflects descending importance.
+
+```shell
+
+    "allocation_limit": {
+        "limited_assets": ["SP500", "Nasdaq", "REITs", "Commodities", "Gold"],
+        "limit": 0.35,
+        "allocate_to": ["MBSIdx", "Treasuries"]
     }
 
 ```
