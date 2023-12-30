@@ -49,10 +49,10 @@
     "fundamentals_datasource": {
         "source": 5,
         "type": "fundamental",
-        "table": "SHARADAR/SF1",
+        "datatable_code": "SHARADAR/SF1",
         "filters": {
             "ticker": [],
-            "dimension": "MRT",
+            "dimension": "ARQ",
             "calendardate": {"gte": "2018-01-01"},
             "paginate": true
         },
@@ -62,7 +62,7 @@
         "source": 5,
         "type": "prices",
         "frequency": "DAY",
-        "table": "SHARADAR/SEP",
+        "datatable_code": "SHARADAR/SEP",
         "filters": {
             "ticker": [],
             "paginate": true,
