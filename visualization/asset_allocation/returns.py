@@ -55,8 +55,10 @@ def strategy_returns(
         grouped_df.plot(ax=ax, label=name)
 
     if not benchmark.empty:
+        b_label = benchmark["portfolio_name"].max()
         benchmark = (benchmark["return"] + 1).cumprod()
-        benchmark.plot(ax=ax, label="benchmark", color="#F37E52")
+        benchmark.plot(ax=ax, label=b_label, color="#F37E52")
 
     ax.yaxis.set_major_formatter(PercentFormatter(1, decimals=0))
     plt.legend()
+    sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))

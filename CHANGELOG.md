@@ -10,8 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Calculate Return Statistics
 - Quandl Handyman functions
 ### Fixed
+- UNION to UNION ALL
 ### Changed
 - run scaling in HRP Optimizer
+- Rename parent ticker mapping columns
+- Quant Research Snowflake Scheme
+- use datekey as release date
 ### Removed
 
 ## [1.5.2] - 2023-12-26

@@ -94,10 +94,10 @@ class TickerParentIssuerSource(ds.DataSources):
     Returns
     -------
     DataFrame
-        original_ticker: str
-            ticker of issuer
-        new_ticker: str
+        sub_share_ticker: str
             ticker of child
+        parent_ticker: str
+            ticker of issuer
     """
 
     def __init__(self, params: dict, **kwargs) -> None:
@@ -133,7 +133,7 @@ class TickerParentIssuerSource(ds.DataSources):
             list of tickers for parents
         """
         if self.parent_issuers:
-            tickers = list(self.df["original_ticker"].dropna().unique())
+            tickers = list(self.df["parent_ticker"].dropna().unique())
             return tickers
         return list()
 
@@ -142,8 +142,8 @@ class TickerParentIssuerSource(ds.DataSources):
         Manually add parent issuer for selected securities
         """
         for index, row in self.df.iterrows():
-            parent_ticker = row["original_ticker"]
-            sec = row["new_ticker"]
+            parent_ticker = row["parent_ticker"]
+            sec = row["sub_share_ticker"]
             self.parent_issuers[sec] = parent_ticker
 
     @property
