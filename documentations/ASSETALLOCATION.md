@@ -68,14 +68,14 @@ To change the datasource, make the following changes in your configs file as adv
         "source": 3,
         "table_name": "PRICES",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
+        "schema": "QUANT_RESEARCH",
         "load": true
     },
     "fundamentals_datasource": {
         "source": 3,
         "table_name": "FUNDAMENTAL_DATA",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
+        "schema": "QUANT_RESEARCH",
         "load": true
     },
 

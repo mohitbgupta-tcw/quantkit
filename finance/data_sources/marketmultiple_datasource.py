@@ -50,12 +50,6 @@ class MarketMultipleDataSource(ds.DataSources):
         - Fill NaN's with prior values
         - order by date
         """
-        self.datasource.df["release_date"] = self.datasource.df.index + pd.DateOffset(
-            months=1
-        )
-        self.datasource.df["release_date"] = pd.to_datetime(
-            self.datasource.df["release_date"]
-        )
         self.datasource.df = self.datasource.df.fillna(method="ffill")
         self.datasource.df = self.datasource.df.sort_index(ascending=True)
         self.datasource.df = self.datasource.df.rename(
@@ -71,7 +65,7 @@ class MarketMultipleDataSource(ds.DataSources):
         Assign multiples to dictionary
         """
         # fundamental dates -> date + 3 months
-        self.dates = list(self.datasource.df["release_date"].sort_values().unique())
+        self.dates = list(self.datasource.df.index.unique())
         # initialize kpi's
         for kpi in self.datasource.df.columns:
             self.multiples[kpi] = self.datasource.df[kpi].to_numpy()

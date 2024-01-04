@@ -23,8 +23,8 @@ class FundamentalsDataSource(ds.DataSources):
             ticker of company
         date: datetime.date
             date
-        release_date: datetime.date
-            date + 3 months
+        date_key: datetime.date
+            release data
         fundamental kpi's: float
             various fundamental kpi's
     """
@@ -74,22 +74,17 @@ class FundamentalsDataSource(ds.DataSources):
         """
         self.datasource.df = self.datasource.df.rename(columns={"calendardate": "date"})
         self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
+        self.datasource.df["datekey"] = pd.to_datetime(self.datasource.df["datekey"])
         self.datasource.df = self.datasource.df.sort_values(
             by=["date", "ticker"], ascending=True, ignore_index=True
         )
-        self.datasource.df["release_date"] = (
-            self.datasource.df["date"] + pd.DateOffset(months=1) + MonthEnd(0)
-        )
-        self.datasource.df["release_date"] = pd.to_datetime(
-            self.datasource.df["release_date"]
-        )
 
         if self.params.get("duplication"):
-            for new_ticker, original_ticker in self.params["duplication"].items():
+            for sub_share_ticker, parent_ticker in self.params["duplication"].items():
                 df_add = self.datasource.df[
-                    self.datasource.df["ticker"] == original_ticker
+                    self.datasource.df["ticker"] == parent_ticker
                 ]
-                df_add["ticker"] = new_ticker
+                df_add["ticker"] = sub_share_ticker
                 self.datasource.df = pd.concat([self.datasource.df, df_add])
 
     def iter(self, tickers_ordered: list) -> None:
@@ -118,14 +113,18 @@ class FundamentalsDataSource(ds.DataSources):
         self.tickers[np.nan] = deepcopy(empty_fundamentals)
 
         # fundamental dates -> date + 3 months
-        self.dates = list(self.datasource.df["release_date"].sort_values().unique())
+        self.dates = list(self.datasource.df["datekey"].sort_values().unique())
 
         # initialize kpi's
         funds = ["marketcap", "divyield", "roe", "fcfps", "pe", "ps", "pb"]
         for fund in funds:
-            self.fundamentals[fund] = self.datasource.df.pivot(
-                index="release_date", columns="ticker", values=fund
-            )[tickers_ordered].to_numpy()
+            self.fundamentals[fund] = (
+                self.datasource.df.pivot(
+                    index="datekey", columns="ticker", values=fund
+                )[tickers_ordered]
+                .ffill()
+                .to_numpy()
+            )
 
     def outgoing_row(self, date: datetime.date) -> dict:
         """

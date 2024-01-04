@@ -49,10 +49,10 @@
     "fundamentals_datasource": {
         "source": 5,
         "type": "fundamental",
-        "table": "SHARADAR/SF1",
+        "datatable_code": "SHARADAR/SF1",
         "filters": {
             "ticker": [],
-            "dimension": "MRT",
+            "dimension": "ARQ",
             "calendardate": {"gte": "2018-01-01"},
             "paginate": true
         },
@@ -62,7 +62,7 @@
         "source": 5,
         "type": "prices",
         "frequency": "DAY",
-        "table": "SHARADAR/SEP",
+        "datatable_code": "SHARADAR/SEP",
         "filters": {
             "ticker": [],
             "paginate": true,
@@ -73,7 +73,7 @@
     "marketmultiple_datasource": {
         "source": 5,
         "type": "market",
-        "table": ["MULTPL/SP500_PSR_QUARTER", "MULTPL/SP500_PBV_RATIO_QUARTER", "MULTPL/SP500_PE_RATIO_MONTH"],
+        "datatable_code": ["MULTPL/SP500_PSR_QUARTER", "MULTPL/SP500_PBV_RATIO_QUARTER", "MULTPL/SP500_PE_RATIO_MONTH"],
         "filters": {
             "start_date": "2023-01-01"
         },
@@ -84,7 +84,7 @@
         "source": 3,
         "table_name": "FAMA_FRENCH",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
+        "schema": "QUANT_RESEARCH",
         "load": true
     },
 
@@ -215,7 +215,7 @@
         "source": 3,
         "table_name": "TICKER_PARENT_MAPPING",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
+        "schema": "QUANT_RESEARCH",
         "load": false
     }
 }

@@ -295,7 +295,9 @@ def return_stats(return_series: pd.DataFrame, frequency: str = "DAY") -> dict:
     stats_dict = dict()
 
     stats_dict["Portfolio"] = return_series["portfolio_name"].max()
-    stats_dict["Total Return"] = format(total_return(return_series=return_series), ".2%")
+    stats_dict["Total Return"] = format(
+        total_return(return_series=return_series), ".2%"
+    )
     stats_dict["CAGR%"] = format(
         mean_return(return_series=return_series, annualized=True, frequency=frequency),
         ".2%",
