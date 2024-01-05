@@ -205,6 +205,22 @@ class Runner(loader.Runner):
             strat_params["universe"] = self.portfolio_datasource.all_tickers
             strat_params["trans_cost"] = self.params["trans_cost"]
             strat_params["weight_constraint"] = weight_constraint
+            self.params["allocation_limit"]["limited_assets"] = np.array(
+                [
+                    self.portfolio_datasource.all_tickers.index(i)
+                    for i in self.params["allocation_limit"]["limited_assets"]
+                ]
+            )
+            self.params["allocation_limit"]["allocate_to"] = (
+                "equal"
+                if self.params["allocation_limit"]["allocate_to"] == "equal"
+                else np.array(
+                    [
+                        self.portfolio_datasource.all_tickers.index(i)
+                        for i in self.params["allocation_limit"]["allocate_to"]
+                    ]
+                )
+            )
             strat_params["scaling"] = self.params["allocation_limit"]
             if strat_params["type"] == "momentum":
                 self.strategies[strategy] = momentum.Momentum(strat_params)

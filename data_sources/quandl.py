@@ -14,18 +14,18 @@ class Quandl(object):
     ----------
     key: str
         quandl api key
-    table: str
-        table name
+    datatable_code: str
+        datatable code
     filters: dict
         dictionary of parameters for function call
     """
 
     def __init__(
-        self, key: str, type: str, table: str, filters: dict, **kwargs
+        self, key: str, type: str, datatable_code: str, filters: dict, **kwargs
     ) -> None:
         self.key = key
         self.type = type
-        self.table = table
+        self.datatable_code = datatable_code
         self.filters = filters
 
     def load(self, **kwargs) -> None:
@@ -47,9 +47,9 @@ class Quandl(object):
                     filters = deepcopy(self.filters)
                     filters["ticker"] = list(batch)
 
-                    df = nasdaqdatalink.get_table(self.table, **filters)
+                    df = nasdaqdatalink.get_table(self.datatable_code, **filters)
                     self.df = pd.concat([self.df, df], ignore_index=True)
             else:
-                self.df = nasdaqdatalink.get_table(self.table, **self.filters)
+                self.df = nasdaqdatalink.get_table(self.datatable_code, **self.filters)
         elif self.type in ["market"]:
-            self.df = nasdaqdatalink.get(self.table, **self.filters)
+            self.df = nasdaqdatalink.get(self.datatable_code, **self.filters)

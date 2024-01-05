@@ -68,14 +68,14 @@ To change the datasource, make the following changes in your configs file as adv
         "source": 3,
         "table_name": "PRICES",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
+        "schema": "QUANT_RESEARCH",
         "load": true
     },
     "fundamentals_datasource": {
         "source": 3,
         "table_name": "FUNDAMENTAL_DATA",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
+        "schema": "QUANT_RESEARCH",
         "load": true
     },
 
@@ -107,7 +107,18 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```
 
-- Equity Benchmark, optional: The user designates the equity benchmark indices on which the framework should be executed. Defaults to "S & P 500 INDEX". If the user wants to exclude all available benchmark portfolios, enter [].
+- Equity Benchmark, optional: The user designates the equity benchmark indices on which the framework should be executed. Defaults to "S & P 500 INDEX". If the user wants to exclude all available benchmark portfolios, enter []. The following equity indices are currently available for selection as a universe:
+
+    - "S & P 500 INDEX"
+    - "S&P 500 EX TOBACCO"  
+    - "Russell 1000"
+    - "RUSSELL 1000 GROWTH" 
+    - "RUSSELL 1000 VALUE"
+    - "RUSSELL MIDCAP"
+    - "RUSSELL 2000" 
+    - "RUSSELL 2000 VALUE"
+    - "RUSSELL 3000 GROWTH INDEX" 
+    - "RUSSELL 3000 INDEX" 
 
 ```shell
 

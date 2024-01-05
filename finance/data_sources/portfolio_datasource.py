@@ -160,7 +160,7 @@ class PortfolioDataSource(ds.DataSources):
                     THEN null 
                     ELSE sec.tcw_esg_type 
                 END AS "TCW ESG",
-                sec.id_ticker AS "Ticker Cd",
+                IFNULL(adj.ticker, sec.id_ticker) AS "Ticker Cd",
                 CASE 
                     WHEN rs.report_sector1_name IS null 
                     THEN 'Cash and Other' 
@@ -203,10 +203,12 @@ class PortfolioDataSource(ds.DataSources):
                 AND pos.as_of_date = strat.as_of_date 
                 AND strat.is_active = 1
                 AND strat.portfolio_type_1 IN ('Trading', 'Reporting')
+            LEFT JOIN sandbox_esg.quant_research.isin_ticker_mapping adj 
+                ON adj.isin = pos.isin
             WHERE pos.as_of_date >= '{start_date}'
             AND pos.as_of_date <= '{end_date}'
             {and_clause}
-            UNION
+            UNION ALL
             --Benchmark Holdings
             SELECT  
                 bench.as_of_date AS "As Of Date",
@@ -258,7 +260,7 @@ class PortfolioDataSource(ds.DataSources):
                     THEN null 
                     ELSE sec.tcw_esg_type 
                 END AS "TCW ESG",
-                sec.id_ticker as "Ticker Cd",
+                IFNULL(adj.ticker, sec.id_ticker) AS "Ticker Cd",
                 CASE 
                     WHEN rs.report_sector1_name IS null 
                     THEN 'Cash and Other' 
@@ -301,6 +303,8 @@ class PortfolioDataSource(ds.DataSources):
             LEFT JOIN tcw_core_qa.reference.report_sectors_map_vw rs 
                 ON bench.core_sector_key = rs.sector_key 
                 AND rs.report_scheme = '7. ESG - Primary Summary'
+            LEFT JOIN sandbox_esg.quant_research.isin_ticker_mapping adj 
+                ON adj.isin = bench.isin
             WHERE bench.as_of_date >= '{start_date}'
             AND bench.as_of_date <= '{end_date}'
             AND (
@@ -358,6 +362,9 @@ class PortfolioDataSource(ds.DataSources):
         )
         self.datasource.df["Issuer ISIN"].fillna(
             self.datasource.df["ISIN"], inplace=True
+        )
+        self.datasource.df["Ticker Cd"] = self.datasource.df["Ticker Cd"].replace(
+            to_replace="/", value=".", regex=True
         )
 
         replace_nas = [

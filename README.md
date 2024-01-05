@@ -236,7 +236,7 @@ msci_data_loader.run_msci_api("ISIN", ["US88160R1014", "US0378331005"], factor_n
 
 import quantkit.handyman.quandl_data_loader as quandl_data_loader     
 
-quandl_data_loader.get_quandl_fundamental_data(
+quandl_data_loader.get_fundamental_data(
     ["AAPL", "TSLA"],
     start_date="2018-01-01",
     end_date="2023-01-01"    
@@ -250,7 +250,7 @@ quandl_data_loader.get_quandl_fundamental_data(
 
 import quantkit.handyman.quandl_data_loader as quandl_data_loader     
 
-quandl_data_loader.get_quandl_price_data(
+quandl_data_loader.get_price_data(
     ["AAPL", "TSLA"],
     start_date="2018-01-01",
     end_date="2023-01-01"    
