@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+### Fixed
+### Changed
+### Removed
+
+## [1.5.3] - 2024-01-05
+### Added
 - Calculate Return Statistics
 - Quandl Handyman functions
 - Add everything up to Russell 3000 as selectable universe
@@ -21,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use trailing 12 month data instead of quarterly
 - Map updated tickers in query instead of JSON
 ### Removed
+- setup files for versions
 
 ## [1.5.2] - 2023-12-26
 ### Added
@@ -252,6 +259,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://gitlab.com/tcw-group/quant-research/quantkit/-/compare/main...develop?from_project_id=46798372&straight=false
+[1.5.3]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.5.3
 [1.5.2]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.5.2
 [1.5.1]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.5.1
 [1.5.0]: https://gitlab.com/tcw-group/quant-research/quantkit/-/releases/1.5.0
