@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quant Research Snowflake Scheme
 - use datekey as release date
 - Relative Value Strategy with OR instead of AND constraints for market multiples
+- Use trailing 12 month data instead of quarterly
+- Map updated tickers in query instead of JSON
 ### Removed
 
 ## [1.5.2] - 2023-12-26

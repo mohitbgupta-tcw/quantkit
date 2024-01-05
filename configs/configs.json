@@ -52,7 +52,7 @@
         "datatable_code": "SHARADAR/SF1",
         "filters": {
             "ticker": [],
-            "dimension": "ARQ",
+            "dimension": "ART",
             "calendardate": {"gte": "2018-01-01"},
             "paginate": true
         },

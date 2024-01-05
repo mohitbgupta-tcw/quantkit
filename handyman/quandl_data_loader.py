@@ -116,7 +116,7 @@ def get_fundamental_data(
     latest: bool = False,
     start_date: str = None,
     end_date: str = None,
-    report_period: str = "QUARTER",
+    report_period: str = "TRAILING",
     columns: list = None,
 ) -> pd.DataFrame:
     """
@@ -133,7 +133,7 @@ def get_fundamental_data(
     end_date: str, optional
         date in format "yyyy-mm-dd"
     report_period: str, optional
-        report period, either 'QUARTER' or 'YEAR'
+        report period, either 'QUARTER', 'YEAR', 'TRAILING'
     columns: list, optional
         subset of columns to pull from table
 
@@ -150,8 +150,10 @@ def get_fundamental_data(
     qopts = dict()
     if report_period == "QUARTER":
         filters["dimension"] = "ARQ"
-    else:
+    elif report_period == "QUARTER":
         filters["dimension"] = "ARY"
+    else:
+        filters["dimension"] = "ART"
     filters["paginate"] = True
     if latest:
         qopts["latest"] = 1
