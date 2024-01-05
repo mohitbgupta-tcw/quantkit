@@ -206,7 +206,7 @@ class PortfolioDataSource(ds.DataSources):
             WHERE pos.as_of_date >= '{start_date}'
             AND pos.as_of_date <= '{end_date}'
             {and_clause}
-            UNION
+            UNION ALL
             --Benchmark Holdings
             SELECT  
                 bench.as_of_date AS "As Of Date",
@@ -358,6 +358,9 @@ class PortfolioDataSource(ds.DataSources):
         )
         self.datasource.df["Issuer ISIN"].fillna(
             self.datasource.df["ISIN"], inplace=True
+        )
+        self.datasource.df["Ticker Cd"] = self.datasource.df["Ticker Cd"].replace(
+            to_replace="/", value=".", regex=True
         )
 
         replace_nas = [

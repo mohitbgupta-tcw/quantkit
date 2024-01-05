@@ -8,9 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Calculate Return Statistics
+- Quandl Handyman functions
+- Add everything up to Russell 3000 as selectable universe
 ### Fixed
+- UNION to UNION ALL
 ### Changed
 - run scaling in HRP Optimizer
+- Rename parent ticker mapping columns
+- Quant Research Snowflake Scheme
+- use datekey as release date
 - Relative Value Strategy with OR instead of AND constraints for market multiples
 ### Removed
 

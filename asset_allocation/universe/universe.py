@@ -188,6 +188,9 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             ~self.datasource.df["ISIN"].isin(self.params["missing_data"])
         ]
         self.datasource.df = self.datasource.df[
+            ~self.datasource.df["ISIN"].isin(self.params["foreign_company"])
+        ]
+        self.datasource.df = self.datasource.df[
             ~self.datasource.df["Ticker Cd"].isin(self.params["currencies"])
         ]
         if self.params["custom_universe"]:
@@ -209,14 +212,12 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                 self.datasource.df = self.datasource.df.drop_duplicates(
                     subset=["ISIN", "As Of Date"]
                 )
-                self.datasource.df["Portfolio"] = "Test_Portfolio"
-                self.datasource.df["Portfolio Name"] = "Test_Portfolio"
-                self.datasource.df["Portfolio_Weight"] = 1 / len(
-                    self.params["custom_universe"]
-                )
-                self.datasource.df["Ticker Cd"] = self.datasource.df[
-                    "Ticker Cd"
-                ].replace(to_replace="/", value=".", regex=True)
+                if self.datasource.df["Portfolio_Weight"].isnull().all():
+                    self.datasource.df["Portfolio"] = "Test_Portfolio"
+                    self.datasource.df["Portfolio Name"] = "Test_Portfolio"
+                    self.datasource.df["Portfolio_Weight"] = 1 / len(
+                        self.params["custom_universe"]
+                    )
         if self.params["sustainable"]:
             indices = (
                 self.params["equity_universe"]

@@ -114,7 +114,7 @@ class RelativeValue(strategy.Strategy):
             & (self.index_comp > 0)
             & (self.market_caps > self.market_cap_threshold)
             & (self.divyield > self.div_yield_threshold)
-            & (self.roe > self.roe_threshold)
+            # & (self.roe > self.roe_threshold)
             & (self.fcfps > self.freecashflow_threshold)
             & (
                 (self.pe < self.spx_pe)
