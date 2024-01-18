@@ -14,7 +14,7 @@ class RelativeValue(strategy.Strategy):
     ----------
     params: dict
         strategy specific parameters which should include
-            - type: "momentum", str
+            - type: "relative_value", str
             - window_size: lookback period in trading days, int
             - return_engine: "cumprod", str
             - risk_engine: str
@@ -28,7 +28,6 @@ class RelativeValue(strategy.Strategy):
 
     def __init__(self, params: dict) -> None:
         super().__init__(**params)
-        self.window_size = params["window_size"]
         self.market_cap_threshold = params["market_cap_threshold"]
         self.div_yield_threshold = params["div_yield_threshold"]
         self.roe_threshold = params["roe_threshold"]

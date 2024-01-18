@@ -6,6 +6,7 @@ import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
 import quantkit.asset_allocation.strategies.pick_all as pick_all
 import quantkit.asset_allocation.strategies.relative_value as relative_value
+import quantkit.asset_allocation.strategies.magic_formula as magic_formula
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.universe.universe as universe_datasource
 import quantkit.asset_allocation.return_calc.log_return as log_return
@@ -228,6 +229,8 @@ class Runner(loader.Runner):
                 self.strategies[strategy] = pick_all.PickAll(strat_params)
             elif strat_params["type"] == "relative_value":
                 self.strategies[strategy] = relative_value.RelativeValue(strat_params)
+            elif strat_params["type"] == "magic_formula":
+                self.strategies[strategy] = magic_formula.MagicFormula(strat_params)
 
     def get_weights_constraints_d(self) -> dict:
         """
@@ -272,6 +275,9 @@ class Runner(loader.Runner):
                 "pe": current_fundamentals["pe"],
                 "ps": current_fundamentals["ps"],
                 "pb": current_fundamentals["pb"],
+                "roic": current_fundamentals["roic"],
+                "ebit": current_fundamentals["ebit"],
+                "ev": current_fundamentals["ev"],
                 "spx_pe": current_multiples["SPX_PE"],
                 "spx_pb": current_multiples["SPX_PB"],
                 "spx_ps": current_multiples["SPX_PS"],

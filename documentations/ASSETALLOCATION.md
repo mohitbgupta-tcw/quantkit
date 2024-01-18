@@ -395,6 +395,79 @@ Relative value filters the investment universe using measures such as market cap
 
 </details>
 
+#### Magic Formula
+The Magic Formula employs several fundamental filters to refine the selection of securities. It ranks the universe by Return on Invested Capital (ROIC) in descending order and by Enterprise Value to Earnings Before Interest and Taxes (EV/EBIT) in ascending order. The strategy then selects the top `n` securities based on the aggregate score.
+
+
+```shell
+
+    "strategies": {
+        "magic_formula": {
+            "type": "magic_formula",
+            "top_n": 30,
+            "stop_loss": null,
+            "stop_loss_threshold": 0.15,
+            "window_size": 63,
+            "portfolio_leverage": 1,
+            "return_engine": "log_normal",
+            "risk_engine": "log_normal",
+            "allocation_models": [
+                "equal_weight", 
+                "market_weight", 
+                "min_variance", 
+                "constrained_min_variance", 
+                "mean_variance", 
+                "constrained_mean_variance", 
+                "risk_parity",
+                "hrp",
+                "constrained_hrp"
+            ]
+        }
+    }
+
+```
+
+<details>
+  <summary><b>For Nerds</b></summary>
+
+```python
+
+    @property
+    def selected_securities(self) -> np.ndarray:
+        """
+        Index (position in universe_tickers as integer) of selected securities
+
+        Returns
+        -------
+        np.array
+            array of indexes
+        """
+        nan_sum = np.isnan(self.latest_return).sum()
+        top_n = min(self.top_n, self.num_total_assets - nan_sum)
+
+        roic_order = (-self.roic).argsort()
+        roic_rank = roic_order.argsort()
+        evebit_order = (self.evebit).argsort()
+        evebit_rank = evebit_order.argsort()
+        total_rank = evebit_rank + roic_rank
+        sort = total_rank.argsort()
+
+        selected_assets = 0
+        i = 0
+        a = list()
+
+        while selected_assets < top_n and i < self.num_total_assets:
+            if self.index_comp[sort[i]] > 0:
+                a.append(sort[i])
+                selected_assets += 1
+            i += 1
+        return np.array(a)
+
+```
+
+
+</details>
+
 #### Pick All
 
 The strategy straightforwardly selects all available securities within the investment universe, providing a comprehensive approach to asset allocation and ensuring that no potential opportunities are overlooked.

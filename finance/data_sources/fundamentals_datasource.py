@@ -116,7 +116,18 @@ class FundamentalsDataSource(ds.DataSources):
         self.dates = list(self.datasource.df["datekey"].sort_values().unique())
 
         # initialize kpi's
-        funds = ["marketcap", "divyield", "roe", "fcfps", "pe", "ps", "pb"]
+        funds = [
+            "marketcap",
+            "divyield",
+            "roe",
+            "fcfps",
+            "pe",
+            "ps",
+            "pb",
+            "roic",
+            "ebit",
+            "ev",
+        ]
         for fund in funds:
             self.fundamentals[fund] = (
                 self.datasource.df.pivot(
