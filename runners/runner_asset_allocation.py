@@ -4,6 +4,7 @@ import quantkit.runners.runner as loader
 import quantkit.utils.logging as logging
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.asset_allocation.strategies.momentum as momentum
+import quantkit.asset_allocation.strategies.mean_reversion as mean_reversion
 import quantkit.asset_allocation.strategies.pick_all as pick_all
 import quantkit.asset_allocation.strategies.relative_value as relative_value
 import quantkit.asset_allocation.strategies.magic_formula as magic_formula
@@ -116,12 +117,18 @@ class Runner(loader.Runner):
             )
             # return engine
             return_engine = strat_params["return_engine"]
+            window_size = (
+                strat_params["return_window_size"]
+                if "return_window_size" in strat_params
+                else strat_params["window_size"]
+            )
             if return_engine == "log_normal":
+                return_engine = f"log_normal_{window_size}"
                 self.return_engines[return_engine] = self.return_engines.get(
                     return_engine,
                     log_return.LogReturn(
                         universe=self.portfolio_datasource.all_tickers,
-                        window_size=strat_params["window_size"],
+                        window_size=window_size,
                         **risk_return_engine_kwargs,
                     ),
                 )
@@ -142,20 +149,22 @@ class Runner(loader.Runner):
                     ),
                 )
             elif return_engine == "simple":
+                return_engine = f"simple_{window_size}"
                 self.return_engines[return_engine] = self.return_engines.get(
                     return_engine,
                     simple_return.SimpleExp(
                         universe=self.portfolio_datasource.all_tickers,
-                        window_size=strat_params["window_size"],
+                        window_size=window_size,
                         **risk_return_engine_kwargs,
                     ),
                 )
             elif return_engine == "cumprod":
+                return_engine = f"cumprod_{window_size}"
                 self.return_engines[return_engine] = self.return_engines.get(
                     return_engine,
                     cumprod_return.CumProdReturn(
                         universe=self.portfolio_datasource.all_tickers,
-                        window_size=strat_params["window_size"],
+                        window_size=window_size,
                         **risk_return_engine_kwargs,
                     ),
                 )
@@ -163,12 +172,18 @@ class Runner(loader.Runner):
 
             # risk engine
             risk_engine = strat_params["risk_engine"]
+            window_size = (
+                strat_params["risk_window_size"]
+                if "risk_window_size" in strat_params
+                else strat_params["window_size"]
+            )
             if risk_engine == "log_normal":
+                risk_engine = f"log_normal_{window_size}"
                 self.risk_engines[risk_engine] = self.risk_engines.get(
                     risk_engine,
                     log_vol.LogNormalVol(
                         universe=self.portfolio_datasource.all_tickers,
-                        window_size=strat_params["window_size"],
+                        window_size=window_size,
                         **risk_return_engine_kwargs,
                     ),
                 )
@@ -189,11 +204,12 @@ class Runner(loader.Runner):
                     ),
                 )
             elif risk_engine == "simple":
+                risk_engine = f"simple_{window_size}"
                 self.risk_engines[risk_engine] = self.risk_engines.get(
                     risk_engine,
                     simple_vol.SimpleVol(
                         universe=self.portfolio_datasource.all_tickers,
-                        window_size=strat_params["window_size"],
+                        window_size=window_size,
                         **risk_return_engine_kwargs,
                     ),
                 )
@@ -225,6 +241,8 @@ class Runner(loader.Runner):
             strat_params["scaling"] = self.params["allocation_limit"]
             if strat_params["type"] == "momentum":
                 self.strategies[strategy] = momentum.Momentum(strat_params)
+            elif strat_params["type"] == "mean_reversion":
+                self.strategies[strategy] = mean_reversion.MeanReversion(strat_params)
             elif strat_params["type"] == "pick_all":
                 self.strategies[strategy] = pick_all.PickAll(strat_params)
             elif strat_params["type"] == "relative_value":
