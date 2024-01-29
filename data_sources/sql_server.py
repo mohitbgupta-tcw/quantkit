@@ -47,12 +47,4 @@ class SQL(object):
             SQL query for data
         """
         conn = pyodbc.connect(self.connection_parameters)
-        query = """
-            SELECT a.id,a.name, b.Cusip__c, b.ISIN__c, a.* 
-            FROM ticker__c a
-            LEFT JOIN [SFIntegration].[dbo].[SecurityMaster__c] b
-            ON a.id = b.Ticker__c
-            WHERE a.name like '%aapl%'
-            ORDER BY a.name
-        """
         self.df = pd.read_sql_query(query, conn)
