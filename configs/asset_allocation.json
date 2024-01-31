@@ -49,6 +49,7 @@
                 "ISSUER_ISIN",	
                 "ISSUER_CNTRY_DOMICILE",
                 "GICS_SUB_IND",	
+                "GICS_SECTOR",
                 "PARENT_ULTIMATE_ISSUERID"
             ]
         }
