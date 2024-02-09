@@ -171,9 +171,9 @@ class PortfolioDataSource(ds.DataSources):
                     THEN 'Cash and Other' 
                     ELSE  rs.rclass2_name 
                 END AS "Sector Level 2",
-                sec.JPM_LEVEL1 AS "JPM Sector",
-                sec.BCLASS_LEVEL2_NAME AS "BCLASS_Level2", 
-                sec.BCLASS_LEVEL3_NAME AS "BCLASS_Level3", 
+                sec.jpm_level1 AS "JPM Sector",
+                sec.bclass_level2_name AS "BCLASS_Level2", 
+                sec.bclass_level3_name AS "BCLASS_Level3", 
                 sec.bclass_level4_name AS "BCLASS_Level4",
                 CASE 
                     WHEN sec.em_country_of_risk_name is null 
@@ -183,7 +183,7 @@ class PortfolioDataSource(ds.DataSources):
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
                 sec.issuer_id_bbg AS "BBG ISSUERID",
-                pos.MARKET_VALUE_PERCENT * 100 AS "Portfolio_Weight",
+                pos.market_value_percent * 100 AS "Portfolio_Weight",
                 pos.base_market_value AS "Base Mkt Val",
                 null AS "OAS",
                 (
@@ -195,9 +195,9 @@ class PortfolioDataSource(ds.DataSources):
             LEFT JOIN tcw_core_qa.tcw.security_vw sec 
                 ON pos.security_key = sec.security_key
                 AND pos.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_qa.reference.RCLASS_MAPPED_SECTORS_VW rs 
-                ON sec.SCLASS_KEY  = rs.SCLASS_SECTOR_KEY
-                AND rs.RCLASS_SCHEME_NAME = '7. ESG - Primary Summary'
+            LEFT JOIN tcw_core_qa.reference.rclass_mapped_sectors_vw rs 
+                ON sec.sclass_key  = rs.sclass_sector_key
+                AND rs.rclass_scheme_name = '7. ESG - Primary Summary'
             JOIN tcw_core_qa.tcw.portfolio_vw strat 
                 ON pos.portfolio_key = strat.portfolio_key 
                 AND pos.as_of_date = strat.as_of_date 
@@ -271,9 +271,9 @@ class PortfolioDataSource(ds.DataSources):
                     THEN 'Cash and Other' 
                     ELSE rs.rclass2_name 
                 END AS "Sector Level 2",
-                sec.JPM_LEVEL1 AS "JPM Sector",
-                sec.BCLASS_LEVEL2_NAME AS "BCLASS_Level2",
-                sec.BCLASS_LEVEL3_NAME AS "BCLASS_Level3", 
+                sec.jpm_level1 AS "JPM Sector",
+                sec.bclass_level2_name AS "BCLASS_Level2",
+                sec.bclass_level3_name AS "BCLASS_Level3", 
                 sec.bclass_level4_name AS "BCLASS_Level4",
                 CASE 
                     WHEN sec.em_country_of_risk_name is null 
@@ -287,7 +287,7 @@ class PortfolioDataSource(ds.DataSources):
                     WHEN bench.market_value_percentage IS null 
                     THEN bench.market_value / SUM(bench.market_value)
                         OVER(partition BY bench.benchmark_name) 
-                    ELSE bench.MARKET_VALUE_PERCENTAGE 
+                    ELSE bench.market_value_percentage  
                 END AS "Portfolio_Weight",
                 bench.market_value AS "Base Mkt Val",
                 null AS "OAS",
@@ -300,9 +300,9 @@ class PortfolioDataSource(ds.DataSources):
             LEFT JOIN tcw_core_qa.tcw.security_vw sec 
                 ON bench.security_key = sec.security_key
                 AND bench.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_qa.reference.RCLASS_MAPPED_SECTORS_VW rs 
-                ON sec.SCLASS_KEY = rs.SCLASS_SECTOR_KEY 
-                AND rs.RCLASS_SCHEME_NAME = '7. ESG - Primary Summary'
+            LEFT JOIN tcw_core_qa.reference.rclass_mapped_sectors_vw rs 
+                ON sec.sclass_key = rs.sclass_sector_key 
+                AND rs.rclass_scheme_name = '7. ESG - Primary Summary'
             LEFT JOIN sandbox_esg.quant_research.isin_ticker_mapping adj 
                 ON adj.isin = bench.isin
             WHERE bench.as_of_date >= '{start_date}'
