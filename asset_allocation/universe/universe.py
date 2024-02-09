@@ -21,6 +21,8 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             SELECT  
                 DISTINCT
                 bench.as_of_date AS "As Of Date",
+                'Custom_Portfolio' AS "Portfolio",
+                'Custom_Portfolio' AS "Portfolio Name",
                 TRIM(
                     CASE 
                         WHEN sec.esg_collateral_type IS null 
@@ -70,6 +72,8 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
                 sec.issuer_id_bbg AS "BBG ISSUERID",
+                { 1 / len(self.params["custom_universe"])} AS "Portfolio_Weight",
+                1 AS "Base Mkt Val",
                 null AS "OAS",
                 (
                     SELECT MAX(isin) 
@@ -172,8 +176,8 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                         "As Of Date": pd.bdate_range(
                             start=self.params["start_date"], end=self.params["end_date"]
                         ),
-                        "Portfolio": "Test_Portfolio",
-                        "Portfolio Name": "Test_Portfolio",
+                        "Portfolio": "Custom_Portfolio",
+                        "Portfolio Name": "Custom_Portfolio",
                         "ISIN": sec,
                         "Portfolio_Weight": 1 / len(self.params["custom_universe"]),
                         "Ticker Cd": sec,
@@ -184,12 +188,6 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                 self.datasource.df = self.datasource.df.drop_duplicates(
                     subset=["ISIN", "As Of Date"]
                 )
-                if self.datasource.df["Portfolio_Weight"].isnull().all():
-                    self.datasource.df["Portfolio"] = "Test_Portfolio"
-                    self.datasource.df["Portfolio Name"] = "Test_Portfolio"
-                    self.datasource.df["Portfolio_Weight"] = 1 / len(
-                        self.params["custom_universe"]
-                    )
         if self.params["sustainable"]:
             indices = (
                 self.params["equity_universe"]
