@@ -68,21 +68,21 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                     THEN null 
                     ELSE sec.tcw_esg_type 
                 END AS "TCW ESG",
-                sec.id_ticker as "Ticker Cd",
+                sec.ticker as "Ticker Cd",
                 CASE 
-                    WHEN rs.report_sector1_name IS null 
+                    WHEN rs.rclass1_name IS null 
                     THEN 'Cash and Other' 
-                    ELSE  rs.report_sector1_name 
+                    ELSE  rs.rclass1_name 
                 END AS "Sector Level 1",
                 CASE 
-                    WHEN rs.report_sector2_name IS null
+                    WHEN rs.rclass2_name IS null
                     THEN 'Cash and Other' 
-                    ELSE rs.report_sector2_name 
+                    ELSE rs.rclass2_name 
                 END AS "Sector Level 2",
-                sec.jpm_sector_level1 AS "JPM Sector",
-                sec.bclass_level2 AS "BCLASS_Level2",
-                sec.bclass_level3 AS "BCLASS_Level3", 
-                sec.bclass_level4 AS "BCLASS_Level4",
+                sec.JPM_LEVEL1 AS "JPM Sector",
+                sec.BCLASS_LEVEL2_NAME AS "BCLASS_Level2",
+                sec.BCLASS_LEVEL3_NAME AS "BCLASS_Level3", 
+                sec.bclass_level4_name AS "BCLASS_Level4",
                 CASE 
                     WHEN sec.em_country_of_risk_name is null 
                     THEN sec.country_of_risk_name 
@@ -108,9 +108,9 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             LEFT JOIN tcw_core_qa.tcw.security_vw sec 
                 ON bench.security_key = sec.security_key
                 AND bench.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_qa.reference.report_sectors_map_vw rs 
-                ON bench.core_sector_key = rs.sector_key 
-                AND rs.report_scheme = '7. ESG - Primary Summary'
+            LEFT JOIN tcw_core_qa.reference.RCLASS_MAPPED_SECTORS_VW rs 
+                ON sec.SCLASS_KEY = rs.SCLASS_SECTOR_KEY
+                AND rs.RCLASS_SCHEME_NAME = '7. ESG - Primary Summary'
             WHERE bench.as_of_date >= '{self.params["start_date"]}'
             AND bench.as_of_date <= '{self.params["end_date"]}'
             AND ISIN in ({secs})
