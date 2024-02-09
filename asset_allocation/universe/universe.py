@@ -19,29 +19,10 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             secs = ", ".join(f"'{sec}'" for sec in self.params["custom_universe"])
             query = f"""
             SELECT  
+                DISTINCT
                 bench.as_of_date AS "As Of Date",
-                CASE 
-                    WHEN bench.benchmark_name IN (
-                        'S & P 500 INDEX'
-                    ) 
-                    THEN 'S&P 500 INDEX'
-                    WHEN bench.benchmark_name IN (
-                        'Russell 1000'
-                    ) 
-                    THEN 'RUSSELL 1000'
-                    ELSE bench.benchmark_name 
-                END AS "Portfolio",
-                CASE 
-                    WHEN bench.benchmark_name IN (
-                        'S & P 500 INDEX'
-                    ) 
-                    THEN 'S&P 500 INDEX'
-                    WHEN bench.benchmark_name IN (
-                        'Russell 1000'
-                    ) 
-                    THEN 'RUSSELL 1000'
-                    ELSE bench.benchmark_name 
-                END AS "Portfolio Name",
+                'Custom_Portfolio' AS "Portfolio",
+                'Custom_Portfolio' AS "Portfolio Name",
                 TRIM(
                     CASE 
                         WHEN sec.esg_collateral_type IS null 
@@ -62,27 +43,27 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                     THEN null 
                     ELSE sec.labeled_esg_type 
                 END AS "Labeled ESG Type",
-                sec.security_name AS "Security_Name",
+                MAX(sec.security_name) OVER (PARTITION BY bench.isin) AS "Security_Name",
                 CASE 
                     WHEN sec.tcw_esg_type = 'None' 
                     THEN null 
                     ELSE sec.tcw_esg_type 
                 END AS "TCW ESG",
-                sec.id_ticker as "Ticker Cd",
+                MAX(sec.ticker) OVER (PARTITION BY bench.isin) AS "Ticker Cd",
                 CASE 
-                    WHEN rs.report_sector1_name IS null 
+                    WHEN rs.rclass1_name IS null 
                     THEN 'Cash and Other' 
-                    ELSE  rs.report_sector1_name 
+                    ELSE  rs.rclass1_name 
                 END AS "Sector Level 1",
                 CASE 
-                    WHEN rs.report_sector2_name IS null
+                    WHEN rs.rclass2_name IS null
                     THEN 'Cash and Other' 
-                    ELSE rs.report_sector2_name 
+                    ELSE rs.rclass2_name 
                 END AS "Sector Level 2",
-                sec.jpm_sector_level1 AS "JPM Sector",
-                sec.bclass_level2 AS "BCLASS_Level2",
-                sec.bclass_level3 AS "BCLASS_Level3", 
-                sec.bclass_level4 AS "BCLASS_Level4",
+                sec.jpm_level1 AS "JPM Sector",
+                sec.bclass_level2_name AS "BCLASS_Level2",
+                sec.bclass_level3_name AS "BCLASS_Level3", 
+                sec.bclass_level4_name AS "BCLASS_Level4",
                 CASE 
                     WHEN sec.em_country_of_risk_name is null 
                     THEN sec.country_of_risk_name 
@@ -91,16 +72,11 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
                 sec.issuer_id_bbg AS "BBG ISSUERID",
-                CASE 
-                    WHEN bench.market_value_percentage IS null 
-                    THEN bench.market_value / SUM(bench.market_value)
-                        OVER(partition BY bench.benchmark_name) 
-                    ELSE bench.MARKET_VALUE_PERCENTAGE 
-                END AS "Portfolio_Weight",
-                bench.market_value AS "Base Mkt Val",
+                { 1 / len(self.params["custom_universe"])} AS "Portfolio_Weight",
+                1 AS "Base Mkt Val",
                 null AS "OAS",
                 (
-                    SELECT MAX(ISIN) 
+                    SELECT MAX(isin) 
                     FROM tcw_core_qa.esg_iss.dim_issuer_iss iss 
                     WHERE iss.issuer_id = sec.issuer_id_iss
                 ) AS "Issuer ISIN"
@@ -108,12 +84,12 @@ class Universe(portfolio_datasource.PortfolioDataSource):
             LEFT JOIN tcw_core_qa.tcw.security_vw sec 
                 ON bench.security_key = sec.security_key
                 AND bench.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_qa.reference.report_sectors_map_vw rs 
-                ON bench.core_sector_key = rs.sector_key 
-                AND rs.report_scheme = '7. ESG - Primary Summary'
+            LEFT JOIN tcw_core_qa.reference.rclass_mapped_sectors_vw rs 
+                ON sec.sclass_key = rs.sclass_sector_key
+                AND rs.rclass_scheme_name = '7. ESG - Primary Summary'
             WHERE bench.as_of_date >= '{self.params["start_date"]}'
             AND bench.as_of_date <= '{self.params["end_date"]}'
-            AND ISIN in ({secs})
+            AND bench.isin in ({secs})
             ORDER BY "Portfolio" ASC,  "As Of Date" ASC, "Portfolio_Weight"  DESC
             """
             if self.params["skipp"]:
@@ -200,8 +176,8 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                         "As Of Date": pd.bdate_range(
                             start=self.params["start_date"], end=self.params["end_date"]
                         ),
-                        "Portfolio": "Test_Portfolio",
-                        "Portfolio Name": "Test_Portfolio",
+                        "Portfolio": "Custom_Portfolio",
+                        "Portfolio Name": "Custom_Portfolio",
                         "ISIN": sec,
                         "Portfolio_Weight": 1 / len(self.params["custom_universe"]),
                         "Ticker Cd": sec,
@@ -212,12 +188,6 @@ class Universe(portfolio_datasource.PortfolioDataSource):
                 self.datasource.df = self.datasource.df.drop_duplicates(
                     subset=["ISIN", "As Of Date"]
                 )
-                if self.datasource.df["Portfolio_Weight"].isnull().all():
-                    self.datasource.df["Portfolio"] = "Test_Portfolio"
-                    self.datasource.df["Portfolio Name"] = "Test_Portfolio"
-                    self.datasource.df["Portfolio_Weight"] = 1 / len(
-                        self.params["custom_universe"]
-                    )
         if self.params["sustainable"]:
             indices = (
                 self.params["equity_universe"]
