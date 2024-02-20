@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import Union
 from copy import deepcopy
-import quantkit.finance.sectors.sectors as sectors
+import quantkit.core.characteristics.sectors as sectors
 
 
 class SecurityStore(object):

@@ -16,13 +16,13 @@ class Region(object):
     ----------
     name: str
         ISO2 code of country/ region
-    row_data: pd.Series
+    information: pd.Series
         Series of information for the region. Safed in self.information
     """
 
-    def __init__(self, name: str, row_data: pd.Series) -> None:
+    def __init__(self, name: str, information: pd.Series) -> None:
         self.region = name
-        self.information = row_data.to_dict()
+        self.information = information.to_dict()
         self.companies = dict()
 
     def add_company(self, isin: str, company) -> None:

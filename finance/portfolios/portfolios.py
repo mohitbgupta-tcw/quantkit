@@ -1,6 +1,6 @@
 import pandas as pd
 import datetime
-import quantkit.finance.sectors.sectors as sectors
+import quantkit.core.characteristics.sectors as sectors
 
 
 class PortfolioStore(object):

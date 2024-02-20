@@ -1,5 +1,5 @@
 import numpy as np
-import quantkit.finance.sectors.sectors as sectors
+import quantkit.core.characteristics.sectors as sectors
 
 
 sector_mapping = {"BCLASS_Level4": sectors.BClass, "GICS_SUB_IND": sectors.GICS}

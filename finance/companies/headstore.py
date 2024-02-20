@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from copy import deepcopy
 import quantkit.finance.securities.securities as securities
-import quantkit.finance.sectors.sectors as sectors
+import quantkit.core.characteristics.sectors as sectors
 import quantkit.risk_framework.core.adjustment as adjustment
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.risk_framework.core.exclusions as exclusions

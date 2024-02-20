@@ -1,6 +1,6 @@
 import quantkit.core.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
-import quantkit.finance.sectors.sectors as sectors
+import quantkit.core.characteristics.sectors as sectors
 import quantkit.utils.mapping_configs as mapping_configs
 import pandas as pd
 

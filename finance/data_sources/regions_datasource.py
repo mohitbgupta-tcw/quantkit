@@ -2,7 +2,7 @@ import quantkit.core.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import numpy as np
 import pandas as pd
-import quantkit.finance.regions.regions as regions
+import quantkit.core.characteristics.regions as regions
 
 
 class RegionsDataSource(ds.DataSources):

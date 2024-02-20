@@ -1,4 +1,3 @@
-import quantkit.mathstats.median.median as median
 import pandas as pd
 import numpy as np
 from typing import Union
