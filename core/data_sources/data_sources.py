@@ -1,12 +1,11 @@
-import quantkit.data_sources.blank as blank
-import quantkit.data_sources.excel as ds_excel
-import quantkit.data_sources.snowflake as snowflake
-import quantkit.data_sources.msci as msci
-import quantkit.data_sources.quandl as quandl
-import quantkit.data_sources.json_ds as json_ds
-import quantkit.data_sources.sql_server as sql_server
-import quantkit.data_sources.fred as fred
-import quantkit.utils.configs as configs
+import quantkit.core.data_sources.blank as blank
+import quantkit.core.data_sources.excel as ds_excel
+import quantkit.core.data_sources.snowflake as snowflake
+import quantkit.core.data_sources.msci as msci
+import quantkit.core.data_sources.quandl as quandl
+import quantkit.core.data_sources.json_ds as json_ds
+import quantkit.core.data_sources.sql_server as sql_server
+import quantkit.core.data_sources.fred as fred
 
 
 class DataSources(object):

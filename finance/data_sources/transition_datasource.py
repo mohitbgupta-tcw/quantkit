@@ -1,4 +1,4 @@
-import quantkit.data_sources.data_sources as ds
+import quantkit.core.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import pandas as pd
 

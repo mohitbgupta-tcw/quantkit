@@ -1,5 +1,5 @@
 import pandas as pd
-import quantkit.data_sources.msci as msci
+import quantkit.core.data_sources.msci as msci
 import quantkit.utils.configs as configs
 
 

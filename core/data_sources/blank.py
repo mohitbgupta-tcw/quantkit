@@ -11,6 +11,6 @@ class Blank(object):
 
     def load(self, **kwargs) -> None:
         """
-        Load csv file and save data as pd.DataFrame in self.df
+        Save empty pd.DataFrame in self.df
         """
         self.df = pd.DataFrame(columns=["date", "ticker", "ISIN"])

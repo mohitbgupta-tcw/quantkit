@@ -1,4 +1,4 @@
-import quantkit.data_sources.snowflake as snowflake_ds
+import quantkit.core.data_sources.snowflake as snowflake_ds
 import quantkit.utils.configs as configs
 import pandas as pd
 import snowflake.connector

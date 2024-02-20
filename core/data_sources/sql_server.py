@@ -37,9 +37,9 @@ class SQL(object):
             + f"TRUSTED_CONNECTION={self.trusted_connection}"
         )
 
-    def load(self, query: str) -> None:
+    def load(self, query: str, **kwargs) -> None:
         """
-        Load file and save data as pd.DataFrame in self.df
+        Load data from SQL server and save data as pd.DataFrame in self.df
 
         Parameters
         ----------

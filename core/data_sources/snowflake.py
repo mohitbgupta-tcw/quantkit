@@ -53,7 +53,7 @@ class Snowflake(object):
             "schema": self.schema,
         }
 
-    def load(self, query: str) -> None:
+    def load(self, query: str, **kwargs) -> None:
         """
         Load data from snowflake and save as pd.DataFrame in self.df
 

@@ -19,6 +19,6 @@ class JSON(object):
 
     def load(self, **kwargs) -> None:
         """
-        Load file and save data as pd.DataFrame in self.df
+        Load JSON file and save data as pd.DataFrame in self.df
         """
         self.df = pd.read_json(self.json_str, orient=self.orient)

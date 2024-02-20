@@ -1,8 +1,12 @@
 import pandas as pd
-import quantkit.data_sources.fred as fred
+import quantkit.core.data_sources.fred as fred
 
 
-def run_fred_api(tickers: list) -> pd.DataFrame:
+def run_fred_api(
+    tickers: list,
+    revision=True,
+    realtime_start="2017-01-01",
+) -> pd.DataFrame:
     """
     Get economic datapoints through FRED API
 
@@ -19,6 +23,11 @@ def run_fred_api(tickers: list) -> pd.DataFrame:
     """
     api_key = "eb4f46c42913c92951a8c64d545598ca"
 
-    fred_object = fred.FRED(api_key, tickers=tickers)
+    filters = dict()
+    filters["realtime_start"] = realtime_start
+
+    fred_object = fred.FRED(
+        api_key, tickers=tickers, revision=revision, filters=filters
+    )
     fred_object.load()
     return fred_object.df
