@@ -3,9 +3,9 @@ import numpy as np
 from copy import deepcopy
 import quantkit.finance.securities.securities as securities
 import quantkit.finance.sectors.sectors as sectors
-import quantkit.finance.adjustment.adjustment as adjustment
+import quantkit.risk_framework.core.adjustment as adjustment
 import quantkit.utils.mapping_configs as mapping_configs
-import quantkit.finance.exclusions.exclusions as exclusions
+import quantkit.risk_framework.core.exclusions as exclusions
 
 
 class HeadStore(object):

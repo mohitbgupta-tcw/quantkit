@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from copy import deepcopy
-import quantkit.finance.transition.transition as transition
+import quantkit.risk_framework.core.transition as transition
 import quantkit.finance.companies.headstore as headstore
 import quantkit.utils.util_functions as util_functions
 

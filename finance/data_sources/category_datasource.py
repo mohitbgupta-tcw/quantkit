@@ -1,6 +1,6 @@
 import quantkit.core.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
-import quantkit.finance.categories.categories as categories
+import quantkit.risk_framework.core.categories as categories
 import pandas as pd
 
 
