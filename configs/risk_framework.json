@@ -1,5 +1,4 @@
 {
-    "portfolios": ["all"],   
     "transition_parameters": {
         "Q_Low" : 0.10,
         "Q_High": 0.70, 
@@ -7,6 +6,7 @@
 
     },
     "portfolio_datasource": {
+        "tcw_universe": ["all"],
         "transformation": {
             "XS2403443786": {"TCW ESG": "TCW Social"},
             "USU35914AA51": {
@@ -57,12 +57,6 @@
                 "JPM Sector": "UTILITIES"
             }
         }
-    },
-    "fundamentals_datasource": {
-        "load": false
-    },
-    "prices_datasource": {
-        "load": false
     },
     "msci_datasource": {
         "filters": {

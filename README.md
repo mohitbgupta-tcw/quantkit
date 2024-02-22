@@ -117,8 +117,7 @@ Therefore, if you wish to alter the `portfolio_datasource` to Excel, input the f
     "portfolio_datasource": {
         "source": 1,
         "file": "path/to/excel",
-        "sheet_name": "Sheet_Name" ,
-        "load": true 
+        "sheet_name": "Sheet_Name"
     }
 ```
 
@@ -271,9 +270,9 @@ local_configs = "path\\to\\your\\local\\configs.json"
 portfolios.historical_portfolio_holdings(
     start_date="01/31/2018",
     end_date="01/01/2023",
-    portfolios=["3750"],
-    equity_benchmark=["S & P 500 INDEX"],
-    fixed_income_benchmark=["BB HIGH YIELD 2% CAP"],
+    tcw_universe=["3750"],
+    equity_universe=["S & P 500 INDEX"],
+    fixed_income_universe=["BB HIGH YIELD 2% CAP"],
     local_configs=local_configs,
 )
 

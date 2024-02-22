@@ -38,7 +38,7 @@ def create_msci_mapping(
             "ISSUERID",
         ],
     }
-    url = "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
+    url = "https://api2.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
     msci_object = msci.MSCI(url=url, filters=filters, **msci_params)
     msci_object.load()
     msci_df = msci_object.df
@@ -187,7 +187,7 @@ def run_msci_api(
         "factor_name_list": factor_name_list,
     }
 
-    url = "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
+    url = "https://api2.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
 
     msci_object = msci.MSCI(api_key, api_secret, url, filters)
     msci_object.load()

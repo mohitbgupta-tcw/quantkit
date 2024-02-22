@@ -28,12 +28,8 @@ class DataSources(object):
         self.schema = params["schema"] if "schema" in params else ""
         self.api_settings = api_settings
 
-        # ignore datasource if load is False
-        if not params["load"]:
-            self.datasource = blank.Blank()
-
         # Excel
-        elif params["source"] == 1:
+        if params["source"] == 1:
             self.datasource = ds_excel.Excel(**params)
 
         # CSV

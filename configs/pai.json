@@ -1,5 +1,4 @@
 {   
-    "as_of_date": "09/30/2022",
     "exchange_rate": 0.9802,
     "msci_datasource": {
         "url": "https://api2.msci.com/esg/data/v1.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",

@@ -1,14 +1,14 @@
 import pandas as pd
 import quantkit.utils.configs as configs
-import quantkit.finance.data_sources.portfolio_datasource as portfolio_datasource
+import quantkit.core.data_loader.portfolio_datasource as portfolio_datasource
 
 
 def historical_portfolio_holdings(
     start_date: str,
     end_date: str,
-    portfolios: list = [],
-    equity_benchmark: list = [],
-    fixed_income_benchmark: list = [],
+    tcw_universe: list = [],
+    equity_universe: list = [],
+    fixed_income_universe: list = [],
     local_configs: str = "",
 ) -> pd.DataFrame:
     """
@@ -20,13 +20,13 @@ def historical_portfolio_holdings(
         start date in string format mm/dd/yyyy
     end_date: str
         end date in string format mm/dd/yyyy
-    portfolios: list, optional
-        list of portfolios to run holdings for
+    tcw_universe: list, optional
+        list of tcw portfolios to run holdings for
         if not specified run default portfolios
-    equity_benchmark: list, optional
+    equity_universe: list, optional
         list of equity benchmarks to run holdings for
         if not specified run default benchmarks
-    fixed_income_benchmark: list, optional
+    fixed_income_universe: list, optional
         list of fixed income benchmarks to run holdings for
         if not specified run default benchmarks
     local_configs: str, optional
@@ -47,8 +47,8 @@ def historical_portfolio_holdings(
     pd.load(
         start_date=start_date,
         end_date=end_date,
-        pfs=portfolios,
-        equity_benchmark=equity_benchmark,
-        fixed_income_benchmark=fixed_income_benchmark,
+        pfs=tcw_universe,
+        equity_universe=equity_universe,
+        fixed_income_universe=fixed_income_universe,
     )
     return pd.df

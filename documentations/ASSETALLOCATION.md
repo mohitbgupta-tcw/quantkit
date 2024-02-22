@@ -68,15 +68,13 @@ To change the datasource, make the following changes in your configs file as adv
         "source": 3,
         "table_name": "PRICES",
         "database": "SANDBOX_ESG",
-        "schema": "QUANT_RESEARCH",
-        "load": true
+        "schema": "QUANT_RESEARCH"
     },
     "fundamentals_datasource": {
         "source": 3,
         "table_name": "FUNDAMENTAL_DATA",
         "database": "SANDBOX_ESG",
-        "schema": "QUANT_RESEARCH",
-        "load": true
+        "schema": "QUANT_RESEARCH"
     },
 
 ```
@@ -90,7 +88,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "start_date": "01/01/2018",
         "end_date": "11/20/2023"
     }
@@ -101,7 +99,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "tcw_universe": [""]
     }
 
@@ -122,7 +120,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "equity_universe": ["Russell 1000"]
     }  
 
@@ -132,7 +130,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "fixed_income_universe": []
     }
 
@@ -142,7 +140,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "custom_universe": ["US0378331005", "US5949181045", "US0231351067", 
                             "US30303M1027", "US46625H1005", "US0846707026",
                             "US02079K1079", "US02079K3059", "US4781601046",
@@ -155,7 +153,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "sustainable": false
     }
 

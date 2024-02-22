@@ -1,4 +1,4 @@
-import quantkit.runners.runner_risk_framework as runner_risk_framework
+import quantkit.risk_framework.runner_risk_framework as runner_risk_framework
 import quantkit.visualization.risk_framework.esg_characteristics as esg_characteristics
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.utils.snowflake_utils as snowflake_utils
