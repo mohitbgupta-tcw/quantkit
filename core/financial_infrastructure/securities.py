@@ -92,25 +92,25 @@ class SecurityStore(object):
             self.parent_store.information["BCLASS_Level4"] = bclass_object
             bclass_object.companies[self.parent_store.isin] = self.parent_store
 
-    def attach_bloomberg_information(
+    def attach_rud_information(
         self,
-        bloomberg_dict: dict,
+        rud_dict: dict,
     ) -> None:
         """
         Attach bloomberg information to security parent
 
         Parameters
         ----------
-        bloomberg_dict: dict
-            dictionary of bloomberg information
+        rud_dict: dict
+            dictionary of research and development information
         """
-        if self.information["BBG ISSUERID"] in bloomberg_dict:
-            bbg_information = deepcopy(bloomberg_dict[self.information["BBG ISSUERID"]])
-            self.parent_store.bloomberg_information = bbg_information
+        if self.information["BBG ISSUERID"] in rud_dict:
+            rud_information = deepcopy(rud_dict[self.information["BBG ISSUERID"]])
+            self.parent_store.rud_information = rud_information
         else:
-            bbg_information = deepcopy(bloomberg_dict[np.nan])
-            if not hasattr(self.parent_store, "bloomberg_information"):
-                self.parent_store.bloomberg_information = bbg_information
+            rud_information = deepcopy(rud_dict[np.nan])
+            if not hasattr(self.parent_store, "rud_information"):
+                self.parent_store.rud_information = rud_information
 
     def attach_iss_information(
         self,

@@ -7,7 +7,7 @@ from copy import deepcopy
 
 class RandDDataSource(ds.DataSources):
     """
-    Provide information on company level from Bloomberg
+    Provide  Research & Development information on company level from Bloomberg
 
     Parameters
     ----------
@@ -25,13 +25,13 @@ class RandDDataSource(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
-        self.bloomberg = dict()
+        self.research_development = dict()
 
     def load(self) -> None:
         """
         load data and transform dataframe
         """
-        logging.log("Loading Bloomberg Data")
+        logging.log("Loading R&D Data")
 
         from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
         query = f"""
@@ -49,17 +49,17 @@ class RandDDataSource(ds.DataSources):
 
     def iter(self) -> None:
         """
-        Attach bloomberg information to dict
+        Attach R&D information to dict
         """
         for index, row in self.df.iterrows():
             bbg_id = row["BBG_ID"]
 
             bloomberg_information = row.to_dict()
-            self.bloomberg[bbg_id] = bloomberg_information
+            self.research_development[bbg_id] = bloomberg_information
 
         # --> not every company has these information, so create empty df with NA's for those
         empty_bloomberg = pd.Series(np.nan, index=self.df.columns).to_dict()
-        self.bloomberg[np.nan] = deepcopy(empty_bloomberg)
+        self.research_development[np.nan] = deepcopy(empty_bloomberg)
 
     @property
     def df(self) -> pd.DataFrame:

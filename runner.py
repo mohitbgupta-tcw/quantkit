@@ -129,6 +129,4 @@ class Runner(object):
         """
         logging.log("Iterate Companies")
         for c, comp_store in self.portfolio_datasource.companies.items():
-            comp_store.iter(
-                companies=self.portfolio_datasource.companies,
-            )
+            comp_store.iter()

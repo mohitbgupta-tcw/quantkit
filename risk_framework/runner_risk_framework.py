@@ -277,7 +277,7 @@ class Runner(loader.Runner):
                 securitized_mapping=self.securitized_datasource.securitized_mapping,
                 bclass_dict=self.bclass_datasource.bclass,
                 sec_adjustment_dict=self.adjustment_datasource.security_isins,
-                bloomberg_dict=self.r_and_d_datasource.bloomberg,
+                rud_dict=self.r_and_d_datasource.research_development,
                 sdg_dict=self.sdg_datasource.sdg,
             )
 

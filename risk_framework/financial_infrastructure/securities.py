@@ -250,7 +250,7 @@ class SecurityStore(securities.SecurityStore):
         securitized_mapping: dict,
         bclass_dict: dict,
         sec_adjustment_dict: dict,
-        bloomberg_dict: dict,
+        rud_dict: dict,
         sdg_dict: dict,
         **kwargs,
     ) -> None:
@@ -275,7 +275,7 @@ class SecurityStore(securities.SecurityStore):
             dictionary of all bclass objects
         sec_adjustment_dict: dict
             dictionary with analyst adjustment information
-        bloomberg_dict: dict
+        rud_dict: dict
             dictionary of bloomberg information
         sdg_dict: dict
             dictionary of iss information
@@ -290,7 +290,7 @@ class SecurityStore(securities.SecurityStore):
             securitized_mapping=securitized_mapping,
             bclass_dict=bclass_dict,
             sec_adjustment_dict=sec_adjustment_dict,
-            bloomberg_dict=bloomberg_dict,
+            rud_dict=rud_dict,
             sdg_dict=sdg_dict,
             **kwargs,
         )
@@ -299,5 +299,5 @@ class SecurityStore(securities.SecurityStore):
         self.attach_bclass(bclass_dict)
         self.attach_sector_level_2()
         self.attach_analyst_adjustment(sec_adjustment_dict)
-        self.attach_bloomberg_information(bloomberg_dict)
+        self.attach_rud_information(rud_dict)
         self.attach_iss_information(sdg_dict)

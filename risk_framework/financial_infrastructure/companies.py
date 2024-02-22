@@ -27,6 +27,50 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
     def __init__(self, isin: str, row_data: Series, **kwargs) -> None:
         super().__init__(isin, row_data, **kwargs)
 
+    def get_parent_issuer_data(self, companies: dict) -> None:
+        """
+        Assign data from parent to sub-company if data is missing (nan)
+        Data includes:
+            - MSCI
+            - SDG
+            - RuD
+
+        Parameters
+        ----------
+        companies: dict
+            dictionary of all company objects
+        """
+        # get parent id from msci
+        parent_id = self.msci_information["PARENT_ULTIMATE_ISSUERID"]
+
+        # find parent store
+        for c, comp_store in companies.items():
+            if comp_store.msci_information["ISSUERID"] == parent_id:
+                parent = c
+
+                # assign sdg data for missing values
+                if hasattr(self, "sdg_information"):
+                    for val in self.sdg_information:
+                        if pd.isna(self.sdg_information[val]):
+                            new_val = companies[parent].sdg_information[val]
+                            self.sdg_information[val] = new_val
+
+                # assign msci data for missing values
+                if hasattr(self, "msci_information"):
+                    for val in self.msci_information:
+                        if pd.isna(self.msci_information[val]):
+                            new_val = companies[parent].msci_information[val]
+                            self.msci_information[val] = new_val
+
+                # assign RuD data for missing values
+                if hasattr(self, "rud_information"):
+                    for val in self.rud_information:
+                        if pd.isna(self.rud_information[val]):
+                            new_val = companies[parent].rud_information[val]
+                            self.rud_information[val] = new_val
+
+                break
+
     def update_sovereign_score(self) -> None:
         """
         For Treasuries update the Sovereign Score (in self.scores)
@@ -163,9 +207,7 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
                 palm_tie=self.msci_information["PALM_TIE"],
                 orphan_drug_rev=self.msci_information["SI_ORPHAN_DRUGS_REV"],
                 acc_to_health=self.msci_information["ACCESS_TO_HLTHCRE_SCORE"],
-                trailing_rd_sales=self.bloomberg_information[
-                    "TRAILING_12M_R&D_%_SALES"
-                ],
+                trailing_rd_sales=self.rud_information["TRAILING_12M_R&D_%_SALES"],
                 social_fin=self.msci_information["SI_SOCIAL_FIN__MAX_REV"],
                 social_connect=self.msci_information["SI_CONNECTIVITY_MAX_REV"],
                 social_inclusion=self.msci_information["SI_BASIC_N_TOTAL_MAX_REV"],
@@ -657,6 +699,9 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
             bclass_d=bclass_d,
             category_d=category_d,
         )
+        # attach data from parent if missing
+        if not pd.isna(self.msci_information["PARENT_ULTIMATE_ISSUERID"]):
+            self.get_parent_issuer_data(companies)
 
         # attach region
         self.attach_region(regions)
