@@ -72,14 +72,6 @@
             "start_date": "2023-01-01"
         }
     },
-
-    "factor_datasource": {
-        "source": 3,
-        "table_name": "FAMA_FRENCH",
-        "database": "SANDBOX_ESG",
-        "schema": "QUANT_RESEARCH"
-    },
-
     "msci_datasource": {
         "source": 4,
         "url": "https://api2.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",

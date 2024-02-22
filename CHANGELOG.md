@@ -15,7 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - move code intro seperate risk_framework, backtester, pai folders
 - create seperate objects for those folders inheriting from core folder
+
+- iter holdings function optimized for speed
 ### Removed
+- Remove fama french factor calculation
 
 ## [1.5.3] - 2024-01-05
 ### Added

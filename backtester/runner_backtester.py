@@ -15,7 +15,6 @@ import quantkit.backtester.data_loader.parent_issuer_datasource as parent_issuer
 import quantkit.backtester.data_loader.prices_datasource as prices_datasource
 import quantkit.backtester.data_loader.fundamentals_datasource as fundamentals_datasource
 import quantkit.backtester.data_loader.marketmultiple_datasource as marketmultiple_datasource
-import quantkit.backtester.data_loader.factor_datasource as factor_datasource
 import quantkit.backtester.return_calc.log_return as log_return
 import quantkit.backtester.return_calc.ewma_return as ewma_return
 import quantkit.backtester.return_calc.simple_return as simple_return
@@ -80,12 +79,6 @@ class Runner(loader.Runner):
             )
         )
 
-        # connect factors datasource
-        self.factor_datasource = factor_datasource.FactorsDataSource(
-            params=self.params["factor_datasource"],
-            api_settings=self.api_settings,
-        )
-
         # iterate over dataframes and create objects
         logging.log("Start Iterating")
         self.iter()
@@ -99,7 +92,6 @@ class Runner(loader.Runner):
         self.iter_msci()
         self.iter_prices()
         self.iter_fundamentals()
-        self.iter_factors()
         self.iter_marketmuliples()
         self.iter_holdings()
         self.iter_securities()
@@ -167,13 +159,6 @@ class Runner(loader.Runner):
         """
         self.marketmultiple_datasource.load()
         self.marketmultiple_datasource.iter()
-
-    def iter_factors(self) -> None:
-        """
-        iterate over factor data
-        """
-        self.factor_datasource.load()
-        self.factor_datasource.iter()
 
     def init_strategies(self) -> None:
         """
@@ -381,7 +366,6 @@ class Runner(loader.Runner):
             current_multiples = self.marketmultiple_datasource.outgoing_row(date)
             current_fundamentals = self.fundamentals_datasource.outgoing_row(date)
             index_components = self.portfolio_datasource.outgoing_row(date)
-            factors = self.factor_datasource.outgoing_row(date)
 
             assign_dict = {
                 "date": date,
@@ -400,7 +384,6 @@ class Runner(loader.Runner):
                 "spx_pe": current_multiples["SPX_PE"],
                 "spx_pb": current_multiples["SPX_PB"],
                 "spx_ps": current_multiples["SPX_PS"],
-                "fama_french_factors": factors,
             }
 
             for return_engine, return_object in self.return_engines.items():
@@ -426,7 +409,6 @@ class Runner(loader.Runner):
                         self.marketmultiple_datasource.is_valid(date)
                         and self.fundamentals_datasource.is_valid(date)
                         and self.portfolio_datasource.is_valid(date)
-                        and self.factor_datasource.is_valid(date)
                         and strat_obj.is_valid()
                     ):
                         strat_obj.backtest(**assign_dict)

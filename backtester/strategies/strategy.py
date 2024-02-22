@@ -283,7 +283,6 @@ class Strategy(object):
         date: datetime.date,
         index_comp: np.ndarray,
         market_caps: np.ndarray,
-        fama_french_factors: np.ndarray,
         **kwargs,
     ) -> None:
         """
@@ -298,8 +297,6 @@ class Strategy(object):
             index components for date
         market_caps: np.array
             market caps of assets in universe
-        fama_french_factors: np.array
-            fama french factors for regression
         """
         risk_budgets = self.get_risk_budgets(date)
         for allocation_name, allocation_engine in self.allocation_engines_d.items():
@@ -327,9 +324,6 @@ class Strategy(object):
             cum_return = ((ex_ante_portfolio_return["return"] + 1).cumprod() - 1)[
                 -1:
             ].to_numpy()
-            self.allocation_engines_d[allocation_model].run_factor_regression(
-                fama_french_factors, cum_return, date
-            )
 
     @property
     def return_metrics_intuitive(self) -> np.ndarray:
