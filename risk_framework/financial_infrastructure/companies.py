@@ -68,8 +68,34 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
                         if pd.isna(self.rud_information[val]):
                             new_val = companies[parent].rud_information[val]
                             self.rud_information[val] = new_val
-
                 break
+
+    def attach_transition_info(
+        self,
+        transition_company_mapping: dict,
+    ) -> None:
+        """
+        Overwrite Enabler/Improver and Acronym tag for company specific companies
+
+        Parameters
+        ----------
+        transition_company_mapping: dict
+            companies with company specific improver/enabler tag
+        companies: dict
+            dictionary of all company objects
+        """
+        if hasattr(self.information["Sub-Industry"], "transition"):
+            transition_info = deepcopy(self.information["Sub-Industry"].transition)
+        else:
+            transition_info = dict()
+        if self.isin in transition_company_mapping:
+            transition_info["ENABLER_IMPROVER"] = transition_company_mapping[self.isin][
+                "ENABLER_IMPROVER"
+            ]
+            transition_info["ACRONYM"] = transition_company_mapping[self.isin][
+                "ACRONYM"
+            ]
+        self.information["transition_info"] = transition_info
 
     def update_sovereign_score(self) -> None:
         """
@@ -122,6 +148,33 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
                 0,
             ]
         )
+
+    def calculate_climate_decarb(self) -> None:
+        """
+        Calculate the decarbonization improvement of a company
+        """
+        if self.msci_information["SALES_USD_RECENT"] > 0:
+            carbon_rn = (
+                self.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN"]
+                + self.msci_information["CARBON_EMISSIONS_SCOPE_3"]
+                / self.msci_information["SALES_USD_RECENT"]
+            )
+        else:
+            carbon_rn = 0
+
+        if self.msci_information["SALES_USD_FY19"] > 0:
+            carbon_2019 = (
+                self.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN_FY19"]
+                + self.msci_information["CARBON_EMISSIONS_SCOPE_3_FY19"]
+                / self.msci_information["SALES_USD_FY19"]
+            )
+        else:
+            carbon_2019 = 0
+
+        if carbon_2019 > 0:
+            self.information["Decarb"] = carbon_rn / carbon_2019 - 1
+        else:
+            self.information["Decarb"] = 0
 
     def calculate_carbon_intensity(self) -> None:
         """
@@ -447,59 +500,31 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
             return
 
         # check if company's sub industry has transition plan
-        if hasattr(self.information["Sub-Industry"], "transition"):
-            transition_target = self.information["Sub-Industry"].transition[
-                "Transition_Target"
-            ]
-            transition_revenue = self.information["Sub-Industry"].transition[
-                "Transition_Revenue"
-            ]
+        if self.information["transition_info"]:
+            reduction_target = self.sdg_information["ClimateGHGReductionTargets"]
+            sbti_commited_target = self.msci_information["HAS_COMMITTED_TO_SBTI_TARGET"]
+            sbti_approved_target = self.msci_information["HAS_SBTI_APPROVED_TARGET"]
 
-            # check requirements for transition target
-            if not pd.isna(transition_target):
-                func_ = getattr(transition, transition_target)
-                transition_ = func_(
-                    reduction_target=self.sdg_information["ClimateGHGReductionTargets"],
-                    sbti_commited_target=self.msci_information[
-                        "HAS_COMMITTED_TO_SBTI_TARGET"
-                    ],
-                    sbti_approved_target=self.msci_information[
-                        "HAS_SBTI_APPROVED_TARGET"
-                    ],
-                    capex=self.information["CapEx"],
-                    climate_rev=self.information["Climate_Revenue"],
-                    biofuel_rev=self.msci_information["CT_ALT_ENERGY_BIOFUEL_MAX_REV"],
-                    alt_energy_rev=self.msci_information["CT_ALT_ENERGY_MAX_REV"],
-                    thermal_coal_rev=self.msci_information["THERMAL_COAL_MAX_REV_PCT"],
-                    company_name=self.msci_information["ISSUER_NAME"],
-                )
-                # transition requirements fulfilled
-                if transition_:
-                    self.scores["Transition_Tag"] = "Y"
-                    self.scores["Transition_Category_unadjusted"].append(
-                        self.information["Sub-Industry"].transition["Acronym"]
-                    )
-                    self.scores["Transition_Category"].append(
-                        self.information["Sub-Industry"].transition["Acronym"]
-                    )
-                    return
+            transition_ = transition.calculate_transition_tag(
+                climate_rev=self.information["Climate_Revenue"],
+                company_capex=self.information["CapEx"],
+                company_decarb=self.information["Decarb"],
+                reduction_target=reduction_target,
+                sbti_approved_target=sbti_approved_target,
+                sbti_commited_target=sbti_commited_target,
+                **self.information["transition_info"]
+            )
 
-            # check requirements for transition revenue target
-            if not pd.isna(transition_revenue):
-                level = int(transition_revenue.split("_")[1])
-                transition_ = transition.Revenue(
-                    climate_rev=self.information["Climate_Revenue"],
-                    capex=self.information["CapEx"],
-                    revenue_threshold=level,
+            # transition requirements fulfilled
+            if transition_:
+                self.scores["Transition_Tag"] = "Y"
+                self.scores["Transition_Category_unadjusted"].append(
+                    self.information["Sub-Industry"].transition["ACRONYM"]
                 )
-                if transition_:
-                    self.scores["Transition_Tag"] = "Y"
-                    self.scores["Transition_Category_unadjusted"].append(
-                        self.information["Sub-Industry"].transition["Acronym"]
-                    )
-                    self.scores["Transition_Category"].append(
-                        self.information["Sub-Industry"].transition["Acronym"]
-                    )
+                self.scores["Transition_Category"].append(
+                    self.information["Sub-Industry"].transition["ACRONYM"]
+                )
+                return
 
     def calculate_corporate_score(self) -> None:
         """
@@ -625,9 +650,7 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
             elif score_sum == 0:
                 sec_store.is_not_scored()
 
-    def replace_unassigned_industry(
-        self, high_threshold: float, industries: dict
-    ) -> None:
+    def replace_unassigned_industry(self, industries: dict) -> None:
         """
         Split companies with unassigned industry and sub-industry into
         high and low transition risk
@@ -640,18 +663,22 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
         industries: dict
             dictionary of all industry objects
         """
-        # create new Industry objects for Unassigned High and Low
-        carb_int = self.information["Carbon Intensity (Scope 123)"]
-        # carbon intensity greater than threshold --> high risk
-        if carb_int > high_threshold:
-            self.information["Transition_Risk_Module"] = "High"
-            industries["Unassigned BCLASS High"].companies[self.isin] = self
-            self.information["Industry"] = industries["Unassigned BCLASS High"]
-        # carbon intensity smaller than threshold --> low risk
-        else:
-            self.information["Transition_Risk_Module"] = "Low"
-            industries["Unassigned BCLASS Low"].companies[self.isin] = self
-            self.information["Industry"] = industries["Unassigned BCLASS Low"]
+        if self.information["Industry"].name == "Unassigned BCLASS":
+            # create new Industry objects for Unassigned High and Low
+            carb_int = self.information["Carbon Intensity (Scope 123)"]
+            # carbon intensity greater than threshold --> high risk
+            if (
+                carb_int
+                >= self.information["Sub-Industry"].information["Sub-Sector Median"]
+            ):
+                self.information["Transition_Risk_Module"] = "High"
+                industries["Unassigned BCLASS High"].companies[self.isin] = self
+                self.information["Industry"] = industries["Unassigned BCLASS High"]
+            # carbon intensity smaller than threshold --> low risk
+            else:
+                self.information["Transition_Risk_Module"] = "Low"
+                industries["Unassigned BCLASS Low"].companies[self.isin] = self
+                self.information["Industry"] = industries["Unassigned BCLASS Low"]
 
     def iter(
         self,
@@ -661,7 +688,10 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
         msci_adjustment_dict: dict,
         gics_d: dict,
         bclass_d: dict,
+        industries: dict,
         category_d: dict,
+        themes: dict,
+        transition_company_mapping: dict,
     ) -> None:
         """
         - attach region information
@@ -687,8 +717,14 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
             dictionary of gics sub industries with gics as key, gics object as value
         bclass_d: dict
             dictionary of bclass sub industries with bclass as key, bclass object as value
+        industries: dict
+            dictionary of all industry objects
         category_d: dict
             dictionary of ESRM categories
+        themes: dict
+            dictionary of themes with theme as key, corresponding theme object as value
+        transition_company_mapping: dict
+            companies with company specific improver/enabler tag
         """
         super().iter(
             companies=companies,
@@ -697,17 +733,14 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
             msci_adjustment_dict=msci_adjustment_dict,
             gics_d=gics_d,
             bclass_d=bclass_d,
+            industries=industries,
             category_d=category_d,
+            themes=themes,
+            transition_company_mapping=transition_company_mapping,
         )
         # attach data from parent if missing
         if not pd.isna(self.msci_information["PARENT_ULTIMATE_ISSUERID"]):
             self.get_parent_issuer_data(companies)
-
-        # attach region
-        self.attach_region(regions)
-
-        # attach exclusion df
-        self.attach_exclusion(exclusion_dict)
 
         # attach GICS Sub industry
         self.attach_gics(gics_d)
@@ -715,8 +748,35 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
         # attach industry and sub industry
         self.attach_industry(gics_d, bclass_d)
 
+        # calculate capex
+        self.calculate_capex()
+
+        # calculate climate revenue
+        self.calculate_climate_revenue()
+
+        # calculate decarbonization
+        self.calculate_climate_decarb()
+
+        # calculate carbon intensite --> if na, assign industry median
+        self.calculate_carbon_intensity()
+
+        # replace industry for Unassigned BCLASS
+        self.replace_unassigned_industry(industries)
+
+        # overwrite improver/enabler tag for company specific companies
+        self.attach_transition_info(transition_company_mapping)
+
+        # attach region
+        self.attach_region(regions)
+
+        # attach exclusion df
+        self.attach_exclusion(exclusion_dict)
+
         # attach category
         self.attach_category(category_d)
 
         # attach analyst adjustment
         self.attach_analyst_adjustment(msci_adjustment_dict)
+
+        # check for sustainable theme
+        self.check_theme_requirements(themes)

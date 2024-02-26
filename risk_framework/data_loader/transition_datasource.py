@@ -19,14 +19,18 @@ class TransitionDataSource(ds.DataSources):
             GICS industry
         BCLASS_LEVEL4: str
             BClass industry
+        ENABLER_IMPROVER: str
+            Company GICS or BCLASS falls into Enabler or Improver category
+        Transition_Revenue_Enabler: str
+            transition revenue for enabler
+        Transition_Revenue_Improver: str
+            transition revenue for improver
         Transition_Target: str
             transition target
-        Transition_Revenue: str
-            transition revenue
-        Transition_Watch_Target: str
-            transition watch target
-        Transition_Watch_Revenue: str
-            transition watch revenue
+        DECARB: str
+            decarbonization target
+        CAPEX: str
+            capex target
         Acronym: str
             acronym for target
     """
@@ -56,23 +60,8 @@ class TransitionDataSource(ds.DataSources):
 
     def iter(self, gics: dict, bclass: dict) -> None:
         """
-        For each Sub-Sector, assign transition targets and transition revenue
-
-        Revenue_10	>10% Climate Revenue
-        Revenue_20	>20% Climate Revenue
-        Revenue_30	>30% Climate Revenue
-        Revenue_40	>40% Climate Revenue
-        Revenue_50	>50% Climate Revenue
-        Revenue_60	>60% Climate Revenue
-        Target_A	Approved SBTi
-        Target_AA	Approved SBTi or Ambitious Target
-        Target_AAC	Approved/Committed SBTi or Ambitious Target
-        Target_AACN	Approved/Committed SBTi or Ambitious Target or Non-Ambitious Target
-        Target_AC	Approved/Committed SBTi
-        Target_CA	Committed SBTi or Ambitious Target
-        Target_CN	Committed SBTi or Non-Ambitious Target
-        Target_N	Non-Ambitious Target
-        Target_NRev	Non-Ambitious Target AND >0% Climate Revenue
+        For each Sub-Sector, assign transition targets and transition revenue, capex, decarb and
+        enabler/improver
 
         Parameters
         ----------

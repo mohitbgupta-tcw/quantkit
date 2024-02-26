@@ -2,244 +2,161 @@ import quantkit.utils.util_functions as util_functions
 import quantkit.utils.mapping_configs as mapping_configs
 
 
-def OilandGas(
-    reduction_target: str,
-    sbti_commited_target: int,
-    sbti_approved_target: int,
-    capex: float,
+def calculate_transition_tag(
+    ENABLER_IMPROVER: str,
     climate_rev: float,
-    biofuel_rev: float,
-    **kwargs,
+    TRANSITION_REVENUE_ENABLER: str,
+    TRANSITION_REVENUE_IMPROVER: str,
+    company_capex: float,
+    CAPEX: str,
+    company_decarb: float,
+    DECARB: str,
+    reduction_target: str,
+    sbti_approved_target: int,
+    sbti_commited_target: int,
+    **kwargs
 ) -> bool:
     """
-    Check Transition target for oil and gas companies
+    Check if company fulfills transition tag logic
 
     Parameters
     ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_commited_target: int
-        company has committed to work on a science-based emission reduction target
-    sbti_approved_target: int
-        company has one or more active carbon emissions reduction target/s
-        approved by the Science Based Targets initiative
-    capex: float
+    ENABLER_IMPROVER: str
+        company's sub industry has enabler or improver tag
+    climate_rev: float
+        all revenues derived from any of the climate change environment impact themes
+    TRANSITION_REVENUE_ENABLER: str
+        minimum revenue threshold in form "REVENUE_level" for enabler
+    TRANSITION_REVENUE_IMPROVER: str
+        minimum revenue threshold in form "REVENUE_level" for improver
+    company_capex: float
         capex
-    climate_rev: float
-        all revenues derived from any of the climate change environment impact themes
-    biofuel_rev: float
-        recent-year percentage of revenue a company has derived from
-        non-virgin source biofuels
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if (
-        util_functions.include_rule(reduction_target, mapping_configs.TargetAAC)
-        or util_functions.eq_rule(sbti_commited_target, 1)
-        or util_functions.eq_rule(sbti_approved_target, 1)
-    ) and (
-        util_functions.bigger_rule(capex, 0)
-        or util_functions.bigger_rule(climate_rev, 0)
-    ):
-        return True
-    elif (
-        util_functions.bigger_eq_rule(capex, 15)
-        and util_functions.bigger_rule(climate_rev, 0)
-    ) or (
-        util_functions.bigger_rule(capex, 0)
-        and util_functions.bigger_eq_rule(climate_rev, 15)
-    ):
-        return True
-    elif util_functions.bigger_eq_rule(climate_rev, 25) or util_functions.bigger_rule(
-        biofuel_rev, 25
-    ):
-        return True
-    return False
-
-
-def CoalFuels(
-    alt_energy_rev: float, climate_rev: float, thermal_coal_rev: float, **kwargs
-) -> bool:
-    """
-    Check Transition target for coal companies
-
-    Parameters
-    ----------
-    alt_energy_rev: float
-        recent-year percentage of revenue a company has derived from products,
-        services, or infrastructure projects supporting the development or
-        delivery of renewable energy and alternative fuels
-    climate_rev: float
-        all revenues derived from any of the climate change environment impact themes
-    thermal_coal_rev: float
-        maximum percentage of revenue greater than 0% that a company derives
-        from the mining of thermal coal
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if (
-        util_functions.bigger_eq_rule(alt_energy_rev, 95)
-        or util_functions.bigger_eq_rule(climate_rev, 95)
-        or util_functions.eq_rule(thermal_coal_rev, 0)
-    ):
-        return True
-    return False
-
-
-def IndGases(
-    reduction_target: str,
-    sbti_commited_target: int,
-    sbti_approved_target: int,
-    climate_rev: float,
-    company_name: str,
-    **kwargs,
-) -> bool:
-    """
-    Check Transition target for industrial gases companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_commited_target: int
-        company has committed to work on a science-based emission reduction target
-    sbti_approved_target: int
-        company has one or more active carbon emissions reduction target/s
-        approved by the Science Based Targets initiative
-    climate_rev: float
-        all revenues derived from any of the climate change environment impact themes
-    company_name: str
-        name of company
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if (
-        util_functions.include_rule(reduction_target, mapping_configs.TargetAAC)
-        or util_functions.eq_rule(sbti_commited_target, 1)
-        or util_functions.eq_rule(sbti_approved_target, 1)
-        or util_functions.include_rule("Lithium", company_name)
-    ):
-        return True
-    elif (
-        util_functions.include_rule(reduction_target, mapping_configs.TargetAACN)
-        or util_functions.eq_rule(sbti_commited_target, 1)
-        or util_functions.eq_rule(sbti_approved_target, 1)
-    ) and util_functions.bigger_eq_rule(climate_rev, 5):
-        return True
-    return False
-
-
-def Utilities(
-    reduction_target: str,
-    sbti_commited_target: int,
-    sbti_approved_target: int,
-    capex: float,
-    climate_rev: float,
-    **kwargs,
-) -> bool:
-    """
-    Check Transition target for utilities companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_commited_target: int
-        company has committed to work on a science-based emission reduction target
-    sbti_approved_target: int
-        company has one or more active carbon emissions reduction target/s
-        approved by the Science Based Targets initiative
-    capex: float
+    CAPEX: str
+        minimum capex threshold in form "CAPEX_level"
+    company_decarb: float
         capex
+    DECARB: str
+        minimum capex threshold in form "REDUCTION_level"
+    reduction_target: str
+        ClimateGHGReductionTargets
+    sbti_approved_target: int
+        company has one or more active carbon emissions reduction target/s
+        approved by the Science Based Targets initiative
+    sbti_commited_target: int
+        company has committed to work on a science-based emission reduction target
+
+    Returns
+    -------
+    bool:
+        company fulfills transition logic
+    """
+    if ENABLER_IMPROVER == "ENABLER":
+        return calculate_enabler_tag(
+            climate_rev=climate_rev, TRANSITION_REVENUE=TRANSITION_REVENUE_ENABLER
+        )
+    elif ENABLER_IMPROVER == "IMPROVER":
+        return calculate_improver_tag(
+            climate_rev=climate_rev,
+            TRANSITION_REVENUE=TRANSITION_REVENUE_IMPROVER,
+            company_capex=company_capex,
+            CAPEX=CAPEX,
+            company_decarb=company_decarb,
+            DECARB=DECARB,
+            reduction_target=reduction_target,
+            sbti_approved_target=sbti_approved_target,
+            sbti_commited_target=sbti_commited_target,
+        )
+
+
+def calculate_enabler_tag(climate_rev: float, TRANSITION_REVENUE: str) -> bool:
+    """
+    Check if company fulfills enabler transition logic
+
+    Logic
+    -----
+        climate_revenue > revenue_threshold
+
+    Parameters
+    ----------
     climate_rev: float
         all revenues derived from any of the climate change environment impact themes
+    TRANSITION_REVENUE: str
+        minimum revenue threshold in form "REVENUE_level"
 
     Returns
     -------
-    bool
-        rule is fulfilled
+    bool:
+        enabler fulfills enabler transition logic
     """
-    if reduction_target == "Approved SBT" or util_functions.eq_rule(
-        sbti_approved_target, 1
-    ):
-        return True
-    elif reduction_target == "Ambitious Target" and (
-        util_functions.bigger_eq_rule(capex, 30)
-        or util_functions.bigger_eq_rule(climate_rev, 20)
-    ):
-        return True
-    elif (
-        reduction_target == "Committed SBT"
-        or util_functions.eq_rule(sbti_commited_target, 1)
-    ) and util_functions.bigger_eq_rule(climate_rev, 35):
-        return True
-    elif util_functions.bigger_eq_rule(climate_rev, 40):
-        return True
-    return False
+    return check_revenue(climate_rev=climate_rev, TRANSITION_REVENUE=TRANSITION_REVENUE)
 
 
-def Target_A(reduction_target: str, sbti_approved_target: int, **kwargs) -> bool:
-    """
-    Check Transition target for Target A companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_approved_target: int
-        company has one or more active carbon emissions reduction target/s
-        approved by the Science Based Targets initiative
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if util_functions.include_rule(
-        reduction_target, mapping_configs.TargetA
-    ) or util_functions.eq_rule(sbti_approved_target, 1):
-        return True
-    return False
-
-
-def Target_AA(reduction_target: str, sbti_approved_target: int, **kwargs) -> bool:
-    """
-    Check Transition target for Target AA companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_approved_target: int
-        company has one or more active carbon emissions reduction target/s
-        approved by the Science Based Targets initiative
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if util_functions.include_rule(
-        reduction_target, mapping_configs.TargetAA
-    ) or util_functions.eq_rule(sbti_approved_target, 1):
-        return True
-    return False
-
-
-def Target_AAC(
+def calculate_improver_tag(
+    climate_rev: float,
+    TRANSITION_REVENUE: str,
+    company_capex: float,
+    CAPEX: str,
+    company_decarb: float,
+    DECARB: str,
     reduction_target: str,
     sbti_approved_target: int,
     sbti_commited_target: int,
-    **kwargs,
+) -> bool:
+    """
+    Check if company fulfills improver transition logic
+
+    Logic
+    -----
+        has AAC tag
+        AND
+            climate_revenue > revenue_threshold OR
+            capex_revenue > capex_threshold
+
+    Parameters
+    ----------
+    climate_rev: float
+        all revenues derived from any of the climate change environment impact themes
+    TRANSITION_REVENUE: str
+        minimum revenue threshold in form "REVENUE_level"
+    company_capex: float
+        capex
+    CAPEX: str
+        minimum capex threshold in form "CAPEX_level"
+    company_decarb: float
+        capex
+    DECARB: str
+        minimum capex threshold in form "REDUCTION_level"
+    reduction_target: str
+        ClimateGHGReductionTargets
+    sbti_approved_target: int
+        company has one or more active carbon emissions reduction target/s
+        approved by the Science Based Targets initiative
+    sbti_commited_target: int
+        company has committed to work on a science-based emission reduction target
+
+    Returns
+    -------
+    bool:
+        enabler fulfills improver transition logic
+    """
+    target = check_target(
+        reduction_target=reduction_target,
+        sbti_approved_target=sbti_approved_target,
+        sbti_commited_target=sbti_commited_target,
+    )
+    revenue = check_revenue(
+        climate_rev=climate_rev, TRANSITION_REVENUE=TRANSITION_REVENUE
+    )
+    capex = check_capex(company_capex=company_capex, CAPEX=CAPEX)
+
+    decarb = check_decarb(company_decarb=company_decarb, DECARB=DECARB)
+    return target and (revenue or capex or decarb)
+
+
+def check_target(
+    reduction_target: str,
+    sbti_approved_target: int,
+    sbti_commited_target: int,
 ) -> bool:
     """
     Check Transition target for Target AAC companies
@@ -268,166 +185,7 @@ def Target_AAC(
     return False
 
 
-def Target_AACN(
-    reduction_target: str,
-    sbti_approved_target: int,
-    sbti_commited_target: int,
-    **kwargs,
-) -> bool:
-    """
-    Check Transition target for Target AACN companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_approved_target: int
-        company has one or more active carbon emissions reduction target/s
-        approved by the Science Based Targets initiative
-    sbti_commited_target: int
-        company has committed to work on a science-based emission reduction target
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if (
-        util_functions.include_rule(reduction_target, mapping_configs.TargetAACN)
-        or util_functions.eq_rule(sbti_approved_target, 1)
-        or util_functions.eq_rule(sbti_commited_target, 1)
-    ):
-        return True
-    return False
-
-
-def Target_AC(
-    reduction_target: str,
-    sbti_approved_target: int,
-    sbti_commited_target: int,
-    **kwargs,
-) -> bool:
-    """
-    Check Transition target for Target AC companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_approved_target: int
-        company has one or more active carbon emissions reduction target/s
-        approved by the Science Based Targets initiative
-    sbti_commited_target: int
-        company has committed to work on a science-based emission reduction target
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if (
-        util_functions.include_rule(reduction_target, mapping_configs.TargetAC)
-        or util_functions.eq_rule(sbti_approved_target, 1)
-        or util_functions.eq_rule(sbti_commited_target, 1)
-    ):
-        return True
-    return False
-
-
-def Target_CA(reduction_target: str, sbti_commited_target: int, **kwargs) -> bool:
-    """
-    Check Transition target for Target CA companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_commited_target: int
-        company has committed to work on a science-based emission reduction target
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if util_functions.include_rule(
-        reduction_target, mapping_configs.TargetCA
-    ) or util_functions.eq_rule(sbti_commited_target, 1):
-        return True
-    return False
-
-
-def Target_CN(reduction_target: str, sbti_commited_target: int, **kwargs) -> bool:
-    """
-    Check Transition target for Target CN companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    sbti_commited_target: int
-        company has committed to work on a science-based emission reduction target
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if util_functions.include_rule(
-        reduction_target, mapping_configs.TargetCN
-    ) or util_functions.eq_rule(sbti_commited_target, 1):
-        return True
-    return False
-
-
-def Target_N(reduction_target: str, **kwargs) -> bool:
-    """
-    Check Transition target for Target N companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if util_functions.include_rule(reduction_target, mapping_configs.TargetN):
-        return True
-    return False
-
-
-def Target_NRev(
-    reduction_target: str, climate_rev: float, capex: float, **kwargs
-) -> bool:
-    """
-    Check Transition target for Target NRev companies
-
-    Parameters
-    ----------
-    reduction_target: str
-        ClimateGHGReductionTargets
-    climate_rev: float
-        all revenues derived from any of the climate change environment impact themes
-    capex: float
-        capex
-
-    Returns
-    -------
-    bool
-        rule is fulfilled
-    """
-    if (
-        util_functions.include_rule(reduction_target, mapping_configs.TargetN)
-        and util_functions.bigger_rule(climate_rev, 0)
-    ) or util_functions.bigger_rule(capex, 10):
-        return True
-    return False
-
-
-def Revenue(climate_rev: float, revenue_threshold: int, capex: float) -> bool:
+def check_revenue(climate_rev: float, TRANSITION_REVENUE: str) -> bool:
     """
     Check Transition Revenue Target
 
@@ -435,18 +193,59 @@ def Revenue(climate_rev: float, revenue_threshold: int, capex: float) -> bool:
     ----------
     climate_rev: float
         all revenues derived from any of the climate change environment impact themes
-    revenue_threshold: float
-        minimum revenue threshold
-    capex: float
-        capex
+    TRANSITION_REVENUE: str
+        minimum revenue threshold in form "REVENUE_level"
 
     Returns
     -------
     bool
         rule is fulfilled
     """
-    if util_functions.bigger_eq_rule(
-        climate_rev, revenue_threshold
-    ) or util_functions.bigger_eq_rule(capex, 10):
+    level = int(TRANSITION_REVENUE.split("_")[1])
+    if util_functions.bigger_eq_rule(climate_rev, level):
+        return True
+    return False
+
+
+def check_capex(company_capex: float, CAPEX: str) -> bool:
+    """
+    Check Transition CapEx Target
+
+    Parameters
+    ----------
+    company_capex: float
+        capex
+    CAPEX: str
+        minimum capex threshold in form "CAPEX_level"
+
+    Returns
+    -------
+    bool
+        rule is fulfilled
+    """
+    level = int(CAPEX.split("_")[1])
+    if util_functions.bigger_eq_rule(company_capex, level):
+        return True
+    return False
+
+
+def check_decarb(company_decarb: float, DECARB: str) -> bool:
+    """
+    Check Transition CapEx Target
+
+    Parameters
+    ----------
+    company_decarb: float
+        capex
+    DECARB: str
+        minimum capex threshold in form "REDUCTION_level"
+
+    Returns
+    -------
+    bool
+        rule is fulfilled
+    """
+    level = int(DECARB.split("_")[1]) / 100
+    if company_decarb <= -level:
         return True
     return False

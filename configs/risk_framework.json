@@ -1,10 +1,4 @@
 {
-    "transition_parameters": {
-        "Q_Low" : 0.10,
-        "Q_High": 0.70, 
-        "High_Threshold": 1500
-
-    },
     "portfolio_datasource": {
         "tcw_universe": ["all"],
         "transformation": {
@@ -168,6 +162,11 @@
                 "PALM_TIE",
                 "ACCESS_TO_HLTHCRE_SCORE",
                 "CARBON_EMISSIONS_SCOPE_12_INTEN",
+                "CARBON_EMISSIONS_SCOPE_3",
+                "SALES_USD_RECENT",
+                "CARBON_EMISSIONS_SCOPE_12_INTEN_FY19",
+                "CARBON_EMISSIONS_SCOPE_3_FY19",
+                "SALES_USD_FY19",
                 "CARBON_GOVERNMENT_GHG_INTENSITY_GDP_TONPERMN",
                 "INDUSTRY_ADJUSTED_SCORE", 
                 "GOVERNMENT_ADJUSTED_ESG_SCORE",

@@ -91,13 +91,10 @@ class SubIndustryDataSource(ds.DataSources):
     ---------
     params: dict
         datasource specific parameters including source
-    transition_params: dict
-        transition paramaters
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
+    def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
-        self.transition_params = transition_params
         self.industries = dict()
 
     def load(self) -> None:
@@ -145,7 +142,6 @@ class SubIndustryDataSource(ds.DataSources):
                 sectors.Industry(
                     industry,
                     transition_risk=row["Transition Risk Module"],
-                    **self.transition_params,
                 ),
             )
 
@@ -173,8 +169,6 @@ class BClassDataSource(SubIndustryDataSource):
     ---------
     params: dict
         datasource specific parameters including source
-    transition_params: dict
-        transition paramaters
 
     Returns
     -------
@@ -193,15 +187,17 @@ class BClassDataSource(SubIndustryDataSource):
             transition risk of industry
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
-        super().__init__(params, transition_params, **kwargs)
+    def __init__(self, params: dict, **kwargs) -> None:
+        super().__init__(params, **kwargs)
         self.bclass = dict()
 
         self.industries["Unassigned BCLASS High"] = sectors.Industry(
-            "Unassigned BCLASS High", transition_risk="High", **transition_params
+            "Unassigned BCLASS High",
+            transition_risk="High",
         )
         self.industries["Unassigned BCLASS Low"] = sectors.Industry(
-            "Unassigned BCLASS Low", transition_risk="Low", **transition_params
+            "Unassigned BCLASS Low",
+            transition_risk="Low",
         )
 
     def iter(self) -> None:
@@ -222,8 +218,6 @@ class GICSDataSource(SubIndustryDataSource):
     ---------
     params: dict
         datasource specific parameters including source
-    transition_params: dict
-        transition paramaters
 
     Returns
     -------
@@ -244,8 +238,8 @@ class GICSDataSource(SubIndustryDataSource):
             transition risk of industry
     """
 
-    def __init__(self, params: dict, transition_params: dict, **kwargs) -> None:
-        super().__init__(params, transition_params, **kwargs)
+    def __init__(self, params: dict, **kwargs) -> None:
+        super().__init__(params, **kwargs)
         self.gics = dict()
 
     def iter(self) -> None:

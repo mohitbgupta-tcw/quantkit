@@ -5,6 +5,7 @@ import quantkit.risk_framework.data_loader.themes_datasource as themes_datasourc
 import quantkit.risk_framework.data_loader.category_datasource as category_database
 import quantkit.risk_framework.data_loader.sector_datasource as sector_database
 import quantkit.risk_framework.data_loader.transition_datasource as transition_datasource
+import quantkit.risk_framework.data_loader.transition_company_datasource as transition_company_datasource
 import quantkit.risk_framework.data_loader.parent_issuer_datasource as pi_datasource
 import quantkit.risk_framework.data_loader.sdg_datasource as sdg_datasource
 import quantkit.risk_framework.data_loader.securitized_datasource as securitized_datasource
@@ -51,24 +52,29 @@ class Runner(loader.Runner):
             params=self.params["sector_datasource"], api_settings=self.api_settings
         )
 
-        transition_params = self.params.get("transition_parameters", dict())
         # connect BCLASS datasource
         self.bclass_datasource = sector_database.BClassDataSource(
             params=self.params["bclass_datasource"],
-            transition_params=transition_params,
             api_settings=self.api_settings,
         )
 
         # connect GICS datasource
         self.gics_datasource = sector_database.GICSDataSource(
             params=self.params["gics_datasource"],
-            transition_params=transition_params,
             api_settings=self.api_settings,
         )
 
         # connect transition datasource
         self.transition_datasource = transition_datasource.TransitionDataSource(
             params=self.params["transition_datasource"], api_settings=self.api_settings
+        )
+
+        # connect transition company datasource
+        self.transition_company_datasource = (
+            transition_company_datasource.TransitionCompanyDataSource(
+                params=self.params["transition_company_datasource"],
+                api_settings=self.api_settings,
+            )
         )
 
         # connect parent issuer datasource
@@ -186,11 +192,14 @@ class Runner(loader.Runner):
     def iter_transitions(self) -> None:
         """
         - load transition data
+        - load company mapping for transition
         """
         self.transition_datasource.load()
         self.transition_datasource.iter(
             self.gics_datasource.gics, self.bclass_datasource.bclass
         )
+        self.transition_company_datasource.load()
+        self.transition_company_datasource.iter()
 
     def iter_securitized_mapping(self) -> None:
         """
@@ -344,49 +353,14 @@ class Runner(loader.Runner):
                 companies=self.portfolio_datasource.companies,
                 regions=self.region_datasource.regions,
                 exclusion_dict=self.exclusion_datasource.exclusions,
+                msci_adjustment_dict=self.adjustment_datasource.msci_ids,
                 gics_d=self.gics_datasource.gics,
                 bclass_d=self.bclass_datasource.bclass,
+                industries=self.bclass_datasource.industries,
                 category_d=self.category_datasource.categories,
-                msci_adjustment_dict=self.adjustment_datasource.msci_ids,
+                themes=self.theme_datasource.themes,
+                transition_company_mapping=self.transition_company_datasource.transition_mapping,
             )
-        self.company_calculations()
-        self.replace_transition_risk()
-
-    def company_calculations(self):
-        """
-        Multiple Company calculations
-        """
-        for c, comp_store in self.portfolio_datasource.companies.items():
-            # calculate capex
-            comp_store.calculate_capex()
-
-            # calculate climate revenue
-            comp_store.calculate_climate_revenue()
-
-            # calculate carbon intensite --> if na, assign industry median
-            comp_store.calculate_carbon_intensity()
-
-            # assign theme and Sustainability_Tag
-            comp_store.check_theme_requirements(self.theme_datasource.themes)
-
-    def replace_transition_risk(self) -> None:
-        """
-        Split companies with unassigned industry and sub-industry into
-        high and low transition risk
-        --> check if carbon intensity is bigger or smaller than predefined threshold
-        """
-        # create new Industry objects for Unassigned High and Low
-
-        for c, store in self.bclass_datasource.industries[
-            "Unassigned BCLASS"
-        ].companies.items():
-            if store.type == "company":
-                store.replace_unassigned_industry(
-                    high_threshold=self.params["transition_parameters"][
-                        "High_Threshold"
-                    ],
-                    industries=self.bclass_datasource.industries,
-                )
 
     def iter_portfolios(self) -> None:
         """

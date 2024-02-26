@@ -161,7 +161,13 @@
 
     "transition_datasource": {
         "source": 3,
-        "table_name": "TRANSITION_MAPPING",
+        "table_name": "TRANSITION_MAPPING_NEW",
+        "database": "SANDBOX_ESG",
+        "schema": "ESG"
+    },
+    "transition_company_datasource": {
+        "source": 3,
+        "table_name": "TRANSITION_MAPPING_COMPANY",
         "database": "SANDBOX_ESG",
         "schema": "ESG"
     },
