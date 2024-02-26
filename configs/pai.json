@@ -1,7 +1,7 @@
 {   
     "exchange_rate": 0.9802,
     "msci_datasource": {
-        "url": "https://api2.msci.com/esg/data/v1.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "url": "https://api.msci.com/esg/data/v2.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
         "historical": true,
         "filters": {
             "issuer_identifier_type": "ISIN",

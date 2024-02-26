@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - create seperate objects for those folders inheriting from core folder
 - iter holdings function optimized for speed
 - Transition Framework 2.0
+- MSCI API change to auth2.0
 ### Removed
 - Remove fama french factor calculation
 

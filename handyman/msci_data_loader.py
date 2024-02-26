@@ -38,11 +38,10 @@ def create_msci_mapping(
             "ISSUERID",
         ],
     }
-    url = "https://api2.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
+    url = "https://api.msci.com/esg/data/v2.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
     msci_object = msci.MSCI(url=url, filters=filters, **msci_params)
     msci_object.load()
     msci_df = msci_object.df
-    msci_df = msci_df.rename(columns={"CLIENT_IDENTIFIER": "Client_ID"})
     return msci_df
 
 
@@ -69,8 +68,8 @@ def run_msci_api(
         DataFrame of MSCI information
     """
 
-    api_key = "b769e9c4-16c4-45f8-89a5-6f555587a640"
-    api_secret = "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
+    api_key = "B0ULIIFQM0qFl50yaT9AFB0M3sbhswcg"
+    api_secret = "D9_8FoQlTeFkGTjI7RkProVa2M5z9SI2xAm4wz6WLsiW9_h2DVZKhqtSuxPcH5OZ"
 
     if not factor_name_list:
         factor_name_list = [
@@ -187,7 +186,7 @@ def run_msci_api(
         "factor_name_list": factor_name_list,
     }
 
-    url = "https://api2.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
+    url = "https://api.msci.com/esg/data/v2.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
 
     msci_object = msci.MSCI(api_key, api_secret, url, filters)
     msci_object.load()
@@ -227,8 +226,8 @@ def run_historical_msci_api(
         DataFrame of MSCI information
     """
 
-    api_key = "b769e9c4-16c4-45f8-89a5-6f555587a640"
-    api_secret = "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
+    api_key = "B0ULIIFQM0qFl50yaT9AFB0M3sbhswcg"
+    api_secret = "D9_8FoQlTeFkGTjI7RkProVa2M5z9SI2xAm4wz6WLsiW9_h2DVZKhqtSuxPcH5OZ"
 
     if not factor_name_list:
         factor_name_list = [
@@ -350,7 +349,7 @@ def run_historical_msci_api(
         "data_layout": "by_factor",
     }
 
-    url = "https://api2.msci.com/esg/data/v1.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
+    url = "https://api.msci.com/esg/data/v2.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json"
 
     msci_object = msci.MSCI(api_key, api_secret, url, filters)
     msci_object.load_historical()

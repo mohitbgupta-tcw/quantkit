@@ -1,6 +1,5 @@
 import os
 import requests
-from base64 import b64encode
 import json
 from copy import deepcopy
 import pandas as pd
@@ -33,25 +32,42 @@ class MSCI(object):
         self.url = url
         self.filters = filters
 
+    def request_authorization(self) -> str:
+        """
+        Generate authorization token
+
+        Returns
+        -------
+        str:
+            authorization token
+        """
+        grant_type = "client_credentials"
+        token_dict = {
+            "grant_type": grant_type,
+            "client_id": self.key,
+            "client_secret": self.secret,
+            "audience": "https://esg/data",
+        }
+        oauth_url = "https://accounts.msci.com/oauth/token/"
+        auth_response = requests.post(
+            oauth_url, data=token_dict, verify="quantkit/certs.crt"
+        )
+        auth_response_json = auth_response.json()
+        auth_token = auth_response_json["access_token"]
+        return auth_token
+
     def load(self, **kwargs) -> None:
         """
         Load data from MSCI API and save as pd.DataFrame in self.df
         """
-        b64login = b64encode(
-            bytes(
-                "%s:%s"
-                % (
-                    self.key,
-                    self.secret,
-                ),
-                encoding="utf-8",
-            )
-        ).decode("utf-8")
+
+        # generate token
+        auth_token = self.request_authorization()
 
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "Authorization": "Basic %s" % b64login,
+            "Authorization": "Bearer %s" % auth_token,
         }
 
         # MSCI API can only handle 1000 issuers at once
@@ -59,7 +75,8 @@ class MSCI(object):
             util_functions.divide_chunks(self.filters["issuer_identifier_list"], 1000)
         )
         self.df = pd.DataFrame()
-        for batch in batches:
+        for i, batch in enumerate(batches):
+            logging.log(f"Batch {i+1}/{len(batches)}")
             filters = deepcopy(self.filters)
             filters["issuer_identifier_list"] = batch
             inp = json.dumps(filters)
@@ -88,28 +105,20 @@ class MSCI(object):
             if "issuers" in response.json()["result"]:
                 df = pd.DataFrame(response.json()["result"]["issuers"])
             else:
-                df = pd.DataFrame(columns=["Client_ID", "ISSUERID"])
+                df = pd.DataFrame(columns=["CLIENT_IDENTIFIER", "ISSUERID"])
             self.df = pd.concat([self.df, df], ignore_index=True)
 
     def load_historical(self, **kwargs) -> None:
         """
         Load historical data from MSCI API and save as pd.DataFrame in self.df
         """
-        b64login = b64encode(
-            bytes(
-                "%s:%s"
-                % (
-                    self.key,
-                    self.secret,
-                ),
-                encoding="utf-8",
-            )
-        ).decode("utf-8")
+        # generate token
+        auth_token = self.request_authorization()
 
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "Authorization": "Basic %s" % b64login,
+            "Authorization": "Bearer %s" % auth_token,
         }
 
         self.df = pd.DataFrame()
@@ -134,7 +143,7 @@ class MSCI(object):
 
         for batch in range(batches):
             logging.log(f"Batch: {batch+1}/{batches}")
-            url = f"https://api2.msci.com/esg/data/v1.0/issuers/history"
+            url = f"https://api.msci.com/esg/data/v2.0/issuers/history"
             js = {"batch_id": batch + 1, "data_request_id": data_request_id}
             r_batch = requests.request(
                 "POST", url, headers=headers, json=js, verify="quantkit/certs.crt"
@@ -154,10 +163,11 @@ class MSCI(object):
                         aod = data[k]["as_of_date"]
                         data_list.append((issuer, factor_name, value, aod))
             df = pd.DataFrame(
-                data=data_list, columns=["Client_ID", "Factor", "Value", "As_Of_Date"]
+                data=data_list,
+                columns=["CLIENT_IDENTIFIER", "Factor", "Value", "As_Of_Date"],
             )
             self.df = pd.concat([self.df, df], ignore_index=True)
 
         self.df = self.df.pivot(
-            index=["Client_ID", "As_Of_Date"], columns="Factor", values="Value"
+            index=["CLIENT_IDENTIFIER", "As_Of_Date"], columns="Factor", values="Value"
         ).reset_index()

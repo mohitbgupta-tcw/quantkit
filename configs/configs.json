@@ -7,8 +7,8 @@
             },
     
         "msci_parameters": {
-            "key": "b769e9c4-16c4-45f8-89a5-6f555587a640",
-            "secret" : "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
+            "key": "B0ULIIFQM0qFl50yaT9AFB0M3sbhswcg",
+            "secret" : "D9_8FoQlTeFkGTjI7RkProVa2M5z9SI2xAm4wz6WLsiW9_h2DVZKhqtSuxPcH5OZ"
         },
     
         "quandl_parameters": {
@@ -74,7 +74,7 @@
     },
     "msci_datasource": {
         "source": 4,
-        "url": "https://api2.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "url": "https://api.msci.com/esg/data/v2.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
         "historical": false,
         "filters": {
             "issuer_identifier_type": "ISSUER_ID",
@@ -126,7 +126,7 @@
     },
     "exclusion_datasource": {
         "source": 4,
-        "url": "https://api2.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "url": "https://api.msci.com/esg/data/v2.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
         "historical": false,
         "filters": {
             "issuer_identifier_type": "ISSUER_ID",
