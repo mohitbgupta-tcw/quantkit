@@ -6,6 +6,7 @@ import quantkit.core.data_sources.quandl as quandl
 import quantkit.core.data_sources.json_ds as json_ds
 import quantkit.core.data_sources.sql_server as sql_server
 import quantkit.core.data_sources.fred as fred
+import quantkit.core.data_sources.bloomberg as bloomberg
 
 
 class DataSources(object):
@@ -63,6 +64,10 @@ class DataSources(object):
         elif params["source"] == 8:
             fred_params = api_settings["fred_parameters"]
             self.datasource = fred.FRED(**fred_params)
+
+        # Bloomberg
+        elif params["source"] == 9:
+            self.datasource = bloomberg.Bloomberg(**params)
 
     def transform_df(self) -> None:
         """

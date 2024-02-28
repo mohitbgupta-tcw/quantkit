@@ -14,12 +14,19 @@ class Bloomberg(object):
         dictionary of parameters for function call
     """
 
-    def __init__(
-        self, type: str, filters: dict, **kwargs
-    ) -> None:
+    def __init__(self, type: str, filters: dict, **kwargs) -> None:
         self.type = type
-        self.filters = filters
-
+        self.filters_prices = {
+            key: value
+            for key, value in filters.items()
+            if key in ["start_date", "end_date", "tickers"]
+        }
+        self.filters_fundamental = {
+            key: value for key, value in filters.items() if key in ["flds", "tickers"]
+        }
+        self.quarters = ["Q1", "Q2", "Q3", "Q4"]
+        self.years = filters.get("years", None)
+        self.report_period = filters.get("report_period", "ANNUAL")
 
     def load(self, **kwargs) -> None:
         """
@@ -35,16 +42,24 @@ class Bloomberg(object):
         Load price data from Bloomberg API using BDH function and save as pd.DataFrame in self.df
         """
         flds = ["PX_LAST"]
-        df = blp.bdh(
+        self.df = blp.bdh(
             flds=flds,
-            **self.filters,
+            **self.filters_prices,
         )
-        df.columns = df.columns.droplevel(level=1)
-        df.index = df.index.rename("date")
-        df.index = pd.to_datetime(df.index)
-        self.df = df
 
     def load_fundamentals(self) -> None:
         """
+        Load fundamental data from Bloomberg API using BDP function and save as pd.DataFrame in self.df
         """
-        pass
+        self.df = pd.DataFrame()
+        if self.report_period == "ANNUAL":
+            for year in self.years:
+                annual_df = blp.bdp(EQY_FUND_YEAR=year, **self.filters_fundamental)
+                self.df = pd.concat([self.df, annual_df])
+        elif self.report_period == "QUARTER":
+            for year in self.years:
+                for quarter in self.quarters:
+                    quarter_df = blp.bdp(
+                        EQY_FUND_YEAR=year, FUND_PER=quarter, **self.filters_fundamental
+                    )
+                    self.df = pd.concat([self.df, quarter_df])
