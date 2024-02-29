@@ -1,7 +1,7 @@
 # Asset Allocation
 The Asset Allocation package in QuantKit is a comprehensive tool designed to streamline your investment process. This powerful tool integrates various data sources, supports flexible security universes, and offers a diverse range of strategies through a well-organized signals repository. Utilizing advanced portfolio optimization techniques such as Mean Variance Optimization and Risk Parity, our package empowers users to make informed decisions while benefiting from advanced backtesting capabilities. Get ready to elevate your investment strategy with this versatile and user-friendly asset allocation solution.
 
-![AssetAllocation](../img/asset_allocation.png)  
+![AssetAllocation](../documentations/img/asset_allocation.png)  
 
 ## Settings
 ---
@@ -796,7 +796,7 @@ To utilize the various weighting strategies, assign them within the `allocation_
 <details>
   <summary><b>For Nerds</b></summary>
 
-![AssetAllocation](../img/optimizers.png)  
+![AssetAllocation](../documentations/img/optimizers.png)  
 
 </details>
 
