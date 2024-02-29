@@ -87,6 +87,7 @@
                 "ISSUER_SEDOL",
                 "ISSUER_ISIN",
                 "ISSUER_CNTRY_DOMICILE",
+                "GICS_SECTOR",
                 "GICS_SUB_IND",
                 "IVA_COMPANY_RATING",
                 "ISSUERID",
