@@ -1,5 +1,6 @@
 import quantkit.backtester.risk_calc.risk_metrics as risk_metrics
 import quantkit.mathstats.covariance.window_covariance as window_covariance
+import quantkit.mathstats.covariance.numpy_covariance as numpy_covariance
 import quantkit.utils.annualize_adjustments as annualize_adjustments
 import quantkit.mathstats.portfolio_stats.volatility as volatility
 import numpy as np
@@ -23,10 +24,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
     def __init__(self, universe: list, frequency: str = None, **kwargs) -> None:
         super().__init__(universe)
         self.frequency = frequency
-        self.cov_calculator = window_covariance.WindowCovariance(
-            num_ind_variables=self.universe_size, **kwargs
-        )
-        self.cov_calculator_intuitive = window_covariance.WindowCovariance(
+        self.cov_calculator = numpy_covariance.NumpyWindowCovariance(
             num_ind_variables=self.universe_size, **kwargs
         )
 
@@ -65,7 +63,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         np.array
             covariance matrix
         """
-        return self.cov_calculator_intuitive.results["cov"]
+        return self.cov
 
     @property
     def cov_intuitive(self) -> np.ndarray:
@@ -78,7 +76,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         np.array
             covariance matrix
         """
-        return self.cov_calculator_intuitive.results["cov"]
+        return self.cov
 
     def assign(
         self, date: datetime.date, price_return: np.ndarray, annualize_factor: int = 1.0
@@ -100,7 +98,6 @@ class LogNormalVol(risk_metrics.RiskMetrics):
         )
         annualized_return = np.squeeze(annualized_return)
         self.cov_calculator.update(np.log(annualized_return + 1), index=date)
-        # self.cov_calculator_intuitive.update(annualized_return, index=date)
 
     def get_portfolio_risk(self, allocation: np.ndarray) -> float:
         """

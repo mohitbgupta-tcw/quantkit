@@ -41,7 +41,11 @@ class MeanReversion(strategy.Strategy):
         """
         (tradeable,) = np.where(
             (self.index_comp > 0)
-            & (~np.isnan(self.latest_return))
+            & (
+                ~np.isnan(self.risk_engine.cov_calculator.data_stream.matrix)
+                .any(axis=0)
+                .squeeze()
+            )
             & (self.return_engine.return_metrics_optimizer > -self.fraud_threshold)
         )
         neg_sort = tradeable[np.argsort(self.return_metrics_intuitive[tradeable])]

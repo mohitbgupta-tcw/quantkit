@@ -109,7 +109,11 @@ class RelativeValue(strategy.Strategy):
         """
         ss = np.arange(self.num_total_assets)
         return ss[
-            ~np.isnan(self.latest_return)
+            (
+                ~np.isnan(self.risk_engine.cov_calculator.data_stream.matrix)
+                .any(axis=0)
+                .squeeze()
+            )
             & (self.index_comp > 0)
             & (self.market_caps > self.market_cap_threshold)
             & (self.divyield > self.div_yield_threshold)

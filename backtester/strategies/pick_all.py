@@ -33,7 +33,14 @@ class PickAll(strategy.Strategy):
             array of indexes
         """
         ss = np.arange(self.num_total_assets)
-        return ss[(~np.isnan(self.latest_return)) & (self.index_comp > 0)]
+        return ss[
+            (
+                ~np.isnan(self.risk_engine.cov_calculator.data_stream.matrix)
+                .any(axis=0)
+                .squeeze()
+            )
+            & (self.index_comp > 0)
+        ]
 
     @property
     def return_metrics_optimizer(self) -> np.ndarray:
