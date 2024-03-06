@@ -2,6 +2,7 @@ from typing import Union
 from __future__ import annotations
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 import math
 import datetime
 import quantkit.utils.util_functions as util_functions
@@ -33,6 +34,9 @@ class Node(object):
         self._universe_tickers = []
         self._childrenv = []  # Shortcut to self.children.values()
         self._add_children(children=children)
+        self._original_children_are_present = (children is not None) and (
+            len(children) >= 1
+        )
 
         # parent
         self._add_parent(parent=parent)
@@ -105,8 +109,9 @@ class Node(object):
                 child._set_root(self.root)
                 child.use_integer_positions(self.integer_positions)
 
-                self.children[child.name] = child
-                self._childrenv.append(child)
+                c = deepcopy(child)
+                self.children[c.name] = c
+                self._childrenv.append(c)
 
                 # if strategy, turn on flag and add name to list
                 if isinstance(child, StrategyBase):
@@ -483,7 +488,7 @@ class SecurityBase(Node):
 
     def update(self, date=None, inow=None) -> None:
         """
-        Update Node with latest date, and optionally data
+        Update Node with latest date
         Update:
             - price
             - value
@@ -999,6 +1004,7 @@ class StrategyBase(Node):
         self._value = 0
         self._notl_value = 0
         self._price = PAR
+        self.PAR = PAR
 
         # helper vars
         self._net_flows = 0
@@ -1015,6 +1021,470 @@ class StrategyBase(Node):
         self._paper_trade = False
         self._positions = None
         self.bankrupt = False
+
+    @property
+    def price(self) -> float:
+        """
+        Returns
+        -------
+        float:
+            current price of Strategy
+        """
+        if self.root.stale:
+            self.root.update(self.now, None)
+        return self._price
+
+    @property
+    def prices(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            TimeSeries of Node's price
+        """
+        if self.root.stale:
+            self.root.update(self.now, None)
+        return self._prices.loc[: self.now]
+
+    @property
+    def values(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            TimeSeries of (dollar) values of Strategy
+        """
+        if self.root.stale:
+            self.root.update(self.now, None)
+        return self._values.loc[: self.now]
+
+    @property
+    def notional_values(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            TimeSeries of security's notional value
+        """
+        if self.root.stale:
+            self.root.update(self.now, None)
+        return self._notl_values.loc[: self.now]
+
+    @property
+    def capital(self) -> float:
+        """
+        Returns
+        -------
+        float:
+            current capital - amount of unallocated capital left in strategy
+        """
+        return self._capital
+
+    @property
+    def cash(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            TimeSeries of unallocated capital
+        """
+        return self._cash
+
+    @property
+    def fees(self) -> pd.DataFrame:
+        """
+        pd.DataFrame:
+            TimeSeries of fees
+        """
+        if self.root.stale:
+            self.root.update(self.now, None)
+        return self._fees.loc[: self.now]
+
+    @property
+    def flows(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            TimeSeries of flows
+        """
+        if self.root.stale:
+            self.root.update(self.now, None)
+        return self._all_flows.loc[: self.now]
+
+    @property
+    def bidoffer_paid(self) -> float:
+        """
+        Returns
+        -------
+        float:
+            bid/offer spread paid on transactions in current step
+        """
+        if self._bidoffer_set:
+            if self.root.stale:
+                self.root.update(self.now, None)
+            return self._bidoffer_paid
+        else:
+            raise Exception(
+                "Bid/offer accounting not turned on: "
+                '"bidoffer" argument not provided during setup'
+            )
+
+    @property
+    def bidoffers_paid(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            TimeSeries of bid/offer spread paid on transactions in current step
+        """
+        if self._bidoffer_set:
+            if self.root.stale:
+                self.root.update(self.now, None)
+            return self._bidoffers_paid.loc[: self.now]
+        else:
+            raise Exception(
+                "Bid/offer accounting not turned on: "
+                '"bidoffer" argument not provided during setup'
+            )
+
+    @property
+    def universe(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            data universe available at current time
+        """
+        if self.now == self._last_chk:
+            return self._funiverse
+        else:
+            self._last_chk = self.now
+            self._funiverse = self._universe.loc[: self.now]
+            return self._funiverse
+
+    @property
+    def securities(self) -> list:
+        """
+        Returns
+        -------
+        list:
+            list of children that are Security
+        """
+        return [x for x in self.members if isinstance(x, SecurityBase)]
+
+    @property
+    def outlays(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            outlays for each child Security
+        """
+        if self.root.stale:
+            self.root.update(self.root.now, None)
+        outlays = pd.DataFrame()
+        for x in self.securities:
+            if x.name in outlays.columns:
+                outlays[x.name] += x.outlays
+            else:
+                outlays[x.name] = x.outlays
+        return outlays
+
+    @property
+    def positions(self) -> pd.DataFrame:
+        """
+        Returns
+        -------
+        pd.DataFrame:
+            TimeSeries of positions
+        """
+        if self.root.stale:
+            self.root.update(self.root.now, None)
+
+        vals = pd.DataFrame()
+        for x in self.members:
+            if isinstance(x, SecurityBase):
+                if x.name in vals.columns:
+                    vals[x.name] += x.positions
+                else:
+                    vals[x.name] = x.positions
+        self._positions = vals
+        return vals
+
+    def setup(self, prices, bidoffer: pd.DataFrame = None, **kwargs):
+        """
+        Setup Strategy
+
+        Parameters
+        ----------
+        prices: pd.DataFrame
+            DataFrame of prices for securities in universe
+        bidoffer: pd.DataFrame, optional
+            bid/offer spread for securities in universe across time
+        """
+        # save full universe in case we need it
+        self._original_data = prices
+        self._setup_kwargs = kwargs
+
+        # determine if needs paper trading
+        if self is not self.parent:
+            self._paper_trade = True
+            self._paper_amount = 1000000
+
+            paper = deepcopy(self)
+            paper.parent = paper
+            paper.root = paper
+            paper._paper_trade = False
+            paper.setup(self._original_data, **kwargs)
+            paper.adjust(self._paper_amount)
+            self._paper = paper
+
+        # setup universe
+        funiverse = prices.copy()
+
+        # filter only if the node has any children specified as input,
+        # otherwise we use the full universe. If all children are strategies,
+        # funiverse will be empty, to signal that no other ticker should be
+        # used in addition to the strategies
+        if self._original_children_are_present:
+            # if we have universe_tickers defined, limit universe to
+            # those tickers
+            valid_filter = list(
+                set(prices.columns).intersection(self._universe_tickers)
+            )
+
+            funiverse = prices[valid_filter].copy()
+
+            # if we have strat children, we will need to create their columns
+            # in the new universe
+            if self._has_strat_children:
+                for c in self._strat_children:
+                    funiverse[c] = np.nan
+
+            # must create to avoid pandas warning
+            funiverse = pd.DataFrame(funiverse)
+
+        self._universe = funiverse
+        # holds filtered universe
+        self._funiverse = funiverse
+        self._last_chk = None
+
+        # We're not bankrupt yet
+        self.bankrupt = False
+
+        # setup internal data
+        self.data = pd.DataFrame(
+            index=funiverse.index,
+            columns=["price", "value", "notional_value", "cash", "fees", "flows"],
+            data=0.0,
+        )
+
+        self._prices = self.data["price"]
+        self._values = self.data["value"]
+        self._notl_values = self.data["notional_value"]
+        self._cash = self.data["cash"]
+        self._fees = self.data["fees"]
+        self._all_flows = self.data["flows"]
+
+        if bidoffer is not None:
+            self._bidoffer_set = True
+            self.data["bidoffer_paid"] = 0.0
+            self._bidoffers_paid = self.data["bidoffer_paid"]
+
+        # setup children as well - use original universe here - don't want to
+        # pollute with potential strategy children in funiverse
+        if self.children is not None:
+            [c.setup(prices, bidoffer, **kwargs) for c in self._childrenv]
+
+    def update(self, date, inow=None) -> None:
+        """
+        Update Node with latest date
+        Update:
+            - price
+            - value
+            - weight
+            - etc.
+
+        Parameters
+        ----------
+        date: datetime.date, optional
+            current date
+        inow: int, optional
+            current integer position
+        """
+        # resolve stale state
+        self.root.stale = False
+
+        # update helpers on date change
+        # also set newpt flag
+        newpt = False
+        if self.now == 0:
+            newpt = True
+        elif date != self.now:
+            self._net_flows = 0
+            self._last_price = self._price
+            self._last_value = self._value
+            self._last_notl_value = self._notl_value
+            self._last_fee = 0.0
+            newpt = True
+
+        # update now
+        self.now = date
+        if inow is None:
+            if self.now == 0:
+                inow = 0
+            else:
+                inow = self.data.index.get_loc(date)
+
+        # update children if any and calculate value
+        val = self._capital  # default if no children
+        notl_val = 0.0  # Capital doesn't count towards notional value
+
+        bidoffer_paid = 0.0
+        coupons = 0
+        if self.children:
+            for c in self._childrenv:
+                # Sweep up cash from the security nodes (from coupon payments, etc)
+                if c._issec and newpt:
+                    coupons += c._capital
+                    c._capital = 0
+
+                # avoid useless update call
+                if c._issec and not c._needupdate:
+                    continue
+
+                c.update(date, inow)
+                val += (
+                    c.value
+                )  # probably take last value here in pre run update -> old value
+                # Strategies always have positive notional value
+                notl_val += abs(c.notional_value)
+
+                if self._bidoffer_set:
+                    bidoffer_paid += c.bidoffer_paid
+
+        self._capital += coupons
+        val += coupons
+
+        if self.root == self:
+            if (
+                (val < 0)
+                and not self.bankrupt
+                and not self.fixed_income
+                and not util_functions.is_zero(val)
+            ):
+                # Declare a bankruptcy
+                self.bankrupt = True
+                self.flatten()
+
+        # update data if this value is different or
+        # if now has changed - avoid all this if not since it
+        # won't change
+        if (
+            newpt
+            or not util_functions.is_zero(self._value - val)
+            or not util_functions.is_zero(self._notl_value - notl_val)
+        ):
+            self._value = val
+            self._values.values[inow] = val
+
+            self._notl_value = notl_val
+            self._notl_values.values[inow] = notl_val
+
+            if self._bidoffer_set:
+                self._bidoffer_paid = bidoffer_paid
+                self._bidoffers_paid.values[inow] = bidoffer_paid
+
+            if self.fixed_income:
+                # For notional weights, we compute additive return
+                pnl = self._value - (self._last_value + self._net_flows)
+                if not util_functions.is_zero(self._last_notl_value):
+                    ret = pnl / self._last_notl_value * self.PAR
+                elif not util_functions.is_zero(self._notl_value):
+                    # This case happens when paying bid/offer or fees when building an initial position
+                    ret = pnl / self._notl_value * self.PAR
+                else:
+                    if util_functions.is_zero(pnl):
+                        ret = 0
+                    else:
+                        raise ZeroDivisionError(
+                            "Could not update %s on %s. Last notional value "
+                            "was %s and pnl was %s. Therefore, "
+                            "we are dividing by zero to obtain the pnl "
+                            "per unit notional for the period."
+                            % (self.name, self.now, self._last_notl_value, pnl)
+                        )
+
+                self._price = self._last_price + ret
+                self._prices.values[inow] = self._price
+
+            else:
+                bottom = self._last_value + self._net_flows
+                if not util_functions.is_zero(bottom):
+                    ret = self._value / (self._last_value + self._net_flows) - 1
+                else:
+                    if util_functions.is_zero(self._value):
+                        ret = 0
+                    else:
+                        raise ZeroDivisionError(
+                            "Could not update %s on %s. Last value "
+                            "was %s and net flows were %s. Current"
+                            "value is %s. Therefore, "
+                            "we are dividing by zero to obtain the return "
+                            "for the period."
+                            % (
+                                self.name,
+                                self.now,
+                                self._last_value,
+                                self._net_flows,
+                                self._value,
+                            )
+                        )
+
+                self._price = self._last_price * (1 + ret)
+                self._prices.values[inow] = self._price
+
+        # update children weights
+        if self.children:
+            for c in self._childrenv:
+                # avoid useless update call
+                if c._issec and not c._needupdate:
+                    continue
+
+                if self.fixed_income:
+                    if not is_zero(notl_val):
+                        c._weight = c.notional_value / notl_val
+                    else:
+                        c._weight = 0.0
+                else:
+                    if not is_zero(val):
+                        c._weight = c.value / val
+                    else:
+                        c._weight = 0.0
+
+        # if we have strategy children, we will need to update them in universe
+        if self._has_strat_children:
+            for c in self._strat_children:
+                # TODO: optimize ".loc" here as well
+                self._universe.loc[date, c] = self.children[c].price
+
+        # Cash should track the unallocated capital at the end of the day, so
+        # we should update it every time we call "update".
+        # Same for fees and flows
+        self._cash.values[inow] = self._capital
+        self._fees.values[inow] = self._last_fee
+        self._all_flows.values[inow] = self._net_flows
+
+        # update paper trade if necessary
+        if self._paper_trade:
+            if newpt:
+                self._paper.update(date)
+                self._paper.run()
+                self._paper.update(date)
+            # update price
+            self._price = self._paper.price
+            self._prices.values[inow] = self._price
 
 
 class Algo(object):
