@@ -416,7 +416,6 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
         # check for excemption
         if self.non_applicable_securities():
             return
-
         self.create_transition_tag()
         self.calculate_target_score()
 
@@ -519,10 +518,10 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
             if transition_:
                 self.scores["Transition_Tag"] = "Y"
                 self.scores["Transition_Category_unadjusted"].append(
-                    self.information["Sub-Industry"].transition["ACRONYM"]
+                    self.information["transition_info"]["ACRONYM"]
                 )
                 self.scores["Transition_Category"].append(
-                    self.information["Sub-Industry"].transition["ACRONYM"]
+                    self.information["transition_info"]["ACRONYM"]
                 )
                 return
 
