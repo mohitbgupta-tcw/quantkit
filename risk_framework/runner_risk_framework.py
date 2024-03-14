@@ -4,7 +4,6 @@ import quantkit.utils.logging as logging
 import quantkit.risk_framework.data_loader.themes_datasource as themes_datasource
 import quantkit.risk_framework.data_loader.category_datasource as category_database
 import quantkit.risk_framework.data_loader.sector_datasource as sector_database
-import quantkit.risk_framework.data_loader.transition_datasource as transition_datasource
 import quantkit.risk_framework.data_loader.transition_company_datasource as transition_company_datasource
 import quantkit.risk_framework.data_loader.parent_issuer_datasource as pi_datasource
 import quantkit.risk_framework.data_loader.sdg_datasource as sdg_datasource
@@ -62,11 +61,6 @@ class Runner(loader.Runner):
         self.gics_datasource = sector_database.GICSDataSource(
             params=self.params["gics_datasource"],
             api_settings=self.api_settings,
-        )
-
-        # connect transition datasource
-        self.transition_datasource = transition_datasource.TransitionDataSource(
-            params=self.params["transition_datasource"], api_settings=self.api_settings
         )
 
         # connect transition company datasource
@@ -194,10 +188,6 @@ class Runner(loader.Runner):
         - load transition data
         - load company mapping for transition
         """
-        self.transition_datasource.load()
-        self.transition_datasource.iter(
-            self.gics_datasource.gics, self.bclass_datasource.bclass
-        )
         self.transition_company_datasource.load()
         self.transition_company_datasource.iter()
 

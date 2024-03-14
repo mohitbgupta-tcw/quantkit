@@ -84,8 +84,8 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
         companies: dict
             dictionary of all company objects
         """
-        if hasattr(self.information["Sub-Industry"], "transition"):
-            transition_info = deepcopy(self.information["Sub-Industry"].transition)
+        if hasattr(self.information["Sub-Industry"], "information"):
+            transition_info = deepcopy(self.information["Sub-Industry"].information)
         else:
             transition_info = dict()
         if self.isin in transition_company_mapping:
