@@ -9,6 +9,9 @@
     "portfolio_datasource": {
         "transformation": {
             "XS2403443786": {"TCW ESG": "TCW Social"},
+            "USP8405QAA78" : {
+                "MSCI ISSUERID": "IID000000002259735"
+            },
             "USU35914AA51": {
                 "Labeled ESG Type": null, 
                 "Sector Level 1": "Government Related", 
@@ -30,31 +33,13 @@
                 "Sector Level 1": "Cash and Other", 
                 "Sector Level 2": "Cash and Other"
             },
-            "US5899295P94": {
-                "Sector Level 1": "Securitized", 
-                "Sector Level 2": "Residential MBS"
-            },
             "USP93077AC28": {
                 "Sector Level 1": "Corporate", 
                 "Sector Level 2": "Utility"
             },
-            "US742651DX72": {
-                "Sector Level 1": "Government Related", 
-                "Sector Level 2": "Quasi Sovereign"
-            },
-            "JP3705200008": {
-                "Sector Level 1": "Corporate", 
-                "Sector Level 2": "Industrial"
-            },
             "USP4R53VAB95": {
                 "Sector Level 1": "Corporate", 
                 "Sector Level 2": "Utility"
-            },
-            "USP8405QAA78" : {
-                "MSCI ISSUERID": "IID000000002259735"
-            },
-            "XS2634075399": {
-                "JPM Sector": "UTILITIES"
             }
         }
     },
