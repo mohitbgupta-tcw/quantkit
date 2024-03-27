@@ -51,15 +51,11 @@ def historical_portfolio_holdings(
         else "''"
     )
     e_benchmark = (
-        ", ".join(f"'{b}'" for b in equity_universe)
-        if equity_universe
-        else "''"
+        ", ".join(f"'{b}'" for b in equity_universe) if equity_universe else "''"
     )
 
     and_clause = (
-        f"""AND pos.portfolio_number in ({pf})"""
-        if not "all" in tcw_universe
-        else ""
+        f"""AND pos.portfolio_number in ({pf})""" if not "all" in tcw_universe else ""
     )
     query = f"""
     SELECT *
@@ -189,7 +185,5 @@ def historical_portfolio_holdings(
     ) 
     ORDER BY "Portfolio" ASC, "As Of Date" ASC, "Portfolio_Weight" DESC
     """
-    pd.load(
-        query=query
-    )
+    pd.load(query=query)
     return pd.df

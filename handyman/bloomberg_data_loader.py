@@ -42,6 +42,46 @@ def get_price_data(
     return df
 
 
+def get_return_data(
+    tickers: list,
+    start_date: str = None,
+    end_date: str = None,
+) -> pd.DataFrame:
+    """
+    For a specified list of securities, load Bloomberg price data through API
+
+    Parameters
+    ----------
+    ticker: list
+        list of bloomberg tickers to run in API, p.e. ["AAPL US EQUITY", "MSFT US Equity"]
+    start_date: str, optional
+        date in format "yyyy-mm-dd"
+    end_date: str, optional
+        date in format "yyyy-mm-dd"
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of Bloomberg information
+    """
+    filters = dict()
+    filters["tickers"] = tickers
+
+    if start_date:
+        filters["start_date"] = start_date
+    elif end_date:
+        filters["end_date"] = end_date
+
+    bloomberg_object = bloomberg.Bloomberg("returns", filters)
+    bloomberg_object.load()
+
+    df = bloomberg_object.df
+    df.columns = df.columns.droplevel(level=1)
+    df.index = pd.to_datetime(df.index)
+    df = df.sort_index(ascending=True)
+    return df
+
+
 def get_fundamental_data(
     tickers: list,
     fields: list,

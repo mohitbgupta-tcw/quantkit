@@ -46,27 +46,41 @@ def run_fred_api(
     fred_object.load()
     if revision:
         df = fred_object.df
-        df = df.rename(columns={"realtime_start": "publish_date", "date": "date_from", "value": ticker})
+        df = df.rename(
+            columns={
+                "realtime_start": "publish_date",
+                "date": "date_from",
+                "value": ticker,
+            }
+        )
         df = df.sort_values(by=["publish_date", "date_from"], ascending=True)
 
         first_publish_date = df["publish_date"].min()
-        fred_revised_data = df[df["publish_date"] == first_publish_date][:-1].drop(["id"], axis=1)
-        fred_revised_data["publish_date"] = fred_revised_data["date_from"] + pd.DateOffset(months=1)
+        fred_revised_data = df[df["publish_date"] == first_publish_date][:-1].drop(
+            ["id"], axis=1
+        )
+        fred_revised_data["publish_date"] = fred_revised_data[
+            "date_from"
+        ] + pd.DateOffset(months=1)
         fred_revised_data = fred_revised_data.dropna(subset=ticker)
         fred_revised_data[ticker] = fred_revised_data[ticker].astype(float)
         for avg in averages:
-            fred_revised_data[f"{ticker}_{avg}MA"] = fred_revised_data[ticker].rolling(avg).mean()
-        for chg in changes:
-            fred_revised_data[f"{ticker}_{chg}Change"] = (
-                fred_revised_data[ticker].pct_change(chg)
+            fred_revised_data[f"{ticker}_{avg}MA"] = (
+                fred_revised_data[ticker].rolling(avg).mean()
             )
+        for chg in changes:
+            fred_revised_data[f"{ticker}_{chg}Change"] = fred_revised_data[
+                ticker
+            ].pct_change(chg)
         for diff in differences:
-            fred_revised_data[f"{ticker}_{diff}Diff"] = (
-                fred_revised_data[ticker].diff(diff)
+            fred_revised_data[f"{ticker}_{diff}Diff"] = fred_revised_data[ticker].diff(
+                diff
             )
 
         df["Revision"] = np.where(
-            (df["publish_date"] - df["date_from"]) / pd.Timedelta("1D") > 90, True, False
+            (df["publish_date"] - df["date_from"]) / pd.Timedelta("1D") > 90,
+            True,
+            False,
         )
 
         for date in df[df["Revision"] == False]["publish_date"].unique():
