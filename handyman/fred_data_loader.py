@@ -45,34 +45,62 @@ def run_fred_api(
     )
     fred_object.load()
     if revision:
-        fred_object.df = fred_object.df.rename(
-            columns={"realtime_start": "publish_date"}
-        )
         df = fred_object.df
-        df = df.rename(columns={"realtime_start": "publish_date"})
-        df = df.sort_values(by=["publish_date", "date"], ascending=True)
-        df["Revision"] = np.where(
-            (df["publish_date"] - df["date"]) / pd.Timedelta("1D") > 90, True, False
+        df = df.rename(
+            columns={
+                "realtime_start": "publish_date",
+                "date": "date_from",
+                "value": ticker,
+            }
         )
-        fred_revised_data = pd.DataFrame()
+        df = df.sort_values(by=["publish_date", "date_from"], ascending=True)
+
+        first_publish_date = df["publish_date"].min()
+        fred_revised_data = df[df["publish_date"] == first_publish_date][:-1].drop(
+            ["id"], axis=1
+        )
+        fred_revised_data["publish_date"] = fred_revised_data[
+            "date_from"
+        ] + pd.DateOffset(months=1)
+        fred_revised_data = fred_revised_data.dropna(subset=ticker)
+        fred_revised_data[ticker] = fred_revised_data[ticker].astype(float)
+        for avg in averages:
+            fred_revised_data[f"{ticker}_{avg}MA"] = (
+                fred_revised_data[ticker].rolling(avg).mean()
+            )
+        for chg in changes:
+            fred_revised_data[f"{ticker}_{chg}Change"] = fred_revised_data[
+                ticker
+            ].pct_change(chg)
+        for diff in differences:
+            fred_revised_data[f"{ticker}_{diff}Diff"] = fred_revised_data[ticker].diff(
+                diff
+            )
+
+        df["Revision"] = np.where(
+            (df["publish_date"] - df["date_from"]) / pd.Timedelta("1D") > 90,
+            True,
+            False,
+        )
+
         for date in df[df["Revision"] == False]["publish_date"].unique():
             date_df = pd.DataFrame()
             row_df = df[df["publish_date"] <= date]
             row_df = row_df.sort_values(
-                ["date", "publish_date"], ascending=True
-            ).drop_duplicates("date", keep="last")
+                ["date_from", "publish_date"], ascending=True
+            ).drop_duplicates("date_from", keep="last")
             date_df["publish_date"] = [date]
-            date_df["date_from"] = row_df.tail(1)["date"].values
-            date_df[ticker] = row_df.tail(1)["value"].values
+            date_df["date_from"] = row_df.tail(1)["date_from"].values
+            date_df[ticker] = row_df.tail(1)[ticker].values
             for avg in averages:
-                date_df[f"{ticker}_{avg}MA"] = row_df.tail(avg)["value"].mean()
+                date_df[f"{ticker}_{avg}MA"] = row_df.tail(avg)[ticker].mean()
             for chg in changes:
                 date_df[f"{ticker}_{chg}Change"] = (
-                    row_df["value"].pct_change(chg).tail(1).values
+                    row_df[ticker].pct_change(chg).tail(1).values
                 )
             for diff in differences:
                 date_df[f"{ticker}_{diff}Diff"] = (
-                    row_df["value"].diff(diff).tail(1).values
+                    row_df[ticker].diff(diff).tail(1).values
                 )
             fred_revised_data = pd.concat([fred_revised_data, date_df])
         return fred_revised_data

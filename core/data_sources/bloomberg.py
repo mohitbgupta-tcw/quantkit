@@ -34,6 +34,8 @@ class Bloomberg(object):
         """
         if self.type == "prices":
             self.load_prices()
+        elif self.type == "returns":
+            self.load_returns()
         elif self.type == "fundamental":
             self.load_fundamentals()
 
@@ -42,6 +44,16 @@ class Bloomberg(object):
         Load price data from Bloomberg API using BDH function and save as pd.DataFrame in self.df
         """
         flds = ["PX_LAST"]
+        self.df = blp.bdh(
+            flds=flds,
+            **self.filters_prices,
+        )
+
+    def load_returns(self) -> None:
+        """
+        Load return data from Bloomberg API using BDH function and save as pd.DataFrame in self.df
+        """
+        flds = ["CUMULATIVE_TOT_RETURN_GROSS_DVDS"]
         self.df = blp.bdh(
             flds=flds,
             **self.filters_prices,
