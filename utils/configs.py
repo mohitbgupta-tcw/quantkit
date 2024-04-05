@@ -25,11 +25,11 @@ def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) 
         configs file as dictionary
     """
     d = Path(__file__).resolve().parent.parent
-    with open(f"{d}\\configs\\configs.json") as f_in:
+    with open(f"{d}/configs/configs.json") as f_in:
         configs = json.load(f_in)
 
     if runner_type:
-        with open(f"{d}\\configs\\{runner_type}.json") as runner_in:
+        with open(f"{d}/configs/{runner_type}.json") as runner_in:
             configs_runner = json.load(runner_in)
 
         configs = util_functions.replace_dictionary(configs_runner, configs)

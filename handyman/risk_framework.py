@@ -288,6 +288,9 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                 "CapEx": comp_store.information.get("CapEx", 0),
                 "Climate_Revenue": comp_store.information.get("Climate_Revenue", 0),
                 "Decarb": comp_store.information.get("Decarb", 0),
+                "Enabler_Improver": comp_store.information["transition_info"].get(
+                    "ENABLER_IMPROVER", np.nan
+                ),
                 "Sustainable Themes Unadjusted": ", ".join(
                     list(comp_store.scores["Themes_unadjusted"].keys())
                 ),

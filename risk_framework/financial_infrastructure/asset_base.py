@@ -53,6 +53,7 @@ class AssetBase(asset_base.AssetBase):
         self.Adjustment = list()
         self.Exclusion = dict()
         self.information["Exclusion"] = list()
+        self.information["transition_info"] = dict()
 
     def attach_analyst_adjustment(self, msci_adjustment_dict: dict) -> None:
         """
