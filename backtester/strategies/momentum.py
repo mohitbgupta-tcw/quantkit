@@ -38,7 +38,14 @@ class Momentum(strategy.Strategy):
         np.array
             array of indexes
         """
-        (tradeable,) = np.where((self.index_comp > 0) & (~np.isnan(self.latest_return)))
+        (tradeable,) = np.where(
+            (self.index_comp > 0)
+            & (
+                ~np.isnan(self.risk_engine.cov_calculator.data_stream.matrix)
+                .any(axis=0)
+                .squeeze()
+            )
+        )
         neg_sort = tradeable[np.argsort(-self.return_metrics_intuitive[tradeable])]
         return neg_sort[: self.top_n]
 

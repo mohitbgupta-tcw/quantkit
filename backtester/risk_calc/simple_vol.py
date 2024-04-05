@@ -2,6 +2,7 @@ import quantkit.backtester.risk_calc.risk_metrics as risk_metrics
 import quantkit.utils.annualize_adjustments as annualize_adjustments
 import quantkit.mathstats.covariance.simple_covariance as simple_covariance
 import quantkit.mathstats.covariance.window_covariance as window_covariance
+import quantkit.mathstats.covariance.numpy_covariance as numpy_covariance
 import quantkit.mathstats.portfolio_stats.volatility as volatility
 import numpy as np
 import datetime
@@ -25,7 +26,7 @@ class SimpleVol(risk_metrics.RiskMetrics):
         self.cov_calculator = simple_covariance.Covariance(
             num_ind_variables=self.universe_size, **kwargs
         )
-        self.window_cov_calculator = window_covariance.WindowCovariance(
+        self.window_cov_calculator = numpy_covariance.NumpyWindowCovariance(
             num_ind_variables=self.universe_size, **kwargs
         )
 

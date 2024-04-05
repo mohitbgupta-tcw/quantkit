@@ -1,6 +1,6 @@
 import quantkit.backtester.return_calc.return_metrics as return_metrics
 import quantkit.mathstats.mean.simple_mean as simple_mean
-import quantkit.mathstats.mean.rolling_mean as rolling_mean
+import quantkit.mathstats.mean.numpy_mean as numpy_mean
 import quantkit.utils.annualize_adjustments as annualize_adjustments
 import numpy as np
 import pandas as pd
@@ -25,7 +25,7 @@ class SimpleExp(return_metrics.ReturnMetrics):
         self.return_calculator = simple_mean.SimpleMean(
             num_ind_variables=self.universe_size, **kwargs
         )
-        self.return_calculator_window = rolling_mean.RollingMean(
+        self.return_calculator_window = numpy_mean.NumpyWindowMean(
             num_ind_variables=self.universe_size, **kwargs
         )
         self.kwargs = kwargs
@@ -140,7 +140,9 @@ class SimpleExp(return_metrics.ReturnMetrics):
 
         outgoing_row = np.squeeze(self.return_calculator_window.windowed_outgoing_row)
         self.return_calculator_window.update(
-            annualized_return, outgoing_row, index=date
+            incoming_variables=annualized_return,
+            outgoing_variables=outgoing_row,
+            index=date,
         )
 
     def is_valid(self):
@@ -161,6 +163,6 @@ class SimpleExp(return_metrics.ReturnMetrics):
         self.return_calculator = simple_mean.SimpleMean(
             num_ind_variables=self.universe_size, **self.kwargs
         )
-        self.return_calculator_window = rolling_mean.RollingMean(
+        self.return_calculator_window = numpy_mean.NumpyWindowMean(
             num_ind_variables=self.universe_size, **self.kwargs
         )

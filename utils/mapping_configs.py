@@ -41,6 +41,10 @@ carve_out_sectors = [
     "Oil Field Services",
     "Government Owned, No Guarantee",
     "Local Authority",
+    "Independent",
+    "Integrated",
+    "Midstream",
+    "Refining",
 ]
 
 portfolio_benchmark = {
