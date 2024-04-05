@@ -5,6 +5,7 @@ from copy import deepcopy
 import pandas as pd
 import quantkit.utils.util_functions as util_functions
 import quantkit.utils.logging as logging
+from pathlib import Path
 
 
 class MSCI(object):
@@ -41,6 +42,7 @@ class MSCI(object):
         str:
             authorization token
         """
+        d = Path(__file__).resolve().parent.parent.parent
         grant_type = "client_credentials"
         token_dict = {
             "grant_type": grant_type,
@@ -56,11 +58,11 @@ class MSCI(object):
             )
         elif os.name == "nt":
             auth_response = requests.post(
-                oauth_url, data=token_dict, verify="quantkit/certs.crt"
+                oauth_url, data=token_dict, verify=f"{d}\\certs.crt"
             )
         else:
             auth_response = requests.post(
-                oauth_url, data=token_dict, verify="quantkit/certs.crt"
+                oauth_url, data=token_dict, verify=f"{d}\\certs.crt"
             )
         auth_response_json = auth_response.json()
         auth_token = auth_response_json["access_token"]
@@ -70,7 +72,7 @@ class MSCI(object):
         """
         Load data from MSCI API and save as pd.DataFrame in self.df
         """
-
+        d = Path(__file__).resolve().parent.parent.parent
         # generate token
         auth_token = self.request_authorization()
 
@@ -99,7 +101,7 @@ class MSCI(object):
                     self.url,
                     headers=headers,
                     data=inp,
-                    verify="quantkit/certs.crt",
+                    verify=f"{d}\certs.crt",
                 )
             else:
                 response = requests.request(
@@ -107,7 +109,7 @@ class MSCI(object):
                     self.url,
                     headers=headers,
                     data=inp,
-                    verify="quantkit/certs.crt",
+                    verify=f"{d}\\certs.crt",
                 )
             message = response.json()["messages"]
             if message:
@@ -129,6 +131,7 @@ class MSCI(object):
         """
         Load historical data from MSCI API and save as pd.DataFrame in self.df
         """
+        d = Path(__file__).resolve().parent.parent.parent
         # generate token
         auth_token = self.request_authorization()
 
@@ -146,7 +149,7 @@ class MSCI(object):
             self.url,
             headers=headers,
             data=inp,
-            verify="quantkit/certs.crt",
+            verify=f"{d}\\certs.crt",
         )
         message = response.json()["messages"]
         if message:
@@ -163,7 +166,11 @@ class MSCI(object):
             url = f"https://api.msci.com/esg/data/v2.0/issuers/history"
             js = {"batch_id": batch + 1, "data_request_id": data_request_id}
             r_batch = requests.request(
-                "POST", url, headers=headers, json=js, verify="quantkit/certs.crt"
+                "POST",
+                url,
+                headers=headers,
+                json=js,
+                verify=f"{d}\\certs.crt",
             )
             try:
                 r = r_batch.json()["result"]["data"]

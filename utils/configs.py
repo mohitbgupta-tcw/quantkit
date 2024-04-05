@@ -4,6 +4,7 @@ import datetime
 from pandas.tseries.offsets import BDay
 import quantkit.utils.util_functions as util_functions
 from typing import Union
+from pathlib import Path
 
 
 def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) -> dict:
@@ -23,11 +24,12 @@ def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) 
     dict
         configs file as dictionary
     """
-    with open("quantkit/configs/configs.json") as f_in:
+    d = Path(__file__).resolve().parent.parent
+    with open(f"{d}\\configs\\configs.json") as f_in:
         configs = json.load(f_in)
 
     if runner_type:
-        with open(f"quantkit/configs/{runner_type}.json") as runner_in:
+        with open(f"{d}\\configs\\{runner_type}.json") as runner_in:
             configs_runner = json.load(runner_in)
 
         configs = util_functions.replace_dictionary(configs_runner, configs)

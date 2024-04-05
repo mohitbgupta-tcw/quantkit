@@ -1,15 +1,10 @@
 {   
     "exchange_rate": 0.9802,
     "msci_datasource": {
-        "url": "https://api.msci.com/esg/data/v2.0/issuers/history?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
-        "historical": true,
         "filters": {
             "issuer_identifier_type": "ISIN",
             "issuer_identifier_list": [],
             "parent_child": "inherit_missing_values",
-            "start_date": "2022-09-01",
-            "end_date": "2022-10-01",
-            "as_at_date": "2022-10-01",
             "data_sample_frequency": "business_month_end",
             "data_layout": "by_factor",
             "factor_name_list": [

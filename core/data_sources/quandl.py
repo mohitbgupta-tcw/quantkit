@@ -4,6 +4,7 @@ from copy import deepcopy
 import nasdaqdatalink
 import quantkit.utils.util_functions as util_functions
 import quantkit.utils.logging as logging
+from pathlib import Path
 
 
 class Quandl(object):
@@ -32,9 +33,10 @@ class Quandl(object):
         """
         Load data from quandl API and save as pd.DataFrame in self.df
         """
+        d = Path(__file__).resolve().parent.parent.parent
         nasdaqdatalink.ApiConfig.api_key = self.key
         if os.name == "nt":
-            nasdaqdatalink.ApiConfig.verify_ssl = "quantkit/certs.crt"
+            nasdaqdatalink.ApiConfig.verify_ssl = f"{d}\\certs.crt"
 
         if self.type in ["fundamental", "prices"]:
             if "ticker" in self.filters:

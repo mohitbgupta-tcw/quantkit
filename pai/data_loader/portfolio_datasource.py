@@ -113,6 +113,11 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                     THEN 'Cash and Other' 
                     ELSE  rs.rclass2_name 
                 END AS "Sector Level 2",
+                CASE 
+                    WHEN sec.labeled_esg_type = 'None' 
+                    THEN null 
+                    ELSE sec.labeled_esg_type 
+                END AS "Labeled ESG Type",
                 sec.bclass_level4_name AS "BCLASS_Level4",
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
@@ -181,6 +186,11 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                     THEN 'Cash and Other' 
                     ELSE rs.rclass2_name 
                 END AS "Sector Level 2",
+                CASE 
+                    WHEN sec.labeled_esg_type = 'None'
+                    THEN null 
+                    ELSE sec.labeled_esg_type 
+                END AS "Labeled ESG Type",
                 sec.bclass_level4_name AS "BCLASS_Level4",
                 sec.issuer_id_msci AS "MSCI ISSUERID",
                 sec.issuer_id_iss AS "ISS ISSUERID",
