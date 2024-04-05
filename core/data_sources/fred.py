@@ -19,7 +19,7 @@ class FRED(object):
     """
 
     def __init__(
-        self, key: str, tickers: list, revision: bool, filters: dict = {}, **kwargs
+        self, key: str, tickers: list, revision: bool, filters: dict = dict(), **kwargs
     ) -> None:
         self.key = key
         self.tickers = tickers
@@ -32,10 +32,6 @@ class FRED(object):
         """
         fred = Fred_API(api_key=self.key)
         if self.revision:
-            self.df = pd.DataFrame(
-                {series: fred.get_series(series) for series in self.tickers}
-            )
-        else:
             self.df = pd.DataFrame()
             for series in self.tickers:
                 if "realtime_start" in self.filters:
@@ -46,3 +42,7 @@ class FRED(object):
                     df = fred.get_series_all_releases(series)
                 df["id"] = series
                 self.df = pd.concat([self.df, df])
+        else:
+            self.df = pd.DataFrame(
+                {series: fred.get_series(series) for series in self.tickers}
+            )

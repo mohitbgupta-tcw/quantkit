@@ -115,7 +115,14 @@ class MSCI(object):
             if "issuers" in response.json()["result"]:
                 df = pd.DataFrame(response.json()["result"]["issuers"])
             else:
-                df = pd.DataFrame(columns=["CLIENT_IDENTIFIER", "ISSUERID"])
+                df = pd.DataFrame(
+                    columns=[
+                        "CLIENT_IDENTIFIER",
+                        "ISSUERID",
+                        "ISSUER_ISIN",
+                        "GICS_SUB_IND",
+                    ]
+                )
             self.df = pd.concat([self.df, df], ignore_index=True)
 
     def load_historical(self, **kwargs) -> None:
