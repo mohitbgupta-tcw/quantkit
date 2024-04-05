@@ -23,7 +23,7 @@
     "portfolio_datasource": {
         "source": 3,
         "table_name": "POSITION_VW",
-        "database": "TCW_CORE_QA",
+        "database": "TCW_CORE",
         "schema": "TCW",
         "equity_universe": ["JESG EMBI Global Diversified Index", "JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI", "MSCI WORLD", "Russell 1000", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "RUSSELL 3000 INDEX", "S & P 500 INDEX", "MSCI EAFE", "RUSSELL 2000", "RUSSELL 2000 VALUE", "RUSSELL MIDCAP", "Russell Midcap Value", "S&P 500 EX TOBACCO"],
         "fixed_income_universe": ["BB HIGH YIELD 2% CAP", "BB INTERMEDIATE CORP", "BLOOMBER LONG GOVT/CREDIT", "BLOOMBERG AGGREGATE INDEX", "Pan Euro Credit", "Pan Euro High Yield", "BLOOMBERG GLOBAL AGG INDX"],
@@ -103,7 +103,7 @@
     "sdg_datasource": {
         "source": 3,
         "table_name": "FACT_ESG_ISSUER_SDGA",
-        "database": "TCW_CORE_QA",
+        "database": "TCW_CORE",
         "schema": "ESG_ISS"
     },
 
@@ -156,13 +156,6 @@
     "theme_datasource": {
         "source": 3,
         "table_name": "THEMATIC_MAPPING",
-        "database": "SANDBOX_ESG",
-        "schema": "ESG"
-    },
-
-    "transition_datasource": {
-        "source": 3,
-        "table_name": "TRANSITION_MAPPING_NEW",
         "database": "SANDBOX_ESG",
         "schema": "ESG"
     },

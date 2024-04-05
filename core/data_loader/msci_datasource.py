@@ -56,6 +56,13 @@ class MSCIDataSource(ds.DataSources):
         # replace values in each column from params transformation file
         self.datasource.df = self.datasource.df.replace(self.params["transformation"])
 
+        if self.params.get("gics_overwrite"):
+            for sec, trans in self.params["gics_overwrite"].items():
+                for col, col_value in trans.items():
+                    self.datasource.df.loc[
+                        self.datasource.df["ISSUERID"] == sec, col
+                    ] = col_value
+
     def iter(self) -> None:
         """
         Attach msci information to dict
