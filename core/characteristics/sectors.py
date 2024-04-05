@@ -55,7 +55,7 @@ class BClass(object):
         - class name
         - Analyst
         - ESRM Module
-        - Transition Risk
+        - Transition Risk & Targets
         - sector (as store)
         - industry of BClass (as store)
 
@@ -94,17 +94,6 @@ class BClass(object):
         """
         self.industry = industry
 
-    def add_transition(self, transition: dict) -> None:
-        """
-        Add transition targets
-
-        Parameters
-        ----------
-        transition: dict
-            transition target
-        """
-        self.transition = transition
-
 
 class GICS(object):
     """
@@ -113,7 +102,7 @@ class GICS(object):
         - class name
         - Analyst
         - ESRM Module
-        - Transition Risk
+        - Transition Risk & Targets
         - sector (as store)
         - industry of BClass (as store)
 
@@ -151,17 +140,6 @@ class GICS(object):
             industry object
         """
         self.industry = industry
-
-    def add_transition(self, transition: dict) -> None:
-        """
-        Add transition targets
-
-        Parameters
-        ----------
-        transition: dict
-            transition target
-        """
-        self.transition = transition
 
 
 class Sector(object):
