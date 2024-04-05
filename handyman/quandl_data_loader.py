@@ -1,5 +1,5 @@
 import pandas as pd
-import quantkit.data_sources.quandl as quandl
+import quantkit.core.data_sources.quandl as quandl
 
 
 def get_table_information(table: list) -> pd.DataFrame:

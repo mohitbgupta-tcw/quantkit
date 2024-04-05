@@ -90,7 +90,7 @@ Before executing the PAI functionality, ensure proper configuration of your loca
 
 ```shell
 
-    "portfolios": ["all"],
+    "tcw_universe": ["all"],
 
 ```
 
@@ -98,7 +98,7 @@ Before executing the PAI functionality, ensure proper configuration of your loca
 
 ```shell
 
-    "equity_benchmark": [],
+    "equity_universe": [],
 
 ```
 
@@ -106,7 +106,7 @@ Before executing the PAI functionality, ensure proper configuration of your loca
 
 ```shell
 
-    "fixed_income_benchmark": [],
+    "fixed_income_universe": [],
 
 ```
 

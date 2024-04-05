@@ -38,7 +38,7 @@ Before executing the risk framework functionality, ensure proper configuration o
 
 ```shell
 
-    "portfolios": ["all"]
+    "tcw_universe": ["all"]
 
 ```
 
@@ -46,7 +46,7 @@ Before executing the risk framework functionality, ensure proper configuration o
 
 ```shell
 
-    "equity_benchmark": []
+    "equity_universe": []
 
 ```
 
@@ -54,7 +54,7 @@ Before executing the risk framework functionality, ensure proper configuration o
 
 ```shell
 
-    "fixed_income_benchmark": []
+    "fixed_income_universe": []
 
 ```
 

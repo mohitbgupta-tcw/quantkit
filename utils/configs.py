@@ -16,7 +16,7 @@ def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) 
     local_configs: str | dict, optional
         path to a local configarations file or local configs as dict
     runner_type: str, optional
-        runner type to include configs for, p.e. "risk_framework", "asset_allocation", "pai"
+        runner type to include configs for, p.e. "risk_framework", "backtester", "pai"
 
     Returns
     -------
@@ -41,10 +41,15 @@ def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) 
 
         configs = util_functions.replace_dictionary(configs_local, configs)
 
-    if not "as_of_date" in configs:
-        today = datetime.datetime.today()
-        last_bday = today - BDay(1)
-        as_of_date = last_bday.strftime("%m/%d/%Y")
-        configs["as_of_date"] = as_of_date
+    today = datetime.datetime.today()
+    last_bday = today - BDay(1)
+    as_of_date = last_bday.strftime("%m/%d/%Y")
+    if "as_of_date" in configs:
+        configs["portfolio_datasource"]["start_date"] = configs["as_of_date"]
+        configs["portfolio_datasource"]["end_date"] = configs["as_of_date"]
+    if "start_date" not in configs["portfolio_datasource"]:
+        configs["portfolio_datasource"]["start_date"] = as_of_date
+    if "end_date" not in configs["portfolio_datasource"]:
+        configs["portfolio_datasource"]["end_date"] = as_of_date
 
     return configs
