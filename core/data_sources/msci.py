@@ -49,9 +49,19 @@ class MSCI(object):
             "audience": "https://esg/data",
         }
         oauth_url = "https://accounts.msci.com/oauth/token/"
-        auth_response = requests.post(
-            oauth_url, data=token_dict, verify="quantkit/certs.crt"
-        )
+        if os.name == "posix":
+            auth_response = requests.post(
+                oauth_url,
+                data=token_dict,
+            )
+        elif os.name == "nt":
+            auth_response = requests.post(
+                oauth_url, data=token_dict, verify="quantkit/certs.crt"
+            )
+        else:
+            auth_response = requests.post(
+                oauth_url, data=token_dict, verify="quantkit/certs.crt"
+            )
         auth_response_json = auth_response.json()
         auth_token = auth_response_json["access_token"]
         return auth_token

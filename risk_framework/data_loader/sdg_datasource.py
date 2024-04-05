@@ -44,13 +44,13 @@ class SDGDataSource(ds.DataSources):
         query = f"""
         WITH date_table_sdga AS (
             SELECT issuer_key, MAX(last_as_of_date) AS max_load_date
-            FROM tcw_core_qa.esg_iss.fact_esg_issuer_sdga
+            FROM tcw_core.esg_iss.fact_esg_issuer_sdga
             WHERE last_as_of_date <= CAST('{as_of_date}' AS DATE)
             GROUP BY issuer_key
         ),
         date_table_sdgaimpact AS (
             SELECT issuer_key, MAX(last_as_of_date) AS max_load_date
-            FROM tcw_core_qa.esg_iss.fact_esg_issuer_sdg_impact_rating
+            FROM tcw_core.esg_iss.fact_esg_issuer_sdg_impact_rating
             WHERE last_as_of_date <= CAST('{as_of_date}' AS DATE)
             GROUP BY issuer_key
         ), 
@@ -88,8 +88,8 @@ class SDGDataSource(ds.DataSources):
                 sdgaimpact.climate_ghg_reduction_targets AS "ClimateGHGReductionTargets",
                 sdgaimpact.brown_exp_total_cap_ex_share_percent AS "BrownExpTotalCapExSharePercent",
                 sdgaimpact.green_exp_total_cap_ex_share_percent AS "GreenExpTotalCapExSharePercent"
-            FROM tcw_core_qa.esg_iss.fact_esg_issuer_sdga sdga
-            LEFT JOIN tcw_core_qa.esg_iss.fact_esg_issuer_sdg_impact_rating sdgaimpact
+            FROM tcw_core.esg_iss.fact_esg_issuer_sdga sdga
+            LEFT JOIN tcw_core.esg_iss.fact_esg_issuer_sdg_impact_rating sdgaimpact
                 ON sdga.issuer_key = sdgaimpact.issuer_key
             JOIN date_table_sdga
                 ON date_table_sdga.issuer_key = sdga.issuer_key

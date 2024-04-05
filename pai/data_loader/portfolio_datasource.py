@@ -122,17 +122,17 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                 null AS "OAS",
                 (
                     SELECT MAX(ISIN) 
-                    FROM tcw_core_qa.esg_iss.dim_issuer_iss iss 
+                    FROM tcw_core.esg_iss.dim_issuer_iss iss 
                     WHERE iss.issuer_id = sec.issuer_id_iss
                 ) AS "Issuer ISIN"
-            FROM tcw_core_qa.tcw.position_vw pos
-            LEFT JOIN tcw_core_qa.tcw.security_vw sec 
+            FROM tcw_core.tcw.position_vw pos
+            LEFT JOIN tcw_core.tcw.security_vw sec 
                 ON pos.security_key = sec.security_key
                 AND pos.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_qa.reference.rclass_mapped_sectors_vw rs 
+            LEFT JOIN tcw_core.reference.rclass_mapped_sectors_vw rs 
                 ON sec.sclass_key  = rs.sclass_sector_key
                 AND rs.rclass_scheme_name = '7. ESG - Primary Summary'
-            JOIN tcw_core_qa.tcw.portfolio_vw strat 
+            JOIN tcw_core.tcw.portfolio_vw strat 
                 ON pos.portfolio_key = strat.portfolio_key 
                 AND pos.as_of_date = strat.as_of_date 
                 AND strat.is_active = 1
@@ -195,14 +195,14 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                 null AS "OAS",
                 (
                     SELECT MAX(ISIN) 
-                    FROM tcw_core_qa.esg_iss.dim_issuer_iss iss 
+                    FROM tcw_core.esg_iss.dim_issuer_iss iss 
                     WHERE iss.issuer_id = sec.issuer_id_iss
                 ) AS "Issuer ISIN"
-            FROM tcw_core_qa.benchmark.benchmark_position_vw bench
-            LEFT JOIN tcw_core_qa.tcw.security_vw sec 
+            FROM tcw_core.benchmark.benchmark_position_vw bench
+            LEFT JOIN tcw_core.tcw.security_vw sec 
                 ON bench.security_key = sec.security_key
                 AND bench.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core_qa.reference.rclass_mapped_sectors_vw rs 
+            LEFT JOIN tcw_core.reference.rclass_mapped_sectors_vw rs 
                 ON sec.sclass_key = rs.sclass_sector_key 
                 AND rs.rclass_scheme_name = '7. ESG - Primary Summary'
             LEFT JOIN sandbox_esg.quant_research.isin_ticker_mapping adj 
