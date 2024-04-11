@@ -19,6 +19,6 @@ services:
     command: >
       bash -c "jupyter notebook --port=8888 --no-browser --ip=0.0.0.0 --allow-root"
     volumes:
-      - .:/usr/src/app
+      - .:/usr/src/quantkit
     ports:
       - "8888:8888"

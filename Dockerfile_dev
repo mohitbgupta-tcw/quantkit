@@ -10,7 +10,7 @@ COPY test_requirements.txt .
 RUN cat requirements.txt | tr -d '\0' | grep "^bloomberg" --invert | xargs -L 1 pip install
 RUN pip install --trusted-host pypi.python.org -r test_requirements.txt
 
-RUN mkdir /app
-WORKDIR /app
+RUN mkdir /quantkit
+WORKDIR /quantkit
 
-ENV PYTHONPATH "${PYTHONPATH}:/app/tests"
+ENV PYTHONPATH "${PYTHONPATH}:/quantkit/tests"
