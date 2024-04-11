@@ -1,0 +1,16 @@
+FROM python:3.10-alpine
+
+RUN pip install --upgrade pip
+
+COPY requirements.txt .
+COPY test_requirements.txt .
+
+# Skip the Bloomberg dependencies since those need a firewall exception
+# and are not required for the backtesting code.
+RUN cat requirements.txt | tr -d '\0' | grep "^bloomberg" --invert | xargs -L 1 pip install
+RUN pip install --trusted-host pypi.python.org -r test_requirements.txt
+
+RUN mkdir /app
+WORKDIR /app
+
+ENV PYTHONPATH "${PYTHONPATH}:/app/tests"
