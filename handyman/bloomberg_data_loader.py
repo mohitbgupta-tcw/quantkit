@@ -2,6 +2,47 @@ import quantkit.core.data_sources.bloomberg as bloomberg
 import pandas as pd
 
 
+def get_mapping_data(tickers: list) -> pd.DataFrame:
+    """
+    For a specified list of securities, load ID, ISIN, Country, GICS Industry and GICS Sector
+
+    Parameters
+    ----------
+    ticker: list
+        list of bloomberg tickers to run in API, p.e. ["AAPL US EQUITY", "MSFT US Equity"]
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of Bloomberg information
+    """
+    bloomberg_object = bloomberg.Bloomberg(
+        fields=[
+            "id_bb_company",
+            "id_isin",
+            "name",
+            "cntry_of_domicile",
+            "gics_sector_name",
+            "gics_industry_name",
+        ],
+        tickers=tickers,
+    )
+    bloomberg_object.load()
+    df = bloomberg_object.df
+    df = df.pivot(columns="field", index="security", values="value")
+    df = df[
+        [
+            "id_bb_company",
+            "id_isin",
+            "name",
+            "cntry_of_domicile",
+            "gics_sector_name",
+            "gics_industry_name",
+        ]
+    ]
+    return df
+
+
 def get_price_data(
     tickers: list, start_date: str, end_date: str, ca_adj: str = "SPLITS"
 ) -> pd.DataFrame:
@@ -51,7 +92,6 @@ def get_price_data(
     df["date"] = df["date"].dt.tz_localize(None)
     df = df.sort_values(["date", "ticker"], ascending=True)
     df = df.pivot(index="date", columns="ticker", values="closeadj")
-    df = df.dropna(thresh=2, axis=0)
     return df
 
 

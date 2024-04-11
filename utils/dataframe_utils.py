@@ -63,3 +63,24 @@ def nanprodwrapper(a: np.ndarray, **kwargs) -> float:
         return np.nan
     else:
         return np.nanprod(a, **kwargs)
+
+
+def scale(val: float, src: tuple, dst: tuple) -> float:
+    """
+    Scale given value from scale of src to scale of dst
+
+    Parameters
+    ----------
+    val: float
+        value to scale
+    src: tuple
+        tuple of scale value is in
+    dst: tuple
+        tuple of scale value should be mapped to
+
+    Returns
+    -------
+    float:
+        rescaled value
+    """
+    return ((val - src[0]) / (src[1] - src[0])) * (dst[1] - dst[0]) + dst[0]
