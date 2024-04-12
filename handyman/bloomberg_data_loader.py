@@ -151,6 +151,7 @@ def get_fundamental_data(
     df["date"] = df["date"].dt.tz_localize(None)
     df = df[["ticker", "field", "date", "value"]]
     df["field"] = df["field"].str.split("(").str[0]
+    df = df.dropna(subset="value")
     df = df.pivot(index=["date", "ticker"], columns="field", values="value")
     return df
 
