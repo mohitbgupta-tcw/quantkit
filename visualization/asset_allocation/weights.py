@@ -9,7 +9,9 @@ sns.set_style()
 sns.despine()
 
 
-def strategy_weights(allocation_df: pd.DataFrame, palette: list = None) -> None:
+def strategy_weights(
+    allocation_df: pd.DataFrame, palette: list = None, title: str = None
+) -> None:
     """
     For a given DataFrame of weights, plot the area chart
 
@@ -19,6 +21,8 @@ def strategy_weights(allocation_df: pd.DataFrame, palette: list = None) -> None:
         DataFrame with assets in columns, weights in rows
     palette: list, optional
         color palette
+    title: str = None
+        plot title
     """
     my_palette = [
         "#164863",
@@ -49,4 +53,5 @@ def strategy_weights(allocation_df: pd.DataFrame, palette: list = None) -> None:
     plt.stackplot(x, y, labels=allocation_df.columns)
     ax.yaxis.set_major_formatter(PercentFormatter(1, decimals=0))
     plt.legend()
+    plt.title(title)
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))

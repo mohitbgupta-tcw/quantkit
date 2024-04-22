@@ -92,6 +92,60 @@ def get_price_data(
     df["date"] = df["date"].dt.tz_localize(None)
     df = df.sort_values(["date", "ticker"], ascending=True)
     df = df.pivot(index="date", columns="ticker", values="closeadj")
+    df = df[~df.index.duplicated(keep="first")]
+    return df
+
+
+def get_ohlc_data(
+    tickers: list, start_date: str, end_date: str, ca_adj: str = "SPLITS"
+) -> pd.DataFrame:
+    """
+    For a specified list of securities, load Bloomberg HLC data through API
+
+    Parameters
+    ----------
+    ticker: list
+        list of bloomberg tickers to run in API, p.e. ["AAPL US EQUITY", "MSFT US Equity"]
+    start_date: str
+        date in format "yyyy-mm-dd"
+    end_date: str
+        date in format "yyyy-mm-dd"
+    ca_adj: str, optional
+        corporate action adjustment, should be one of:
+            - SPLITS: Adjusts data for stock splits only
+            - FULL: Adjusts data for corporate actions that impact pricing and
+                    number of shares outstanding, including splits, stock dividends,
+                    spin-offs, rights offerings, etc
+            - RAW: Leaves data unadjusted for corporate actions
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of Bloomberg information
+    """
+    filters = (
+        f"dates=range({start_date},{end_date}), " + f"fill=NA, " + f"ca_adj={ca_adj}"
+    )
+    fields = [
+        f + "(" + filters + ")" for f in ["PX_OPEN", "PX_LAST", "PX_HIGH", "PX_LOW"]
+    ]
+
+    bloomberg_object = bloomberg.Bloomberg(
+        fields=fields,
+        tickers=tickers,
+    )
+    bloomberg_object.load()
+
+    df = bloomberg_object.df
+    df = df[df["secondary_name"] == "DATE"]
+    df = df.rename(
+        columns={"security": "ticker", "value": "value", "secondary_value": "date"}
+    )
+    df = df[["date", "ticker", "value", "field"]]
+    df["field"] = df["field"].str.split("(").str[0]
+    df["date"] = pd.to_datetime(df["date"])
+    df["date"] = df["date"].dt.tz_localize(None)
+    df = df.sort_values(["date", "ticker"], ascending=True)
+    df = df.pivot(index=["date", "ticker"], columns="field", values="value")
     return df
 
 
