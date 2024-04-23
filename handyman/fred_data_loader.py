@@ -105,3 +105,41 @@ def run_fred_api(
             fred_revised_data = pd.concat([fred_revised_data, date_df])
         return fred_revised_data
     return fred_object.df
+
+
+def get_all_revisions(
+    ticker: str,
+    realtime_start: str = "2017-01-01",
+) -> pd.DataFrame:
+    """
+    Get economic datapoints through FRED API
+
+    Parameters
+    ----------
+    ticker: str
+        ticker from FRED
+        (check available data here: https://fred.stlouisfed.org/)
+    revision: bool, optional
+        take revised series
+    realtime_start: str, optional
+        date for series to start at
+    averages: list, optional
+        calculate moving averages for window sizes in list
+    changes: list, optional
+        calculate percentage change for window size in list
+    differences: list, optional
+        calculate difference for window size in list
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame of FRED information
+    """
+    api_key = "eb4f46c42913c92951a8c64d545598ca"
+
+    filters = dict()
+    filters["realtime_start"] = realtime_start
+
+    fred_object = fred.FRED(api_key, tickers=[ticker], revision=True, filters=filters)
+    fred_object.load()
+    return fred_object.df

@@ -1,5 +1,6 @@
 import quantkit.core.data_sources.bloomberg as bloomberg
 import pandas as pd
+import numpy as np
 
 
 def get_mapping_data(tickers: list) -> pd.DataFrame:
@@ -73,25 +74,35 @@ def get_price_data(
     filters["fillna"] = "NA"
     filters["ca_adj"] = ca_adj
 
-    bloomberg_object = bloomberg.Bloomberg(
-        fields=["PX_LAST"],
-        tickers=tickers,
-        start_date=start_date,
-        end_date=end_date,
-        filters=filters,
-    )
-    bloomberg_object.load()
+    dates = list(pd.date_range(start_date, end_date, freq="5Y"))
+    dates.append(pd.to_datetime(end_date))
 
-    df = bloomberg_object.df
-    df = df[df["secondary_name"] == "DATE"]
-    df = df.rename(
-        columns={"security": "ticker", "value": "closeadj", "secondary_value": "date"}
-    )
-    df = df[["date", "ticker", "closeadj"]]
-    df["date"] = pd.to_datetime(df["date"])
-    df["date"] = df["date"].dt.tz_localize(None)
-    df = df.sort_values(["date", "ticker"], ascending=True)
-    df = df.pivot(index="date", columns="ticker", values="closeadj")
+    df = pd.DataFrame()
+    for d in range(len(dates) - 1):
+        bloomberg_object = bloomberg.Bloomberg(
+            fields=["PX_LAST"],
+            tickers=tickers,
+            start_date=dates[d].strftime("%Y-%m-%d"),
+            end_date=dates[d + 1].strftime("%Y-%m-%d"),
+            filters=filters,
+        )
+        bloomberg_object.load()
+
+        date_df = bloomberg_object.df
+        date_df = date_df[date_df["secondary_name"] == "DATE"]
+        date_df = date_df.rename(
+            columns={
+                "security": "ticker",
+                "value": "closeadj",
+                "secondary_value": "date",
+            }
+        )
+        date_df = date_df[["date", "ticker", "closeadj"]]
+        date_df["date"] = pd.to_datetime(date_df["date"])
+        date_df["date"] = date_df["date"].dt.tz_localize(None)
+        date_df = date_df.sort_values(["date", "ticker"], ascending=True)
+        date_df = date_df.pivot(index="date", columns="ticker", values="closeadj")
+        df = pd.concat([df, date_df])
     df = df[~df.index.duplicated(keep="first")]
     return df
 
