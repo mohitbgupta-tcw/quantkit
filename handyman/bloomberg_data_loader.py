@@ -21,6 +21,7 @@ def get_mapping_data(tickers: list) -> pd.DataFrame:
         fields=[
             "id_bb_company",
             "id_isin",
+            "fundamental_ticker",
             "name",
             "cntry_of_domicile",
             "gics_sector_name",
@@ -31,16 +32,6 @@ def get_mapping_data(tickers: list) -> pd.DataFrame:
     bloomberg_object.load()
     df = bloomberg_object.df
     df = df.pivot(columns="field", index="security", values="value")
-    df = df[
-        [
-            "id_bb_company",
-            "id_isin",
-            "name",
-            "cntry_of_domicile",
-            "gics_sector_name",
-            "gics_industry_name",
-        ]
-    ]
     return df
 
 
@@ -133,30 +124,45 @@ def get_ohlc_data(
     pd.DataFrame
         DataFrame of Bloomberg information
     """
-    filters = (
-        f"dates=range({start_date},{end_date}), " + f"fill=NA, " + f"ca_adj={ca_adj}"
-    )
-    fields = [
-        f + "(" + filters + ")" for f in ["PX_OPEN", "PX_LAST", "PX_HIGH", "PX_LOW"]
-    ]
+    dates = list(pd.date_range(start_date, end_date, freq="5Y"))
+    dates.append(pd.to_datetime(end_date))
 
-    bloomberg_object = bloomberg.Bloomberg(
-        fields=fields,
-        tickers=tickers,
-    )
-    bloomberg_object.load()
+    df = pd.DataFrame()
+    for d in range(len(dates) - 1):
+        filters = (
+            f"""dates=range({dates[d].strftime("%Y-%m-%d")},{dates[d + 1].strftime("%Y-%m-%d")}), """
+            + f"fill=NA, "
+            + f"ca_adj={ca_adj}"
+        )
+        fields = [
+            f + "(" + filters + ")" for f in ["PX_OPEN", "PX_LAST", "PX_HIGH", "PX_LOW"]
+        ]
 
-    df = bloomberg_object.df
-    df = df[df["secondary_name"] == "DATE"]
-    df = df.rename(
-        columns={"security": "ticker", "value": "value", "secondary_value": "date"}
-    )
-    df = df[["date", "ticker", "value", "field"]]
-    df["field"] = df["field"].str.split("(").str[0]
-    df["date"] = pd.to_datetime(df["date"])
-    df["date"] = df["date"].dt.tz_localize(None)
-    df = df.sort_values(["date", "ticker"], ascending=True)
-    df = df.pivot(index=["date", "ticker"], columns="field", values="value")
+        bloomberg_object = bloomberg.Bloomberg(
+            fields=fields,
+            tickers=tickers,
+        )
+        bloomberg_object.load()
+
+        date_df = bloomberg_object.df
+        date_df = date_df[date_df["secondary_name"] == "DATE"]
+        date_df = date_df.rename(
+            columns={
+                "security": "ticker",
+                "value": "value",
+                "secondary_value": "date",
+            }
+        )
+        date_df = date_df[["date", "ticker", "value", "field"]]
+        date_df["date"] = pd.to_datetime(date_df["date"])
+        date_df["date"] = date_df["date"].dt.tz_localize(None)
+        date_df["field"] = date_df["field"].str.split("(").str[0]
+        date_df = date_df.sort_values(["date", "ticker"], ascending=True)
+        date_df = date_df.pivot(
+            index=["date", "ticker"], columns="field", values="value"
+        )
+        df = pd.concat([df, date_df])
+    df = df[~df.index.duplicated(keep="first")]
     return df
 
 

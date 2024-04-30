@@ -29,7 +29,7 @@ def cosine_similarity(matrix: Union[np.ndarray, pd.DataFrame]) -> pd.DataFrame:
     return cosine_sim
 
 
-def intersection(matrix: Union[np.ndarray, pd.DataFrame]) -> pd.DataFrame:
+def intersection(matrix: Union[np.ndarray, pd.DataFrame], minimum=True) -> pd.DataFrame:
     r"""
     Calculate number of intersection between rows
 
@@ -42,6 +42,8 @@ def intersection(matrix: Union[np.ndarray, pd.DataFrame]) -> pd.DataFrame:
         ARKQ US EQUITY	nan  	        1          	    1
         TGFTX US Equity	1       	    nan	            1
         CHAT US Equity	nan           	nan           	nan
+    minimum: bool, optional
+        select minimum of element-wise comparison
 
     Returns
     -------
@@ -57,7 +59,10 @@ def intersection(matrix: Union[np.ndarray, pd.DataFrame]) -> pd.DataFrame:
     final_m = np.zeros([matrix.shape[0], matrix.shape[0]])
     for col in matrix.T:
         sec_matrix = np.tile(col, (matrix.shape[0], 1)).T
-        m = np.nan_to_num(np.minimum(sec_matrix, sec_matrix.T))
+        if minimum:
+            m = np.nan_to_num(np.minimum(sec_matrix, sec_matrix.T))
+        else:
+            m = np.nan_to_num(sec_matrix * (sec_matrix.T > 0).astype(int))
         final_m += m
     i = pd.DataFrame(final_m, index=cols, columns=cols)
     return i
