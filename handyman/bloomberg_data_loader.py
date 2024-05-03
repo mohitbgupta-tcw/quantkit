@@ -95,6 +95,11 @@ def get_price_data(
         date_df = date_df.pivot(index="date", columns="ticker", values="closeadj")
         df = pd.concat([df, date_df])
     df = df[~df.index.duplicated(keep="first")]
+    df, _ = df.align(
+        pd.DataFrame(index=pd.bdate_range(df.index[0], df.index[-1])),
+        join="inner",
+        axis=0,
+    )
     return df
 
 

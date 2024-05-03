@@ -5,6 +5,102 @@ import quantkit.utils.annualize_adjustments as annualize_adjustments
 import quantkit.utils.mapping_configs as mapping_configs
 
 
+def calculate_portfolio_returns(
+    weights: pd.DataFrame, returns: pd.DataFrame
+) -> pd.Series:
+    """
+    Calculate portfolio returns based on
+        - asset portfolio weights
+        - asset returns
+    over time.
+    Shift weights forward 1 period to align with returns
+
+    Parameters
+    ----------
+    weights: pd.DataFrame
+        portfolio weights per asset over time
+    returns: pd.DataFrame
+        asset returns over time
+
+    Returns
+    -------
+    pd.Series:
+        portfolio returns
+    """
+    shifted_weights = weights.shift(1)
+    pr = (
+        shifted_weights * returns.loc[shifted_weights.index, shifted_weights.columns]
+    ).sum(axis=1)
+    return pr
+
+
+def calculate_ex_ante_tracking_error(
+    weights: pd.DataFrame, returns: pd.DataFrame, lookback_window: int
+) -> pd.Series:
+    r"""
+    Calculate ex ante tracking error
+
+    Calculation
+    -----------
+    \sqrt{w'\Sigma w}
+
+    Parameters
+    ----------
+    weights: pd.DataFrame
+        portfolio weights per asset over time
+    returns: pd.DataFrame
+        asset returns over time
+    lookback_window: int
+        lockback window for covariance calculation
+
+    Returns
+    -------
+    pd.Series
+        ex ante tracking error
+    """
+    rolling_cov = np.log(returns + 1).rolling(lookback_window).cov(ddof=0) * 252
+    te = dict()
+    for date, row in weights.iterrows():
+        w = row.to_numpy()
+        cov = rolling_cov.loc[date]
+        portfolio_te = w.T @ cov.to_numpy() @ w
+        te[date] = np.sqrt(portfolio_te)
+
+    return pd.Series(te)
+
+
+def calculate_ex_post_tracking_error(
+    returns_portfolio: pd.DataFrame,
+    returns_benchmark: pd.DataFrame,
+    lookback_window: int,
+) -> pd.Series:
+    r"""
+    Calculate ex ante tracking error
+
+    Calculation
+    -----------
+    \sqrt{w'\Sigma w}
+
+    Parameters
+    ----------
+    returns_portfolio: pd.DataFrame
+        portfolio returns over time
+    returns_benchmark: pd.DataFrame
+        benchmark returns over time
+    lookback_window: int
+        lockback window for covariance calculation
+
+    Returns
+    -------
+    pd.Series
+        ex ante tracking error
+    """
+    excess_portfolio = (
+        returns_benchmark.loc[returns_portfolio.index] - returns_portfolio
+    )
+    return np.sqrt(excess_portfolio.rolling(63).var() * 252)
+
+
 def total_return(return_series: pd.DataFrame) -> float:
     """
     Calculate total return of return series

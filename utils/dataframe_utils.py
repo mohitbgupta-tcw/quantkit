@@ -84,3 +84,21 @@ def scale(val: float, src: tuple, dst: tuple) -> float:
         rescaled value
     """
     return ((val - src[0]) / (src[1] - src[0])) * (dst[1] - dst[0]) + dst[0]
+
+
+def float_to_percentage(col: pd.Series) -> pd.Series:
+    """
+    Format column of type float to column of type str
+    in percentage format
+
+    Parameters
+    ----------
+    col: pd.Series
+        col of type float
+
+    Returns
+    -------
+    pd.Series:
+        col of type str in percentage format
+    """
+    return col.transform(lambda x: "{:,.2%}".format(x))
