@@ -10,7 +10,10 @@ sns.despine()
 
 
 def strategy_weights(
-    allocation_df: pd.DataFrame, palette: list = None, title: str = None
+    allocation_df: pd.DataFrame,
+    palette: list = None,
+    title: str = None,
+    constraints: dict = None,
 ) -> None:
     """
     For a given DataFrame of weights, plot the area chart
@@ -23,6 +26,8 @@ def strategy_weights(
         color palette
     title: str = None
         plot title
+    constraints: dict, optional
+        if passed in, will show weight constraints as text below legend
     """
     my_palette = [
         "#164863",
@@ -52,6 +57,15 @@ def strategy_weights(
     fig, ax = plt.subplots(figsize=(12, 6))
     plt.stackplot(x, y, labels=allocation_df.columns)
     ax.yaxis.set_major_formatter(PercentFormatter(1, decimals=0))
+
+    if constraints:
+        constr_string = "Constraints: \n  "
+        constr_string += "\n  ".join(
+            [f"- {key}: {value}" for key, value in constraints.items()]
+        )
+        text = fig.text(0.91, 0.3, constr_string)
+
+    ax.margins(x=0, y=0)
     plt.legend()
     plt.title(title)
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
@@ -63,6 +77,8 @@ def weights_returns_overlay(
     palette: list = None,
     title: str = None,
     ax2_legend_loc: tuple = (1.095, -0.05),
+    constraints: dict = None,
+    constraints_loc: tuple = (0.97, 0.16),
 ) -> None:
     """
     For a given DataFrame of weights and returns,
@@ -80,6 +96,10 @@ def weights_returns_overlay(
         plot title
     ax2_legend_loc: tuple, optional
         location of ax2 legend
+    constraints: dict, optional
+        if passed in, will show weight constraints as text below legend
+    constraints_loc: tuple, optional
+        location of constraints text
     """
     my_palette = [
         "#164863",
@@ -130,3 +150,10 @@ def weights_returns_overlay(
     ax.margins(x=0, y=0)
     plt.title(title)
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1.09, 1))
+
+    if constraints:
+        constr_string = "Constraints: \n  "
+        constr_string += "\n  ".join(
+            [f"- {key}: {value}" for key, value in constraints.items()]
+        )
+        text = fig.text(constraints_loc[0], constraints_loc[1], constr_string)

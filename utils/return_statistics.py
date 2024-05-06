@@ -34,8 +34,11 @@ def calculate_portfolio_returns(
     return pr
 
 
-def calculate_ex_ante_tracking_error(
-    weights: pd.DataFrame, returns: pd.DataFrame, lookback_window: int
+def calculate_portfolio_volatility(
+    weights: pd.DataFrame,
+    returns: pd.DataFrame,
+    lookback_window: int,
+    annualization_factor: int = 1,
 ) -> pd.Series:
     r"""
     Calculate ex ante tracking error
@@ -52,13 +55,17 @@ def calculate_ex_ante_tracking_error(
         asset returns over time
     lookback_window: int
         lockback window for covariance calculation
+    annualization_factor: int, optional
+        annualization factor for covariance
 
     Returns
     -------
     pd.Series
         ex ante tracking error
     """
-    rolling_cov = np.log(returns + 1).rolling(lookback_window).cov(ddof=0) * 252
+    rolling_cov = (
+        np.log(returns + 1).rolling(lookback_window).cov(ddof=0) * annualization_factor
+    )
     te = dict()
     for date, row in weights.iterrows():
         w = row.to_numpy()
@@ -73,6 +80,7 @@ def calculate_ex_post_tracking_error(
     returns_portfolio: pd.DataFrame,
     returns_benchmark: pd.DataFrame,
     lookback_window: int,
+    annualization_factor: int = 1,
 ) -> pd.Series:
     r"""
     Calculate ex ante tracking error
@@ -89,6 +97,8 @@ def calculate_ex_post_tracking_error(
         benchmark returns over time
     lookback_window: int
         lockback window for covariance calculation
+    annualization_factor: int, optional
+        annualization factor for covariance
 
     Returns
     -------
@@ -98,7 +108,9 @@ def calculate_ex_post_tracking_error(
     excess_portfolio = (
         returns_benchmark.loc[returns_portfolio.index] - returns_portfolio
     )
-    return np.sqrt(excess_portfolio.rolling(63).var() * 252)
+    return np.sqrt(
+        excess_portfolio.rolling(lookback_window).var() * annualization_factor
+    )
 
 
 def total_return(return_series: pd.DataFrame) -> float:
