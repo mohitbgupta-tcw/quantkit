@@ -49,12 +49,17 @@ class SecuritizedStore(asset_base.AssetBase, securitized.SecuritizedStore):
             elif " TBA " in sec_store.information["Security_Name"]:
                 sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
+            elif (
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
+                == "Low WACI (Q2) Only"
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 3
+                sec_store.scores["Securitized_Score"] = 3
             elif sec_store.information["ESG Collateral Type"]["ESG Collat Type"] in clo:
                 sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif (
-                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
-                == "Affordable Multifamily (min 20% aff. units)"
+                "20%" in sec_store.information["ESG Collateral Type"]["ESG Collat Type"]                 
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
