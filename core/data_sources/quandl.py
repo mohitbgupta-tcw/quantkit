@@ -37,6 +37,8 @@ class Quandl(object):
         nasdaqdatalink.ApiConfig.api_key = self.key
         if os.name == "nt":
             nasdaqdatalink.ApiConfig.verify_ssl = f"{d}\\certs.crt"
+        if os.name == "posix":
+            nasdaqdatalink.ApiConfig.verify_ssl = f"{d}/certs.crt"
 
         if self.type in ["fundamental", "prices"]:
             if "ticker" in self.filters:
