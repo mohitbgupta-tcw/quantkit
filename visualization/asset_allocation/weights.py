@@ -55,7 +55,7 @@ def strategy_weights(
 
     # Plot
     fig, ax = plt.subplots(figsize=(12, 6))
-    plt.stackplot(x, y, labels=allocation_df.columns)
+    plt.stackplot(x, y, labels=allocation_df.columns, alpha=0.7)
     ax.yaxis.set_major_formatter(PercentFormatter(1, decimals=0))
 
     if constraints:
@@ -66,7 +66,7 @@ def strategy_weights(
         text = fig.text(0.91, 0.3, constr_string)
 
     ax.margins(x=0, y=0)
-    plt.legend()
+    ax.legend([f"{i}: {allocation_df.iloc[-1][i]:.2%}" for i in allocation_df.columns])
     plt.title(title)
     sns.move_legend(ax, "upper left", bbox_to_anchor=(1, 1))
 

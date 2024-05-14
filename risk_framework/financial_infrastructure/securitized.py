@@ -59,7 +59,7 @@ class SecuritizedStore(asset_base.AssetBase, securitized.SecuritizedStore):
                 sec_store.scores["Securitized_Score_unadjusted"] = 2
                 sec_store.scores["Securitized_Score"] = 2
             elif (
-                "20%" in sec_store.information["ESG Collateral Type"]["ESG Collat Type"]                 
+                "20%" in sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
             ):
                 sec_store.scores["Securitized_Score_unadjusted"] = 3
                 sec_store.scores["Securitized_Score"] = 3
