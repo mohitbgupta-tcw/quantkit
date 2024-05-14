@@ -88,6 +88,8 @@ class MVOWeight(algo.Algo):
         risk-free rate
     lag: DateOffset, optional
         amount of time to wait to calculate the covariance
+    options: str, optional
+        solver-specific options for convergence
     """
 
     def __init__(
@@ -97,6 +99,7 @@ class MVOWeight(algo.Algo):
         covar_method: str = "standard",
         rf: float = 0.0,
         lag: pd.DateOffset = pd.DateOffset(days=0),
+        options: dict = None
     ) -> None:
         super().__init__()
         self.lookback = lookback
@@ -104,6 +107,8 @@ class MVOWeight(algo.Algo):
         self.bounds = bounds
         self.covar_method = covar_method
         self.rf = rf
+        self.options = options
+
 
     def __call__(self, target) -> bool:
         """
@@ -136,6 +141,7 @@ class MVOWeight(algo.Algo):
             weight_bounds=self.bounds,
             covar_method=self.covar_method,
             rf=self.rf,
+            options=self.options
         )
 
         target.temp["weights"] = tw.dropna().to_dict()
