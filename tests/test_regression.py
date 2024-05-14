@@ -1,6 +1,8 @@
 import sys, os
 
-sys.path.append(os.getcwd())
+from pathlib import Path
+d = Path().resolve().parent.parent
+sys.path.insert(0, str(d))
 
 import numpy as np
 import pandas as pd
@@ -9,8 +11,10 @@ from sklearn.metrics import r2_score
 import quantkit.mathstats.regression.ols_regression as lr
 import quantkit.mathstats.regression.ridge_regression as rr
 
+from quantkit.tests.shared_test_utils import *
 
-def window_ols_dataset():
+
+def test_window_ols_dataset():
     """
     For a dataset, test quantkits linear regression against scikit-learn, especially
     - beta = coef_
@@ -59,7 +63,7 @@ def window_ols_dataset():
     )
 
 
-def window_ridge_dataset():
+def test_window_ridge_dataset():
     """
     For a dataset, test quantkits ridge regression against scikit-learn, especially
     - beta = coef_
@@ -100,5 +104,5 @@ def window_ridge_dataset():
 
 
 if __name__ == "__main__":
-    window_ols_dataset()
-    window_ridge_dataset()
+    test_window_ols_dataset()
+    test_window_ridge_dataset()

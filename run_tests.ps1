@@ -21,7 +21,7 @@ if (!(([string]$c).split() -contains $CONTAINER_NAME)) {
   docker run -d `
     -it `
     --name $CONTAINER_NAME `
-    --mount type=bind,source="$p",target=/app `
+    --mount type=bind,source="$p",target=/quantkit `
     $IMAGE_NAME /bin/bash
 }
 else {

@@ -1,6 +1,8 @@
 import sys, os
 
-sys.path.append(os.getcwd())
+from pathlib import Path
+d = Path().resolve().parent.parent
+sys.path.insert(0, str(d))
 
 import numpy as np
 import pandas as pd
@@ -13,6 +15,8 @@ import quantkit.mathstats.sum.rolling_cumsum as rolling_cumsum
 import quantkit.mathstats.product.simple_cumprod as simple_cumprod
 import quantkit.mathstats.product.rolling_cumprod as rolling_cumprod
 import quantkit.mathstats.matrix.correlation as correlation
+
+from quantkit.tests.shared_test_utils import *
 
 
 def test_integer_dataset():
