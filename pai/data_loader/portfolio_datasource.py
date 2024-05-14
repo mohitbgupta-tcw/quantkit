@@ -23,6 +23,8 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
             portfolio name
         ISIN: str
             isin of security
+        CUSIP: str
+            cusip of security
         Security_Name: str
             name of security
         Ticker Cd: str
@@ -101,6 +103,7 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                 pos.portfolio_number AS "Portfolio",
                 pos.portfolio_name AS "Portfolio Name",
                 pos.isin AS "ISIN",
+                sec.cusip as "CUSIP",
                 sec.security_name AS "Security_Name",
                 IFNULL(adj.ticker, sec.ticker) AS "Ticker Cd",
                 CASE 
@@ -174,6 +177,7 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                     ELSE bench.benchmark_name 
                 END AS "Portfolio Name",
                 bench.isin AS "ISIN",
+                sec.cusip as "CUSIP",
                 sec.security_name AS "Security_Name",
                 IFNULL(adj.ticker, sec.ticker) AS "Ticker Cd",
                 CASE 

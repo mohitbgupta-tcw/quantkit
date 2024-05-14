@@ -53,7 +53,7 @@ def risk_framework(local_configs: str = "") -> pd.DataFrame:
                 "Security Name": sec_store.information["Security_Name"],
                 "Issuer Name": comp_store.msci_information["ISSUER_NAME"],
                 "Ticker": comp_store.msci_information["ISSUER_TICKER"],
-                "CUSIP": comp_store.msci_information["ISSUER_CUSIP"],
+                "CUSIP": sec_store.information["CUSIP"],
                 "Country of Risk": sec_store.information["Country of Risk"],
                 "Analyst": comp_store.information["Sub-Industry"].information[
                     "Analyst"

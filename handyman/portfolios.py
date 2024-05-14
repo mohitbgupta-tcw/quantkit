@@ -65,6 +65,7 @@ def historical_portfolio_holdings(
             pos.portfolio_number AS "Portfolio",
             pos.portfolio_name AS "Portfolio Name",
             pos.isin AS "ISIN",
+            sec.cusip as "CUSIP",
             sec.security_name AS "Security_Name",
             IFNULL(adj.ticker, sec.ticker) AS "Ticker Cd",
             CASE 
@@ -133,6 +134,7 @@ def historical_portfolio_holdings(
                 ELSE bench.benchmark_name 
             END AS "Portfolio Name",
             bench.isin AS "ISIN",
+            sec.cusip as "CUSIP",
             sec.security_name AS "Security_Name",
             IFNULL(adj.ticker, sec.ticker) AS "Ticker Cd",
             CASE 
