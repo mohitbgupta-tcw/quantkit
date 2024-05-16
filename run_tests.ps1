@@ -29,8 +29,8 @@ else {
 }
 
 $TEST_LINE=@'
-pytest --cov-config=.coveragerc --cov=. 
-tests 
+pytest --cov-config=tests/.coveragerc --cov=. 
+tests/test_return_calc/test_simple_return.py 
 -s
 '@
 

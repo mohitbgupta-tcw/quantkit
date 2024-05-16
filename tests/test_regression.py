@@ -1,9 +1,5 @@
 import sys, os
 
-from pathlib import Path
-d = Path().resolve().parent.parent
-sys.path.insert(0, str(d))
-
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression, Ridge

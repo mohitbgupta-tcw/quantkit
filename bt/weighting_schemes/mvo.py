@@ -136,8 +136,14 @@ class MVOWeight(algo.Algo):
 
         t0 = target.now - self.lag
         prc = target.universe.loc[t0 - self.lookback : t0, selected]
+        
+        if 'return'in target.temp:
+            returns = target.temp['return']
+        else:
+            returns = prc.pct_change().dropna()
+        
         tw = calc_mean_var_weights(
-            prc.pct_change().dropna(),
+            returns,
             weight_bounds=self.bounds,
             covar_method=self.covar_method,
             rf=self.rf,
