@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import logging
+import quantkit.bt.util.logging
 import quantkit.bt.core_structure.algo as algo
 
 
@@ -70,6 +72,14 @@ class InvVolWeight(algo.Algo):
 
         t0 = target.now - self.lag
         prc = target.universe.loc[t0 - self.lookback : t0, selected]
-        tw = calc_inv_vol_weights(prc.pct_change().dropna())
+
+        if 'return'in target.temp:
+            logging.debug('Inverse Volatility optimization using returns algo')
+            returns = target.temp['return']
+        else:
+            logging.debug('Inverse Volatility optimization using default simple returns')
+            returns = prc.pct_change().dropna()
+
+        tw = calc_inv_vol_weights(returns)
         target.temp["weights"] = tw.dropna().to_dict()
         return True

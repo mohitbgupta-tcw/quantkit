@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import sklearn
+import logging
+import quantkit.bt.util.logging
 from scipy.optimize import minimize
 import quantkit.bt.core_structure.algo as algo
 
@@ -264,8 +266,16 @@ class RiskParityWeight(algo.Algo):
 
         t0 = target.now - self.lag
         prc = target.universe.loc[t0 - self.lookback : t0, selected]
+
+        if 'return'in target.temp:
+            logging.debug('Risk Parity optimization using returns algo')
+            returns = target.temp['return']
+        else:
+            logging.debug('Risk Parity optimization using default simple returns')
+            returns = prc.pct_change().dropna()
+
         tw = calc_erc_weights(
-            prc.pct_change().dropna(),
+            returns,
             initial_weights=self.initial_weights,
             risk_weights=self.risk_weights,
             covar_method=self.covar_method,

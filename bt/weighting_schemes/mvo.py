@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import sklearn
+import logging
+import quantkit.bt.util.logging
 from scipy.optimize import minimize
 import quantkit.bt.core_structure.algo as algo
 
@@ -138,8 +140,10 @@ class MVOWeight(algo.Algo):
         prc = target.universe.loc[t0 - self.lookback : t0, selected]
         
         if 'return'in target.temp:
+            logging.debug('Mean-Variance optimization using returns algo')
             returns = target.temp['return']
         else:
+            logging.debug('Mean-Variance optimization using default simple returns')
             returns = prc.pct_change().dropna()
         
         tw = calc_mean_var_weights(

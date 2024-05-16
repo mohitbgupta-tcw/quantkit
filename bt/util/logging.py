@@ -1,7 +1,13 @@
 import logging
+import sys
 import quantkit.bt.core_structure.algo as algo
 
-# TODO replace logging calls with quantkit logging function
+logger = logging.getLogger()
+logger.level = logging.DEBUG
+stream_handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 
 class PrintDate(algo.Algo):
@@ -23,9 +29,6 @@ class PrintDate(algo.Algo):
         bool:
             return True
         """
-        FORMAT = "%(asctime)s  %(message)s"
-        logging.basicConfig(format=FORMAT)
-        logger = logging.getLogger("tcpserver")
         logger.warning("WORKING ON: %s", target.now)
         return True
 
@@ -49,9 +52,6 @@ class PrintTempData(algo.Algo):
         bool:
             return True
         """
-        FORMAT = "%(asctime)s  %(message)s"
-        logging.basicConfig(format=FORMAT)
-        logger = logging.getLogger("tcpserver")
         logger.warning("Temp: %s", target.temp)
         return True
 
@@ -76,8 +76,5 @@ class PrintRisk(algo.Algo):
             return True
         """
         if hasattr(target, "risk"):
-            FORMAT = "%(asctime)s  %(message)s"
-            logging.basicConfig(format=FORMAT)
-            logger = logging.getLogger("tcpserver")
             logger.warning("Risk: %s, %s", target.now, target.risk)
         return True
