@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import sklearn.covariance
+import logging
+import quantkit.bt.util.logging
 import quantkit.bt.core_structure.algo as algo
 
 
@@ -74,7 +76,13 @@ class PTE_Rebalance(algo.Algo):
 
         t0 = target.now - self.lag
         prc = target.universe.loc[t0 - self.lookback : t0, cols]
-        returns = prc.pct_change().dropna()
+        
+        if 'return'in target.temp:
+            logging.debug('Mean-Variance optimization using returns algo')
+            returns = target.temp['return']
+        else:
+            logging.debug('Mean-Variance optimization using default simple returns')
+            returns = prc.pct_change().dropna()
 
         # calc covariance matrix
         if self.covar_method == "ledoit-wolf":
@@ -94,6 +102,7 @@ class PTE_Rebalance(algo.Algo):
             return False
         # vol is too high
         if PTE_vol > self.PTE_volatility_cap:
+            logging.debug('Predicted tracking error is greater than the threshold, {}'.format(PTE_vol, self.PTE_volatility_cap))
             return True
         else:
             return False
