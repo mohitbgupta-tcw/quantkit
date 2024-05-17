@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
-import logging
-import quantkit.bt.util.logging
+from quantkit.bt.util.logging import logging
 import quantkit.bt.core_structure.algo as algo
 
 

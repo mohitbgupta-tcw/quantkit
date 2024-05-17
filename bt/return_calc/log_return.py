@@ -1,11 +1,12 @@
 import pandas as pd
+import numpy as np
 import bt.core_structure.algo as algo
 from bt.util.logging import logging
 
 
-class SimpleReturn(algo.Algo):
+class LogReturn(algo.Algo):
     """
-    Calculate the simple return for each security in a given universe.
+    Calculate the log return for each security in a given universe.
     -> save return values dataframe in temp['return']
 
     Parameters
@@ -29,7 +30,7 @@ class SimpleReturn(algo.Algo):
 
     def __call__(self, target) -> bool:
         """
-        Run Algo on call SimpleReturn() and set temp['return'] with returns
+        Run Algo on call LogReturn() and set temp['return'] with returns
 
         Parameters
         ----------
@@ -41,7 +42,7 @@ class SimpleReturn(algo.Algo):
         bool:
             return True
         """
-        logging.debug('Calculating simple returns')
+        logging.debug('Calculating log returns')
 
         if 'selected' in target.temp:
             selected = target.temp['selected']
@@ -58,7 +59,7 @@ class SimpleReturn(algo.Algo):
         if len(prc.dropna()) < 2:
             return False
 
-        simple_return = prc.pct_change().dropna()
-        target.temp['return'] = simple_return
+        log_return =  np.log(prc/prc.shift(1)).dropna()
+        target.temp['return'] = log_return
 
         return True

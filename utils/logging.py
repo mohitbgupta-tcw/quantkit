@@ -1,4 +1,12 @@
 import logging
+import sys
+
+logger = logging.getLogger()
+logger.level = logging.DEBUG
+stream_handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
 
 
 def log(message) -> None:
@@ -12,8 +20,4 @@ def log(message) -> None:
     message: str
         message to be logged to console
     """
-
-    FORMAT = "%(asctime)s  %(message)s"
-    logging.basicConfig(format=FORMAT)
-    logger = logging.getLogger("tcpserver")
-    logger.warning("WORKING ON: %s", message)
+    logging.warning("WORKING ON: %s", message)

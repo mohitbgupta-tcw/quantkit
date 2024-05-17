@@ -30,7 +30,7 @@ else {
 
 $TEST_LINE=@'
 pytest --cov-config=tests/.coveragerc --cov=. 
-tests/test_return_calc/test_simple_return.py 
+tests/test_return_calc/ 
 -s
 '@
 
