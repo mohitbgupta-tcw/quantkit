@@ -138,7 +138,7 @@ class MVOWeight(algo.Algo):
         t0 = target.now - self.lag
         prc = target.universe.loc[t0 - self.lookback : t0, selected]
         
-        if 'return'in target.temp:
+        if 'return' in target.temp:
             logging.debug('Mean-Variance optimization using returns algo')
             returns = target.temp['return']
         else:

@@ -11,11 +11,9 @@ class SimpleReturn(algo.Algo):
     Parameters
     ----------
     lookback: DateOffset
-        lookback period in months. Note that if a subsequent weighting algo
-        has a lookback set, then this should be the same.
+        lookback period in months
     lag: DateOffset
-        lag interval in days. Note that if a subsequent weighting algo
-        has a lag set, then this should be the same.
+        lag interval in days
     """
 
     def __init__(

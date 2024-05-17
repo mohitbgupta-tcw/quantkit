@@ -266,7 +266,7 @@ class RiskParityWeight(algo.Algo):
         t0 = target.now - self.lag
         prc = target.universe.loc[t0 - self.lookback : t0, selected]
 
-        if 'return'in target.temp:
+        if 'return' in target.temp:
             logging.debug('Risk Parity optimization using returns algo')
             returns = target.temp['return']
         else:
