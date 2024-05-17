@@ -17,9 +17,12 @@ from bt.return_calc import SimpleReturn
 from tests.shared_test_utils import *
 
 
+lookback = lookback=pd.DateOffset(months=1)
+
+
 @pytest.fixture
 def simple_return_algo():
-    return SimpleReturn()
+    return SimpleReturn(lookback)
 
 
 @pytest.fixture
@@ -30,7 +33,9 @@ def simple_return_mvo_strategy(universe: pd.DataFrame, simple_return_algo: algo.
     Parameters
     ----------
     universe: pd.DataFrame
-        tickers and prices
+        tickers and prices fixture
+    simple_return_algo: algo.Algo
+        instance of SimpleReturn
 
     Returns
     -------
@@ -38,7 +43,7 @@ def simple_return_mvo_strategy(universe: pd.DataFrame, simple_return_algo: algo.
             a basic backtesting strategy
     '''
     mean_var_opt = weighting_schemes.MVOWeight(
-        lookback=pd.DateOffset(months=1),
+        lookback=lookback,
         bounds=(0.0, 1.0), 
         covar_method='ledoit-wolf', 
         options={'disp': True})
@@ -54,7 +59,9 @@ def simple_return_rp_strategy(universe: pd.DataFrame, simple_return_algo: algo.A
     Parameters
     ----------
     names: pd.DataFrame
-        tickers and prices
+        tickers and prices fixture
+    simple_return_algo: algo.Algo
+        instance of SimpleReturn
 
     Returns
     -------
@@ -75,7 +82,9 @@ def simple_return_iv_strategy(universe: pd.DataFrame, simple_return_algo: algo.A
     Parameters
     ----------
     names: pd.DataFrame
-        tickers and prices
+        tickers and prices fixture
+    simple_return_algo: algo.Algo
+        instance of SimpleReturn
 
     Returns
     -------
@@ -95,6 +104,15 @@ def test_simple_return_calc_mvo_strategy(universe, default_mvo_strategy, simple_
     Compare the results with a strategy where the the return calc algo is 
     not specified and confirm they are the same. They should be the same
     because the optimizer shold default to using simple returns.
+
+    Parameters
+    ----------
+    universe: pd.DataFrame
+        tickers and prices fixture
+    default_mvo_strategy: bt.Strategy
+        weighting strategy fixture with no returns algo specified
+    simple_return_mvo_strategy:
+        weighting strategy fixture with returns algo specified
     """
 
     # Test run and assert no errors with the simple returns algo specified.
@@ -131,6 +149,15 @@ def test_simple_return_calc_rp_strategy(universe, default_rp_strategy, simple_re
     Compare the results with a strategy where the the return calc algo is 
     not specified and confirm they are the same. They should be the same
     because the optimizer shold default to using simple returns.
+
+    Parameters
+    ----------
+    universe: pd.DataFrame
+        tickers and prices fixture
+    default_mvo_strategy: bt.Strategy
+        weighting strategy fixture with no returns algo specified
+    simple_return_mvo_strategy:
+        weighting strategy fixture with returns algo specified
     """
 
     # Test run and assert no errors with the simple returns algo specified.
@@ -167,6 +194,15 @@ def test_simple_return_calc_iv_strategy(universe, default_iv_strategy, simple_re
     Compare the results with a strategy where the the return calc algo is 
     not specified and confirm they are the same. They should be the same
     because the optimizer shold default to using simple returns.
+
+    Parameters
+    ----------
+    universe: pd.DataFrame
+        tickers and prices fixture
+    default_mvo_strategy: bt.Strategy
+        weighting strategy fixture with no returns algo specified
+    simple_return_mvo_strategy:
+        weighting strategy fixture with returns algo specified
     """
 
     # Test run and assert no errors with the simple returns algo specified.
@@ -200,6 +236,13 @@ def test_simple_return_calc_iv_strategy(universe, default_iv_strategy, simple_re
 def test_simple_return_values(universe, simple_return_mvo_strategy) -> None:
     '''
     Call the algo directly to check the calculation.
+
+    Parameters
+    ----------
+    universe: pd.DataFrame
+        tickers and prices fixture
+    simple_return_mvo_strategy:
+        weighting strategy fixture with returns algo specified
     '''
     simple_return_mvo_strategy.setup(universe)
     last_date = dates[-1]
