@@ -13,8 +13,6 @@ def get_snowflake_connparams(connid, role, schema):
 
     # Decode the private key
     private_key_content = extras['private_key_content'].encode()
-    print(private_key_content)
-
     private_key_passphrase = conn.password.encode()
 
     # Load the private key
