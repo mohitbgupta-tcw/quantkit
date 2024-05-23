@@ -1,5 +1,6 @@
 import snowflake.connector
 import pandas as pd
+import quantkit.utils.snowflake_utils as snowflake_utils
 
 
 class Snowflake(object):
@@ -67,7 +68,7 @@ class Snowflake(object):
 
         if self.airflow_connection_id != None:
 
-            self.connection_parameters = get_snowflake_connparams(self.airflow_connection_id.
+            self.connection_parameters = snowflake_utils.get_snowflake_connparams(self.airflow_connection_id.
                                                          self.role,
                                                          self.schema)
 
