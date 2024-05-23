@@ -32,6 +32,7 @@ class Snowflake(object):
         role: str,
         database: str,
         schema: str,
+        airflow_connection_id: str = None,
         account: str = "tcw",
         host: str = "tcw.west-us-2.azure.snowflakecomputing.com",
         **kwargs,
@@ -43,6 +44,7 @@ class Snowflake(object):
         self.role = role
         self.database = database
         self.schema = schema
+        self.airflow_connection_id = airflow_connection_id
         self.connection_parameters = {
             "account": self.account,
             "user": self.user,
@@ -62,6 +64,13 @@ class Snowflake(object):
         query: str
             SQL query for data
         """
+
+        if self.airflow_connection_id != None:
+
+            self.connection_parameters = get_snowflake_connparams(self.airflow_connection_id.
+                                                         self.role,
+                                                         self.schema)
+
         conn = snowflake.connector.connect(**self.connection_parameters)
         cur = conn.cursor()
         self.df = cur.execute(query).fetch_pandas_all()
