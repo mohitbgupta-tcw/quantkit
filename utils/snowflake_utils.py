@@ -74,27 +74,32 @@ def load_from_snowflake(
     pd.DataFrame
         Snowflake DataFrame
     """
-
-    params = configs.read_configs(local_configs=local_configs)
-    snowflake_params = params["API_settings"]["snowflake_parameters"]
-
-    if 'airflow_connection_id' in snowflake_params:
-        snowflake_params = get_snowflake_connparams(snowflake_params['airflow_connection_id'].
-                                                         snowflake_params["role"],
-                                                         schema)
-
-    sf = snowflake_ds.Snowflake(schema=schema, database=database, **snowflake_params)
-
     if not query:
         from_table = f"""{database}.{schema}."{table_name}" """
         query = f"""
         SELECT * 
         FROM {from_table}
         """
+    
+    params = configs.read_configs(local_configs=local_configs)
+    snowflake_params = params["API_settings"]["snowflake_parameters"]
 
-    sf.load(query=query)
-    return sf.df
+    if 'airflow_connection_id' in snowflake_params:
 
+        conn_params = get_snowflake_connparams(snowflake_params['airflow_connection_id'].
+                                                         snowflake_params["role"],
+                                                         schema)
+        
+        conn = snowflake.connector.connect(**conn_params)
+        cur = conn.cursor()
+        return cur.execute(query).fetch_pandas_all()
+
+    else:
+        
+        sf = snowflake_ds.Snowflake(schema=schema, database=database, **snowflake_params)
+
+        sf.load(query=query)
+        return sf.df
 
 def write_to_snowflake(
     df: pd.DataFrame,
