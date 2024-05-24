@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from quantkit.backtester.allocation.risk_parity import RiskParity
 from quantkit.backtester.allocation.min_variance import MinimumVariance
 from quantkit.backtester.allocation.mean_variance import MeanVariance, VolTarget
 import quantkit.backtester.return_calc.log_return as log_return
@@ -269,6 +270,49 @@ def volatility_target(
             vol_optimizer.allocate(date=date, selected_assets=selected_assets)
     weights = pd.DataFrame.from_dict(
         vol_optimizer.allocations_history,
+        orient="index",
+        columns=universe,
+    )
+    return weights
+
+
+def risk_parity(
+    returns_df: pd.DataFrame,
+    window_size: int,
+) -> pd.DataFrame:
+    """
+    Run Risk Parity Optimization over time
+
+    Parameters
+    ----------
+    returns_df: pd.DataFrame
+        DataFrame of asset returns
+    window_size: int
+        lookback window for covariance calculation
+
+    Returns
+    -------
+    pd.DataFrame:
+        DataFrame of weights for assets over time
+    """
+    universe = list(returns_df.columns)
+    selected_assets = [i for i in range(len(universe))]
+    risk_engine = log_vol.WindowLogNormalVol(universe=universe, window_size=window_size)
+
+    rp_optimizer = RiskParity(
+        asset_list=universe,
+        risk_engine=risk_engine,
+        return_engine=None,
+    )
+    for date, row in returns_df.iterrows():
+        return_array = row.to_numpy()
+        risk_engine.assign(date, return_array, annualize_factor=1)
+        if risk_engine.is_valid():
+            rp_optimizer.update(selected_assets=selected_assets)
+            rp_optimizer.allocate(date=date, selected_assets=selected_assets)
+
+    weights = pd.DataFrame.from_dict(
+        rp_optimizer.allocations_history,
         orient="index",
         columns=universe,
     )
