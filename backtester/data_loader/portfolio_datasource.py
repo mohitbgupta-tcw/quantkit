@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 
 
+quant_core_db = os.environ.get('QUANT_CORE_DB', 'tcw_core_dev')
+
 class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
     """
     Provide portfolio data
@@ -110,14 +112,14 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                 null AS "OAS",
                 (
                     SELECT MAX(isin) 
-                    FROM tcw_core.esg_iss.dim_issuer_iss iss 
+                    FROM {quant_core_db}.esg_iss.dim_issuer_iss iss 
                     WHERE iss.issuer_id = sec.issuer_id_iss
                 ) AS "Issuer ISIN"
-            FROM tcw_core.benchmark.benchmark_position_vw bench
-            LEFT JOIN tcw_core.tcw.security_vw sec 
+            FROM {quant_core_db}.benchmark.benchmark_position_vw bench
+            LEFT JOIN {quant_core_db}.tcw.security_vw sec 
                 ON bench.security_key = sec.security_key
                 AND bench.as_of_date = sec.as_of_date
-            LEFT JOIN tcw_core.reference.rclass_mapped_sectors_vw rs 
+            LEFT JOIN {quant_core_db}.reference.rclass_mapped_sectors_vw rs 
                 ON sec.sclass_key = rs.sclass_sector_key
                 AND rs.rclass_scheme_name = '7. ESG - Primary Summary'
             WHERE bench.as_of_date >= '{self.params["start_date"]}'
@@ -172,17 +174,17 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                     null AS "OAS",
                     (
                         SELECT MAX(ISIN) 
-                        FROM tcw_core.esg_iss.dim_issuer_iss iss 
+                        FROM {quant_core_db}.esg_iss.dim_issuer_iss iss 
                         WHERE iss.issuer_id = sec.issuer_id_iss
                     ) AS "Issuer ISIN"
-                FROM tcw_core.tcw.position_vw pos
-                LEFT JOIN tcw_core.tcw.security_vw sec 
+                FROM {quant_core_db}.tcw.position_vw pos
+                LEFT JOIN {quant_core_db}.tcw.security_vw sec 
                     ON pos.security_key = sec.security_key
                     AND pos.as_of_date = sec.as_of_date
-                LEFT JOIN tcw_core.reference.rclass_mapped_sectors_vw rs 
+                LEFT JOIN {quant_core_db}.reference.rclass_mapped_sectors_vw rs 
                     ON sec.sclass_key  = rs.sclass_sector_key
                     AND rs.rclass_scheme_name = '7. ESG - Primary Summary'
-                JOIN tcw_core.tcw.portfolio_vw strat 
+                JOIN {quant_core_db}.tcw.portfolio_vw strat 
                     ON pos.portfolio_key = strat.portfolio_key 
                     AND pos.as_of_date = strat.as_of_date 
                     AND strat.is_active = 1
@@ -245,14 +247,14 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                     null AS "OAS",
                     (
                         SELECT MAX(ISIN) 
-                        FROM tcw_core.esg_iss.dim_issuer_iss iss 
+                        FROM {quant_core_db}.esg_iss.dim_issuer_iss iss 
                         WHERE iss.issuer_id = sec.issuer_id_iss
                     ) AS "Issuer ISIN"
-                FROM tcw_core.benchmark.benchmark_position_vw bench
-                LEFT JOIN tcw_core.tcw.security_vw sec 
+                FROM {quant_core_db}.benchmark.benchmark_position_vw bench
+                LEFT JOIN {quant_core_db}.tcw.security_vw sec 
                     ON bench.security_key = sec.security_key
                     AND bench.as_of_date = sec.as_of_date
-                LEFT JOIN tcw_core.reference.rclass_mapped_sectors_vw rs 
+                LEFT JOIN {quant_core_db}.reference.rclass_mapped_sectors_vw rs 
                     ON sec.sclass_key = rs.sclass_sector_key 
                     AND rs.rclass_scheme_name = '7. ESG - Primary Summary'
                 LEFT JOIN sandbox_esg.quant_research.isin_ticker_mapping adj 
