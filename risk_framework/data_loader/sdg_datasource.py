@@ -3,6 +3,7 @@ import quantkit.utils.logging as logging
 import numpy as np
 import pandas as pd
 from copy import deepcopy
+import os
 
 
 quant_core_db = os.environ.get('QUANT_CORE_DB', 'tcw_core_dev')

@@ -1,6 +1,7 @@
 import quantkit.core.data_loader.portfolio_datasource as portfolio_datasource
 import quantkit.pai.financial_infrastructure.securities as securities
 import quantkit.pai.financial_infrastructure.portfolios as portfolios
+import os
 
 
 quant_core_db = os.environ.get('QUANT_CORE_DB', 'tcw_core_dev')

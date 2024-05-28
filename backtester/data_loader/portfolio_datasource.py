@@ -4,6 +4,7 @@ import quantkit.utils.snowflake_utils as snowflake_utils
 import datetime
 import numpy as np
 import pandas as pd
+import os
 
 
 quant_core_db = os.environ.get('QUANT_CORE_DB', 'tcw_core_dev')
