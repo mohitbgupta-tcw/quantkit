@@ -1,5 +1,6 @@
 import quantkit.core.data_sources.bloomberg as bloomberg
 import pandas as pd
+import numpy as np
 
 
 def get_mapping_data(tickers: list) -> pd.DataFrame:

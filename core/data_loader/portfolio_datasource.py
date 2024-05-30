@@ -103,6 +103,21 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df.replace("N/A", np.nan, inplace=True)
         self.datasource.df = self.datasource.df.fillna(value=np.nan)
 
+        sec_isins = list(
+            self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]
+            .dropna()
+            .unique()
+        )
+        if sec_isins:
+            msci_d = msci_data_loader.create_msci_mapping("ISIN", sec_isins)[
+                ["CLIENT_IDENTIFIER", "ISSUERID"]
+            ]
+            msci_d = dict(zip(msci_d["CLIENT_IDENTIFIER"], msci_d["ISSUERID"]))
+            msci_d.pop("Cash", None)
+            self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
+                "MSCI ISSUERID"
+            ].fillna(self.datasource.df["ISIN"].map(msci_d))
+
         self.datasource.df.loc[
             (self.datasource.df["ISIN"].isna())
             & self.datasource.df["Security_Name"].isna(),
@@ -125,21 +140,6 @@ class PortfolioDataSource(ds.DataSources):
         self.datasource.df["Ticker Cd"] = self.datasource.df["Ticker Cd"].replace(
             to_replace="/", value=".", regex=True
         )
-
-        sec_isins = list(
-            self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]
-            .dropna()
-            .unique()
-        )
-        if sec_isins:
-            msci_d = msci_data_loader.create_msci_mapping("ISIN", sec_isins)[
-                ["CLIENT_IDENTIFIER", "ISSUERID"]
-            ]
-            msci_d = dict(zip(msci_d["CLIENT_IDENTIFIER"], msci_d["ISSUERID"]))
-            msci_d.pop("Cash", None)
-            self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
-                "MSCI ISSUERID"
-            ].fillna(self.datasource.df["ISIN"].map(msci_d))
 
         self.datasource.df["MSCI ISSUERID"].fillna("NoISSUERID", inplace=True)
         self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)

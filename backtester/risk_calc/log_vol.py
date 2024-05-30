@@ -11,7 +11,6 @@ class LogNormalVol(risk_metrics.RiskMetrics):
     """
     Simple Covariance Calculation assuming
         - returns are log normal distributed
-        - rolling historical window
 
     Parameters
     ----------
@@ -24,7 +23,7 @@ class LogNormalVol(risk_metrics.RiskMetrics):
     def __init__(self, universe: list, frequency: str = None, **kwargs) -> None:
         super().__init__(universe)
         self.frequency = frequency
-        self.cov_calculator = numpy_covariance.NumpyWindowCovariance(
+        self.cov_calculator = numpy_covariance.NumpyCovariance(
             num_ind_variables=self.universe_size, **kwargs
         )
 
@@ -130,3 +129,24 @@ class LogNormalVol(risk_metrics.RiskMetrics):
             True if inputs are valid, false otherwise
         """
         return self.cov_calculator.is_valid()
+
+
+class WindowLogNormalVol(LogNormalVol):
+    """
+    Simple Covariance Calculation assuming
+        - returns are log normal distributed
+        - rolling historical window
+
+    Parameters
+    ----------
+    universe: list
+        investment universe
+    frequency: str, optional
+        frequency of index return data
+    """
+
+    def __init__(self, universe: list, frequency: str = None, **kwargs) -> None:
+        super().__init__(universe, frequency, **kwargs)
+        self.cov_calculator = numpy_covariance.NumpyWindowCovariance(
+            num_ind_variables=self.universe_size, **kwargs
+        )

@@ -267,7 +267,7 @@ class Runner(loader.Runner):
                 risk_engine = f"log_normal_{window_size}"
                 self.risk_engines[risk_engine] = self.risk_engines.get(
                     risk_engine,
-                    log_vol.LogNormalVol(
+                    log_vol.WindowLogNormalVol(
                         universe=self.portfolio_datasource.all_tickers,
                         window_size=window_size,
                         **risk_return_engine_kwargs,

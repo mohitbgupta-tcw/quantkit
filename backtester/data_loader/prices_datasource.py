@@ -80,15 +80,21 @@ class PricesDataSource(ds.DataSources):
         order by ticker and date
         """
         if self.params["source"] == 9:
-            self.datasource.df.columns = self.datasource.df.columns.droplevel(level=1)
-            self.datasource.df.index = self.datasource.df.index.rename("date")
-            self.datasource.df = self.datasource.df.reset_index()
-            self.datasource.df = self.datasource.df.melt(
-                id_vars=["date"], var_name="ticker", value_name="closeadj"
+            self.datasource.df = self.datasource.df[
+                self.datasource.df["secondary_name"] == "DATE"
+            ]
+            self.datasource.df = self.datasource.df.rename(
+                columns={
+                    "security": "ticker",
+                    "value": "closeadj",
+                    "secondary_value": "date",
+                }
             )
+            self.datasource.df = self.datasource.df[["date", "ticker", "closeadj"]]
             self.datasource.df = self.datasource.df.dropna()
 
         self.datasource.df["date"] = pd.to_datetime(self.datasource.df["date"])
+        self.datasource.df["date"] = self.datasource.df["date"].dt.tz_localize(None)
         self.datasource.df = self.datasource.df.sort_values(
             by=["date", "ticker"], ascending=True, ignore_index=True
         )

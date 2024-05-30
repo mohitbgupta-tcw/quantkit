@@ -6,7 +6,7 @@ import numpy as np
 import datetime
 
 
-class LogNormalEWMA(log_vol.LogNormalVol):
+class LogNormalEWMA(log_vol.WindowLogNormalVol):
     """
     Exponential Weighted Moving Average Covariance Calculation assuming
         - returns are log normal distributed

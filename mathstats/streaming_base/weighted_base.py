@@ -30,6 +30,16 @@ class WeightedBase(object):
         return np.array(self._matrix)
 
     @property
+    def matrix(self) -> np.ndarray:
+        """
+        Returns
+        -------
+        np.array
+            array of current matrix
+        """
+        return np.array(self._matrix)
+
+    @property
     def indexes(self) -> np.ndarray:
         """
         Returns

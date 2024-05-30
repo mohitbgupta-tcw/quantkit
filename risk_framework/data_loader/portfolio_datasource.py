@@ -30,6 +30,8 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
             esg collateral type
         ISIN: str
             isin of security
+        CUSIP: str
+            cusip pf security
         Issuer ESG: str
             is issuer ESG?
         Labeled ESG Type: str
@@ -131,6 +133,7 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                     END 
                 ) AS "ESG Collateral Type", 
                 pos.isin AS "ISIN",
+                sec.cusip as "CUSIP",
                 CASE 
                     WHEN sec.issuer_esg ='NA ' 
                     OR sec.issuer_esg is null  
@@ -231,6 +234,7 @@ class PortfolioDataSource(portfolio_datasource.PortfolioDataSource):
                     END 
                 ) AS "ESG Collateral Type", 
                 bench.isin AS "ISIN",
+                sec.cusip as "CUSIP",
                 CASE 
                     WHEN sec.issuer_esg ='NA '
                     OR sec.issuer_esg IS null

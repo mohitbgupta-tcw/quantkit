@@ -1,77 +1,62 @@
 import pandas as pd
-from xbbg import blp
+import datetime
+from blp import blp
 
 
 class Bloomberg(object):
     """
-    Main class to load Bloomberg data using the xbbg package
+    Main class to load Bloomberg data using the blp package
 
     Parameters
     ----------
-    type: str
-        either "prices" or "fundamental"
-    filters: dict
+    fields: list
+        list of fields to pull
+    tickers: list
+        list of tickers to pull
+    start_date: datetime.date, optional
+        start date
+    end_date: datetime.date, optional
+        end date
+    filters: dict, optional
         dictionary of parameters for function call
     """
 
-    def __init__(self, type: str, filters: dict, **kwargs) -> None:
-        self.type = type
-        self.filters_prices = {
-            key: value
-            for key, value in filters.items()
-            if key in ["start_date", "end_date", "tickers"]
+    def __init__(
+        self,
+        fields: list,
+        tickers: list,
+        start_date: datetime.date = None,
+        end_date: datetime.date = None,
+        filters: dict = dict(),
+        **kwargs,
+    ) -> None:
+        self.fields = fields
+        self.tickers = tickers
+        self.start_date = start_date
+        self.end_date = end_date
+
+        allowed_filters = ["ca_adj", "fill"]
+        self.filters = {
+            key: item for key, item in filters.items() if key in allowed_filters
         }
-        self.filters_fundamental = {
-            key: value for key, value in filters.items() if key in ["flds", "tickers"]
-        }
-        self.quarters = ["Q1", "Q2", "Q3", "Q4"]
-        self.years = filters.get("years", None)
-        self.report_period = filters.get("report_period", "ANNUAL")
 
     def load(self, **kwargs) -> None:
         """
         Load data from Bloomberg API and save as pd.DataFrame in self.df
         """
-        if self.type == "prices":
-            self.load_prices()
-        elif self.type == "returns":
-            self.load_returns()
-        elif self.type == "fundamental":
-            self.load_fundamentals()
+        d = {"'": "", ":": " =", "{": "", "}": ""}
+        bquery = blp.BlpQuery().start()
 
-    def load_prices(self) -> None:
-        """
-        Load price data from Bloomberg API using BDH function and save as pd.DataFrame in self.df
-        """
-        flds = ["PX_LAST"]
-        self.df = blp.bdh(
-            flds=flds,
-            **self.filters_prices,
+        data_str = ", ".join(self.fields)
+        date_str = (
+            f"dates=range({self.start_date},{self.end_date})" if self.start_date else ""
         )
-
-    def load_returns(self) -> None:
-        """
-        Load return data from Bloomberg API using BDH function and save as pd.DataFrame in self.df
-        """
-        flds = ["CUMULATIVE_TOT_RETURN_GROSS_DVDS"]
-        self.df = blp.bdh(
-            flds=flds,
-            **self.filters_prices,
+        filter_str = (
+            "," + "".join(d.get(l, l) for l in str(self.filters))
+            if self.filters
+            else ""
         )
+        filters = "(" + date_str + filter_str + ")" if (filter_str or date_str) else ""
+        query = f"get({data_str} {filters}) for({self.tickers})"
 
-    def load_fundamentals(self) -> None:
-        """
-        Load fundamental data from Bloomberg API using BDP function and save as pd.DataFrame in self.df
-        """
-        self.df = pd.DataFrame()
-        if self.report_period == "ANNUAL":
-            for year in self.years:
-                annual_df = blp.bdp(EQY_FUND_YEAR=year, **self.filters_fundamental)
-                self.df = pd.concat([self.df, annual_df])
-        elif self.report_period == "QUARTER":
-            for year in self.years:
-                for quarter in self.quarters:
-                    quarter_df = blp.bdp(
-                        EQY_FUND_YEAR=year, FUND_PER=quarter, **self.filters_fundamental
-                    )
-                    self.df = pd.concat([self.df, quarter_df])
+        self.df = bquery.bql(expression=query)

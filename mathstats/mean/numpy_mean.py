@@ -53,6 +53,8 @@ class NumpyWindowMean(object):
         np.array
             mean of current array
         """
+        if self.window_size == 1:
+            return self.data_stream.matrix.squeeze()
         return np.mean(self.data_stream.matrix.squeeze(), axis=0)
 
     @property
