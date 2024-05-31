@@ -1,6 +1,7 @@
 #--index-url https://bloomberg.bintray.com/pip/simple blpapi
---index-url https://bcms.bloomberg.com/pip/simple blpapi
+--index-url https://bcms.bloomberg.com/pip/simple
 --extra-index-url https://pypi.python.org/simple
+blpapi
 blp>=0.0.3
 black>=23.3.0
 matplotlib>=3.7.1
