@@ -30,7 +30,7 @@ class Industry(object):
         self.name = name
         self.transition_risk = transition_risk
         self.sub_sectors = dict()
-        self.companies = dict()
+        self.issuers = dict()
         if self.transition_risk == "High":
             self.initial_score = 5
         else:
@@ -70,7 +70,7 @@ class BClass(object):
     def __init__(self, class_name: str, row_information: pd.Series) -> None:
         self.class_name = class_name
         self.information = row_information.to_dict()
-        self.companies = dict()
+        self.issuers = dict()
 
     def add_sector(self, sector) -> None:
         """
@@ -117,7 +117,7 @@ class GICS(object):
     def __init__(self, class_name: str, row_information: pd.Series) -> None:
         self.class_name = class_name
         self.information = row_information.to_dict()
-        self.companies = dict()
+        self.issuers = dict()
 
     def add_sector(self, sector) -> None:
         """

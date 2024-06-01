@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 
 
-class MSCIDataSource(ds.DataSources):
+class MSCIESGDataSource(ds.DataSources):
     """
     Provide information on company level from MSCI
 
@@ -45,27 +45,20 @@ class MSCIDataSource(ds.DataSources):
         - translate None's to nan's
         - change values for columns in params["transformation"]
         """
-        # fill GICS industry NA's with 'Unassigned GICS'
-        self.datasource.df["GICS_SUB_IND"] = self.datasource.df["GICS_SUB_IND"].fillna(
-            "Unassigned GICS"
-        )
-
         # replace None by nan
         self.datasource.df = self.datasource.df.fillna(value=np.nan)
 
         # replace values in each column from params transformation file
         self.datasource.df = self.datasource.df.replace(self.params["transformation"])
 
-        if self.params.get("gics_overwrite"):
-            for sec, trans in self.params["gics_overwrite"].items():
-                for col, col_value in trans.items():
-                    self.datasource.df.loc[
-                        self.datasource.df["ISSUERID"] == sec, col
-                    ] = col_value
-
-    def iter(self) -> None:
+    def iter(self, issuer_dict: dict) -> None:
         """
         Attach msci information to dict
+
+        Parameters
+        ----------
+        issuer_dict: dict
+            dict of issuers
         """
         for index, row in self.df.iterrows():
             msci_id = row["ISSUERID"]
@@ -76,6 +69,23 @@ class MSCIDataSource(ds.DataSources):
         # --> not every company has these information, so create empty df with NA's for those
         empty_msci = pd.Series(np.nan, index=self.df.columns).to_dict()
         self.msci["NoISSUERID"] = deepcopy(empty_msci)
+
+        for iss, issuer_store in issuer_dict.items():
+            msci_information = deepcopy(
+                self.msci[issuer_store.information["MSCI_ISSUERID"]]
+            )
+
+            parent_id = msci_information["PARENT_ULTIMATE_ISSUERID"]
+            msci_information_parent = None
+            if not pd.isna(parent_id):
+                parent_store = issuer_dict.get(parent_id, None)
+                if parent_store:
+                    parent_msci_id = parent_store.information["MSCI_ISSUERID"]
+                    msci_information_parent = self.msci.get(parent_msci_id, None)
+
+            issuer_store.attach_msci_information(
+                msci_information, msci_information_parent
+            )
 
     @property
     def df(self) -> pd.DataFrame:

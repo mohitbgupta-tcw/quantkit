@@ -3,9 +3,9 @@ import quantkit.utils.logging as logging
 import pandas as pd
 
 
-class TickerParentIssuerSource(ds.DataSources):
+class ParentIssuerSource(ds.DataSources):
     """
-    Provide information about parent issuer for selected tickers
+    Provide information about parent issuer for selected securities
 
     Parameters
     ----------
@@ -15,10 +15,14 @@ class TickerParentIssuerSource(ds.DataSources):
     Returns
     -------
     DataFrame
-        sub_share_ticker: str
-            ticker of child
-        parent_ticker: str
-            ticker of issuer
+        ISSUER_NAME: str
+            issuer name
+        SECURITY_ISIN: str
+            security isin
+        PARENT_ULTIMATE_ISSUERID: str
+            msci id of ultimate parent
+        ISIN: str
+            parent isin
     """
 
     def __init__(self, params: dict, **kwargs) -> None:
@@ -29,7 +33,7 @@ class TickerParentIssuerSource(ds.DataSources):
         """
         load data and transform dataframe
         """
-        logging.log("Loading Ticker Parent Issuer Data")
+        logging.log("Loading Parent Issuer Data")
         from_table = f"""{self.database}.{self.schema}."{self.table_name}" """
         query = f"""
         SELECT * 
@@ -44,18 +48,18 @@ class TickerParentIssuerSource(ds.DataSources):
         """
         pass
 
-    def tickers(self) -> list:
+    def parent_issuer_ids(self) -> list:
         """
-        For specified securities, return a list of tickers of their parent
+        For specified securities, return a list of MSCI ISSUERIDs of their parent
 
         Returns
         -------
         list
-            list of tickers for parents
+            list of MSCI ISSUERIDs for parents
         """
         if self.parent_issuers:
-            tickers = list(self.df["parent_ticker"].dropna().unique())
-            return tickers
+            pii = list(self.df["PARENT_ULTIMATE_ISSUERID"].dropna().unique())
+            return pii
         return list()
 
     def iter(self) -> None:
@@ -63,9 +67,9 @@ class TickerParentIssuerSource(ds.DataSources):
         Manually add parent issuer for selected securities
         """
         for index, row in self.df.iterrows():
-            parent_ticker = row["parent_ticker"]
-            sec = row["sub_share_ticker"]
-            self.parent_issuers[sec] = parent_ticker
+            self.parent_issuers[row["SECURITY_ISIN"]] = {
+                "MSCI_ISSUERID": row["PARENT_ULTIMATE_ISSUERID"]
+            }
 
     @property
     def df(self) -> pd.DataFrame:

@@ -6,7 +6,7 @@ class SecurityStore(securities.SecurityStore):
     """
     Security Object
     Stores information such as:
-        - isin
+        - key
         - parent (as store)
         - portfolios the security is held in (as store)
         - ESG factors
@@ -14,14 +14,14 @@ class SecurityStore(securities.SecurityStore):
 
     Parameters
     ----------
-    isin: str
-        Security's isin
+    key: str
+        Security's key
     information: dict
         dictionary of security specific information
     """
 
-    def __init__(self, isin: str, information: dict, **kwargs) -> None:
-        super().__init__(isin, information, **kwargs)
+    def __init__(self, key: str, information: dict, **kwargs) -> None:
+        super().__init__(key, information, **kwargs)
         self.allocation_df = pd.DataFrame()
 
     def iter(

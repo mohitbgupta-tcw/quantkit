@@ -2,12 +2,6 @@ import quantkit.core.data_sources.data_sources as ds
 import quantkit.utils.logging as logging
 import quantkit.core.financial_infrastructure.portfolios as portfolios
 import quantkit.core.financial_infrastructure.securities as securities
-import quantkit.handyman.msci_data_loader as msci_data_loader
-import quantkit.core.financial_infrastructure.companies as comp
-import quantkit.core.financial_infrastructure.munis as munis
-import quantkit.core.financial_infrastructure.securitized as securitized
-import quantkit.core.financial_infrastructure.sovereigns as sovereigns
-import quantkit.core.financial_infrastructure.cash as cash
 import pandas as pd
 import numpy as np
 from copy import deepcopy
@@ -25,31 +19,17 @@ class PortfolioDataSource(ds.DataSources):
     Returns
     -------
     DataFrame
-        As Of Date: datetime.date
+        DATE: datetime.date
             date of portfolio
-        Portfolio: str
+        PORTFOLIO: str
             portfolio id
-        Portfolio name: str
+        PORTFOLIO_NAME: str
             portfolio name
-        ISIN: str
-            isin of security
-        Security_Name: str
-            name of security
-        Ticker Cd: str
-            ticker of issuer
-        BCLASS_level4: str
-            BClass Level 4 of issuer
-        MSCI ISSUERID: str
-            msci issuer id
-        ISS ISSUERID: str
-            iss issuer id
-        BBG ISSUERID: str
-            bloomberg issuer id
-        Issuer ISIN: str
-            issuer isin
-        Portfolio_Weight: float
+        SECURITY_KEY: str
+            key of security
+        PORTFOLIO_WEIGHT: float
             weight of security in portfolio
-        Base Mkt Value: float
+        BASE_MKT_VAL: float
             market value of position in portfolio
         OAS: float
             OAS
@@ -68,89 +48,116 @@ class PortfolioDataSource(ds.DataSources):
 
     def load(
         self,
-        query: str,
+        start_date: str,
+        end_date: str,
+        equity_universe: list,
+        fixed_income_universe: list,
+        tcw_universe: list = [],
     ) -> None:
         """
         load data and transform dataframe
 
         Parameters
         ----------
-        query: str
-            SQL query
+        start_date: str
+            start date to pull from API
+        end_date: str
+            end date to pull from API
+        equity_universe: list
+            list of all equity benchmarks to pull from API
+        fixed_income_universe: list
+            list of all equity benchmarks to pull from API
+        tcw_universe: list, optional
+            list of all tcw portfolios to pull from API
         """
+        pf = ", ".join(f"'{pf}'" for pf in tcw_universe) if tcw_universe else "''"
+        fi_benchmark = (
+            ", ".join(f"'{b}'" for b in fixed_income_universe)
+            if fixed_income_universe
+            else "''"
+        )
+        e_benchmark = (
+            ", ".join(f"'{b}'" for b in equity_universe) if equity_universe else "''"
+        )
+
+        and_clause = (
+            f"""AND pos.portfolio_number in ({pf})"""
+            if not "all" in tcw_universe
+            else ""
+        )
+
         logging.log("Loading Portfolio Data")
+        query = f"""
+        SELECT *
+        FROM (
+            SELECT 
+                pos.as_of_date as "DATE",
+                pos.portfolio_number AS "PORTFOLIO",
+                pos.portfolio_name AS "PORTFOLIO_NAME",
+                pos.security_key AS "SECURITY_KEY",
+                pos.market_value_percent * 100 AS "PORTFOLIO_WEIGHT",
+                pos.base_market_value AS "BASE_MKT_VAL",
+                null AS "OAS",
+            FROM tcw_core.tcw.position_vw pos
+            JOIN tcw_core.tcw.portfolio_vw strat 
+                ON pos.portfolio_key = strat.portfolio_key 
+                AND pos.as_of_date = strat.as_of_date 
+                AND strat.is_active = 1
+                AND strat.portfolio_type_1 IN ('Trading', 'Reporting')
+            WHERE pos.as_of_date >= '{start_date}'
+            AND pos.as_of_date <= '{end_date}'
+            {and_clause}
+            UNION ALL
+            --Benchmark Holdings
+            SELECT  
+                bench.as_of_date AS "DATE",
+                bench.benchmark_name AS "PORTFOLIO",
+                bench.benchmark_name AS "PORTFOLIO_NAME", 
+                sec.security_key AS "SECURITY_KEY",
+                CASE 
+                    WHEN bench.market_value_percentage IS null 
+                    THEN bench.market_value / SUM(bench.market_value)
+                        OVER(partition BY bench.benchmark_name) 
+                    ELSE bench.market_value_percentage  
+                END AS "PORTFOLIO_WEIGHT",
+                bench.market_value AS "BASE_MKT_VAL",
+                null AS "OAS",
+            FROM tcw_core.benchmark.benchmark_position_vw bench
+            LEFT JOIN tcw_core.tcw.security_vw sec 
+                ON bench.security_key = sec.security_key
+                AND bench.as_of_date = sec.as_of_date
+            WHERE bench.as_of_date >= '{start_date}'
+            AND bench.as_of_date <= '{end_date}'
+            AND (
+                universe_type_code = 'STATS' 
+                AND benchmark_name IN (
+                    {fi_benchmark}
+                ) 
+                OR benchmark_name IN (
+                    {e_benchmark}
+                )
+            )
+        ) 
+        ORDER BY "PORTFOLIO" ASC, "DATE" ASC, "PORTFOLIO_WEIGHT" DESC
+        """
         self.datasource.load(query=query)
         self.transform_df()
 
     def transform_df(self) -> None:
         """
-        - replace NA's in ISIN with Name of Cash
-        - change first letter of each word to upper, else lower case
         - replace NA's in several columns
-        - replace NA's of MSCI ISSUERID by running MSCI API
-        - reaplace transformation values
+        - change column types
         """
-        self.datasource.df["As Of Date"] = pd.to_datetime(
-            self.datasource.df["As Of Date"]
-        )
-        self.datasource.df["Portfolio_Weight"] = self.datasource.df[
-            "Portfolio_Weight"
+        self.datasource.df["DATE"] = pd.to_datetime(self.datasource.df["DATE"])
+        self.datasource.df["PORTFOLIO_WEIGHT"] = self.datasource.df[
+            "PORTFOLIO_WEIGHT"
         ].astype(float)
-        self.datasource.df["Base Mkt Val"] = self.datasource.df["Base Mkt Val"].astype(
+        self.datasource.df["BASE_MKT_VAL"] = self.datasource.df["BASE_MKT_VAL"].astype(
             float
         )
 
         self.datasource.df.replace("N/A", np.nan, inplace=True)
         self.datasource.df = self.datasource.df.fillna(value=np.nan)
-
-        sec_isins = list(
-            self.datasource.df[self.datasource.df["MSCI ISSUERID"].isna()]["ISIN"]
-            .dropna()
-            .unique()
-        )
-        if sec_isins:
-            msci_d = msci_data_loader.create_msci_mapping("ISIN", sec_isins)[
-                ["CLIENT_IDENTIFIER", "ISSUERID"]
-            ]
-            msci_d = dict(zip(msci_d["CLIENT_IDENTIFIER"], msci_d["ISSUERID"]))
-            msci_d.pop("Cash", None)
-            self.datasource.df["MSCI ISSUERID"] = self.datasource.df[
-                "MSCI ISSUERID"
-            ].fillna(self.datasource.df["ISIN"].map(msci_d))
-
-        self.datasource.df.loc[
-            (self.datasource.df["ISIN"].isna())
-            & self.datasource.df["Security_Name"].isna(),
-            ["ISIN", "Security_Name"],
-        ] = "Cash"
-        self.datasource.df["ISIN"].fillna(
-            self.datasource.df["Security_Name"], inplace=True
-        )
-        self.datasource.df["ISIN"] = np.where(
-            self.datasource.df["ISIN"] == " ",
-            self.datasource.df["Security_Name"],
-            self.datasource.df["ISIN"],
-        )
-        self.datasource.df["Security_Name"].fillna(
-            self.datasource.df["ISIN"], inplace=True
-        )
-        self.datasource.df["Issuer ISIN"].fillna(
-            self.datasource.df["ISIN"], inplace=True
-        )
-        self.datasource.df["Ticker Cd"] = self.datasource.df["Ticker Cd"].replace(
-            to_replace="/", value=".", regex=True
-        )
-
-        self.datasource.df["MSCI ISSUERID"].fillna("NoISSUERID", inplace=True)
-        self.datasource.df["BBG ISSUERID"].fillna("NoISSUERID", inplace=True)
-        self.datasource.df["ISS ISSUERID"].fillna("NoISSUERID", inplace=True)
-
-        if self.params.get("transformation"):
-            for sec, trans in self.params["transformation"].items():
-                for col, col_value in trans.items():
-                    self.datasource.df.loc[
-                        self.datasource.df["ISIN"] == sec, col
-                    ] = col_value
 
     def iter(self) -> None:
         """
@@ -159,146 +166,23 @@ class PortfolioDataSource(ds.DataSources):
             - Save in self.portfolios
             - key is portfolio id
             - add holdings df
-        - save all held securities
         """
-        self.all_tickers = list(self.df["Ticker Cd"].unique())
+        self.security_keys = list(self.df["SECURITY_KEY"].unique())
         for index, row in (
-            self.df[["Portfolio", "Portfolio Name"]].drop_duplicates().iterrows()
+            self.df[["PORTFOLIO", "PORTFOLIO_NAME"]].drop_duplicates().iterrows()
         ):
-            pf = row["Portfolio"]
-            pf_store = portfolios.PortfolioStore(pf=pf, name=row["Portfolio Name"])
-            holdings_df = self.df[self.df["Portfolio"] == pf][
-                ["As Of Date", "ISIN", "Portfolio_Weight", "Base Mkt Val", "OAS"]
-            ]
+            pf = row["PORTFOLIO"]
+            pf_store = portfolios.PortfolioStore(pf=pf, name=row["PORTFOLIO_NAME"])
+            holdings_df = self.df[self.df["PORTFOLIO"] == pf]
             pf_store.add_holdings(holdings_df)
             as_of_date = (
-                self.df[self.df["Portfolio"] == pf]
-                .groupby("Portfolio")["As Of Date"]
+                self.df[self.df["PORTFOLIO"] == pf]
+                .groupby("PORTFOLIO")["DATE"]
                 .max()
                 .values[0]
             )
             pf_store.add_as_of_date(as_of_date)
             self.portfolios[pf] = pf_store
-
-    def iter_holdings(
-        self,
-        msci_dict: dict,
-        security_type_mapping: dict = {
-            "Securitized": securitized.SecuritizedStore,
-            "Muni": munis.MuniStore,
-            "Sovereign": sovereigns.SovereignStore,
-            "Cash": cash.CashStore,
-            "Corporate": comp.CompanyStore,
-        },
-    ) -> None:
-        """
-        Iterate over portfolio holdings
-        - Create Security objects
-        - create Company, Muni, Sovereign, Securitized, Cash objects
-        - attach holdings, OAS to self.holdings with security object
-
-        Parameters
-        ----------
-        msci_dict: dict
-            dictionary of msci information
-        security_type_mapping: dict, optional
-            dictionary of security types
-        """
-        logging.log("Iterate Holdings")
-
-        drop_df = self.df.drop_duplicates(subset=["ISIN"], keep="first")
-        for index, row in drop_df.iterrows():
-            isin = row["ISIN"]
-            sec_info = row.to_dict()
-
-            msci_information = self.create_msci_information(sec_info, msci_dict)
-
-            self.create_security_store(isin, sec_info)
-            security_store = self.securities[isin]
-
-            issuer = sec_info["Issuer ISIN"]
-
-            self.create_parent_store(
-                sector_level_2=sec_info["Sector Level 2"],
-                issuer_isin=issuer,
-                msci_information=msci_information,
-                security_store=security_store,
-                security_type_mapping=security_type_mapping,
-            )
-
-        self.attach_securities()
-
-    def create_security_store(
-        self, security_isin: str, security_information: dict
-    ) -> None:
-        """
-        create security store
-
-        Parameters
-        ----------
-        security isin: str
-            isin of security
-        security_information: dict
-            dictionary of information about the security
-        """
-        security_store = securities.SecurityStore(
-            isin=security_isin, information=security_information
-        )
-        self.securities[security_isin] = security_store
-
-        ticker = security_information["Ticker Cd"]
-        self.tickers[ticker] = security_store
-
-    def create_parent_store(
-        self,
-        sector_level_2: str,
-        issuer_isin: str,
-        msci_information: dict,
-        security_store: securities.SecurityStore,
-        security_type_mapping: dict,
-    ) -> None:
-        """
-        create new objects for Company, Muni, Sovereign and Securitized, Cash
-
-        Parameters
-        ----------
-        sector_level_2: str
-            Sector Level 2
-        issuer_isin: str
-            parent issuer isin
-        msci_information: dict
-            dictionary of msci information on company level
-        security_store: SecurityStore
-            security object
-        security_type_mapping: dict
-            dictionary of security types
-        """
-        # attach information to security's company
-        # create new objects for Muni, Sovereign and Securitized
-        if sector_level_2 in ["Muni / Local Authority"]:
-            check_type = "Muni"
-            all_parents = self.munis
-        elif sector_level_2 in ["Residential MBS", "CMBS", "ABS"]:
-            check_type = "Securitized"
-            all_parents = self.securitized
-        elif sector_level_2 in ["Sovereign"]:
-            check_type = "Sovereign"
-            all_parents = self.sovereigns
-        elif sector_level_2 in ["Cash and Other"]:
-            check_type = "Cash"
-            all_parents = self.cash
-        else:
-            check_type = "Corporate"
-            all_parents = self.companies
-
-        class_ = security_type_mapping[check_type]
-        all_parents[issuer_isin] = all_parents.get(
-            issuer_isin, class_(issuer_isin, msci_information)
-        )
-
-        # attach security to company and vice versa
-        all_parents[issuer_isin].add_security(security_store.isin, security_store)
-        security_store.parent_store = all_parents[issuer_isin]
 
     def create_msci_information(
         self, security_information: dict, msci_dict: dict
@@ -367,10 +251,6 @@ class PortfolioDataSource(ds.DataSources):
 
             # attach portfolio to security
             security_store.portfolio_store[pf] = self.portfolios[pf]
-
-    @property
-    def all_msci_ids(self):
-        return list(self.df["MSCI ISSUERID"].dropna().unique())
 
     @property
     def df(self) -> pd.DataFrame:

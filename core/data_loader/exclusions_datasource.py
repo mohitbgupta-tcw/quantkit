@@ -39,9 +39,14 @@ class ExclusionsDataSource(ds.DataSources):
         """
         self.datasource.df = self.datasource.df.fillna(value=np.nan)
 
-    def iter(self) -> None:
+    def iter(self, issuer_dict: dict) -> None:
         """
         Attach exclusion information to dict
+
+        Parameters
+        ----------
+        issuer_dict: dict
+            dict of issuers
         """
         for index, row in self.df.iterrows():
             isin = row["ISSUERID"]
@@ -52,6 +57,9 @@ class ExclusionsDataSource(ds.DataSources):
         # --> not every company has these information, so create empty df with NA's for those
         empty_exclusion = pd.Series(np.nan, index=self.df.columns).to_dict()
         self.exclusions["NoISSUERID"] = deepcopy(empty_exclusion)
+
+        for iss, issuer_store in issuer_dict.items():
+            issuer_store.attach_exclusion(self.exclusions)
 
     @property
     def df(self) -> pd.DataFrame:

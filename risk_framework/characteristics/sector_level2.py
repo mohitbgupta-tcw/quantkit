@@ -1,74 +1,27 @@
-from pandas import Series
-from copy import deepcopy
 import numpy as np
 import pandas as pd
-import quantkit.core.financial_infrastructure.companies as companies
-import quantkit.risk_framework.financial_infrastructure.asset_base as asset_base
+from pandas import Series
+from copy import deepcopy
+from quantkit.core.characteristics.sector_level2 import (
+    CorporateStore,
+    CashStore,
+    MuniStore,
+    SovereignStore,
+    SecuritizedStore,
+)
 import quantkit.risk_framework.core.transition as transition
 import quantkit.utils.util_functions as util_functions
 
 
-class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
+class CorporateStore(CorporateStore):
     """
-    Company object. Stores information such as:
-        - isin
-        - attached securities (Equity and Bonds)
-        - industry (including GICS and BCLASS objects)
-        - company and sdg information derived from data providers
+    Corporate Sector object.
 
     Parameters
     ----------
-    isin: str
-        company's isin
-    row_data: pd.Series
-        company information derived from MSCI
+    sector_level2: str
+        sector level 2 label
     """
-
-    def __init__(self, isin: str, row_data: Series, **kwargs) -> None:
-        super().__init__(isin, row_data, **kwargs)
-
-    def get_parent_issuer_data(self, companies: dict) -> None:
-        """
-        Assign data from parent to sub-company if data is missing (nan)
-        Data includes:
-            - MSCI
-            - SDG
-            - RuD
-
-        Parameters
-        ----------
-        companies: dict
-            dictionary of all company objects
-        """
-        # get parent id from msci
-        parent_id = self.msci_information["PARENT_ULTIMATE_ISSUERID"]
-
-        # find parent store
-        for c, comp_store in companies.items():
-            if comp_store.msci_information["ISSUERID"] == parent_id:
-                parent = c
-
-                # assign sdg data for missing values
-                if hasattr(self, "sdg_information"):
-                    for val in self.sdg_information:
-                        if pd.isna(self.sdg_information[val]):
-                            new_val = companies[parent].sdg_information[val]
-                            self.sdg_information[val] = new_val
-
-                # assign msci data for missing values
-                if hasattr(self, "msci_information"):
-                    for val in self.msci_information:
-                        if pd.isna(self.msci_information[val]):
-                            new_val = companies[parent].msci_information[val]
-                            self.msci_information[val] = new_val
-
-                # assign RuD data for missing values
-                if hasattr(self, "rud_information"):
-                    for val in self.rud_information:
-                        if pd.isna(self.rud_information[val]):
-                            new_val = companies[parent].rud_information[val]
-                            self.rud_information[val] = new_val
-                break
 
     def attach_transition_info(
         self,
@@ -683,10 +636,7 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
         self,
         companies: dict,
         regions: dict,
-        exclusion_dict: dict,
         msci_adjustment_dict: dict,
-        gics_d: dict,
-        bclass_d: dict,
         industries: dict,
         category_d: dict,
         themes: dict,
@@ -694,28 +644,16 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
     ) -> None:
         """
         - attach region information
-        - attach data from parent
-        - attach exclusions
-        - attach GICS information
-        - attach Industry and Sub-Industry information
         - attach category
         - attach analyst adjustment
         - run company specific calculations
 
         Parameters
         ----------
-        companies: dict
-            dictionary of all company objects
         regions: dict
             dictionary of all region objects
-        exclusion_dict: dict
-            dictionary of Exclusions
         msci_adjustment_dict: dict
             dictionary of Analyst Adjustments
-        gics_d: dict
-            dictionary of gics sub industries with gics as key, gics object as value
-        bclass_d: dict
-            dictionary of bclass sub industries with bclass as key, bclass object as value
         industries: dict
             dictionary of all industry objects
         category_d: dict
@@ -726,26 +664,13 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
             companies with company specific improver/enabler tag
         """
         super().iter(
-            companies=companies,
             regions=regions,
-            exclusion_dict=exclusion_dict,
             msci_adjustment_dict=msci_adjustment_dict,
-            gics_d=gics_d,
-            bclass_d=bclass_d,
             industries=industries,
             category_d=category_d,
             themes=themes,
             transition_company_mapping=transition_company_mapping,
         )
-        # attach data from parent if missing
-        if not pd.isna(self.msci_information["PARENT_ULTIMATE_ISSUERID"]):
-            self.get_parent_issuer_data(companies)
-
-        # attach GICS Sub industry
-        self.attach_gics(gics_d)
-
-        # attach industry and sub industry
-        self.attach_industry(gics_d, bclass_d)
 
         # calculate capex
         self.calculate_capex()
@@ -768,9 +693,6 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
         # attach region
         self.attach_region(regions)
 
-        # attach exclusion df
-        self.attach_exclusion(exclusion_dict)
-
         # attach category
         self.attach_category(category_d)
 
@@ -779,3 +701,548 @@ class CompanyStore(asset_base.AssetBase, companies.CompanyStore):
 
         # check for sustainable theme
         self.check_theme_requirements(themes)
+
+
+class CashStore(CashStore):
+    """
+    Cash object. Stores information such as:
+        - isin
+        - attached securities (Equity and Bonds)
+
+    Parameters
+    ----------
+    isin: str
+        company's isin
+    row_data: pd.Series
+        msci information
+    """
+
+    def __init__(self, isin: str, row_data: Series, **kwargs) -> None:
+        super().__init__(isin, row_data, **kwargs)
+
+    def calculate_risk_overall_score(self) -> None:
+        """
+        Calculate risk overall score on security level
+
+        Rules
+        -----
+            - cash is not scored
+        """
+        for sec, sec_store in self.securities.items():
+            sec_store.set_risk_overall_score(0)
+
+    def update_sclass(self) -> None:
+        """
+        Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
+        and SClass_Level5 for each security rule based
+
+        Order
+        -----
+        1) Analyst Adjustment
+        2) Is not Scored
+        """
+        transition_tag = self.scores["Transition_Tag"]
+        sustainability_tag = self.scores["Sustainability_Tag"]
+        for sec, sec_store in self.securities.items():
+            sec_store.level_5()
+
+            if sustainability_tag == "Y*":
+                sec_store.is_sustainable()
+
+            elif transition_tag == "Y*":
+                sec_store.is_transition()
+            else:
+                sec_store.is_not_scored()
+
+    def iter(
+        self,
+        regions: dict,
+        gics_d: dict,
+        bclass_d: dict,
+        exclusion_dict: dict,
+    ) -> None:
+        """
+        - attach region
+        - attach industry
+        - attach exclusions
+
+        Parameters
+        ----------
+        regions: dict
+            dictionary of all region objects
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        bclass_d: dict
+            dictionary of bclass sub industries with bclass as key, bclass object as value
+        exclusion_dict: dict
+            dictionary of Exclusions
+        """
+        super().iter(
+            regions=regions,
+            gics_d=gics_d,
+            bclass_d=bclass_d,
+            exclusion_dict=exclusion_dict,
+        )
+
+        # attach region
+        self.attach_region(regions)
+
+        # attach industry and sub industry
+        self.attach_industry(gics_d, bclass_d)
+
+        # attach exclusion df
+        self.attach_exclusion(exclusion_dict)
+
+
+class MuniStore(MuniStore):
+    """
+    Muni object. Stores information such as:
+        - isin
+        - attached securities (Equity and Bonds)
+
+    Parameters
+    ----------
+    isin: str
+        muni's isin
+    """
+
+    def __init__(self, isin: str, row_data: Series, **kwargs) -> None:
+        super().__init__(isin, row_data, **kwargs)
+
+    def calculate_risk_overall_score(self) -> None:
+        """
+        Calculate risk overall score on security level
+
+        Rules
+        -----
+            - if muni score between 1 and 2: Leading
+            - if muni score between 2 and 4: Average
+            - if muni score above 4: Poor
+            - if muni score 0: not scored
+        """
+        score = self.scores["Muni_Score"]
+        for sec, sec_store in self.securities.items():
+            sec_store.set_risk_overall_score(score)
+
+    def update_sclass(self) -> None:
+        """
+        Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
+        and SClass_Level5 for each security rule based
+
+        Order
+        -----
+        1) Muni Score is 5
+        2) Is Labeled Bond
+        3) Analyst Adjustments
+        4) Is Sustainable
+        5) Is Transition
+        6) Is Leading
+        7) Is not Scored
+        """
+        score = self.scores["Muni_Score"]
+        transition_tag = self.scores["Transition_Tag"]
+        sustainability_tag = self.scores["Sustainability_Tag"]
+        for sec, sec_store in self.securities.items():
+            labeled_bond_tag = sec_store.information["Labeled ESG Type"]
+            sec_store.level_5()
+
+            if score == 5:
+                sec_store.is_score_5("Muni")
+            elif labeled_bond_tag == "Labeled Green/Sustainable Linked":
+                sec_store.is_esg_labeled("Green/Sustainable Linked")
+            elif labeled_bond_tag == "Labeled Green":
+                sec_store.is_esg_labeled("Green")
+            elif labeled_bond_tag == "Labeled Social":
+                sec_store.is_esg_labeled("Social")
+            elif labeled_bond_tag == "Labeled Sustainable":
+                sec_store.is_esg_labeled("Sustainable")
+            elif labeled_bond_tag == "Labeled Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainability-Linked Bonds")
+            elif labeled_bond_tag == "Labeled Sustainable/Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainable/Sustainability-Linked Bonds")
+
+            elif sustainability_tag == "Y*":
+                sec_store.is_sustainable()
+
+            elif transition_tag == "Y*":
+                sec_store.is_transition()
+
+            elif sustainability_tag == "Y":
+                sec_store.is_sustainable()
+
+            elif transition_tag == "Y":
+                sec_store.is_transition()
+
+            elif score <= 2 and score > 0:
+                sec_store.is_leading()
+
+            elif score == 0:
+                sec_store.is_not_scored()
+
+    def iter(
+        self,
+        regions: dict,
+        gics_d: dict,
+        bclass_d: dict,
+        exclusion_dict: dict,
+    ) -> None:
+        """
+        - attach region
+        - attach industry
+        - attach exclusions
+
+        Parameters
+        ----------
+        regions: dict
+            dictionary of all region
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        bclass_d: dict
+            dictionary of bclass sub industries with bclass as key, bclass object as value
+        exclusion_dict: dict
+            dictionary of Exclusions
+        """
+        super().iter(
+            regions=regions,
+            gics_d=gics_d,
+            bclass_d=bclass_d,
+            exclusion_dict=exclusion_dict,
+        )
+
+        # attach region
+        self.attach_region(regions)
+
+        # attach industry and sub industry
+        self.attach_industry(gics_d, bclass_d)
+
+        # attach exclusion df
+        self.attach_exclusion(exclusion_dict)
+
+
+class SecuritizedStore(SecuritizedStore):
+    """
+    Securitized object. Stores information such as:
+        - isin
+        - attached securities (Equity and Bonds)
+
+    Parameters
+    ----------
+    isin: str
+        securitized's isin
+    """
+
+    def __init__(self, isin: str, row_data: Series, **kwargs) -> None:
+        super().__init__(isin, row_data, **kwargs)
+
+    def calculate_securitized_score(
+        self, green: list, social: list, sustainable: list, clo: list
+    ) -> None:
+        """
+        Calculation of Securitized Score (on security level)
+
+        Parameters
+        ----------
+        green: list
+            list of esg collat types considered green
+        social: list
+            list of esg collat types considered social
+        sustainable: list
+            list of esg collat types considered sustainable
+        clo: list
+            list of esg collat types considered clo
+        """
+        for sec, sec_store in self.securities.items():
+            if (
+                not pd.isna(sec_store.information["Labeled ESG Type"])
+            ) or sec_store.information["Issuer ESG"] == "Yes":
+                if pd.isna(sec_store.information["TCW ESG"]):
+                    sec_store.scores["Securitized_Score_unadjusted"] = 5
+                    sec_store.scores["Securitized_Score"] = 5
+                else:
+                    sec_store.scores["Securitized_Score_unadjusted"] = 1
+                    sec_store.scores["Securitized_Score"] = 1
+            elif " TBA " in sec_store.information["Security_Name"]:
+                sec_store.scores["Securitized_Score_unadjusted"] = 3
+                sec_store.scores["Securitized_Score"] = 3
+            elif (
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
+                == "Low WACI (Q2) Only"
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 3
+                sec_store.scores["Securitized_Score"] = 3
+            elif sec_store.information["ESG Collateral Type"]["ESG Collat Type"] in clo:
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
+                sec_store.scores["Securitized_Score"] = 2
+            elif (
+                "20%" in sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 3
+                sec_store.scores["Securitized_Score"] = 3
+            elif (
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"] in green
+                and sec_store.information["Labeled ESG Type"] != "Labeled Green"
+                and sec_store.information["TCW ESG"] == "TCW Green"
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
+                sec_store.scores["Securitized_Score"] = 2
+            elif (
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
+                in social
+                and sec_store.information["Labeled ESG Type"] != "Labeled Social"
+                and sec_store.information["TCW ESG"] == "TCW Social"
+                and not "TBA " in sec_store.information["Security_Name"]
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
+                sec_store.scores["Securitized_Score"] = 2
+            elif (
+                sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
+                in sustainable
+                and sec_store.information["Labeled ESG Type"] != "Labeled Sustainable"
+                and sec_store.information["TCW ESG"] == "TCW Sustainable"
+                and not "TBA " in sec_store.information["Security_Name"]
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 2
+                sec_store.scores["Securitized_Score"] = 2
+            elif (
+                (pd.isna(sec_store.information["Labeled ESG Type"]))
+                and pd.isna(sec_store.information["TCW ESG"])
+                and not "TBA " in sec_store.information["Security_Name"]
+            ):
+                sec_store.scores["Securitized_Score_unadjusted"] = 4
+                sec_store.scores["Securitized_Score"] = 4
+
+    def calculate_risk_overall_score(self) -> None:
+        """
+        Calculate risk overall score on security level
+
+        Rules
+        -----
+            - if securitized score between 1 and 2: Leading
+            - if securitized score between 2 and 4: Average
+            - if securitized score above 4: Poor
+            - if securitized score 0: not scored
+        """
+        for sec, sec_store in self.securities.items():
+            score = sec_store.scores["Securitized_Score"]
+            sec_store.set_risk_overall_score(score)
+
+    def update_sclass(self) -> None:
+        """
+        Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
+        and SClass_Level5 for each security rule based
+
+        Order
+        -----
+        1) Securitized Score is 5
+        2) Is Labeled Bond
+        3) Is CLO
+        4) Has ESG Collat Type
+        5) Is TBA
+        6) Is Leading
+        7) Is not scored
+        """
+        for sec, sec_store in self.securities.items():
+            labeled_bond_tag = sec_store.information["Labeled ESG Type"]
+            score = sec_store.scores["Securitized_Score"]
+            sec_store.level_5()
+
+            if score == 5:
+                sec_store.is_score_5("Securitized")
+
+            elif labeled_bond_tag == "Labeled Green/Sustainable Linked":
+                sec_store.is_esg_labeled("Green/Sustainable Linked")
+            elif labeled_bond_tag == "Labeled Green":
+                sec_store.is_esg_labeled("Green")
+            elif labeled_bond_tag == "Labeled Social":
+                sec_store.is_esg_labeled("Social")
+            elif labeled_bond_tag == "Labeled Sustainable":
+                sec_store.is_esg_labeled("Sustainable")
+            elif labeled_bond_tag == "Labeled Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainability-Linked Bonds")
+            elif labeled_bond_tag == "Labeled Sustainable/Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainable/Sustainability-Linked Bonds")
+            elif sec_store.information["ESG Collateral Type"]["G/S/S"] == "CLO":
+                sec_store.is_CLO()
+            elif (
+                not sec_store.information["ESG Collateral Type"]["ESG Collat Type"]
+                == "Unknown"
+            ):
+                sec_store.has_collat_type()
+
+            elif " TBA " in sec_store.information["Security_Name"]:
+                sec_store.is_TBA()
+
+            elif score <= 2 and score > 0:
+                sec_store.is_leading()
+            elif score == 0:
+                sec_store.is_not_scored()
+
+    def iter(
+        self,
+        regions: dict,
+        gics_d: dict,
+        bclass_d: dict,
+        exclusion_dict: dict,
+    ) -> None:
+        """
+        - attach region
+        - attach industry
+        - attach exclusions
+
+        Parameters
+        ----------
+        regions: dict
+            dictionary of all region objects
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        bclass_d: dict
+            dictionary of bclass sub industries with bclass as key, bclass object as value
+        exclusion_dict: dict
+            dictionary of Exclusions
+        """
+        super().iter(
+            regions=regions,
+            gics_d=gics_d,
+            bclass_d=bclass_d,
+            exclusion_dict=exclusion_dict,
+        )
+
+        # attach region
+        self.attach_region(regions)
+
+        # attach industry and sub industry
+        self.attach_industry(gics_d, bclass_d)
+
+        # attach exclusion df
+        self.attach_exclusion(exclusion_dict)
+
+
+class SovereignStore(SovereignStore):
+    """
+    Sovereign object. Stores information such as:
+        - isin
+        - attached securities (Equity and Bonds)
+
+    Parameters
+    ----------
+    isin: str
+        company's isin
+    """
+
+    def __init__(self, isin: str, row_data: Series, **kwargs) -> None:
+        super().__init__(isin, row_data, **kwargs)
+
+    def update_sovereign_score(self) -> None:
+        """
+        Set Sovereign Score
+        """
+        self.scores["Sovereign_Score_unadjusted"] = deepcopy(
+            self.information["Issuer_Country"].information["Sovereign_Score"]
+        )
+        self.scores["Sovereign_Score"] = self.information["Issuer_Country"].information[
+            "Sovereign_Score"
+        ]
+
+        if self.msci_information["GOVERNMENT_ESG_RATING"] == "CCC":
+            self.scores["Sovereign_Score_unadjusted"] = 5
+            self.scores["Sovereign_Score"] = 5
+
+    def calculate_risk_overall_score(self) -> None:
+        """
+        Calculate risk overall score on security level:
+
+        Rules
+        -----
+            - if sovereign score between 1 and 2: Leading
+            - if sovereign score between 2 and 4: Average
+            - if sovereign score above 4: Poor
+            - if sovereign score 0: not scored
+        """
+        score = self.scores["Sovereign_Score"]
+        for sec, sec_store in self.securities.items():
+            sec_store.set_risk_overall_score(score)
+
+    def update_sclass(self) -> None:
+        """
+        Set SClass_Level1, SClass_Level2, SClass_Level3, SClass_Level4, SClass_Level4-P
+        and SClass_Level5 for each security rule based
+
+        Order:
+        1) Is Labeled Bond
+        2) Analyst Adjustment
+        3) Is Leading
+        4) Is not Scored
+        5) Sovereign Score is 5
+        """
+        score = self.scores["Sovereign_Score"]
+        transition_tag = self.scores["Transition_Tag"]
+        sustainability_tag = self.scores["Sustainability_Tag"]
+        for sec, sec_store in self.securities.items():
+            labeled_bond_tag = sec_store.information["Labeled ESG Type"]
+            sec_store.level_5()
+
+            if labeled_bond_tag == "Labeled Green":
+                sec_store.is_esg_labeled("Green")
+            elif labeled_bond_tag == "Labeled Green/Sustainable Linked":
+                sec_store.is_esg_labeled("Green/Sustainable Linked")
+            elif labeled_bond_tag == "Labeled Social":
+                sec_store.is_esg_labeled("Social")
+            elif labeled_bond_tag == "Labeled Sustainable":
+                sec_store.is_esg_labeled("Sustainable")
+            elif labeled_bond_tag == "Labeled Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainability-Linked Bonds")
+            elif labeled_bond_tag == "Labeled Sustainable/Sustainable Linked":
+                sec_store.is_esg_labeled("Sustainable/Sustainability-Linked Bonds")
+
+            elif sustainability_tag == "Y*":
+                sec_store.is_sustainable()
+
+            elif transition_tag == "Y*":
+                sec_store.is_transition()
+
+            elif score <= 2 and score > 0:
+                sec_store.is_leading()
+            elif score == 0:
+                sec_store.is_not_scored()
+            elif score == 5:
+                sec_store.is_score_5("Sovereign")
+
+    def iter(
+        self,
+        regions: dict,
+        msci_adjustment_dict: dict,
+        gics_d: dict,
+        bclass_d: dict,
+        exclusion_dict: dict,
+    ) -> None:
+        """
+        - attach region information
+        - attach analyst adjustment
+        - attach exclusions
+        - attach industry
+
+        Parameters
+        ----------
+        regions: dict
+            dictionary of all region objects
+        msci_adjustment_dict: pd.Dataframe
+            dictionary of Analyst Adjustments
+        gics_d: dict
+            dictionary of gics sub industries with gics as key, gics object as value
+        bclass_d: dict
+            dictionary of bclass sub industries with bclass as key, bclass object as value
+        exclusion_dict: dict
+            dictionary of Exclusions
+        """
+        super().iter(
+            regions=regions,
+            msci_adjustment_dict=msci_adjustment_dict,
+            gics_d=gics_d,
+            bclass_d=bclass_d,
+            exclusion_dict=exclusion_dict,
+        )
+
+        self.attach_region(regions)
+        self.attach_analyst_adjustment(msci_adjustment_dict)
+        self.attach_exclusion(exclusion_dict)
+        self.attach_industry(gics_d, bclass_d)

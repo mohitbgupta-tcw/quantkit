@@ -1,7 +1,7 @@
 import pandas as pd
 import quantkit.runner as loader
 import quantkit.utils.logging as logging
-import quantkit.pai.data_loader.portfolio_datasource as portfolio_datasource
+import quantkit.pai.data_loader.security_datasource as security_datasource
 
 
 class Runner(loader.Runner):
@@ -19,8 +19,8 @@ class Runner(loader.Runner):
         super().init(local_configs, "pai")
 
         # connect portfolio datasource
-        self.portfolio_datasource = portfolio_datasource.PortfolioDataSource(
-            params=self.params["portfolio_datasource"], api_settings=self.api_settings
+        self.security_datasource = security_datasource.SecurityDataSource(
+            params=self.params["security_datasource"], api_settings=self.api_settings
         )
 
         # iterate over dataframes and create objects
@@ -31,8 +31,7 @@ class Runner(loader.Runner):
         iterate over DataFrames and create connected objects
         """
         self.iter_portfolios()
-        self.iter_msci()
-        self.iter_holdings()
+        self.iter_msci_esg()
         self.iter_securities()
         self.iter_cash()
         self.iter_companies()

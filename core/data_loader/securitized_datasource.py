@@ -58,9 +58,14 @@ class SecuritizedDataSource(ds.DataSources):
         """
         pass
 
-    def iter(self) -> None:
+    def iter(self, securities: dict) -> None:
         """
         Iterate over securitized mapping and add to dictionary
+
+        Parameters
+        ----------
+        securities: dict
+            dict of securities
         """
         for index, row in self.df.iterrows():
             label = row["G/S/S"]
@@ -75,6 +80,9 @@ class SecuritizedDataSource(ds.DataSources):
                 self.sustainable.append(collat_type)
             elif label == "CLO":
                 self.clo.append(collat_type)
+
+        for sec, sec_store in securities.items():
+            sec_store.add_collateral_type(self.securitized_mapping)
 
     @property
     def df(self) -> pd.DataFrame:

@@ -14,19 +14,20 @@ class SecurityStore(securities.SecurityStore):
 
     Parameters
     ----------
-    isin: str
-        Security's isin
+    key: str
+        Security's key
     information: dict
         dictionary of security specific information
     """
 
-    def __init__(self, isin: str, information: dict, **kwargs) -> None:
-        super().__init__(isin, information, **kwargs)
+    def __init__(self, key: str, information: dict, **kwargs) -> None:
+        super().__init__(key, information, **kwargs)
 
-        self.scores = dict()
-        self.scores["Securitized_Score"] = 0
-        self.scores["Securitized_Score_unadjusted"] = 0
-        self.scores["Risk_Score_Overall"] = "Poor Risk Score"
+        self.scores = dict(
+            Securitized_Score=0,
+            Securitized_Score_unadjusted=0,
+            Risk_Score_Overall="Poor Risk Score",
+        )
         self.information["SClass_Level1"] = "Eligible"
         self.information["SClass_Level2"] = "ESG Scores"
         self.information["SClass_Level3"] = "ESG Scores"
@@ -43,8 +44,8 @@ class SecurityStore(securities.SecurityStore):
         securitized_mapping: dict
             mapping for ESG Collat Type
         """
-        self.information["ESG Collateral Type"] = securitized_mapping[
-            self.information["ESG Collateral Type"]
+        self.information["ESG_COLLATERAL_TYPE"] = securitized_mapping[
+            self.information["ESG_COLLATERAL_TYPE"]
         ]
 
     def attach_sector_level_2(self) -> None:
@@ -52,7 +53,7 @@ class SecurityStore(securities.SecurityStore):
         Attach Sector Level 2 to security parent
         """
         sector_level_2 = self.information["Sector Level 2"]
-        self.parent_store.information["Sector_Level_2"] = sector_level_2
+        self.issuer_store.information["Sector_Level_2"] = sector_level_2
 
     def attach_analyst_adjustment(
         self,
@@ -67,8 +68,8 @@ class SecurityStore(securities.SecurityStore):
         sec_adjustment_dict: dict
             dictionary with analyst adjustment information
         """
-        if self.isin in sec_adjustment_dict:
-            self.parent_store.Adjustment = sec_adjustment_dict[self.isin]
+        if self.key in sec_adjustment_dict:
+            self.issuer_store.Adjustment = sec_adjustment_dict[self.key]
 
     def set_risk_overall_score(self, score: Union[float, int]) -> None:
         """
@@ -195,7 +196,7 @@ class SecurityStore(securities.SecurityStore):
         """
         Set SClass Levels for sustainable parents (have assigned theme to them)
         """
-        sustainability_category = self.parent_store.scores["Themes"]
+        sustainability_category = self.issuer_store.scores["Themes"]
         themes = list(sustainability_category.keys())
         self.information["SClass_Level2"] = "Sustainable Theme"
         self.information["SClass_Level1"] = "Preferred"
@@ -206,7 +207,7 @@ class SecurityStore(securities.SecurityStore):
             self.information["SClass_Level3"] = sustainability_category[theme].pillar
         elif len(sustainability_category) >= 2:
             self.information["SClass_Level3"] = "Multi-Thematic"
-            self.information["SClass_Level4-P"] = self.parent_store.information[
+            self.information["SClass_Level4-P"] = self.issuer_store.information[
                 "Primary_Rev_Sustainable"
             ].acronym
             people_count = 0
@@ -230,7 +231,7 @@ class SecurityStore(securities.SecurityStore):
         """
         Set SClass Levels for transition parents (have assigned transition theme to them)
         """
-        transition_category = self.parent_store.scores["Transition_Category"]
+        transition_category = self.issuer_store.scores["Transition_Category"]
         self.information["SClass_Level3"] = "Transition"
         self.information["SClass_Level2"] = "Transition"
         self.information["SClass_Level1"] = "Eligible"
@@ -245,59 +246,21 @@ class SecurityStore(securities.SecurityStore):
 
     def iter(
         self,
-        parent_issuer_dict: dict,
-        companies: dict,
-        securitized_mapping: dict,
-        bclass_dict: dict,
         sec_adjustment_dict: dict,
-        rud_dict: dict,
-        sdg_dict: dict,
         **kwargs,
     ) -> None:
         """
-        - Overwrite Parent
-        - Add ESG Collateral Type
-        - Attach BClass Level4 to parent
         - Attach Sector Level 2
         - Attach Analyst Adjustment
-        - Attach Bloomberg information
-        - Attach ISS information
 
         Parameters
         ----------
-        parent_issuer_dict: dict
-            dictionary of security to parent mapping
-        companies: dict
-            dictionary of all company objects
-        securitized_mapping: dict
-            mapping for ESG Collat Type
-        bclass_dict: dict
-            dictionary of all bclass objects
         sec_adjustment_dict: dict
             dictionary with analyst adjustment information
-        rud_dict: dict
-            dictionary of bloomberg information
-        sdg_dict: dict
-            dictionary of iss information
-        dict_fundamental: dict
-            dictionary of tickers with fundamental information
-        dict_prices: dict
-            dictionary of tickers with price information
         """
         super().iter(
-            parent_issuer_dict=parent_issuer_dict,
-            companies=companies,
-            securitized_mapping=securitized_mapping,
-            bclass_dict=bclass_dict,
             sec_adjustment_dict=sec_adjustment_dict,
-            rud_dict=rud_dict,
-            sdg_dict=sdg_dict,
             **kwargs,
         )
-        self.overwrite_parent(parent_issuer_dict, companies)
-        self.add_collateral_type(securitized_mapping)
-        self.attach_bclass(bclass_dict)
         self.attach_sector_level_2()
         self.attach_analyst_adjustment(sec_adjustment_dict)
-        self.attach_rud_information(rud_dict)
-        self.attach_iss_information(sdg_dict)

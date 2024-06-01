@@ -11,7 +11,7 @@ import quantkit.backtester.strategies.relative_value as relative_value
 import quantkit.backtester.strategies.magic_formula as magic_formula
 import quantkit.utils.mapping_configs as mapping_configs
 import quantkit.backtester.data_loader.portfolio_datasource as portfolio_datasource
-import quantkit.backtester.data_loader.parent_issuer_datasource as parent_issuer_datasource
+import quantkit.backtester.data_loader.security_datasource as security_datasource
 import quantkit.backtester.data_loader.prices_datasource as prices_datasource
 import quantkit.backtester.data_loader.fundamentals_datasource as fundamentals_datasource
 import quantkit.backtester.data_loader.marketmultiple_datasource as marketmultiple_datasource
@@ -54,13 +54,9 @@ class Runner(loader.Runner):
         self.portfolio_datasource = portfolio_datasource.PortfolioDataSource(
             params=self.params["portfolio_datasource"], api_settings=self.api_settings
         )
-
-        # connect parent issuer datasource
-        self.parent_issuer_datasource = (
-            parent_issuer_datasource.TickerParentIssuerSource(
-                params=self.params["ticker_parent_issuer_datasource"],
-                api_settings=self.api_settings,
-            )
+        # connect security datasource
+        self.security_datasource = security_datasource.SecurityDataSource(
+            params=self.params["security_datasource"], api_settings=self.api_settings
         )
 
         # connect fundamental and price datasource
@@ -87,13 +83,11 @@ class Runner(loader.Runner):
         """
         iterate over DataFrames and create connected objects
         """
-        self.iter_parent_issuers()
         self.iter_portfolios()
-        self.iter_msci()
+        self.iter_msci_esg()
         self.iter_prices()
         self.iter_fundamentals()
         self.iter_marketmuliples()
-        self.iter_holdings()
         self.iter_securities()
         self.iter_cash()
         self.iter_companies()
@@ -101,13 +95,6 @@ class Runner(loader.Runner):
         self.iter_securitized()
         self.iter_muni()
         self.init_strategies()
-
-    def iter_parent_issuers(self) -> None:
-        """
-        iterate over parent issuers
-        """
-        self.parent_issuer_datasource.load()
-        self.parent_issuer_datasource.iter()
 
     def iter_fundamentals(self) -> None:
         """

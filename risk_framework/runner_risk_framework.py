@@ -1,17 +1,8 @@
 import pandas as pd
 import quantkit.runner as loader
 import quantkit.utils.logging as logging
-import quantkit.risk_framework.data_loader.themes_datasource as themes_datasource
-import quantkit.risk_framework.data_loader.category_datasource as category_database
-import quantkit.risk_framework.data_loader.sector_datasource as sector_database
-import quantkit.risk_framework.data_loader.transition_company_datasource as transition_company_datasource
-import quantkit.risk_framework.data_loader.parent_issuer_datasource as pi_datasource
-import quantkit.risk_framework.data_loader.sdg_datasource as sdg_datasource
-import quantkit.risk_framework.data_loader.securitized_datasource as securitized_datasource
-import quantkit.risk_framework.data_loader.exclusions_datasource as exclusions_database
-import quantkit.risk_framework.data_loader.adjustment_datasource as adjustment_database
-import quantkit.risk_framework.data_loader.r_and_d_datasource as r_and_d_datasource
 import quantkit.risk_framework.data_loader.portfolio_datasource as portfolio_datasource
+import quantkit.risk_framework.data_loader.security_datasource as security_datasource
 
 
 class Runner(loader.Runner):
@@ -33,73 +24,9 @@ class Runner(loader.Runner):
             params=self.params["portfolio_datasource"], api_settings=self.api_settings
         )
 
-        # connect themes datasource
-        theme_calculations = self.params.get("theme_calculation", dict())
-        self.theme_datasource = themes_datasource.ThemeDataSource(
-            params=self.params["theme_datasource"],
-            theme_calculations=theme_calculations,
-            api_settings=self.api_settings,
-        )
-
-        # connect category datasource
-        self.category_datasource = category_database.CategoryDataSource(
-            params=self.params["category_datasource"], api_settings=self.api_settings
-        )
-
-        # connect sector datasource
-        self.sector_datasource = sector_database.SectorDataSource(
-            params=self.params["sector_datasource"], api_settings=self.api_settings
-        )
-
-        # connect BCLASS datasource
-        self.bclass_datasource = sector_database.BClassDataSource(
-            params=self.params["bclass_datasource"],
-            api_settings=self.api_settings,
-        )
-
-        # connect GICS datasource
-        self.gics_datasource = sector_database.GICSDataSource(
-            params=self.params["gics_datasource"],
-            api_settings=self.api_settings,
-        )
-
-        # connect transition company datasource
-        self.transition_company_datasource = (
-            transition_company_datasource.TransitionCompanyDataSource(
-                params=self.params["transition_company_datasource"],
-                api_settings=self.api_settings,
-            )
-        )
-
-        # connect parent issuer datasource
-        self.parent_issuer_datasource = pi_datasource.ParentIssuerSource(
-            params=self.params["parent_issuer_datasource"],
-            api_settings=self.api_settings,
-        )
-
-        # connect SDG datasource
-        self.sdg_datasource = sdg_datasource.SDGDataSource(
-            params=self.params["sdg_datasource"], api_settings=self.api_settings
-        )
-
-        # connect securitized mapping datasource
-        self.securitized_datasource = securitized_datasource.SecuritizedDataSource(
-            params=self.params["securitized_datasource"], api_settings=self.api_settings
-        )
-
-        # connect exclusion datasource
-        self.exclusion_datasource = exclusions_database.ExclusionsDataSource(
-            params=self.params["exclusion_datasource"], api_settings=self.api_settings
-        )
-
-        # connect analyst adjustment datasource
-        self.adjustment_datasource = adjustment_database.AdjustmentDataSource(
-            params=self.params["adjustment_datasource"], api_settings=self.api_settings
-        )
-
-        # connect bloomberg datasource
-        self.r_and_d_datasource = r_and_d_datasource.RandDDataSource(
-            params=self.params["bloomberg_datasource"], api_settings=self.api_settings
+        # connect security datasource
+        self.security_datasource = security_datasource.SecurityDataSource(
+            params=self.params["security_datasource"], api_settings=self.api_settings
         )
 
         # iterate over dataframes and create objects
@@ -110,20 +37,21 @@ class Runner(loader.Runner):
         """
         iterate over DataFrames and create connected objects
         """
+        self.iter_parent_issuers()
+        self.iter_portfolios()
+        self.iter_securities()
+        self.iter_msci_esg()
+        self.iter_sdg()
+        self.iter_r_and_d()
         self.iter_themes()
         self.iter_regions()
         self.iter_sectors()
         self.iter_category()
         self.iter_securitized_mapping()
-        self.iter_parent_issuers()
-        self.iter_portfolios()
-        self.iter_r_and_d()
-        self.iter_sdg()
-        self.iter_msci()
         self.iter_adjustment()
         self.iter_exclusion()
-        self.iter_holdings()
-        self.iter_securities()
+        raise NotImplementedError()
+
         self.iter_cash()
         self.iter_companies()
         self.iter_sovereigns()
@@ -145,11 +73,11 @@ class Runner(loader.Runner):
         - map transition targets to sub sectors
         """
         self.sector_datasource.load()
-        self.sector_datasource.iter()
+        self.sector_datasource.iter(self.portfolio_datasource.portfolios)
 
         # create Sub-Sector objects for BCLASS
         self.bclass_datasource.load()
-        self.bclass_datasource.iter()
+        self.bclass_datasource.iter(self.security_datasource.issuers)
 
         # assign Sub Sector object to Sector and vice verse
         for bc in self.bclass_datasource.bclass:
@@ -162,7 +90,7 @@ class Runner(loader.Runner):
 
         # create Sub-Sector objects for GICS
         self.gics_datasource.load()
-        self.gics_datasource.iter()
+        self.gics_datasource.iter(self.security_datasource.issuers)
 
         # assign Sub Sector object to Sector and vice verse
         for g in self.gics_datasource.gics:
@@ -175,6 +103,11 @@ class Runner(loader.Runner):
 
         # map transition target and transition revenue to each sub-sector
         self.iter_transitions()
+
+        for iss, issuer_store in self.security_datasource.issuers.items():
+            issuer_store.attach_industry(
+                self.gics_datasource.gics, self.bclass_datasource.bclass
+            )
 
     def iter_category(self):
         """
@@ -196,7 +129,7 @@ class Runner(loader.Runner):
         Iterate over the securitized mapping
         """
         self.securitized_datasource.load()
-        self.securitized_datasource.iter()
+        self.securitized_datasource.iter(self.security_datasource.securities)
 
     def iter_adjustment(self) -> None:
         """
@@ -210,14 +143,14 @@ class Runner(loader.Runner):
         """
         iterate over exclusion data
         """
-        issuer_ids = self.portfolio_datasource.all_msci_ids
+        issuer_ids = self.security_datasource.msci_ids
         self.params["exclusion_datasource"]["filters"][
             "issuer_identifier_list"
         ] = issuer_ids
 
         # load exclusion data
         self.exclusion_datasource.load()
-        self.exclusion_datasource.iter()
+        self.exclusion_datasource.iter(self.security_datasource.issuers)
 
     def iter_parent_issuers(self) -> None:
         """
@@ -225,22 +158,20 @@ class Runner(loader.Runner):
         """
         self.parent_issuer_datasource.load()
         self.parent_issuer_datasource.iter()
+        self.params["security_datasource"]["transformation"].update(
+            self.parent_issuer_datasource.parent_issuers
+        )
 
-    def iter_msci(self) -> None:
+    def iter_msci_esg(self) -> None:
         """
         iterate over MSCI data
         """
-        # load parent issuer data
-        parent_ids = self.parent_issuer_datasource.parent_issuer_ids()
-
         # load MSCI data
-        issuer_ids = self.portfolio_datasource.all_msci_ids
+        issuer_ids = self.security_datasource.msci_ids
 
-        issuer_ids += parent_ids
-        issuer_ids = list(set(issuer_ids))
         self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
-        self.msci_datasource.load()
-        self.msci_datasource.iter()
+        self.msci_esg_datasource.load()
+        self.msci_esg_datasource.iter(self.security_datasource.issuers)
 
     def iter_sdg(self) -> None:
         """
@@ -249,36 +180,25 @@ class Runner(loader.Runner):
         self.sdg_datasource.load(
             as_of_date=self.params["portfolio_datasource"]["end_date"],
         )
-        self.sdg_datasource.iter()
+        self.sdg_datasource.iter(self.security_datasource.issuers)
 
     def iter_r_and_d(self) -> None:
         """
         iterate over research and development data
         """
         self.r_and_d_datasource.load()
-        self.r_and_d_datasource.iter()
+        self.r_and_d_datasource.iter(self.security_datasource.issuers)
 
-    def iter_securities(self) -> None:
-        """
-        - Overwrite Parent
-        - Add ESG Collateral Type
-        - Attach BClass Level4 to parent
-        - Attach Sector Level 2
-        - Attach Analyst Adjustment
-        - Attach Bloomberg information
-        - Attach ISS information
-        """
-        logging.log("Iterate Securities")
-        for sec, sec_store in self.portfolio_datasource.securities.items():
-            sec_store.iter(
-                parent_issuer_dict=self.parent_issuer_datasource.parent_issuers,
-                companies=self.portfolio_datasource.companies,
-                securitized_mapping=self.securitized_datasource.securitized_mapping,
-                bclass_dict=self.bclass_datasource.bclass,
-                sec_adjustment_dict=self.adjustment_datasource.security_isins,
-                rud_dict=self.r_and_d_datasource.research_development,
-                sdg_dict=self.sdg_datasource.sdg,
-            )
+    # def iter_securities(self) -> None:
+    #     """
+    #     - Attach Sector Level 2
+    #     - Attach Analyst Adjustment
+    #     """
+    #     logging.log("Iterate Securities")
+    #     for sec, sec_store in self.portfolio_datasource.securities.items():
+    #         sec_store.iter(
+    #             sec_adjustment_dict=self.adjustment_datasource.security_isins,
+    #         )
 
     def iter_securitized(self) -> None:
         """
@@ -340,26 +260,13 @@ class Runner(loader.Runner):
         logging.log("Iterate Companies")
         for c, comp_store in self.portfolio_datasource.companies.items():
             comp_store.iter(
-                companies=self.portfolio_datasource.companies,
                 regions=self.region_datasource.regions,
-                exclusion_dict=self.exclusion_datasource.exclusions,
                 msci_adjustment_dict=self.adjustment_datasource.msci_ids,
-                gics_d=self.gics_datasource.gics,
-                bclass_d=self.bclass_datasource.bclass,
                 industries=self.bclass_datasource.industries,
                 category_d=self.category_datasource.categories,
                 themes=self.theme_datasource.themes,
                 transition_company_mapping=self.transition_company_datasource.transition_mapping,
             )
-
-    def iter_portfolios(self) -> None:
-        """
-        - load portfolio data
-        - create portfolio objects
-        - attach Sector to Portfolio object
-        """
-        super().iter_portfolios()
-        self.sector_datasource.iter_portfolios(self.portfolio_datasource.portfolios)
 
     def calculate_company_scores(self) -> None:
         """

@@ -42,22 +42,19 @@ class SectorDataSource(ds.DataSources):
         self.datasource.load(query=query)
         self.transform_df()
 
-    def iter(self) -> None:
+    def iter(self, portfolios: dict) -> None:
         """
-        create Sector objects for GICS and BCLASS
-        """
-        for s in list(self.df["Sector_Code"].unique()):
-            self.sectors[s] = sectors.Sector(s)
-
-    def iter_portfolios(self, portfolios: dict) -> None:
-        """
-        Attach sector to each portfolio
+        - create Sector objects for GICS and BCLASS
+        - attach sector to each portfolio
 
         Parameters
         ----------
         portfolios: dict
             dictionary of all portfolios
         """
+        for s in list(self.df["Sector_Code"].unique()):
+            self.sectors[s] = sectors.Sector(s)
+
         df_ = self.df
         for index, row in df_[
             df_["Portfolio"].isin(list(portfolios.keys()))
@@ -200,13 +197,20 @@ class BClassDataSource(SubIndustryDataSource):
             transition_risk="Low",
         )
 
-    def iter(self) -> None:
+    def iter(self, issuers: dict) -> None:
         """
         Create Sub Sector and Industry objects for specific sector
         Save objects in sub-sector and industry attributes.
+
+        Parameters
+        ----------
+        issuers: dict
+            dict of issuers
         """
         # create Sub-Sector and Industry objects
         super().iter("BCLASS_Level4", self.bclass)
+        for iss, issuer_store in issuers.items():
+            issuer_store.attach_bclass(self.bclass)
 
 
 class GICSDataSource(SubIndustryDataSource):
@@ -242,10 +246,17 @@ class GICSDataSource(SubIndustryDataSource):
         super().__init__(params, **kwargs)
         self.gics = dict()
 
-    def iter(self) -> None:
+    def iter(self, issuers: dict) -> None:
         """
         Create Sub Sector and Industry objects for specific sector
         Save objects in sub-sector and industry attributes.
+
+        Parameters
+        ----------
+        issuers: dict
+            dict of issuers
         """
         # create Sub-Sector and Industry objects
         super().iter("GICS_SUB_IND", self.gics)
+        for iss, issuer_store in issuers.items():
+            issuer_store.attach_gics(self.gics)

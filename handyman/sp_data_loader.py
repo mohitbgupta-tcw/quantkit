@@ -125,18 +125,28 @@ def get_price_data(
 
     query = f"""
     SELECT 
-    pe.pricingdate,
-    si.identifierValue as ISIN,
-    pe.priceclose,
-    pe.adjustmentfactor,
-    pe.volume,
-    si.activeFlag 
+        pe.pricingdate,
+        si.identifierValue as ISIN,
+        pe.priceclose,
+        pe.adjustmentfactor,
+        pe.volume,
+        si.activeFlag, 
+        div1.divamount as "EXDATE_DIV",
+        div2.divamount as "PAYDATE_DIV"
     FROM XF_TCW.XPRESSFEED.ciqSecurityIdentifier si
-    JOIN XF_TCW.XPRESSFEED.ciqTradingItem ti on si.securityId = ti.securityId
+    JOIN XF_TCW.XPRESSFEED.ciqTradingItem ti 
+        ON si.securityId = ti.securityId
         AND ti.primaryflag = 1
-    JOIN XF_TCW.XPRESSFEED.ciqpriceequity pe on ti.tradingitemid = pe.tradingitemid
+    JOIN XF_TCW.XPRESSFEED.ciqpriceequity pe 
+        ON ti.tradingitemid = pe.tradingitemid
+    LEFT JOIN XF_TCW.XPRESSFEED.CIQDIVIDEND div1
+        ON pe.tradingItemId = div1.tradingItemId
+        AND pe.pricingDate = div1.exdate
+    LEFT JOIN XF_TCW.XPRESSFEED.CIQDIVIDEND div2
+        ON pe.tradingItemId = div2.tradingItemId
+        AND pe.pricingDate = div2.paydate
     WHERE 1=1
-    AND si.identifierTypeId = 8334 -- ISIN identifier type
+    AND si.identifierTypeId = 8334
     AND si.identifierValue IN ({sec_string})
     {start_date_filter}
     {end_date_filter}
@@ -153,5 +163,5 @@ def get_price_data(
     df["PRICECLOSE_UNADJ"] = df["PRICECLOSE"] * df["ADJUSTMENTFACTOR"]
     df = df.set_index(["PRICINGDATE", "ISIN"])
     df = df.sort_index()
-    df = df[["PRICECLOSE", "PRICECLOSE_UNADJ", "VOLUME"]]
+    df = df[["PRICECLOSE", "PRICECLOSE_UNADJ", "VOLUME", "EXDATE_DIV", "PAYDATE_DIV"]]
     return df

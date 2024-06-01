@@ -120,9 +120,14 @@ class SDGDataSource(ds.DataSources):
             "SDGSolClimatePercentCombCont"
         ].astype(float)
 
-    def iter(self) -> None:
+    def iter(self, issuer_dict: dict) -> None:
         """
         Attach SDG information to dict
+
+        Parameters
+        ----------
+        issuer_dict: dict
+            dict of issuers
         """
         # only iterate over companies we hold in the portfolios
         for index, row in self.df.iterrows():
@@ -133,7 +138,22 @@ class SDGDataSource(ds.DataSources):
 
         # --> not every company has these information, so create empty df with NA's for those
         empty_sdg = pd.Series(np.nan, index=self.df.columns).to_dict()
-        self.sdg[np.nan] = deepcopy(empty_sdg)
+        self.sdg["NoISSUERID"] = deepcopy(empty_sdg)
+
+        for iss, issuer_store in issuer_dict.items():
+            iss_information = deepcopy(
+                self.sdg[issuer_store.information["ISS_ISSUERID"]]
+            )
+
+            parent_id = issuer_store.msci_information["PARENT_ULTIMATE_ISSUERID"]
+            iss_information_parent = None
+            if not pd.isna(parent_id):
+                parent_store = issuer_dict.get(parent_id, None)
+                if parent_store:
+                    parent_sdg_id = parent_store.information["ISS_ISSUERID"]
+                    iss_information_parent = self.sdg.get(parent_sdg_id, None)
+
+            issuer_store.attach_iss_information(iss_information, iss_information_parent)
 
     @property
     def df(self) -> pd.DataFrame:
