@@ -39,8 +39,7 @@ class AdjustmentDataSource(ds.DataSources):
 
     def __init__(self, params: dict, **kwargs) -> None:
         super().__init__(params, **kwargs)
-        self.msci_ids = dict()
-        self.security_isins = dict()
+        self.adjustments = dict()
 
     def load(self) -> None:
         """
@@ -63,24 +62,26 @@ class AdjustmentDataSource(ds.DataSources):
             by=["Adjustment"], ascending=False
         )
 
-    def iter(self) -> None:
+    def iter(self, issuer_dict: dict) -> None:
         """
         Attach analyst adjustment information to dicts
+
+        Parameters
+        ----------
+        issuer_dict: dict
+            dict of issuers
         """
         for index, row in self.df.iterrows():
             isin = row["ISIN"]
 
             adjustment_information = row.to_dict()
-            if isin[:3] == "IID":
-                if isin in self.msci_ids:
-                    self.msci_ids[isin].append(adjustment_information)
-                else:
-                    self.msci_ids[isin] = [adjustment_information]
+            if isin in self.adjustments:
+                self.adjustments[isin].append(adjustment_information)
             else:
-                if isin in self.security_isins:
-                    self.security_isins[isin].append(adjustment_information)
-                else:
-                    self.security_isins[isin] = [adjustment_information]
+                self.adjustments[isin] = [adjustment_information]
+
+        for iss, issuer_store in issuer_dict.items():
+            issuer_store.attach_analyst_adjustment(self.adjustments)
 
     @property
     def df(self) -> pd.DataFrame:

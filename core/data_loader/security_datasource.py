@@ -94,6 +94,12 @@ class SecurityDataSource(ds.DataSources):
                     END AS "SECTOR_LEVEL_2",
                     sec.loan_category AS "LOAN_CATEGORY",
                     sec.labeled_esg_type AS "LABELED_ESG_TYPE",
+                    CASE 
+                        WHEN sec.issuer_esg ='NA '
+                        OR sec.issuer_esg IS null
+                        THEN 'No' 
+                        ELSE sec.issuer_esg 
+                    END AS "ISSUER_ESG",
                     sec.tcw_esg_type AS "TCW_ESG",
                     sec.esg_collateral_type AS "ESG_COLLATERAL_TYPE",
                     CASE 
@@ -101,6 +107,11 @@ class SecurityDataSource(ds.DataSources):
                         THEN sec.COUNTRY_OF_RISK_NAME
                         ELSE sec.EM_COUNTRY_OF_RISK_NAME
                     END AS "COUNTRY_OF_RISK",
+                    CASE 
+                        WHEN sec.EM_COUNTRY_OF_RISK_CODE IS null 
+                        THEN sec.COUNTRY_OF_RISK_CODE 
+                        ELSE sec.EM_COUNTRY_OF_RISK_CODE 
+                    END AS "ISO2",
                     sec.jpm_level1 AS "JPM_SECTOR",
                     sec.bclass_level2_name AS "BCLASS_LEVEL2", 
                     sec.bclass_level3_name AS "BCLASS_LEVEL3", 
@@ -368,9 +379,11 @@ class SecurityDataSource(ds.DataSources):
                 "SECTOR_LEVEL_2",
                 "LOAN_CATEGORY",
                 "LABELED_ESG_TYPE",
+                "ISSUER_ESG",
                 "TCW_ESG",
                 "ESG_COLLATERAL_TYPE",
                 "COUNTRY_OF_RISK",
+                "ISO2",
                 "ISSUER_ID",
             ]
         ]
@@ -434,64 +447,6 @@ class SecurityDataSource(ds.DataSources):
             key=issuer_key, information=issuer_information
         )
         self.issuers[issuer_key] = issuer_store
-
-    def create_sectorlevel2_store(
-        self,
-        sector_level_2: str,
-        issuer_isin: str,
-        msci_information: dict,
-        security_store: securities.SecurityStore,
-        security_type_mapping: dict,
-    ) -> None:
-        """
-        create new objects for Company, Muni, Sovereign and Securitized, Cash
-
-        Parameters
-        ----------
-        sector_level_2: str
-            Sector Level 2
-        issuer_isin: str
-            parent issuer isin
-        msci_information: dict
-            dictionary of msci information on company level
-        security_store: SecurityStore
-            security object
-        security_type_mapping: dict
-            dictionary of security types
-        """
-        security_type_mapping: dict = {
-            "Securitized": securitized.SecuritizedStore,
-            "Muni": munis.MuniStore,
-            "Sovereign": sovereigns.SovereignStore,
-            "Cash": cash.CashStore,
-            "Corporate": comp.CompanyStore,
-        }
-        # attach information to security's company
-        # create new objects for Muni, Sovereign and Securitized
-        if sector_level_2 in ["Muni / Local Authority"]:
-            check_type = "Muni"
-            all_parents = self.munis
-        elif sector_level_2 in ["Residential MBS", "CMBS", "ABS"]:
-            check_type = "Securitized"
-            all_parents = self.securitized
-        elif sector_level_2 in ["Sovereign"]:
-            check_type = "Sovereign"
-            all_parents = self.sovereigns
-        elif sector_level_2 in ["Cash and Other"]:
-            check_type = "Cash"
-            all_parents = self.cash
-        else:
-            check_type = "Corporate"
-            all_parents = self.companies
-
-        class_ = security_type_mapping[check_type]
-        all_parents[issuer_isin] = all_parents.get(
-            issuer_isin, class_(issuer_isin, msci_information)
-        )
-
-        # attach security to company and vice versa
-        all_parents[issuer_isin].add_security(security_store.key, security_store)
-        security_store.issuer_store = all_parents[issuer_isin]
 
     @property
     def df(self) -> pd.DataFrame:

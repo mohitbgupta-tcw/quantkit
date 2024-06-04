@@ -46,17 +46,11 @@ class Runner(loader.Runner):
         self.iter_themes()
         self.iter_regions()
         self.iter_sectors()
+        self.iter_transitions()
         self.iter_category()
         self.iter_securitized_mapping()
         self.iter_adjustment()
         self.iter_exclusion()
-        raise NotImplementedError()
-
-        self.iter_cash()
-        self.iter_companies()
-        self.iter_sovereigns()
-        self.iter_securitized()
-        self.iter_muni()
 
     def iter_themes(self) -> None:
         """
@@ -65,6 +59,14 @@ class Runner(loader.Runner):
         """
         self.theme_datasource.load()
         self.theme_datasource.iter()
+
+    def iter_regions(self) -> None:
+        """
+        - load region data
+        - create region objects and save in dict
+        """
+        self.region_datasource.load()
+        self.region_datasource.iter(self.security_datasource.securities)
 
     def iter_sectors(self) -> None:
         """
@@ -101,9 +103,6 @@ class Runner(loader.Runner):
                 self.sector_datasource.sectors["GICS"]
             )
 
-        # map transition target and transition revenue to each sub-sector
-        self.iter_transitions()
-
         for iss, issuer_store in self.security_datasource.issuers.items():
             issuer_store.attach_industry(
                 self.gics_datasource.gics, self.bclass_datasource.bclass
@@ -122,7 +121,7 @@ class Runner(loader.Runner):
         - load company mapping for transition
         """
         self.transition_company_datasource.load()
-        self.transition_company_datasource.iter()
+        self.transition_company_datasource.iter(self.security_datasource.issuers)
 
     def iter_securitized_mapping(self) -> None:
         """
@@ -137,7 +136,7 @@ class Runner(loader.Runner):
         """
         # load adjustment data
         self.adjustment_datasource.load()
-        self.adjustment_datasource.iter()
+        self.adjustment_datasource.iter(self.security_datasource.issuers)
 
     def iter_exclusion(self) -> None:
         """
@@ -189,85 +188,6 @@ class Runner(loader.Runner):
         self.r_and_d_datasource.load()
         self.r_and_d_datasource.iter(self.security_datasource.issuers)
 
-    # def iter_securities(self) -> None:
-    #     """
-    #     - Attach Sector Level 2
-    #     - Attach Analyst Adjustment
-    #     """
-    #     logging.log("Iterate Securities")
-    #     for sec, sec_store in self.portfolio_datasource.securities.items():
-    #         sec_store.iter(
-    #             sec_adjustment_dict=self.adjustment_datasource.security_isins,
-    #         )
-
-    def iter_securitized(self) -> None:
-        """
-        Iterate over all Securitized
-        """
-        logging.log("Iterate Securitized")
-        for sec, sec_store in self.portfolio_datasource.securitized.items():
-            sec_store.iter(
-                regions=self.region_datasource.regions,
-                gics_d=self.gics_datasource.gics,
-                bclass_d=self.bclass_datasource.bclass,
-                exclusion_dict=self.exclusion_datasource.exclusions,
-            )
-
-    def iter_sovereigns(self) -> None:
-        """
-        Iterate over all sovereigns
-        """
-        logging.log("Iterate Sovereigns")
-        for s, sov_store in self.portfolio_datasource.sovereigns.items():
-            sov_store.iter(
-                regions=self.region_datasource.regions,
-                msci_adjustment_dict=self.adjustment_datasource.msci_ids,
-                gics_d=self.gics_datasource.gics,
-                bclass_d=self.bclass_datasource.bclass,
-                exclusion_dict=self.exclusion_datasource.exclusions,
-            )
-
-    def iter_muni(self) -> None:
-        """
-        Iterate over all Munis
-        """
-        logging.log("Iterate Munis")
-        for m, muni_store in self.portfolio_datasource.munis.items():
-            muni_store.iter(
-                regions=self.region_datasource.regions,
-                gics_d=self.gics_datasource.gics,
-                bclass_d=self.bclass_datasource.bclass,
-                exclusion_dict=self.exclusion_datasource.exclusions,
-            )
-
-    def iter_cash(self) -> None:
-        """
-        Iterate over all Cash objects
-        """
-        logging.log("Iterate Cash")
-        for c, cash_store in self.portfolio_datasource.cash.items():
-            cash_store.iter(
-                regions=self.region_datasource.regions,
-                gics_d=self.gics_datasource.gics,
-                bclass_d=self.bclass_datasource.bclass,
-                exclusion_dict=self.exclusion_datasource.exclusions,
-            )
-
-    def iter_companies(self) -> None:
-        """
-        Iterate over all companies
-        """
-        logging.log("Iterate Companies")
-        for c, comp_store in self.portfolio_datasource.companies.items():
-            comp_store.iter(
-                regions=self.region_datasource.regions,
-                msci_adjustment_dict=self.adjustment_datasource.msci_ids,
-                industries=self.bclass_datasource.industries,
-                category_d=self.category_datasource.categories,
-                themes=self.theme_datasource.themes,
-                transition_company_mapping=self.transition_company_datasource.transition_mapping,
-            )
-
     def calculate_company_scores(self) -> None:
         """
         Calculuate scores for each company:
@@ -281,12 +201,6 @@ class Runner(loader.Runner):
             - SClass
         """
         for c, comp_store in self.portfolio_datasource.companies.items():
-            comp_store.update_sovereign_score()
-            comp_store.calculate_transition_score()
-            comp_store.calculate_esrm_score()
-            comp_store.iter_analyst_adjustment(self.theme_datasource.themes)
-            comp_store.calculate_corporate_score()
-            comp_store.calculate_risk_overall_score()
             comp_store.update_sclass()
 
     def calculate_sovereign_scores(self) -> None:
@@ -298,9 +212,6 @@ class Runner(loader.Runner):
             - SClass
         """
         for sov, sov_store in self.portfolio_datasource.sovereigns.items():
-            sov_store.update_sovereign_score()
-            sov_store.iter_analyst_adjustment(self.theme_datasource.themes)
-            sov_store.calculate_risk_overall_score()
             sov_store.update_sclass()
 
     def calculate_securitized_scores(self) -> None:
@@ -311,14 +222,6 @@ class Runner(loader.Runner):
             - SClass
         """
         for sec, sec_store in self.portfolio_datasource.securitized.items():
-            sec_store.calculate_securitized_score(
-                green=self.securitized_datasource.green,
-                social=self.securitized_datasource.social,
-                sustainable=self.securitized_datasource.sustainable,
-                clo=self.securitized_datasource.clo,
-            )
-            sec_store.iter_analyst_adjustment(self.theme_datasource.themes)
-            sec_store.calculate_risk_overall_score()
             sec_store.update_sclass()
 
     def calculate_muni_scores(self) -> None:
@@ -329,8 +232,6 @@ class Runner(loader.Runner):
             - SClass
         """
         for muni, muni_store in self.portfolio_datasource.munis.items():
-            muni_store.iter_analyst_adjustment(self.theme_datasource.themes)
-            muni_store.calculate_risk_overall_score()
             muni_store.update_sclass()
 
     def calculate_cash_scores(self) -> None:
@@ -341,15 +242,46 @@ class Runner(loader.Runner):
             - SClass
         """
         for cash, cash_store in self.portfolio_datasource.cash.items():
-            cash_store.iter_analyst_adjustment(self.theme_datasource.themes)
-            cash_store.calculate_risk_overall_score()
             cash_store.update_sclass()
+
+    def risk_framework_calculation(self) -> None:
+        """
+        Risk Framework specific calculations:
+            - issuer CapEx
+            - issuer climate revenue
+            - issuer decarbonization factor
+            - issuer carbon intensity
+            - issuer transition information
+        """
+        for iss, issuer_store in self.security_datasource.issuers.items():
+            issuer_store.calculate_capex()
+            issuer_store.calculate_climate_revenue()
+            issuer_store.calculate_climate_decarb()
+            issuer_store.calculate_carbon_intensity()
+
+    def risk_framework_scores(self) -> None:
+        """
+        Calculate Risk Framework Scores and Themes
+        """
+        for sec, sec_store in self.security_datasource.securities.items():
+            sec_store.calculate_sustainable_theme(self.theme_datasource.themes)
+            # sec_store.calculate_transition_score()
+            # sec_store.calculate_sovereign_score()
+            # sec_store.calculate_esrm_score()
+            sec_store.iter_analyst_adjustment(self.theme_datasource.themes)
+            sec_store.calculate_security_score()
+            sec_store.calculate_risk_overall_score()
 
     def run(self) -> None:
         """
         run calculations
         """
         logging.log("Start Calculations")
+        self.risk_framework_calculation()
+        self.risk_framework_scores()
+
+        raise NotImplementedError()
+
         self.calculate_company_scores()
         self.calculate_securitized_scores()
         self.calculate_sovereign_scores()

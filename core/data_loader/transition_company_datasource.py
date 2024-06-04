@@ -49,15 +49,23 @@ class TransitionCompanyDataSource(ds.DataSources):
         """
         pass
 
-    def iter(self) -> None:
+    def iter(self, issuer_dict: dict) -> None:
         """
         Attach transition mapping information to dict
+
+        Parameters
+        ----------
+        issuer_dict: dict
+            dictionary of issuers
         """
         for index, row in self.df.iterrows():
-            msci_id = row["ISSUER ISIN"]
+            msci_id = row["MSCI ISSUERID"]
 
             msci_information = row.to_dict()
             self.transition_mapping[msci_id] = msci_information
+
+        for iss, issuer_store in issuer_dict.items():
+            issuer_store.attach_transition_info(self.transition_mapping)
 
     @property
     def df(self) -> pd.DataFrame:

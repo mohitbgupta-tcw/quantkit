@@ -40,11 +40,6 @@ class PortfolioDataSource(ds.DataSources):
         self.tickers = dict()
         self.portfolios = dict()
         self.securities = dict()
-        self.companies = dict()
-        self.munis = dict()
-        self.sovereigns = dict()
-        self.securitized = dict()
-        self.cash = dict()
 
     def load(
         self,
@@ -183,36 +178,6 @@ class PortfolioDataSource(ds.DataSources):
             )
             pf_store.add_as_of_date(as_of_date)
             self.portfolios[pf] = pf_store
-
-    def create_msci_information(
-        self, security_information: dict, msci_dict: dict
-    ) -> dict:
-        """
-        Get MSCI information of company
-
-        Parameters
-        ----------
-        security_information: dict
-            dictionary of information about the security
-        msci_dict: dict
-            dictionary of all MSCI information
-
-        Returns
-        -------
-        dict
-            dictionary of MSCI information
-        """
-        issuer_id = security_information["MSCI ISSUERID"]
-        issuer_id = issuer_id if issuer_id in msci_dict else "NoISSUERID"
-
-        issuer_dict = deepcopy(msci_dict[issuer_id])
-        issuer_isin = issuer_dict["ISSUER_ISIN"]
-        if not pd.isna(issuer_isin):
-            security_information["Issuer ISIN"] = issuer_isin
-        else:
-            issuer_dict["ISSUER_ISIN"] = security_information["ISIN"]
-            issuer_dict["ISSUER_NAME"] = security_information["Security_Name"]
-        return issuer_dict
 
     def attach_securities(self) -> None:
         """

@@ -46,7 +46,7 @@ class Theme(object):
         self.msci_sub = self.add_MSCI_sub()
         self.product_key_add = self.add_product_key()
         self.params = params
-        self.companies = dict()
+        self.issuers = dict()
 
     def add_ISS(self) -> list:
         """

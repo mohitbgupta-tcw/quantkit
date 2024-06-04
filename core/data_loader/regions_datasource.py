@@ -59,15 +59,23 @@ class RegionsDataSource(ds.DataSources):
         self.df["ISO2"] = self.df["ISO2"].fillna("NA")
         self.df.loc[-1] = [np.nan, np.nan, np.nan, "DM", "DM", "DM", 0]
 
-    def iter(self) -> None:
+    def iter(self, security_dict: dict) -> None:
         """
         - create Region objects for each region
         - save object for each region in self.regions
         - key is ISO2
+
+        Parameters
+        ----------
+        security_dict: dict
+            dict of securities
         """
         for index, row in self.df.iterrows():
             r = row["ISO2"]
             self.regions[r] = regions.Region(r, row)
+
+        for sec, sec_store in security_dict.items():
+            sec_store.attach_region(self.regions)
 
     @property
     def df(self) -> pd.DataFrame:

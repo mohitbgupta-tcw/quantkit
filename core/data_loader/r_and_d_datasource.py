@@ -78,19 +78,17 @@ class RandDDataSource(ds.DataSources):
                 )
             )
 
-            parent_id = issuer_store.msci_information["PARENT_ULTIMATE_ISSUERID"]
             rud_information_parent = None
-            if not pd.isna(parent_id):
-                parent_store = issuer_dict.get(parent_id, None)
-                if parent_store:
-                    parent_bbg_id = (
-                        "NoISSUERID"
-                        if parent_store.information["BBG_ISSUERID"] == "NoISSUERID"
-                        else float(parent_store.information["BBG_ISSUERID"])
-                    )
-                    rud_information_parent = deepcopy(
-                        self.research_development.get(parent_bbg_id, None)
-                    )
+            if hasattr(issuer_store, "ultimate_parent_store"):
+                parent_store = issuer_store.ultimate_parent_store
+                parent_bbg_id = (
+                    "NoISSUERID"
+                    if parent_store.information["BBG_ISSUERID"] == "NoISSUERID"
+                    else float(parent_store.information["BBG_ISSUERID"])
+                )
+                rud_information_parent = deepcopy(
+                    self.research_development.get(parent_bbg_id, None)
+                )
 
             issuer_store.attach_rud_information(rud_information, rud_information_parent)
 

@@ -18,6 +18,11 @@ class IssuerStore(object):
     def __init__(self, key: str, information: dict, **kwargs) -> None:
         self.key = key
         self.securities = dict()
+        self.munis = dict()
+        self.securitized = dict()
+        self.corporates = dict()
+        self.cash = dict()
+        self.sovereigns = dict()
         self.information = information
 
     def add_security(

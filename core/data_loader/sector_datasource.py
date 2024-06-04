@@ -188,15 +188,6 @@ class BClassDataSource(SubIndustryDataSource):
         super().__init__(params, **kwargs)
         self.bclass = dict()
 
-        self.industries["Unassigned BCLASS High"] = sectors.Industry(
-            "Unassigned BCLASS High",
-            transition_risk="High",
-        )
-        self.industries["Unassigned BCLASS Low"] = sectors.Industry(
-            "Unassigned BCLASS Low",
-            transition_risk="Low",
-        )
-
     def iter(self, issuers: dict) -> None:
         """
         Create Sub Sector and Industry objects for specific sector

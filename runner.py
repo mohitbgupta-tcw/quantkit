@@ -123,14 +123,6 @@ class Runner(object):
             params=self.params["bloomberg_datasource"], api_settings=self.api_settings
         )
 
-    def iter_regions(self) -> None:
-        """
-        - load region data
-        - create region objects and save in dict
-        """
-        self.region_datasource.load()
-        self.region_datasource.iter()
-
     def iter_portfolios(self) -> None:
         """
         - load portfolio data
@@ -158,61 +150,3 @@ class Runner(object):
             end_date=self.params["portfolio_datasource"]["end_date"],
         )
         self.security_datasource.iter()
-
-    def iter_msci_esg(self) -> None:
-        """
-        iterate over MSCI data
-        """
-        issuer_ids = self.security_datasource.msci_ids
-
-        self.params["msci_datasource"]["filters"]["issuer_identifier_list"] = issuer_ids
-        self.msci_esg_datasource.load()
-        self.msci_esg_datasource.iter()
-
-    def iter_sovereigns(self) -> None:
-        """
-        Iterate over all sovereigns
-        """
-        logging.log("Iterate Sovereigns")
-        for s, sov_store in self.portfolio_datasource.sovereigns.items():
-            sov_store.iter()
-
-    # def iter_securities(self) -> None:
-    #     """
-    #     Iterate over securities
-    #     """
-    #     logging.log("Iterate Securities")
-    #     for sec, sec_store in self.portfolio_datasource.securities.items():
-    #         sec_store.iter()
-
-    def iter_securitized(self) -> None:
-        """
-        Iterate over all Securitized
-        """
-        logging.log("Iterate Securitized")
-        for sec, sec_store in self.portfolio_datasource.securitized.items():
-            sec_store.iter()
-
-    def iter_muni(self) -> None:
-        """
-        Iterate over all Munis
-        """
-        logging.log("Iterate Munis")
-        for m, muni_store in self.portfolio_datasource.munis.items():
-            muni_store.iter()
-
-    def iter_cash(self) -> None:
-        """
-        Iterate over all Cash objects
-        """
-        logging.log("Iterate Cash")
-        for c, cash_store in self.portfolio_datasource.cash.items():
-            cash_store.iter()
-
-    def iter_companies(self) -> None:
-        """
-        Iterate over all companies
-        """
-        logging.log("Iterate Companies")
-        for c, comp_store in self.portfolio_datasource.companies.items():
-            comp_store.iter()

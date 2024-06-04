@@ -1,5 +1,8 @@
 import quantkit.core.financial_infrastructure.securities as securities
+import quantkit.risk_framework.core.adjustment as adjustment
 from typing import Union
+import numpy as np
+import pandas as pd
 
 
 class SecurityStore(securities.SecurityStore):
@@ -27,13 +30,37 @@ class SecurityStore(securities.SecurityStore):
             Securitized_Score=0,
             Securitized_Score_unadjusted=0,
             Risk_Score_Overall="Poor Risk Score",
+            Themes=dict(),
+            Themes_unadjusted=dict(),
+            Transition_Category=list(),
+            Transition_Category_unadjusted=list(),
+            Sustainability_Tag="N",
+            Transition_Tag="N",
+            Muni_Score=0,
+            Muni_Score_unadjusted=0,
+            Sovereign_Score=0,
+            Sovereign_Score_unadjusted=0,
+            ESRM_Score=0,
+            ESRM_Score_unadjusted=0,
+            Governance_Score=0,
+            Governance_Score_unadjusted=0,
+            Target_Score=0,
+            Transition_Score=0,
+            Transition_Score_unadjusted=0,
+            Corporate_Score=0,
+            Review_Flag="",
+            Review_Comments="",
+            ESRM_Flags=dict(),
+            Governance_Flags=dict(),
+            NA_Flags_ESRM=dict(),
+            NA_Flags_Governance=dict(),
+            SClass_Level1="Eligible",
+            SClass_Level2="ESG Scores",
+            SClass_Level3="ESG Scores",
+            SClass_Level4="Average ESG Score",
+            SClass_Level4_P="Average ESG Score",
+            SClass_Level5="Unknown",
         )
-        self.information["SClass_Level1"] = "Eligible"
-        self.information["SClass_Level2"] = "ESG Scores"
-        self.information["SClass_Level3"] = "ESG Scores"
-        self.information["SClass_Level4"] = "Average ESG Score"
-        self.information["SClass_Level4-P"] = "Average ESG Score"
-        self.information["SClass_Level5"] = "Unknown"
 
     def add_collateral_type(self, securitized_mapping: dict) -> None:
         """
@@ -48,28 +75,38 @@ class SecurityStore(securities.SecurityStore):
             self.information["ESG_COLLATERAL_TYPE"]
         ]
 
-    def attach_sector_level_2(self) -> None:
+    def attach_region(self, regions: dict) -> None:
         """
-        Attach Sector Level 2 to security parent
-        """
-        sector_level_2 = self.information["Sector Level 2"]
-        self.issuer_store.information["Sector_Level_2"] = sector_level_2
-
-    def attach_analyst_adjustment(
-        self,
-        sec_adjustment_dict: dict,
-    ) -> None:
-        """
-        Attach Analyst Adjustment to parent
-        Adjustment in sec_adjustment_dict is on security level
+        Attach region information (including ISO2, name, sovereign score) to parent object
+        Save region object in self.information["Issuer_Country"]
 
         Parameters
         ----------
-        sec_adjustment_dict: dict
-            dictionary with analyst adjustment information
+        regions: dict
+            dictionary of all region objects
         """
-        if self.key in sec_adjustment_dict:
-            self.issuer_store.Adjustment = sec_adjustment_dict[self.key]
+        country = self.information["ISO2"]
+        self.information["ISO2"] = regions[country]
+        regions[country].add_company(self.key, self)
+
+    def attach_category(self, category_d: dict) -> None:
+        """
+        Attach ESRM category based on ESRM module of sub industry
+        Attach Region Theme based on Region
+
+        Parameters
+        ----------
+        category_d: dict
+            dictionary of ESRM categories
+        """
+        if not category_d:
+            return
+        esrm_module = self.information["Sub-Industry"].information["ESRM Module"]
+        self.information["ESRM Module"] = category_d[esrm_module]
+
+        # get region theme (DM, JP, EM, EUCohort)
+        region_theme = self.information["Issuer_Country"].information["Region"]
+        self.information["region_theme"] = category_d[region_theme]
 
     def set_risk_overall_score(self, score: Union[float, int]) -> None:
         """
@@ -244,23 +281,67 @@ class SecurityStore(securities.SecurityStore):
         else:
             raise ValueError("If transition tag is 'Y', category should be assigned.")
 
-    def iter(
-        self,
-        sec_adjustment_dict: dict,
-        **kwargs,
-    ) -> None:
+    def iter_analyst_adjustment(self, themes: dict) -> None:
         """
-        - Attach Sector Level 2
-        - Attach Analyst Adjustment
+        Do analyst adjustments for each parent.
+        Different calculations for each thematic type:
+            - Risk
+            - Transition
+            - People
+            - Planet
+        See quantkit.finance.adjustments for more information
 
         Parameters
         ----------
-        sec_adjustment_dict: dict
-            dictionary with analyst adjustment information
+        themes: dict
+            dictionary of all themes
         """
-        super().iter(
-            sec_adjustment_dict=sec_adjustment_dict,
-            **kwargs,
-        )
-        self.attach_sector_level_2()
-        self.attach_analyst_adjustment(sec_adjustment_dict)
+        # check for analyst adjustment
+        for adj in self.issuer_store.Adjustment:
+            thematic_type = adj["Thematic Type"]
+            cat = adj["Category"]
+            a = adj["Adjustment"]
+            comment = adj["Comments"]
+            func_ = getattr(adjustment, thematic_type)
+            func_(
+                store=self,
+                adjustment=a,
+                themes=themes,
+                theme=cat,
+                comment=comment,
+            )
+
+    def calculate_sustainable_theme(self, themes: dict) -> None:
+        """
+        assign Sustainability Tag to security
+
+        Parameters
+        ----------
+        themes: dict
+            dictionary of themes with theme as key, corresponding theme object as value
+        """
+        self.information["SECTOR_LEVEL_2"].calculate_sustainable_theme(themes)
+
+    def calculate_transition_score(self) -> None:
+        """
+        Calculate transition score (Transition_Score) for security
+        """
+        self.information["SECTOR_LEVEL_2"].calculate_transition_score()
+
+    def calculate_sovereign_score(self) -> None:
+        """
+        Calculate sovereign score for security
+        """
+        self.information["SECTOR_LEVEL_2"].calculate_sovereign_score()
+
+    def calculate_esrm_score(self) -> None:
+        """
+        Calculuate esrm score for security
+        """
+        self.information["SECTOR_LEVEL_2"].calculate_esrm_score()
+
+    def calculate_security_score(self) -> None:
+        """
+        Calculuate security specific score for security
+        """
+        self.information["SECTOR_LEVEL_2"].calculate_security_score()

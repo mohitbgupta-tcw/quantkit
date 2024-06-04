@@ -145,13 +145,11 @@ class SDGDataSource(ds.DataSources):
                 self.sdg[issuer_store.information["ISS_ISSUERID"]]
             )
 
-            parent_id = issuer_store.msci_information["PARENT_ULTIMATE_ISSUERID"]
             iss_information_parent = None
-            if not pd.isna(parent_id):
-                parent_store = issuer_dict.get(parent_id, None)
-                if parent_store:
-                    parent_sdg_id = parent_store.information["ISS_ISSUERID"]
-                    iss_information_parent = self.sdg.get(parent_sdg_id, None)
+            if hasattr(issuer_store, "ultimate_parent_store"):
+                parent_store = issuer_store.ultimate_parent_store
+                parent_sdg_id = parent_store.information["ISS_ISSUERID"]
+                iss_information_parent = self.sdg.get(parent_sdg_id, None)
 
             issuer_store.attach_iss_information(iss_information, iss_information_parent)
 

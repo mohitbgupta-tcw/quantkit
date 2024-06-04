@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import quantkit.core.characteristics.sectors as sectors
 import quantkit.risk_framework.core.exclusions as exclusions
-import quantkit.risk_framework.core.adjustment as adjustment
 from quantkit.core.financial_infrastructure.issuer import IssuerStore
 
 
@@ -26,34 +25,8 @@ class IssuerStore(IssuerStore):
 
     def __init__(self, key: str, information: dict, **kwargs) -> None:
         super().__init__(key, information, **kwargs)
-        self.information["transition_info"] = dict()
-        self.scores = dict(
-            Themes=dict(),
-            Themes_unadjusted=dict(),
-            Transition_Category=list(),
-            Transition_Category_unadjusted=list(),
-            Sustainability_Tag="N",
-            Transition_Tag="N",
-            Muni_Score=0,
-            Muni_Score_unadjusted=0,
-            Sovereign_Score=0,
-            Sovereign_Score_unadjusted=0,
-            ESRM_Score=0,
-            ESRM_Score_unadjusted=0,
-            Governance_Score=0,
-            Governance_Score_unadjusted=0,
-            Target_Score=0,
-            Transition_Score=0,
-            Transition_Score_unadjusted=0,
-            Corporate_Score=0,
-            Review_Flag="",
-            Review_Comments="",
-            ESRM_Flags=dict(),
-            Governance_Flags=dict(),
-            NA_Flags_ESRM=dict(),
-            NA_Flags_Governance=dict(),
-        )
-
+        self.transition_information = dict()
+        self.esg_information = dict()
         self.Adjustment = list()
 
     def attach_bclass(self, bclass_dict: dict) -> None:
@@ -123,18 +96,12 @@ class IssuerStore(IssuerStore):
             gics_object = gics_d[gics_sub]
             self.information["Industry"] = gics_object.industry
             self.information["Sub-Industry"] = gics_object
-            self.information["Transition_Risk_Module"] = gics_object.information[
-                "Transition Risk Module"
-            ]
             # attach company to industry
             gics_object.industry.issuers[self.key] = self
         else:
             bclass_object = bclass_d[bclass4]
             self.information["Industry"] = bclass_object.industry
             self.information["Sub-Industry"] = bclass_object
-            self.information["Transition_Risk_Module"] = bclass_object.information[
-                "Transition Risk Module"
-            ]
             # attach company to industry
             bclass_object.industry.issuers[self.key] = self
 
@@ -209,7 +176,7 @@ class IssuerStore(IssuerStore):
 
     def attach_exclusion(self, exclusion_dict: dict) -> None:
         """
-        Attach exclusions from MSCI to company object
+        Attach exclusions from MSCI to issuer object
         Link to exclusion datasource by MSCI issuer id
         Attach if parent would be A8 or A9 excluded
 
@@ -219,7 +186,7 @@ class IssuerStore(IssuerStore):
             dict of exclusions based on articles 8 and 9
         """
         # map exclusion based on Article 8 and 9
-        msci_issuerid = self.msci_information["ISSUERID"]
+        msci_issuerid = self.information["MSCI_ISSUERID"]
         self.exclusion_data = exclusion_dict.get(
             msci_issuerid, exclusion_dict["NoISSUERID"]
         )
@@ -278,83 +245,135 @@ class IssuerStore(IssuerStore):
         if sum(self.exclusion_data["A9"].exclusion_dict.values()) > 0:
             self.exclusion_data["Exclusion"].append("Article 9")
 
-    def attach_region(self, regions: dict) -> None:
+    def attach_analyst_adjustment(self, adjustment_dict: dict) -> None:
         """
-        Attach region information (including ISO2, name, sovereign score) to parent object
-        Save region object in self.information["Issuer_Country"]
+        Attach analyst adjustment to issuer object
+        Link to adjustment datasource by MSCI issuer id or security ISIN
 
         Parameters
         ----------
-        regions: dict
-            dictionary of all region objects
-        """
-        if not regions:
-            return
-        country = self.msci_information["ISSUER_CNTRY_DOMICILE"]
-        country = np.nan if pd.isna(country) else country
-        self.information["Issuer_Country"] = regions[country]
-        regions[country].add_company(self.isin, self)
-
-    def attach_category(self, category_d: dict) -> None:
-        """
-        Attach ESRM category based on ESRM module of sub industry
-        Attach Region Theme based on Region
-
-        Parameters
-        ----------
-        category_d: dict
-            dictionary of ESRM categories
-        """
-        if not category_d:
-            return
-        esrm_module = self.information["Sub-Industry"].information["ESRM Module"]
-        self.information["ESRM Module"] = category_d[esrm_module]
-
-        # get region theme (DM, JP, EM, EUCohort)
-        region_theme = self.information["Issuer_Country"].information["Region"]
-        self.information["region_theme"] = category_d[region_theme]
-
-    def attach_analyst_adjustment(self, msci_adjustment_dict: dict) -> None:
-        """
-        Attach analyst adjustment to company object
-        Link to adjustment datasource by MSCI issuer id
-
-        Parameters
-        ----------
-        msci_adjustment_dict: dict
+        adjustment_dict: dict
             dictionary of Analyst Adjustments
         """
         # attach analyst adjustment
-        msci_issuerid = self.msci_information["ISSUERID"]
-        if msci_issuerid in msci_adjustment_dict:
-            self.Adjustment = msci_adjustment_dict[msci_issuerid]
+        msci_issuerid = self.information["MSCI_ISSUERID"]
+        if msci_issuerid in adjustment_dict:
+            self.Adjustment = adjustment_dict[msci_issuerid]
 
-    def iter_analyst_adjustment(self, themes: dict) -> None:
+        for sec, sec_store in self.securities.items():
+            sec_isin = sec_store.information["ISIN"]
+            if sec_isin in adjustment_dict:
+                self.Adjustment = adjustment_dict[sec_isin]
+
+    def calculate_capex(self) -> None:
         """
-        Do analyst adjustments for each parent.
-        Different calculations for each thematic type:
-            - Risk
-            - Transition
-            - People
-            - Planet
-        See quantkit.finance.adjustments for more information
+        Calculate the green CapEx of an issuer
+        save capex in information[CapEx]
+
+        Calculation
+        -----------
+            max(
+                GreenExpTotalCapExSharePercent,
+                RENEW_ENERGY_CAPEX_VS_TOTAL_CAPEX_PCT
+            )
+        """
+        self.esg_information["CapEx"] = np.nanmax(
+            [
+                self.sdg_information["GreenExpTotalCapExSharePercent"] * 100,
+                self.msci_information["RENEW_ENERGY_CAPEX_VS_TOTAL_CAPEX_PCT"],
+                0,
+            ]
+        )
+
+    def calculate_climate_revenue(self) -> None:
+        """
+        Calculate the green climate revenue of an issuer
+        save climate revenue in information[Climate_Revenue]
+
+        Calculation
+        -----------
+            max(
+                CT_CC_TOTAL_MAX_REV,
+                SDGSolClimatePercentCombCont
+            )
+        """
+        self.esg_information["Climate_Revenue"] = np.nanmax(
+            [
+                self.msci_information["CT_CC_TOTAL_MAX_REV"],
+                self.sdg_information["SDGSolClimatePercentCombCont"] * 100,
+                0,
+            ]
+        )
+
+    def calculate_climate_decarb(self) -> None:
+        """
+        Calculate the decarbonization improvement of an issuer
+        """
+        if self.msci_information["SALES_USD_RECENT"] > 0:
+            carbon_rn = (
+                self.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN"]
+                + self.msci_information["CARBON_EMISSIONS_SCOPE_3"]
+                / self.msci_information["SALES_USD_RECENT"]
+            )
+        else:
+            carbon_rn = 0
+
+        if self.msci_information["SALES_USD_FY19"] > 0:
+            carbon_2019 = (
+                self.msci_information["CARBON_EMISSIONS_SCOPE_12_INTEN_FY19"]
+                + self.msci_information["CARBON_EMISSIONS_SCOPE_3_FY19"]
+                / self.msci_information["SALES_USD_FY19"]
+            )
+        else:
+            carbon_2019 = 0
+
+        if carbon_2019 > 0:
+            self.esg_information["Decarb"] = carbon_rn / carbon_2019 - 1
+        else:
+            self.esg_information["Decarb"] = 0
+
+    def calculate_carbon_intensity(self) -> None:
+        """
+        Calculate the carbon intensity of an issuer
+
+        Calculation
+        -----------
+            CARBON_EMISSIONS_SCOPE123 / SALES_USD_RECENT
+        """
+        if (
+            self.msci_information["SALES_USD_RECENT"] > 0
+            and self.msci_information["CARBON_EMISSIONS_SCOPE123"] > 0
+        ):
+            carbon_intensity = (
+                self.msci_information["CARBON_EMISSIONS_SCOPE123"]
+                / self.msci_information["SALES_USD_RECENT"]
+            )
+        # numerator or denominator are zero --> replace with median of sub industry
+        else:
+            carbon_intensity = self.information["Sub-Industry"].information[
+                "Sub-Sector Median"
+            ]
+
+        self.esg_information["Carbon Intensity (Scope 123)"] = carbon_intensity
+
+    def attach_transition_info(
+        self,
+        transition_company_mapping: dict,
+    ) -> None:
+        """
+        Overwrite Enabler/Improver and Acronym tag for company specific companies
 
         Parameters
         ----------
-        themes: dict
-            dictionary of all themes
+        transition_company_mapping: dict
+            companies with company specific improver/enabler tag
         """
-        # check for analyst adjustment
-        for adj in self.Adjustment:
-            thematic_type = adj["Thematic Type"]
-            cat = adj["Category"]
-            a = adj["Adjustment"]
-            comment = adj["Comments"]
-            func_ = getattr(adjustment, thematic_type)
-            func_(
-                store=self,
-                adjustment=a,
-                themes=themes,
-                theme=cat,
-                comment=comment,
-            )
+        transition_info = deepcopy(self.information["Sub-Industry"].information)
+        msci_id = self.information["MSCI_ISSUERID"]
+
+        if msci_id in transition_company_mapping:
+            transition_info["ENABLER_IMPROVER"] = transition_company_mapping[msci_id][
+                "ENABLER_IMPROVER"
+            ]
+            transition_info["ACRONYM"] = transition_company_mapping[msci_id]["ACRONYM"]
+        self.transition_information = transition_info

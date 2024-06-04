@@ -78,10 +78,11 @@ class MSCIESGDataSource(ds.DataSources):
             parent_id = msci_information["PARENT_ULTIMATE_ISSUERID"]
             msci_information_parent = None
             if not pd.isna(parent_id):
-                parent_store = issuer_dict.get(parent_id, None)
-                if parent_store:
-                    parent_msci_id = parent_store.information["MSCI_ISSUERID"]
-                    msci_information_parent = self.msci.get(parent_msci_id, None)
+                for parent, parent_store in issuer_dict.items():
+                    if parent_store.information["MSCI_ISSUERID"] == parent_id:
+                        issuer_store.ultimate_parent_store = parent_store
+                        msci_information_parent = self.msci.get(parent_id, None)
+                        break
 
             issuer_store.attach_msci_information(
                 msci_information, msci_information_parent

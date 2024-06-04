@@ -78,9 +78,3 @@ class SecurityStore(object):
             fundamental_information = deepcopy(dict_fundamental[np.nan])
             if not hasattr(self.issuer_store, "fundamental_information"):
                 self.issuer_store.fundamental_information = fundamental_information
-
-    def iter(self, **kwargs) -> None:
-        """
-        Iter over security and attach information
-        """
-        pass
