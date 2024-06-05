@@ -32,5 +32,6 @@ jobs:
         az configure --defaults workspace="${{ github.event.inputs.aml_workspace }}"
     - name: Create pipeline in Azure ML workspace
       run: |
-        cd handyman    
+        cd code
+        az ml environment create -f environment/docker-image-plus-conda.yaml
 
