@@ -61,7 +61,7 @@ QuantKit is a powerful Python package designed to streamline the process of quan
 - IDE: The outlined procedures are executed within Visual Studio Code (VSC). While alternative Integrated Development Environments (IDEs) can also be employed, it is important to note that variations in the steps may be necessary.
 - Install Anaconda: It is advisable, though not mandatory, to install Anaconda from [this link](https://conda.io/projects/conda/en/latest/user-guide/install/index.html). Ensure that you choose the appropriate version for your operating system. In the provided window, include Anaconda in your PATH environmental variable and complete the setup.
 
-![Anaconda](img/anaconda.png)  
+![Anaconda](documentations/img/anaconda.png)  
 - Create Environment: Generate an environment specific to your project using Anaconda. Launch a command line and enter the following command. You may close the command line afterward.
 ```shell
 > conda create -n "quantkit" python=3.10 ipython -y
@@ -117,8 +117,7 @@ Therefore, if you wish to alter the `portfolio_datasource` to Excel, input the f
     "portfolio_datasource": {
         "source": 1,
         "file": "path/to/excel",
-        "sheet_name": "Sheet_Name" ,
-        "load": true 
+        "sheet_name": "Sheet_Name"
     }
 ```
 
@@ -271,9 +270,9 @@ local_configs = "path\\to\\your\\local\\configs.json"
 portfolios.historical_portfolio_holdings(
     start_date="01/31/2018",
     end_date="01/01/2023",
-    portfolios=["3750"],
-    equity_benchmark=["S & P 500 INDEX"],
-    fixed_income_benchmark=["BB HIGH YIELD 2% CAP"],
+    tcw_universe=["3750"],
+    equity_universe=["S & P 500 INDEX"],
+    fixed_income_universe=["BB HIGH YIELD 2% CAP"],
     local_configs=local_configs,
 )
 

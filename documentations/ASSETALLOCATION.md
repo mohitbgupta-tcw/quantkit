@@ -1,7 +1,7 @@
 # Asset Allocation
 The Asset Allocation package in QuantKit is a comprehensive tool designed to streamline your investment process. This powerful tool integrates various data sources, supports flexible security universes, and offers a diverse range of strategies through a well-organized signals repository. Utilizing advanced portfolio optimization techniques such as Mean Variance Optimization and Risk Parity, our package empowers users to make informed decisions while benefiting from advanced backtesting capabilities. Get ready to elevate your investment strategy with this versatile and user-friendly asset allocation solution.
 
-![AssetAllocation](../img/asset_allocation.png)  
+![AssetAllocation](../documentations/img/asset_allocation.png)  
 
 ## Settings
 ---
@@ -68,15 +68,13 @@ To change the datasource, make the following changes in your configs file as adv
         "source": 3,
         "table_name": "PRICES",
         "database": "SANDBOX_ESG",
-        "schema": "QUANT_RESEARCH",
-        "load": true
+        "schema": "QUANT_RESEARCH"
     },
     "fundamentals_datasource": {
         "source": 3,
         "table_name": "FUNDAMENTAL_DATA",
         "database": "SANDBOX_ESG",
-        "schema": "QUANT_RESEARCH",
-        "load": true
+        "schema": "QUANT_RESEARCH"
     },
 
 ```
@@ -90,7 +88,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "start_date": "01/01/2018",
         "end_date": "11/20/2023"
     }
@@ -101,7 +99,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "tcw_universe": [""]
     }
 
@@ -122,7 +120,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "equity_universe": ["Russell 1000"]
     }  
 
@@ -132,7 +130,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "fixed_income_universe": []
     }
 
@@ -142,7 +140,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "custom_universe": ["US0378331005", "US5949181045", "US0231351067", 
                             "US30303M1027", "US46625H1005", "US0846707026",
                             "US02079K1079", "US02079K3059", "US4781601046",
@@ -155,7 +153,7 @@ The initial step involves defining a suitable trading universe of securities. Us
 
 ```shell
 
-    "universe_datasource": {
+    "portfolio_datasource": {
         "sustainable": false
     }
 
@@ -270,7 +268,7 @@ A `return_metrics_optimizer` function that forecasts the returns for that partic
 
 #### Momentum
 
-The momentum strategy adheres to the principle of "Buy Low, Sell High." This approach selects the `top_n` securities within a rolling window of `window_size`, based on their cumulative returns. By identifying and capitalizing on these high-performing assets, the momentum strategy aims to optimize investment outcomes and generate consistent returns.
+The momentum strategy adheres to the principle of "Buy Low, Sell High." This approach selects the `top_n` securities within a rolling window of `window_size`, based on their cumulative returns. If the user prefers to use different window sizes for the risk and return engines, they should specify `risk_window_size` and `return_window_size` rather than `window_size`. By identifying and capitalizing on these high-performing assets, the momentum strategy aims to optimize investment outcomes and generate consistent returns.
 
 ```shell
 
@@ -279,7 +277,8 @@ The momentum strategy adheres to the principle of "Buy Low, Sell High." This app
             "type": "momentum",
             "stop_loss": null,
             "stop_loss_threshold": 0.0,
-            "window_size": 63,
+            "risk_window_size": 63,
+            "return_window_size": 63,
             "portfolio_leverage": 1,
             "return_engine": "cumprod",
             "risk_engine": "log_normal",
@@ -317,20 +316,76 @@ Momentum selects the `top_n` securities based on cumulative returns. We are sort
         np.array
             array of indexes
         """
-        nan_sum = np.isnan(self.latest_return).sum()
-        top_n = min(self.top_n, self.num_total_assets - nan_sum)
-        neg_sort = (-self.return_metrics_intuitive).argsort()
+        (tradeable,) = np.where((self.index_comp > 0) & (~np.isnan(self.latest_return)))
+        neg_sort = tradeable[np.argsort(-self.return_metrics_intuitive[tradeable])]
+        return neg_sort[: self.top_n]
 
-        selected_assets = 0
-        i = 0
-        a = list()
+```
 
-        while selected_assets < top_n:
-            if self.index_comp[neg_sort[i]]:
-                a.append(neg_sort[i])
-                selected_assets += 1
-            i += 1
-        return np.array(a)
+
+</details>
+
+#### Mean Reversion
+
+The Mean Reversion strategy is predicated on the concept that significant price movements over a short duration are typically followed by a reversal in the subsequent period. This approach operates on the assumption that assets which have experienced sharp increases or decreases in value are likely to return to their average or 'mean' price level. This approach selects the choosen `decile` securities within a rolling window of `window_size`, based on their cumulative returns. If the user prefers to use different window sizes for the risk and return engines, they should specify `risk_window_size` and `return_window_size` rather than `window_size`.  Investors leveraging this strategy will look for opportunities to capitalize on this anticipated price correction, often by taking positions that are opposite to the recent market trend.
+
+```shell
+
+    "strategies": {
+        "mean_reversion": {
+            "type": "mean_reversion",
+            "stop_loss": null,
+            "stop_loss_threshold": 0.0,
+            "risk_window_size": 63,
+            "return_window_size": 21,
+            "portfolio_leverage": 1,
+            "return_engine": "cumprod",
+            "risk_engine": "log_normal",
+            "decile": 10,
+            "fraud_threshold": 0.8,
+            "allocation_models": [
+                "equal_weight", 
+                "market_weight", 
+                "min_variance", 
+                "constrained_min_variance", 
+                "mean_variance", 
+                "constrained_mean_variance", 
+                "risk_parity",
+                "hrp",
+                "constrained_hrp"
+            ]
+        }
+    }
+
+```
+
+<details>
+  <summary><b>For Nerds</b></summary>
+
+Mean Reversion selects the `decile` securities based on cumulative returns. We are sorting the return array by  returns, which puts the lowest return on top. We then pick the `top_n` securities, as long as they don't have missing data and they belong to the defined universe for that date. 
+
+```python
+
+    @property
+    def selected_securities(self) -> np.ndarray:
+        """
+        Index (position in universe_tickers as integer) of top mean reversion securities
+
+        Returns
+        -------
+        np.array
+            array of indexes
+        """
+        (tradeable,) = np.where(
+            (self.index_comp > 0)
+            & (~np.isnan(self.latest_return))
+            & (self.return_engine.return_metrics_optimizer > -self.fraud_threshold)
+        )
+        neg_sort = tradeable[np.argsort(self.return_metrics_intuitive[tradeable])]
+
+        lower_bound = round(len(tradeable) / 10 * (self.decile - 1))
+        upper_bound = round(len(tradeable) / 10 * self.decile)
+        return neg_sort[lower_bound:upper_bound]
 
 ```
 
@@ -389,6 +444,79 @@ Relative value filters the investment universe using measures such as market cap
             & (self.roe > self.roe_threshold)
             & (self.fcfps > self.freecashflow_threshold)
         ]
+
+```
+
+
+</details>
+
+#### Magic Formula
+The Magic Formula employs several fundamental filters to refine the selection of securities. It ranks the universe by Return on Invested Capital (ROIC) in descending order and by Enterprise Value to Earnings Before Interest and Taxes (EV/EBIT) in ascending order. The strategy then selects the top `n` securities based on the aggregate score.
+
+
+```shell
+
+    "strategies": {
+        "magic_formula": {
+            "type": "magic_formula",
+            "top_n": 30,
+            "stop_loss": null,
+            "stop_loss_threshold": 0.15,
+            "window_size": 63,
+            "portfolio_leverage": 1,
+            "return_engine": "log_normal",
+            "risk_engine": "log_normal",
+            "allocation_models": [
+                "equal_weight", 
+                "market_weight", 
+                "min_variance", 
+                "constrained_min_variance", 
+                "mean_variance", 
+                "constrained_mean_variance", 
+                "risk_parity",
+                "hrp",
+                "constrained_hrp"
+            ]
+        }
+    }
+
+```
+
+<details>
+  <summary><b>For Nerds</b></summary>
+
+```python
+
+    @property
+    def selected_securities(self) -> np.ndarray:
+        """
+        Index (position in universe_tickers as integer) of selected securities
+
+        Returns
+        -------
+        np.array
+            array of indexes
+        """
+        nan_sum = np.isnan(self.latest_return).sum()
+        top_n = min(self.top_n, self.num_total_assets - nan_sum)
+
+        roic_order = (-self.roic).argsort()
+        roic_rank = roic_order.argsort()
+        evebit_order = (self.evebit).argsort()
+        evebit_rank = evebit_order.argsort()
+        total_rank = evebit_rank + roic_rank
+        sort = total_rank.argsort()
+
+        selected_assets = 0
+        i = 0
+        a = list()
+
+        while selected_assets < top_n and i < self.num_total_assets:
+            if self.index_comp[sort[i]] > 0:
+                a.append(sort[i])
+                selected_assets += 1
+            i += 1
+        return np.array(a)
 
 ```
 
@@ -668,7 +796,7 @@ To utilize the various weighting strategies, assign them within the `allocation_
 <details>
   <summary><b>For Nerds</b></summary>
 
-![AssetAllocation](../img/optimizers.png)  
+![AssetAllocation](../documentations/img/optimizers.png)  
 
 </details>
 

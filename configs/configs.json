@@ -1,8 +1,4 @@
 {   
-    "portfolios": ["701","702","703","704", "705","706","707","708","709", "710","711","712","713","714","3237","3704","3720","3730","3735","3738", "3750","3775", "3798", "4790","6283", "6293", "6717","6739","6741","6748","6751","6757","6781","6784","13727","13751","16703","16705","16706","16719", "16720", "3666", "3667", "3668", "3669", "6293", "3778", "3234", "3660", "3659"],
-    "equity_benchmark": ["JESG EMBI Global Diversified Index", "JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI", "MSCI WORLD", "Russell 1000", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "RUSSELL 3000 INDEX", "S & P 500 INDEX", "MSCI EAFE", "RUSSELL 2000", "RUSSELL 2000 VALUE", "RUSSELL MIDCAP", "Russell Midcap Value", "S&P 500 EX TOBACCO"],
-    "fixed_income_benchmark": ["BB HIGH YIELD 2% CAP", "BB INTERMEDIATE CORP", "BLOOMBER LONG GOVT/CREDIT", "BLOOMBERG AGGREGATE INDEX", "Pan Euro Credit", "Pan Euro High Yield"],
-    
     "API_settings": {
         "snowflake_parameters": {
             "user": "",   
@@ -11,8 +7,8 @@
             },
     
         "msci_parameters": {
-            "key": "b769e9c4-16c4-45f8-89a5-6f555587a640",
-            "secret" : "0a7251dfd9dadd7f92444cab7e665e875a38ff5a"
+            "key": "B0ULIIFQM0qFl50yaT9AFB0M3sbhswcg",
+            "secret" : "D9_8FoQlTeFkGTjI7RkProVa2M5z9SI2xAm4wz6WLsiW9_h2DVZKhqtSuxPcH5OZ"
         },
     
         "quandl_parameters": {
@@ -21,30 +17,33 @@
 
         "fred_parameters": {
             "key": "eb4f46c42913c92951a8c64d545598ca"
+        },
+        "pcaf_parameters": {
+            "key": "0dd6a9bda4dbda99988cbe91d233dade"
         }
     },
     
     "portfolio_datasource": {
         "source": 3,
         "table_name": "POSITION_VW",
-        "database": "TCW_CORE_QA",
+        "database": "TCW_CORE",
         "schema": "TCW",
-        "load": true
+        "equity_universe": ["JESG EMBI Global Diversified Index", "JPM CEMBI BROAD DIVERSE", "JPM EMBI GLOBAL DIVERSIFI", "MSCI WORLD", "Russell 1000", "RUSSELL 1000 GROWTH", "RUSSELL 1000 VALUE", "RUSSELL 3000 GROWTH INDEX", "RUSSELL 3000 INDEX", "S & P 500 INDEX", "MSCI EAFE", "RUSSELL 2000", "RUSSELL 2000 VALUE", "RUSSELL MIDCAP", "Russell Midcap Value", "S&P 500 EX TOBACCO"],
+        "fixed_income_universe": ["BB HIGH YIELD 2% CAP", "BB INTERMEDIATE CORP", "BLOOMBER LONG GOVT/CREDIT", "BLOOMBERG AGGREGATE INDEX", "Pan Euro Credit", "Pan Euro High Yield", "BLOOMBERG GLOBAL AGG INDX"],
+        "tcw_universe": ["701","702","703","704", "705","706","707","708","709", "710","711","712","713","714","3237","3704","3720","3730","3735","3738", "3750","3775", "3798", "4790","6283", "6293", "6717","6739","6741","6748","6751","6757","6781","6784","13727","13751","16703","16705","16706","16719", "16720", "3666", "3667", "3668", "3669", "6293", "3778", "3234", "3660", "3659"]
     },
 
     "category_datasource": {
         "source": 3,
         "table_name": "MATERIALITY_MAPPING" ,
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true 
+        "schema": "ESG"
     },
     "bloomberg_datasource": {
         "source": 3,
         "table_name": "BLOOMBERG_DATA",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
     "fundamentals_datasource": {
         "source": 5,
@@ -55,8 +54,7 @@
             "dimension": "ART",
             "calendardate": {"gte": "2018-01-01"},
             "paginate": true
-        },
-        "load": true
+        }
     },
     "prices_datasource": {
         "source": 5,
@@ -67,8 +65,7 @@
             "ticker": [],
             "paginate": true,
             "date": {"gte": "2018-01-01"}
-        },
-        "load": true
+        }
     },
     "marketmultiple_datasource": {
         "source": 5,
@@ -76,21 +73,11 @@
         "datatable_code": ["MULTPL/SP500_PSR_QUARTER", "MULTPL/SP500_PBV_RATIO_QUARTER", "MULTPL/SP500_PE_RATIO_MONTH"],
         "filters": {
             "start_date": "2023-01-01"
-        },
-        "load": true
+        }
     },
-
-    "factor_datasource": {
-        "source": 3,
-        "table_name": "FAMA_FRENCH",
-        "database": "SANDBOX_ESG",
-        "schema": "QUANT_RESEARCH",
-        "load": true
-    },
-
     "msci_datasource": {
         "source": 4,
-        "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "url": "https://api.msci.com/esg/data/v2.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
         "historical": false,
         "filters": {
             "issuer_identifier_type": "ISSUER_ID",
@@ -103,6 +90,7 @@
                 "ISSUER_SEDOL",
                 "ISSUER_ISIN",
                 "ISSUER_CNTRY_DOMICILE",
+                "GICS_SECTOR",
                 "GICS_SUB_IND",
                 "IVA_COMPANY_RATING",
                 "ISSUERID",
@@ -112,42 +100,37 @@
         },
         "transformation": {
             "CARBON_EMISSIONS_CDP_DISCLOSURE": {"Yes": 1, "No": 0}
-        },
-        "load": true
+        }
     },
 
     "sdg_datasource": {
         "source": 3,
         "table_name": "FACT_ESG_ISSUER_SDGA",
-        "database": "TCW_CORE_QA",
-        "schema": "ESG_ISS",
-        "load": true
+        "database": "TCW_CORE",
+        "schema": "ESG_ISS"
     },
 
     "sector_datasource": {
         "source": 3,
         "table_name": "SECTOR_CODES",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
     "bclass_datasource": {
         "source": 3,
         "table_name": "BCLASS",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
     "gics_datasource": {
         "source": 3,
         "table_name": "GICS",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
     "exclusion_datasource": {
         "source": 4,
-        "url": "https://api.msci.com/esg/data/v1.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
+        "url": "https://api.msci.com/esg/data/v2.0/issuers?category_path_list=ESG+Ratings:Company+Summary&coverage=esg_ratings&format=json",
         "historical": false,
         "filters": {
             "issuer_identifier_type": "ISSUER_ID",
@@ -164,58 +147,49 @@
                 "ALC_PROD_MAX_REV_PCT",
                 "GAM_MAX_REV_PCT"
             ]
-        },
-        "load": true
+        }
     },
     "regions_datasource": {
         "source": 3,
         "table_name": "REGIONS",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
 
     "theme_datasource": {
         "source": 3,
         "table_name": "THEMATIC_MAPPING",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
-
-    "transition_datasource": {
+    "transition_company_datasource": {
         "source": 3,
-        "table_name": "TRANSITION_MAPPING",
+        "table_name": "TRANSITION_MAPPING_COMPANY",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
     "adjustment_datasource": {
         "source": 3,
         "table_name": "ADJUSTMENTS",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
     "securitized_datasource": {
         "source": 3,
         "table_name": "SECURITIZED_MAPPING",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
     "parent_issuer_datasource": {
         "source": 3,
         "table_name": "PARENT_ISSUER_MAPPING",
         "database": "SANDBOX_ESG",
-        "schema": "ESG",
-        "load": true
+        "schema": "ESG"
     },
     "ticker_parent_issuer_datasource": {
         "source": 3,
         "table_name": "TICKER_PARENT_MAPPING",
         "database": "SANDBOX_ESG",
-        "schema": "QUANT_RESEARCH",
-        "load": false
+        "schema": "QUANT_RESEARCH"
     }
 }

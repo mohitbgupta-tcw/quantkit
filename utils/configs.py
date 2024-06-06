@@ -4,6 +4,7 @@ import datetime
 from pandas.tseries.offsets import BDay
 import quantkit.utils.util_functions as util_functions
 from typing import Union
+from pathlib import Path
 
 
 def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) -> dict:
@@ -16,18 +17,19 @@ def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) 
     local_configs: str | dict, optional
         path to a local configarations file or local configs as dict
     runner_type: str, optional
-        runner type to include configs for, p.e. "risk_framework", "asset_allocation", "pai"
+        runner type to include configs for, p.e. "risk_framework", "backtester", "pai"
 
     Returns
     -------
     dict
         configs file as dictionary
     """
-    with open("quantkit/configs/configs.json") as f_in:
+    d = Path(__file__).resolve().parent.parent
+    with open(f"{d}/configs/configs.json") as f_in:
         configs = json.load(f_in)
 
     if runner_type:
-        with open(f"quantkit/configs/{runner_type}.json") as runner_in:
+        with open(f"{d}/configs/{runner_type}.json") as runner_in:
             configs_runner = json.load(runner_in)
 
         configs = util_functions.replace_dictionary(configs_runner, configs)
@@ -41,10 +43,15 @@ def read_configs(local_configs: Union[str, dict] = "", runner_type: str = None) 
 
         configs = util_functions.replace_dictionary(configs_local, configs)
 
-    if not "as_of_date" in configs:
-        today = datetime.datetime.today()
-        last_bday = today - BDay(1)
-        as_of_date = last_bday.strftime("%m/%d/%Y")
-        configs["as_of_date"] = as_of_date
+    today = datetime.datetime.today()
+    last_bday = today - BDay(1)
+    as_of_date = last_bday.strftime("%m/%d/%Y")
+    if "as_of_date" in configs:
+        configs["portfolio_datasource"]["start_date"] = configs["as_of_date"]
+        configs["portfolio_datasource"]["end_date"] = configs["as_of_date"]
+    if "start_date" not in configs["portfolio_datasource"]:
+        configs["portfolio_datasource"]["start_date"] = as_of_date
+    if "end_date" not in configs["portfolio_datasource"]:
+        configs["portfolio_datasource"]["end_date"] = as_of_date
 
     return configs

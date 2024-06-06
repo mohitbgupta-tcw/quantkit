@@ -1,8 +1,46 @@
-import quantkit.data_sources.snowflake as snowflake_ds
+import quantkit.core.data_sources.snowflake as snowflake_ds
 import quantkit.utils.configs as configs
 import pandas as pd
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
+from cryptography.hazmat.primitives import serialization
+from airflow.hooks.base_hook import BaseHook
+
+def get_snowflake_connparams(connid, role, schema):
+
+    conn = BaseHook.get_connection(connid)
+    extras = conn.extra_dejson
+
+    # Decode the private key
+    private_key_content = extras['private_key_content'].encode()
+    private_key_passphrase = conn.password.encode()
+
+    # Load the private key
+    p_key = serialization.load_pem_private_key(
+        private_key_content,
+        password=private_key_passphrase,
+        backend=None
+    )
+
+    # Convert the private key to a format Snowflake connector expects
+    pkb = p_key.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    # Define Snowflake connection parameters
+    conn_params = {
+        'user': conn.login,
+        'account': extras['account'],
+        'warehouse': extras['warehouse'],
+        'database': extras['database'],
+        'schema': schema,
+        'role': role,
+        'private_key': pkb
+    }
+
+    return conn_params
 
 
 def load_from_snowflake(
@@ -49,7 +87,6 @@ def load_from_snowflake(
     sf.load(query=query)
     return sf.df
 
-
 def write_to_snowflake(
     df: pd.DataFrame,
     database: str,
@@ -80,15 +117,24 @@ def write_to_snowflake(
     params = configs.read_configs(local_configs=local_configs)
     snowflake_params = params["API_settings"]["snowflake_parameters"]
 
-    connection_parameters = {
-        "account": "tcw",
-        "user": snowflake_params["user"],
-        "host": "tcw.west-us-2.azure.snowflakecomputing.com",
-        "password": snowflake_params["password"],
-        "role": snowflake_params["role"],
-        "database": database,
-        "schema": schema,
-    }
+    if 'airflow_connection_id' in snowflake_params:
+
+        connection_parameters = get_snowflake_connparams(snowflake_params['airflow_connection_id'].
+                                                         snowflake_params["role"],
+                                                         schema)
+
+    else:
+
+        connection_parameters = {
+            "account": "tcw",
+            "user": snowflake_params["user"],
+            "host": "tcw.west-us-2.azure.snowflakecomputing.com",
+            "password": snowflake_params["password"],
+            "role": snowflake_params["role"],
+            "database": database,
+            "schema": schema,
+        }
+
     conn = snowflake.connector.connect(**connection_parameters)
     success, nchunks, nrows, _ = write_pandas(
         conn, df, table_name, auto_create_table=True, overwrite=overwrite

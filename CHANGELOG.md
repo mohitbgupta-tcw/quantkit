@@ -7,9 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Magic Formula Strategy
+- Mean Reversion Strategy
+- Allow different window sizes for same return engine in return_engine_dict
+- Allow different window sized for return and risk engine
+- Numpy rolling covariance and rolling mean
 ### Fixed
 ### Changed
+- move code intro seperate risk_framework, backtester, pai folders
+- create seperate objects for those folders inheriting from core folder
+- iter holdings function optimized for speed
+- Transition Framework 2.0
+- MSCI API change to auth2.0
+- move image folder into documentations
 ### Removed
+- Remove fama french factor calculation
 
 ## [1.5.3] - 2024-01-05
 ### Added

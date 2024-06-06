@@ -4,7 +4,7 @@ At TCW, we recognize that environmental, social, and corporate governance (ESG) 
 
 As a value-driven active manager, TCW adheres to a fundamental research-based investment philosophy, extending to sustainable investment. We've developed a proprietary research framework for quantifying ESG risks and sustainability. This framework includes quantified scoring across asset classes, breaking down our evaluation of a company's sustainable management into governance quality, environmental and social hazards, and climate transition risks. We also assess investments for alignment with 12 sustainability themes addressing challenges faced by the planet and its people.
 
-![Riskframework](../img/risk_framework.png)  
+![Riskframework](../documentations/img/risk_framework.png)  
 
 ## Usage
 ---
@@ -38,7 +38,7 @@ Before executing the risk framework functionality, ensure proper configuration o
 
 ```shell
 
-    "portfolios": ["all"]
+    "tcw_universe": ["all"]
 
 ```
 
@@ -46,7 +46,7 @@ Before executing the risk framework functionality, ensure proper configuration o
 
 ```shell
 
-    "equity_benchmark": []
+    "equity_universe": []
 
 ```
 
@@ -54,7 +54,7 @@ Before executing the risk framework functionality, ensure proper configuration o
 
 ```shell
 
-    "fixed_income_benchmark": []
+    "fixed_income_universe": []
 
 ```
 
