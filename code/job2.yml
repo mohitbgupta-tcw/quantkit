@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 code: ../../
 command: >-
-  python code/q_alpha/q_alpha.py
+  python quantkit/code/q_alpha/q_alpha.py
 
 environment: azureml:docker-img-plus-conda-eg2:2
 compute: githubcluster
