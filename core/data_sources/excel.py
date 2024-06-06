@@ -86,11 +86,11 @@ class Excel(Microsoft):
             "",
             "None",
         ]
-        logging.log('self.params********************555555555555555**********************')
-        logging.log( str(Path(__file__).resolve().parent.parent) )
-        logging.log('self.params******************6666666666666666************************')
+        #logging.log('self.params********************555555555555555**********************')
+        #logging.log( str(Path(__file__).resolve().parent.parent.parent) )
+        #logging.log('self.params******************6666666666666666************************')
         self.df = pd.read_excel(
-            self.file,
+            str(Path(__file__).resolve().parent.parent.parent) + self.file,
             sheet_name=self.sheet_name,
             engine=self.engine,
             na_values=na_list,
