@@ -1,5 +1,5 @@
 import pandas as pd
-
+import quantkit.utils.logging as logging
 
 class Microsoft(object):
     """
@@ -85,6 +85,9 @@ class Excel(Microsoft):
             "",
             "None",
         ]
+        logging.log('self.params********************555555555555555**********************')
+        logging.log( str(Path(__file__).resolve().parent.parent) )
+        logging.log('self.params******************6666666666666666************************')
         self.df = pd.read_excel(
             self.file,
             sheet_name=self.sheet_name,
