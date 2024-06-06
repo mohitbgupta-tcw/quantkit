@@ -5,7 +5,7 @@ dependencies:
   - python=3.10
   - pip=21.2.4
   - pip:
-    - index-url=https://blpapi.bloomberg.com/repository/releases/python/simple blpapi
+    - --extra-index-url=https://blpapi.bloomberg.com/repository/releases/python/simple blpapi
     - blp>=0.0.3
     - black>=23.3.0
     - matplotlib>=3.7.1
