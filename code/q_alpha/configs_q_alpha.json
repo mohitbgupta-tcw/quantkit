@@ -23,7 +23,7 @@
     "trans_cost": 0.01,
     "portfolio_datasource": {
         "source": 1,
-        "file": "q_alpha/Q_Alpha_historical_weights.xlsx",
+        "file": "code/q_alpha/Q_Alpha_historical_weights.xlsx",
         "sheet_name": "Sheet1",
         "start_date": "01/01/2000",
         "end_date": "12/29/2023",
