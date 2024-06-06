@@ -91,7 +91,7 @@ class Runner(loader.Runner):
         #self.iter_parent_issuers()
         self.iter_portfolios()
         #self.iter_msci()
-        #self.iter_prices()
+        self.iter_prices()
         #self.iter_fundamentals()
         #self.iter_marketmuliples()
         #self.iter_holdings()
