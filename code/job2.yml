@@ -1,0 +1,9 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+
+command: >-
+  python q_alpha.py
+
+environment: azureml:docker-img-plus-conda-eg2
+compute: githubcluster
+experiment_name: pipeline
+description: This pipeline job is created from cli
