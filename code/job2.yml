@@ -3,7 +3,7 @@ code: ../../
 command: >-
   python quantkit/code/q_alpha/q_alpha.py
 
-environment: azureml:docker-img-plus-conda-eg2:8
+environment: azureml:docker-img-plus-conda-eg2:10
 compute: githubcluster
 experiment_name: pipeline
 description: This pipeline job is created from cli
