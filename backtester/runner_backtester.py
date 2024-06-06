@@ -39,9 +39,7 @@ class Runner(loader.Runner):
             path to a local configarations file
         """
         super().init(local_configs, "backtester")
-        logging.log(sys.path)
-        logging.log(self.params)
-        logging.log('self.params******************************************')
+
         self.annualize_factor = mapping_configs.annualize_factor_d.get(
             self.params["prices_datasource"]["frequency"], 252
         )
