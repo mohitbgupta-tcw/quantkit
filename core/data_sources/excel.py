@@ -39,7 +39,7 @@ class CSV(Microsoft):
         """
         Load csv file and save data as pd.DataFrame in self.df
         """
-        self.df = pd.read_csv(self.file)
+        self.df = pd.read_csv(str(Path(__file__).resolve().parent.parent.parent) + self.file)
 
 
 class Excel(Microsoft):
