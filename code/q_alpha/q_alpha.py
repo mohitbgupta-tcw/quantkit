@@ -17,5 +17,6 @@ local_configs = str(Path(__file__).resolve().parent.parent)+'/q_alpha/configs_q_
 r = runner.Runner()
 r.init(local_configs=local_configs)
 
+r.run()
 
 
