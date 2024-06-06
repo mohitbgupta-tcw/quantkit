@@ -8,8 +8,13 @@ from pathlib import Path
 d = Path().resolve().parent
 sys.path.insert(0, str(d)+'wd/quantkit')
 
+print (str(d)+'wd/quantkit')
+print ('-------------------1111111111111111111------------------------')
+print (Path().resolve().parent)
+print ('-------------------22------------------------')
+print (sys.path)
+print ('-------------------33------------------------')
 import quantkit.backtester.runner_backtester as runner
 
-print (d)
-print ('-------------------1111111111111111111------------------------')
+
 
