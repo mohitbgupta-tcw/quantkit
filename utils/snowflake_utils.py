@@ -1,8 +1,9 @@
-import quantkit.data_sources.snowflake as snowflake_ds
+import quantkit.core.data_sources.snowflake as snowflake_ds
 import quantkit.utils.configs as configs
 import pandas as pd
 import snowflake.connector
 from snowflake.connector.pandas_tools import write_pandas
+
 
 
 def load_from_snowflake(
