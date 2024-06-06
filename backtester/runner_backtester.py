@@ -101,7 +101,7 @@ class Runner(loader.Runner):
         #self.iter_sovereigns()
         #self.iter_securitized()
         #self.iter_muni()
-        #self.init_strategies()
+        self.init_strategies()
 
     def iter_parent_issuers(self) -> None:
         """
