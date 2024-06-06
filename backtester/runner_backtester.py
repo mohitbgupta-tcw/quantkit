@@ -23,6 +23,7 @@ import quantkit.backtester.return_calc.cumprod_return as cumprod_return
 import quantkit.backtester.risk_calc.log_vol as log_vol
 import quantkit.backtester.risk_calc.ewma_vol as ewma_vol
 import quantkit.backtester.risk_calc.simple_vol as simple_vol
+import sys
 
 
 class Runner(loader.Runner):
