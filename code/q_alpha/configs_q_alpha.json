@@ -1,0 +1,75 @@
+{
+    "API_settings": {
+        "snowflake_parameters": {
+            "user": "tim.bastian@tcw.com",
+            "password": "fd*@emJpu@uCorH6"
+        }
+    },
+    "default_weights_constraint": [0.001, 0.15],
+    "weight_constraint": {
+        "SPXT Index": [0, 0.3], 
+        "XNDX Index": [0, 0.2], 
+        "GA10 Index": [0, 0.5], 
+        "LUMSTRUU Index": [0, 0.5], 
+        "DJUSRET Index": [0, 0.08], 
+        "BCOMTR Index": [0, 0.08], 
+        "GC1 Comdty": [0, 0.1]
+    },
+    "allocation_limit": {
+        "limited_assets": ["SPXT Index", "XNDX Index", "DJUSRET Index", "BCOMTR Index", "GC1 Comdty"],
+        "limit": 0.28,
+        "allocate_to": ["LUMSTRUU Index", "GA10 Index"]
+    },
+    "trans_cost": 0.01,
+    "portfolio_datasource": {
+        "source": 1,
+        "file": "Q_Alpha_historical_weights.xlsx",
+        "sheet_name": "Sheet1",
+        "start_date": "01/01/2000",
+        "end_date": "12/29/2023",
+        "custom_universe": ["LUMSTRUU Index", "GA10 Index", "SPXT Index", "XNDX Index", "DJUSRET Index", "BCOMTR Index", "GC1 Comdty"],
+        "equity_universe": [],
+        "fixed_income_universe": [],
+        "tcw_universe": [],
+        "sustainable": false
+    },  
+    "marketmultiple_datasource": {
+        "filters": {
+            "start_date": "1999-01-01"
+        }
+    },  
+    "prices_datasource": {
+        "rebalance": "MONTH",
+        "source": 2,
+		"file": "q_alpha_prices.csv",
+		"sheet_name": "Sheet1",
+        "fields": ["PX_LAST"],
+        "tickers": ["SPXT Index", "XNDX Index", "GA10 Index", "LUMSTRUU Index", "DJUSRET Index", "BCOMTR Index", "GC1 Comdty"], 
+        "start_date": "2010-01-01",
+        "end_date": "2024-04-30",
+        "filters": {
+            "ca_adj": "FULL"
+        }
+    },
+    "fundamentals_datasource": {
+        "source": 3,
+        "filters": {
+            "calendardate": {"start_date": "1999-01-01"}
+        },
+        "table_name": "FUNDAMENTALS_QALPHA",
+        "database": "SANDBOX_ESG",
+        "schema": "QUANT_RESEARCH"
+    },
+    "strategies": {
+        "q_alpha": {
+            "type": "pick_all",
+            "stop_loss": null,
+            "stop_loss_threshold": 0.1,
+            "portfolio_leverage": 5,
+            "window_size": 63,
+            "return_engine": "log_normal",
+            "risk_engine": "log_normal",
+            "allocation_models": ["equal_weight", "hrp", "constrained_hrp", "scaled_hrp", "original_weight"]
+        }
+    }
+}
