@@ -41,7 +41,7 @@
     "prices_datasource": {
         "rebalance": "MONTH",
         "source": 2,
-		"file": "q_alpha_prices.csv",
+		"file": "/code/q_alpha_prices.csv",
 		"sheet_name": "Sheet1",
         "fields": ["PX_LAST"],
         "tickers": ["SPXT Index", "XNDX Index", "GA10 Index", "LUMSTRUU Index", "DJUSRET Index", "BCOMTR Index", "GC1 Comdty"], 
