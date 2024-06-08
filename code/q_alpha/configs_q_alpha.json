@@ -1,8 +1,8 @@
 {
     "API_settings": {
         "snowflake_parameters": {
-            "user": "tim.bastian@tcw.com",
-            "password": "fd*@emJpu@uCorH6"
+            "user": "sherveen.abdarbashi@tcw.com",
+            "password": "#M&tcnCWN8QnAcaK"
         }
     },
     "default_weights_constraint": [0.001, 0.15],
