@@ -88,19 +88,19 @@ class Runner(loader.Runner):
         """
         iterate over DataFrames and create connected objects
         """
-        #self.iter_parent_issuers()
+        self.iter_parent_issuers()
         self.iter_portfolios()
-        #self.iter_msci()
+        self.iter_msci()
         self.iter_prices()
-        #self.iter_fundamentals()
-        #self.iter_marketmuliples()
-        #self.iter_holdings()
-        #self.iter_securities()
-        #self.iter_cash()
-        #self.iter_companies()
-        #self.iter_sovereigns()
-        #self.iter_securitized()
-        #self.iter_muni()
+        self.iter_fundamentals()
+        self.iter_marketmuliples()
+        self.iter_holdings()
+        self.iter_securities()
+        self.iter_cash()
+        self.iter_companies()
+        self.iter_sovereigns()
+        self.iter_securitized()
+        self.iter_muni()
         self.init_strategies()
 
     def iter_parent_issuers(self) -> None:
