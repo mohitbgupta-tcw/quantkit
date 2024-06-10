@@ -14,7 +14,7 @@ import quantkit.handyman.risk_framework as risk_framework
 
 local_configs = str(Path(__file__).resolve().parent.parent.parent)+'/configs/configs.json' 
 
-#df_detailed = risk_framework.risk_framework(local_configs=local_configs)
-print ('1111111111111111111111111111111111111')
-print(local_configs)
-print ('3333333333333333333333333333333333333333')
+df_detailed = risk_framework.risk_framework(local_configs=local_configs)
+#print ('1111111111111111111111111111111111111')
+#print(local_configs)
+#print ('3333333333333333333333333333333333333333')
