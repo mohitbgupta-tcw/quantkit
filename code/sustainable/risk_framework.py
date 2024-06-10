@@ -12,7 +12,7 @@ sys.path.insert(0, str(d)+'/wd')
 #import quantkit.backtester.runner_backtester as runner
 import quantkit.handyman.risk_framework as risk_framework
 
-local_configs = str(Path(__file__).resolve().parent.parent.parent)+'/q_alpha/configs_q_alpha.json' "C:\\Users\\bastit\\OneDrive - The TCW Group Inc\\Documents\\quantkit\\configs\\configs.json"
+local_configs = str(Path(__file__).resolve().parent.parent.parent)+'/configs/configs.json' 
 
 #df_detailed = risk_framework.risk_framework(local_configs=local_configs)
 print(local_configs)
