@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 code: ../../
 command: >-
-  python quantkit/code/sustainable/risk_framework2.py
+  python quantkit/code/sustainable/risk_framework.py
 
 environment: azureml:docker-img-plus-conda-eg2:10
 compute: githubcluster
