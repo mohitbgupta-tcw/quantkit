@@ -12,7 +12,7 @@ print (str(d)+'/wd')
 #import quantkit.backtester.runner_backtester as runner
 import quantkit.handyman.risk_framework as risk_framework
 
-local_configs = str(Path(__file__).resolve().parent.parent.parent)+'/configs/configs.json' 
+local_configs = str(Path(__file__).resolve().parent.parent.parent)+'/configs/configSA.json' 
 
 df_detailed = risk_framework.risk_framework(local_configs=local_configs)
 #print ('1111111111111111111111111111111111111')
