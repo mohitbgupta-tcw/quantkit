@@ -1,0 +1,11 @@
+ {
+     "as_of_date":"5/16/2024",
+     "portfolios": ["all"],
+
+     "API_settings": {
+        "snowflake_parameters": {
+            "user": "sherveen.abdarbashi@tcw.com",   
+            "password": "#M&tcnCWN8QnAcaK"    
+        }
+    }
+}
