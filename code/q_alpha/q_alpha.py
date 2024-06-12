@@ -18,5 +18,6 @@ r = runner.Runner()
 r.init(local_configs=local_configs)
 
 r.run()
+print ("hello-20240612")
 
 
