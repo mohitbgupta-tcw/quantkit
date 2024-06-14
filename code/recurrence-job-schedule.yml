@@ -10,7 +10,7 @@ trigger:
   interval: 1 #every day
   schedule:
     hours: [3]
-    minutes: [0]
+    minutes: [0,35]
   start_time: "2022-07-10T10:00:00" # optional - default will be schedule creation time
   time_zone: "Pacific Standard Time" # optional - default will be UTC
 
