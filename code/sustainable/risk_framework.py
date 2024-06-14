@@ -20,7 +20,7 @@ df_detailed = risk_framework.risk_framework(local_configs=local_configs)
 
 import quantkit.utils.snowflake_utils as snowflake_utils
 
-local_configs = "C:\\Users\\bastit\\OneDrive - The TCW Group Inc\\Documents\\quantkit\\configs\\configs.json"
+local_configs = str(Path(__file__).resolve().parent.parent.parent)+'/configs/configSA.json'
 
 df_detailed['Portfolio ISIN'] = df_detailed['Portfolio ISIN'].astype(str)
 df_detailed['Ticker'] = df_detailed['Ticker'].astype(str)
