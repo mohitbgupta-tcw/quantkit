@@ -35,4 +35,5 @@ jobs:
         cd code
         az ml job create --file job2.yml --resource-group "${{github.event.inputs.resource_group}}" --workspace-name "${{github.event.inputs.aml_workspace}}"
         #az ml environment create -f environment/docker-image-plus-conda.yaml
+        az ml schedule create --file recurrence-job-schedule.yml --no-wait
 
