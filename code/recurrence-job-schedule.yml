@@ -1,1 +1,18 @@
 
+$schema: https://azuremlschemas.azureedge.net/latest/schedule.schema.json
+name: quantkit_sr_recurrence_job_sch
+display_name: Sustainable Research recurrence job schedule
+description: a simple recurrence job schedule
+
+trigger:
+  type: recurrence
+  frequency: day #can be minute, hour, day, week, month
+  interval: 1 #every day
+  schedule:
+    hours: [3]
+    minutes: [0]
+  start_time: "2022-07-10T10:00:00" # optional - default will be schedule creation time
+  time_zone: "Pacific Standard Time" # optional - default will be UTC
+
+create_job: ./job2.yml
+# create_job: azureml:simple-pipeline-job
