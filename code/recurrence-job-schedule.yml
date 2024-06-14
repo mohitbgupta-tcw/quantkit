@@ -9,8 +9,8 @@ trigger:
   frequency: day #can be minute, hour, day, week, month
   interval: 1 #every day
   schedule:
-    hours: [3]
-    minutes: [0,45]
+    hours: [2]
+    minutes: [0,55]
   start_time: "2022-07-10T10:00:00" # optional - default will be schedule creation time
   time_zone: "Pacific Standard Time" # optional - default will be UTC
 
