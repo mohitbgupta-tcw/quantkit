@@ -45,4 +45,4 @@ table_name="Sustainability_Framework_Detailed",
 local_configs=local_configs
 )
 
-print ('---------Success---------')
+print ('---------Success2---------')
